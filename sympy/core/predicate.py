@@ -82,12 +82,13 @@ class BooleanMeths:
         n = len(syms)
         r = range(n-1,-1,-1)
         string_expr = expr.tostr()
+        l_dict = {'XOr':XOr,'And':And,'Or':Or,'Not':Not}
         for i in range(2**n):
             bvals =  map(lambda y:bool((i>>y)&1), r)
             dvals = {}
             for s,b in zip(syms, bvals):
                 dvals[s] = b
-            v = eval(string_expr, dvals, {'XOr':XOr})
+            v = eval(string_expr, dvals, l_dict)
             if v is True:
                 table[i] = bvals
             else:
@@ -243,6 +244,8 @@ class And(Predicate):
         return        
 
     def tostr(self, level=0):
+        return '%s(%s)' % (self.__class__.__name__,
+                           ', '.join([c.tostr(self.precedence) for c in self]))
         r = ' and '. join([c.tostr(self.precedence) for c in self])
         if self.precedence <= level:
             r = '(%s)' % r
@@ -288,7 +291,9 @@ class Or(Predicate):
         return
 
     def tostr(self, level=0):
-        r = ' or '. join([c.tostr(self.precedence) for c in self])
+        return '%s(%s)' % (self.__class__.__name__,
+                           ', '.join([c.tostr(self.precedence) for c in self]))
+        r = ' OR '. join([c.tostr(self.precedence) for c in self])
         if self.precedence <= level:
             r = '(%s)' % r
         return r
@@ -370,7 +375,9 @@ class Not(Predicate):
             return arg[0]
 
     def tostr(self, level=0):
-        r = ' not %s' % (self.args[0].tostr(self.precedence))
+        return '%s(%s)' % (self.__class__.__name__,
+                           ', '.join([c.tostr(self.precedence) for c in self]))
+        r = 'NOT %s' % (self.args[0].tostr(self.precedence))
         if self.precedence <= level:
             r = '(%s)' % r
         return r

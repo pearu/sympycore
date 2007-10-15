@@ -1,5 +1,5 @@
-from sympy.sandbox.core import Basic, Mul, Integer, Rational, sqrt, pi, I
-from sympy.sandbox.core.function import SingleValuedFunction, FunctionSignature
+from sympy.core import Basic, Mul, Integer, Rational, sqrt, pi, I
+from sympy.core.function import SingleValuedFunction, FunctionSignature
 
 def without(L, x):
     L = L[:]
