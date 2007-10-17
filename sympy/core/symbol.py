@@ -28,6 +28,7 @@ class BasicSymbol(Atom, str):
     def __eq__(self, other):
         if isinstance(other, Basic):
             if other.is_Dummy: return False
+            if not isinstance(other, self.__class__): return False
         return str.__eq__(self, other)            
 
     __hash__ = str.__hash__

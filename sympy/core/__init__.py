@@ -25,7 +25,9 @@ from predicate import And, Or, XOr, Not, Implies, Equiv, \
      IsPrime, IsComposite, IsFraction, IsComplex, LessEqual, \
      GreaterEqual, Greater, IsImaginary, IsEven, IsOdd, IsZero, \
      IsIrrational, IsNonZero
-
+from sets import Set, Union, SetSymbol, Complexes, Reals, Rationals, Integers,\
+     Primes, Irrationals, Fractions, Shifted, Positive, Negative, Divisible, \
+     Evens, Odds, Complementary, Element, Intersection, Minus, Empty
 
 # set repr output to pretty output:
 #Basic.set_repr_level(1)

@@ -189,7 +189,6 @@ class DummyBoolean(BasicDummySymbol, Boolean):
     pass
 
 
-
 class Predicate(BooleanMeths, Function):
     """ Base class for predicate functions.
     """

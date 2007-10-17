@@ -17,6 +17,9 @@ ordering_of_classes = [
     'IsComplex','IsReal','IsImaginary','IsRational','IsIrrational',
     'IsInteger','IsFraction','IsPrime','IsComposite','IsEven','IsOdd',
     'IsZero','IsPositive','IsNonPositive',
+    'Union','Complementary','Positive','Negative','Shifted','Divisible',
+    'PrimeSet','IntegerSet','IntegerCSet','RationalSet','RationalCSet',
+    'RealSet','RealCSet','ComplexSet',
     ]
 
 class BasicType(type):

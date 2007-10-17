@@ -1,3 +1,4 @@
+from sympy.core.utils import DualProperty
 from sympy.core import Basic, Mul, Integer, Rational, sqrt, pi, I
 from sympy.core.function import SingleValuedFunction, FunctionSignature
 
@@ -8,7 +9,8 @@ def without(L, x):
 
 
 class sin(SingleValuedFunction):
-
+    """ sin(x)
+    """
     signature = FunctionSignature((Basic,), (Basic,))
 
     @classmethod
