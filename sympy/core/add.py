@@ -73,9 +73,9 @@ class MutableAdd(ArithMeths, MutableCompositeDict):
         # always return an immutable object
         for k,v in self.items():
             if v.is_zero:
-                # todo: check that a is not NaN, Infinity
-                # Add({a:0}) -> 0
-                del self[k]
+                if not (k.has(Basic.oo) or k.has(Basic.nan)):
+                    # Add({a:0}) -> 0
+                    del self[k]
         # turn self to an immutable instance
         if len(self)==0:
             return Basic.zero
@@ -87,6 +87,18 @@ class MutableAdd(ArithMeths, MutableCompositeDict):
             if v.is_one:
                 # Add({a:1}) -> a
                 return k
+        if self.has_key(Basic.oo):
+            v = self[Basic.oo]
+            if len(self)==1 and v==-1:
+                self.__class__ = Add        
+                return self
+            if v.is_Number:
+                if v.is_zero:
+                    pass
+                elif v.is_positive:
+                    return Basic.oo
+                elif v.is_negative:
+                    return -Basic.oo
         self.__class__ = Add
         return self
 

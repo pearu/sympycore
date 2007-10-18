@@ -15,6 +15,7 @@ from mul import Mul, MutableMul, Pow, sqrt
 #from new_function import NewFunction, sin_
 #from function import Lambda, Function, Apply, FApply, Composition, FPow, WildFunction, Derivative, DefinedFunction, diff
 from function import Function, Lambda
+from functions import Max, Min
 from interval import Interval
 from singleton import pi, I, oo, zoo, E, nan
 
@@ -27,7 +28,9 @@ from predicate import And, Or, XOr, Not, Implies, Equiv, \
      IsIrrational, IsNonZero
 from sets import Set, Union, SetSymbol, Complexes, Reals, Rationals, Integers,\
      Primes, Irrationals, Fractions, Shifted, Positive, Negative, Divisible, \
-     Evens, Odds, Complementary, Element, Intersection, Minus, Empty
+     Evens, Odds, Complementary, Element, Intersection, Minus, Empty, Universal,\
+     Range
+
 
 # set repr output to pretty output:
 #Basic.set_repr_level(1)

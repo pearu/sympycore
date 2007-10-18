@@ -157,6 +157,33 @@ def test_negative_odds():
     assert O.contains(n)==False
     assert O.contains(x)==Element(x, O)
 
+def test_primes():
+    P = Primes
+    n = Fraction(1,2)
+    x = Symbol('x')
+    assert P.contains(-3)==False
+    assert P.contains(0)==False
+    assert P.contains(1)==False
+    assert P.contains(2)==True
+    assert P.contains(3)==True
+    assert P.contains(4)==False
+    assert [i for i in range(15) if P.contains(i)]==[2,3,5,7,11,13]
+    assert P.contains(n)==False
+    assert P.contains(x)==Element(x, P)
+
+    assert -P==Empty
+    assert +P==P
+    P1 = P+1
+    assert [i for i in range(15) if P1.contains(i)]==[3,4,6,8,12,14]
+    P2 = P-1
+    assert [i for i in range(15) if P2.contains(i)]==[1,2,4,6,10,12]
+    P3 = -(P-10)+10
+    assert [i for i in range(-15,15) if P3.contains(i)]==[2,3,5,7]
+    P4 = +(P-5)+5
+    assert [i for i in range(-15,15) if P4.contains(i)]==[7,11,13]
+    P5 = +(P3-5)+5
+    assert [i for i in range(-15,15) if P5.contains(i)]==[7]
+    
 def test_union():
     assert Union(Evens, Odds)==Integers
     assert Union(Evens, Integers)==Integers
