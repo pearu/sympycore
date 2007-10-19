@@ -284,5 +284,41 @@ def test_pos_neg_integer_range():
     assert [i for i in range(-10,10) if Positive(r).contains(i)]==[1,2,3]
     assert [i for i in range(-10,10) if Negative(r).contains(i)]==[-3,-2,-1]
 
+def test_union_range():
+    r1 = OORange(0,10,Integers)
+    r2 = OORange(5,15,Integers)
+    assert Union(r1,r2)==OORange(0,15,Integers)
+
+    r3 = OORange(10,15,Integers)
+    assert Union(r1,r3).is_Union
+    assert Union(r1,r3-1)==OORange(0,14,Integers)
+    r3 = CORange(10,15,Integers)
+    assert Union(r1,r3)==OORange(0,15,Integers)
+
+    r4 = OORange(2,7,Integers)
+    assert Union(r1,r4)==r1
+
+    assert Union(Positive(Integers),Negative(Integers)).is_Union
+    assert Union(Positive(Integers),Negative(Integers)+1)==Integers
+    assert Union(Positive(Integers)-1,Negative(Integers))==Integers
+    assert Union(Positive(Integers)+3,OORange(0,4,Integers))==Positive(Integers)
+
+def test_minus_range():
+    r1 = OORange(0,10,Integers)
+    r2 = OORange(5,15,Integers)
+    assert Minus(r1,r2)==OCRange(0,5,Integers)
+    r2 = CORange(5,15,Integers)
+    assert Minus(r1,r2)==OORange(0,5,Integers)
+
+    rbig = OORange(0,20,Integers)
+    r0 = OORange(5,15,Integers)
+    assert Minus(rbig,r0)==Union(CORange(15, 20, Integers), OCRange(0, 5, Integers))
+
+def test_intersection_range():
+    r1 = OORange(0,10,Integers)
+    r2 = OORange(5,15,Integers)
+    assert Intersection(r1,r2)==OORange(5,10,Integers)
+
+
 if __name__=='__main__':
     pass

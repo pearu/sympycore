@@ -52,6 +52,12 @@ class BasicSet(Basic):
         return
     def try_divisible(self, divisor):
         return
+    def try_minus(self, other):
+        return
+    def try_union(self, other):
+        return
+    def try_intersection(self, other):
+        return
 
     def __invert__(self):
         """ Convinience method to construct a complementary set.
@@ -447,6 +453,13 @@ class Union(SetFunction):
                 if s.is_subset_of(s1):
                     new_sets.remove(s)
                     return cls(*new_sets)
+                if s.is_BasicRange:
+                    s2 = s.try_union(s1)
+                    if s2 is not None:
+                        new_sets.remove(s)
+                        new_sets.remove(s1)
+                        new_sets.add(s2)
+                        return cls(*new_sets)
         if flag:
             return cls(*new_sets)
         sets.sort(Basic.compare)
@@ -505,7 +518,13 @@ class Intersection(SetFunction):
                 if s.is_subset_of(s1):
                     new_sets.remove(s1)
                     return cls(*new_sets)
-                    
+                if s.is_BasicRange:
+                    s2 = s.try_intersection(s1)
+                    if s2 is not None:
+                        new_sets.remove(s)
+                        new_sets.remove(s1)
+                        new_sets.add(s2)
+                        return cls(*new_sets)
         if flag:
             return cls(*new_sets)
         sets.sort(Basic.compare)
@@ -530,7 +549,7 @@ class Minus(SetFunction):
             return Complementary(rhs, lhs)
         if rhs.is_subset_of(lhs) is False:
             return lhs
-
+        return lhs.try_minus(rhs)
 
 class UniversalSet(SetSymbol):
     """ A set of all sets.
@@ -844,6 +863,74 @@ class BasicRange(SetFunction):
     def try_shifted(self, shift):
         return self.__class__(self.a+shift, self.b+shift, self.superset)
 
+    def _get_combined_class4union(self, other):
+        return getattr(Basic,self.__class__.__name__[0]+other.__class__.__name__[1]+'Range')
+    def _get_combined_class4minus(self, other):
+        if other.__class__.__name__[0]=='O':
+            return getattr(Basic,self.__class__.__name__[0]+'CRange')
+        return getattr(Basic,self.__class__.__name__[0]+'ORange')
+    def _has_connection4union(self, other):
+        flag = 'C' in (self.__class__.__name__[1]+other.__class__.__name__[0])
+        if self.a.is_Number and self.b.is_Number and other.a.is_Number:
+            if flag:
+                return self.a <= other.a <= self.b
+            return self.a < other.a < self.b
+        if self.is_unbounded_left and self.b.is_Number and other.a.is_Number:
+            if flag:
+                return other.a <= self.b
+            return other.a < self.b
+        if self.is_unbounded_right and self.a.is_Number and other.a.is_Number:
+            if flag:
+                return self.a <= other.a
+            return self.a < other.a
+
+    def try_union(self, other):
+        if other.is_BasicRange and self.superset==other.superset:
+            if self._has_connection4union(other):
+                cls = self._get_combined_class4union(other)
+                return cls(Basic.Min(self.a,other.a), Basic.Max(self.b,other.b), self.superset)
+
+    def try_minus(self, other):
+        if other.is_BasicRange and self.superset==other.superset:
+            flag = 'C' in (self.__class__.__name__[1]+other.__class__.__name__[0])
+            n = self.__class__.__name__[:2]+other.__class__.__name__[:2]
+            if self.a.is_Number and self.b.is_Number and other.a.is_Number and other.b.is_Number:
+                if other.a <= self.a:
+                    if other.b > self.b:
+                        return Empty
+                    if n[3]=='O':
+                        clsname = 'C'+n[1]+'Range'
+                    else:
+                        clsname = 'O'+n[1]+'Range'
+                    cls = getattr(Basic, clsname)
+                    return cls(other.b, self.b, self.superset)
+                if other.a < self.b:
+                    if other.b >= self.b:
+                        if n[2]=='O':
+                            clsname = n[0]+'CRange'
+                        else:
+                            clsname = n[0]+'ORange'
+                        cls = getattr(Basic, clsname)
+                        return cls(self.a, other.a, self.superset)
+                    if n[2]=='O':
+                        clsname = n[0]+'CRange'
+                    else:
+                        clsname = n[0]+'ORange'
+                    cls1 = getattr(Basic, clsname)
+                    if n[3]=='O':
+                        clsname = 'C'+n[1]+'Range'
+                    else:
+                        clsname = 'O'+n[1]+'Range'
+                    cls2 = getattr(Basic, clsname)
+                    return Union(cls1(self.a, other.a, self.superset), cls2(other.b, self.b, self.superset))
+
+    def try_intersection(self, other):
+        if other.is_BasicRange and self.superset==other.superset:
+            m = Minus(self, other)
+            if not m.is_Minus:
+                r = Minus(self, m)
+                if not r.is_Minus:
+                    return r
 
 class OORange(BasicRange):
     """ An open range (a,b) of a set S."""
@@ -873,10 +960,9 @@ class OORange(BasicRange):
     def try_complementary(self, superset):
         if self.superset==superset:
             if self.is_unbounded_left:
-                return CORange(self.b, Max(superset), superset)
+                return CORange(self.b, Basic.Max(superset), superset)
             if self.is_unbounded_right:
-                return OCRange(Min(superset),self.a, superset)
-
+                return OCRange(Basic.Min(superset),self.a, superset)
 
 class OCRange(BasicRange):
     """ An semi-open range (a,b] of a set S."""
@@ -904,7 +990,7 @@ class OCRange(BasicRange):
     def try_complementary(self, superset):
         if self.superset==superset:
             if self.is_unbounded_left:
-                return OORange(self.b, Max(superset), superset)
+                return OORange(self.b, Basic.Max(superset), superset)
             assert not self.is_unbounded_right,`self`
 
 
@@ -934,7 +1020,7 @@ class CORange(BasicRange):
     def try_complementary(self, superset):
         if self.superset==superset:
             if self.is_unbounded_right:
-                return OORange(Min(superset),self.a, superset)
+                return OORange(Basic.Min(superset),self.a, superset)
             assert not self.is_unbounded_left,`self`
 
 
@@ -964,7 +1050,14 @@ class CCRange(BasicRange):
             assert not self.is_unbounded_right,`self`
 
 
-Range = OORange
+class Range(OORange):
+    """ An open range (a,b) of a set S (default=Reals).
+    """
+    def __new__(cls, a, b, set=None):
+        if set is None:
+            set = Reals
+        return OORange(a, b, set)
+
 
 Complexes = ComplexSet()
 Reals = RealSet()
