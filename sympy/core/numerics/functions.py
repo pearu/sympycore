@@ -5,7 +5,7 @@ be provied in a complementary file cfunctions.py.
 """
 
 #from float_ import Float, ComplexFloat
-from sympy.sandbox.core import Float
+from sympy.core import Float
 from float_ import ComplexFloat
 
 

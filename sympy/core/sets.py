@@ -1,14 +1,27 @@
 
 from utils import memoizer_immutable_args
 from basic import Basic, Composite, sympify
+from methods import ImmutableSetMeths
 from symbol import BasicSymbol
 from function import Function, FunctionSignature
 from predicate import Predicate
 
 
 class BasicSet(Basic):
-    """ Defines generic methods for Set classes.
+    """ Defines generic methods for set classes.
     """
+    @property
+    def superset(self):
+        """ Return container set.
+        """
+        raise NotImplementedError('%s.superset property' % (self.__class__.__name__))
+
+    @property
+    def domain(self):
+        """ Return one of the predefined sets that includes self.
+        """
+        assert isinstance(self, SetSymbol),`self`
+        return self
 
     def try_contains(self, other):
         """ Check if other is an element of self.
@@ -28,32 +41,22 @@ class BasicSet(Basic):
 
     def try_complementary(self, superset):
         """ Return a complementary set of self in the container field
-        (as returned by superset method).
+        (as returned by the superset property).
         """
         return
-
-    @property
-    def superset(self):
-        """ Return minimal field or defined container set containing self.
-        """
-        raise NotImplementedError('%s.superset property' \
-                                  % (self.__class__.__name__))
 
     def __invert__(self):
         """ Convinience method to construct a complementary set.
         """
         return Complementary(self, self.superset)
-    
     def __pos__(self):
         """ Convenience method to construct a subset of only positive quantities.
         """
         return Positive(self)
-
     def __neg__(self):
         """ Convenience method to construct a subset of only negative quantities.
         """
         return Negative(self)
-
     def __add__(self, other):
         """ Convinience method to construct a shifted set by other.
         """
@@ -70,10 +73,6 @@ class BasicSet(Basic):
         return Divisible(self, other)
     __rmul__ = __mul__
 
-    @property
-    def target_set(self):
-        return self
-
     def try_supremum(self):
         """ Return supremum of a set.
         """
@@ -84,14 +83,18 @@ class BasicSet(Basic):
         """
         return
 
-class Set(BasicSet, Composite, set):
-    """ Set.
+
+
+class Set(ImmutableSetMeths, BasicSet, Composite, set):
+    """ A set object with elements.
     """
+    #XXX: force Set to be immutable.
 
     def __new__(cls, *args):
         if not args: return Empty
         obj = set.__new__(cls)
-        obj.update(map(sympify,args))
+        args = map(sympify,args)
+        set.update(obj, args)
         return obj
 
     def __init__(self, *args, **kws):
@@ -101,6 +104,21 @@ class Set(BasicSet, Composite, set):
     def try_contains(self, other):
         return set.__contains__(self, other)
 
+    def try_supremum(self):
+        return Basic.Max(*self)
+
+    def try_infimum(self):
+        return Basic.Min(*self)
+
+    @property
+    def domain(self):
+        # XXX: need a way to deterimine the domain of a symbolic expression
+        raise NotImplementedError('%s.domain property' % (self.__class__.__name__))
+
+    @property
+    def superset(self):
+        return self
+
 class SetSymbol(BasicSet, BasicSymbol):
     """ Set symbol.
     """
@@ -108,20 +126,23 @@ class SetSymbol(BasicSet, BasicSymbol):
 class SetFunction(BasicSet, Function):
     """ Base class for Set functions.
     """
-    
-    def __new__(cls, *args):
-        return Function.__new__(cls, *args)
+
+    __new__ = Function.__new__ # avoid caching until Set is truelly immutable
 
     @property
-    def target_set(self):
-        return self[0].target_set
+    def domain(self):
+        return self[0].domain
+
+    @property
+    def superset(self):
+        return self[0]
 
 set_values = (SetSymbol, SetFunction, Set)
-
 SetFunction.signature = FunctionSignature((set_values,), set_values)
 
+
 class Element(Predicate):
-    """ Predicate 'is element of a set'.
+    """ Predicate function 'is element of a set'.
     """
     signature = FunctionSignature((Basic,set_values), (bool,))
 
@@ -163,6 +184,10 @@ class Complementary(SetFunction):
         return set.try_complementary(superset)
 
     @property
+    def domain(self):
+        return self.args[1].domain
+
+    @property
     def superset(self):
         return self.args[1]
 
@@ -187,10 +212,9 @@ class Complementary(SetFunction):
 
     def try_infimum(self):
         return Basic.Min(self.superset)
-    def try_supremum(self):
-        return Basic.Max(self.superset)
 
-        
+    def try_supremum(self):
+        return Basic.Max(self.superset)    
 
 class Positive(SetFunction):
     """ Set of positive values in a set S.
@@ -227,10 +251,6 @@ class Positive(SetFunction):
         if set==other:
             return True
 
-    @property
-    def superset(self):
-        return self.args[0]
-
     def try_infimum(self):
         return Basic.Max(Basic.Min(self[0]), 0)
 
@@ -266,15 +286,12 @@ class Negative(SetFunction):
         if set==other:
             return True
 
-    @property
-    def superset(self):
-        return self.args[0]
-
     def try_infimum(self):
         return Basic.Min(Basic.Min(self[0]), 0)
 
     def try_supremum(self):
         return Basic.Min(Basic.Max(self[0]),0)
+
 
 class Shifted(SetFunction):
     """ Set of shifted values in S.
@@ -354,6 +371,8 @@ class Divisible(SetFunction):
         return Basic.Max(set) / divisor
 
 class Union(SetFunction):
+    """ Union of sets.
+    """
     signature = FunctionSignature([set_values], set_values)
 
     @classmethod
@@ -406,8 +425,17 @@ class Union(SetFunction):
         if len(l)<len(self.args):
             return Element(other, Union(*l))
 
-        
+    @property
+    def superset(self):
+        return self
+
+    @property
+    def domain(self):
+        return Union(*[s.domain for s in self.args])
+
 class Intersection(SetFunction):
+    """ Intersection of sets.
+    """
     signature = FunctionSignature([set_values], set_values)
     @classmethod
     def canonize(cls, sets):
@@ -441,7 +469,17 @@ class Intersection(SetFunction):
         sets.sort(Basic.compare)
         return      
 
+    @property
+    def superset(self):
+        return self
+
+    @property
+    def domain(self):
+        return Union(*[s.domain for s in self.args])
+
 class Minus(SetFunction):
+    """ Set minus.
+    """
     signature = FunctionSignature((set_values, set_values), set_values)
     @classmethod
     def canonize(cls, (lhs, rhs)):
@@ -457,7 +495,11 @@ class UniversalSet(SetSymbol):
     @memoizer_immutable_args('UniversalSet.__new__')
     def __new__(cls): return str.__new__(cls, 'UNIVERSALSET')
     @property
-    def superset(self): return self
+    def superset(self):
+        return self
+    @property
+    def domain(self):
+        return self
     def is_subset_of(self, other):
         return self==other
     def try_contains(self, other):
@@ -475,6 +517,9 @@ class EmptySet(SetSymbol):
     @property
     def superset(self):
         return Universal
+    @property
+    def domain(self):
+        return self
     def try_complementary(self, superset):
         return superset
 
@@ -496,6 +541,8 @@ class ComplexSet(Field):
             return True
         if other.is_ImaginaryUnit:
             return True
+    @property
+    def superset(self): return Universal
 
 class RealSet(Field):
     """ Represents a field of real numbers.
@@ -505,14 +552,14 @@ class RealSet(Field):
     def __new__(cls): return str.__new__(cls, 'Reals')
 
     @property
-    def superset(self): return Complexes 
-
+    def superset(self):
+        return Complexes 
     def try_contains(self, other):
         if other.is_Number:
             if other.is_Real:
                 return True
             return False
-    def try_complementary(self, superset):
+    def DISABLEtry_complementary(self, superset):
         if superset==self.superset:
             return RealCSet()
     def try_supremum(self):
@@ -527,7 +574,11 @@ class RealCSet(SetSymbol):
     @memoizer_immutable_args('RealCSet.__new__')
     def __new__(cls): return str.__new__(cls, 'Complexes\Reals')
     @property
-    def superset(self): return Complexes
+    def superset(self):
+        return Complexes
+    @property
+    def domain(self):
+        return Complexes
     def try_contains(self, other):
         if other.is_Number:
             return False
@@ -541,14 +592,14 @@ class RationalSet(Field):
     @memoizer_immutable_args('RationalSet.__new__')
     def __new__(cls): return str.__new__(cls, 'Rationals')
     @property
-    def superset(self): return Reals
-
+    def superset(self):
+        return Reals
     def try_contains(self, other):
         if other.is_Number:
             if other.is_Rational:
                 return True
             return False
-    def try_complementary(self, superset):
+    def DISABLEtry_complementary(self, superset):
         if superset==self.superset:
             return Irrationals
     def try_supremum(self):
@@ -562,8 +613,11 @@ class RationalCSet(SetSymbol):
     @memoizer_immutable_args('RationalCSet.__new__')
     def __new__(cls): return str.__new__(cls, 'Irrationals')
     @property
-    def superset(self): return Reals
-
+    def superset(self):
+        return Reals
+    @property
+    def domain(self):
+        return Reals
     def try_contains(self, other):
         if other.is_Number:
             if other.is_Rational:
@@ -585,13 +639,17 @@ class IntegerSet(SetSymbol):
     def __new__(cls): return str.__new__(cls, 'Integers')
 
     @property
-    def superset(self): return Rationals
+    def superset(self):
+        return Rationals
+    @property
+    def domain(self):
+        return self
     def try_contains(self, other):
         if other.is_Number:
             if other.is_Integer:
                 return True
             return False
-    def try_complementary(self, superset):
+    def DISABLEtry_complementary(self, superset):
         if superset==self.superset:
             return Fractions
     def try_supremum(self):
@@ -606,7 +664,11 @@ class IntegerCSet(SetSymbol):
     def __new__(cls): return str.__new__(cls, 'Fractions')
 
     @property
-    def superset(self): return Rationals
+    def superset(self):
+        return Rationals
+    @property
+    def domain(self):
+        return Rationals
     def try_contains(self, other):
         if other.is_Number:
             if other.is_Fraction:
@@ -628,7 +690,11 @@ class PrimeSet(SetSymbol):
     @memoizer_immutable_args('PrimeSet.__new__')
     def __new__(cls): return str.__new__(cls, 'Primes')
     @property
-    def superset(self): return Integers
+    def superset(self):
+        return self
+    @property
+    def domain(self):
+        return Integers
     def try_contains(self, other):
         if other.is_Number:
             if other.is_Integer and other.is_positive:
@@ -640,16 +706,54 @@ class PrimeSet(SetSymbol):
     def try_infimum(self):
         return Basic.Number(1)
 
-class Range(Function):
-    """ An open range (a,b) of a set S.
+class BasicRange(SetFunction):
+    """ Base class for range functions.
     """
     signature = FunctionSignature((Basic, Basic, set_values),set_values)
-    def __new__(cls, *args):
-        return Function.__new__(cls, *args)
+
+class OORange(BasicRange):
+    """ An open range (a,b) of a set S."""
+
     @classmethod
-    def canonize(cls, (start, end, set)):
-        h = Shifted(Negative(set-end),end)
-        return Shifted(Positive(h-start),start)
+    def canonize(cls, (a, b, set)):
+        assert set is set.domain,`set`
+        h1 = Negative(set)
+        h3 = Shifted(h1, b-a)
+        h4 = Positive(h3)
+        h5 = Shifted(h4, a)
+        return h5
+
+class OCRange(BasicRange):
+    """ An semi-open range (a,b] of a set S."""
+    @classmethod
+    def canonize(cls, (a, b, set)):
+        assert set is set.domain,`set`
+        h1 = Positive(set)
+        h2 = Complementary(h1, set)
+        h3 = Shifted(h2, b-a)
+        h4 = Positive(h3)
+        h5 = Shifted(h4, a)
+        return h5
+
+class CORange(Function):
+    """ An semi-open range [a,b) of a set S."""
+    @classmethod
+    def canonize(cls, (a, b, set)):
+        h1 = Negative(set)
+        h2 = Complementary(h1, set)
+        h3 = Shifted(h2, a-b)
+        h4 = Negative(h3)
+        h5 = Shifted(h4, b)
+        return h5
+
+class CCRange(Function):
+    """ An closed range [a,b] of a set S."""
+    @classmethod
+    def canonize(cls, (a, b, set)):
+        return Union(Set(a,b),OORange(a,b,set))
+
+
+Range = OORange
 
 Complexes = ComplexSet()
 Reals = RealSet()

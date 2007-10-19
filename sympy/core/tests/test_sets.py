@@ -202,5 +202,15 @@ def test_minus():
     assert Minus(Evens, Odds)==Evens
     assert Minus(Odds, Evens)==Odds
 
+def test_range():
+    r = OORange(3,9,Integers)
+    assert [i for i in range(0,20) if r.contains(i)]==[4,5,6,7,8]
+    r = OCRange(3,9,Integers)
+    assert [i for i in range(0,20) if r.contains(i)]==[4,5,6,7,8,9]
+    r = CORange(3,9,Integers)
+    assert [i for i in range(0,20) if r.contains(i)]==[3,4,5,6,7,8]
+    r = CCRange(3,9,Integers)
+    assert [i for i in range(0,20) if r.contains(i)]==[3,4,5,6,7,8,9]
+
 if __name__=='__main__':
     pass

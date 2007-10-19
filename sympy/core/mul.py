@@ -1,7 +1,7 @@
 
 from utils import memoizer_immutable_args, get_object_by_name
 from basic import Basic, MutableCompositeDict, sympify
-from methods import ArithMeths, ImmutableMeths#, RelationalMeths
+from methods import ArithMeths, ImmutableDictMeths#, RelationalMeths
 
 class MutableMul(ArithMeths, MutableCompositeDict):
     """Mutable base class for Mul. This class is used temporarily
@@ -96,7 +96,7 @@ class MutableMul(ArithMeths, MutableCompositeDict):
         return self
 
 
-class Mul(ImmutableMeths, MutableMul):
+class Mul(ImmutableDictMeths, MutableMul):
     """Represents a product, with repeated factors collected into
     powers using a dict representation. The product a**m * b**n
     (where m and n may be arbitrary expressions and not just
@@ -116,14 +116,14 @@ class Mul(ImmutableMeths, MutableMul):
         return Mul(self, other)
 
     # object identity methods
-    def __hash__(self):
+    def DISABLE__hash__(self):
         h = self.__dict__.get('_cached_hash', None)
         if h is None:
             h = hash((Mul,)+ self.as_tuple())
             self._cached_hash = h
         return h
 
-    def as_tuple(self):
+    def DISABLEas_tuple(self):
         r = self.__dict__.get('_cached_as_tuple', None)
         if r is None:
             l = self.items()

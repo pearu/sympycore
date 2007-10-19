@@ -1,5 +1,5 @@
 
-from sympy.sandbox import Symbol, sympify, Fraction, sin, Function, pi
+from sympy import Symbol, sympify, Fraction, sin, Function, pi
 
 def test_parser():
     x = Symbol('x')

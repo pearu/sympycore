@@ -17,6 +17,7 @@ ordering_of_classes = [
     'IsComplex','IsReal','IsImaginary','IsRational','IsIrrational',
     'IsInteger','IsFraction','IsPrime','IsComposite','IsEven','IsOdd',
     'IsZero','IsPositive','IsNonPositive',
+    'Set',
     'Union','Complementary','Positive','Negative','Shifted','Divisible',
     'PrimeSet','IntegerSet','IntegerCSet','RationalSet','RationalCSet',
     'RealSet','RealCSet','ComplexSet',
@@ -180,8 +181,9 @@ class Basic(object):
         if self is other: return 0
         c = cmp(self.__class__, other.__class__)
         if c: return c
-        if isinstance(self, str):
-            return cmp(str(self), str(other))
+        if isinstance(self, (str,int,long)):
+            cls = self.__class__.__base__
+            return cmp(cls(self), cls(other))
         st = self[:]
         ot = other[:]
         c = cmp(len(st), len(ot))

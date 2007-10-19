@@ -29,7 +29,7 @@ from predicate import And, Or, XOr, Not, Implies, Equiv, \
 from sets import Set, Union, SetSymbol, Complexes, Reals, Rationals, Integers,\
      Primes, Irrationals, Fractions, Shifted, Positive, Negative, Divisible, \
      Evens, Odds, Complementary, Element, Intersection, Minus, Empty, Universal,\
-     Range
+     Range, OORange, CCRange, CORange, OCRange
 
 
 # set repr output to pretty output:

@@ -1,4 +1,4 @@
-from sympy.sandbox.core import Symbol, Rational, sqrt
+from sympy.core import Symbol, Rational, sqrt
 
 a = Symbol("a")
 b = Symbol("b")

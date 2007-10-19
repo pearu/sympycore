@@ -1,5 +1,5 @@
 
-from sympy.sandbox import *
+from sympy import *
 
 def test_truth_table():
 

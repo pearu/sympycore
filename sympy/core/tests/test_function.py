@@ -1,4 +1,4 @@
-from sympy.sandbox.core import Symbol, Lambda
+from sympy.core import Symbol, Lambda
 
 def test_lambda():
     x = Symbol('x')

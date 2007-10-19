@@ -1,4 +1,4 @@
-from sympy.sandbox.core import *
+from sympy.core import *
 
 def test_arithmetic():
     x = Symbol('x')

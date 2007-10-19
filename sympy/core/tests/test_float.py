@@ -1,5 +1,5 @@
-from sympy.sandbox.core.numerics_float import *
-from sympy.sandbox.core import Rational
+from sympy.core.numerics_float import *
+from sympy.core import Rational
 
 def test_bitcount():
     assert bitcount(0) == 0

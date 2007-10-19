@@ -1,5 +1,5 @@
 
-from sympy.sandbox.core import *
+from sympy.core import *
 
 def test_I():
 

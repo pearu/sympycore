@@ -1,5 +1,5 @@
 #from sympy import Symbol, Rational, Derivative, I, log, sqrt, exp
-from sympy.sandbox.core import Symbol, Rational, sqrt
+from sympy.core import Symbol, Rational, sqrt
 
 x = Symbol('x')
 y = Symbol('y')
@@ -31,7 +31,7 @@ def test_poly_str():
             "-w*y**2*z**2 + x","x - z**2*w*y**2"]
 
 def test_bug1():
-    assert str(x-1*y*x*y) in ["x - x*y**2",'-x*y**2 + x',"x - y**2*x"]
+    assert str(x-1*y*x*y) in ["x - x*y**2",'-x*y**2 + x',"x - y**2*x", '-y**2*x + x']
 
 def test_bug2():
     e = x-y

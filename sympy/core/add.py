@@ -1,7 +1,7 @@
 
 from utils import memoizer_immutable_args
 from basic import Basic, MutableCompositeDict, sympify
-from methods import ArithMeths, ImmutableMeths#, RelationalMeths
+from methods import ArithMeths, ImmutableDictMeths#, RelationalMeths
 
 class MutableAdd(ArithMeths, MutableCompositeDict):
     """ Represents a sum.
@@ -108,7 +108,7 @@ class MutableAdd(ArithMeths, MutableCompositeDict):
         return self
 
 
-class Add(ImmutableMeths, MutableAdd):
+class Add(ImmutableDictMeths, MutableAdd):
     """ Represents a sum.
 
     Add returns an immutable object. See MutableAdd for
@@ -129,14 +129,14 @@ class Add(ImmutableMeths, MutableAdd):
         return Add(self, other)
 
     # object identity methods
-    def __hash__(self):
+    def DISABLE__hash__(self):
         h = self.__dict__.get('_cached_hash', None)
         if h is None:
             h = hash((Add,)+ self.as_tuple())
             self._cached_hash = h
         return h
 
-    def as_tuple(self):
+    def DISABLEas_tuple(self):
         r = self.__dict__.get('_cached_as_tuple', None)
         if r is None:
             l = self.items()
@@ -145,7 +145,8 @@ class Add(ImmutableMeths, MutableAdd):
             self._cached_as_tuple = r
         return r
 
-    def __eq__(self, other):
+
+    def DISABLE__eq__(self, other):
         if isinstance(self, Add):
             return dict.__eq__(self, other)
         if isinstance(self, Basic):

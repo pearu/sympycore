@@ -1,4 +1,4 @@
-from sympy.sandbox.core import *
+from sympy.core import *
 
 x = Symbol('x')
 y = Symbol('y')

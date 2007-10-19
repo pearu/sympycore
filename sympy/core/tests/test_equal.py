@@ -1,5 +1,5 @@
 #from sympy.utilities.pytest import XFAIL
-from sympy.sandbox import Symbol, Rational, exp
+from sympy import Symbol, Rational, exp
 
 def testequal():
     b = Symbol("b")

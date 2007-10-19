@@ -1,7 +1,7 @@
 import py
 
-from sympy.sandbox.core import *
-from sympy.sandbox.core.interval import *
+from sympy.core import *
+from sympy.core.interval import *
 
 def test_membership():
     assert Interval(2) == Interval(2, 2)

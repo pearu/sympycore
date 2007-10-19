@@ -108,10 +108,23 @@ class ArithMeths:
             return [self, Basic.Number(1)]
         return [self]
 
-class ImmutableMeths:
+class BasicImmutableMeths:
+    """ Auxiliary class for making mutable class immutable.
+    """
 
     is_immutable = True
 
+    def __hash__(self):
+        h = self.__dict__.get('_cached_hash', None)
+        if h is None:
+            h = hash((self.__class__,)+ tuple(self.as_list()))
+            self._cached_hash = h
+        return h
+
+
+class ImmutableDictMeths(BasicImmutableMeths):
+    """ Auxiliary class for making set immutable.
+    """
     def __setitem__(self, k, v):
         raise TypeError('%s instance is immutable' % (self.__class__.__name__))
 
@@ -120,6 +133,53 @@ class ImmutableMeths:
 
     def popitem(self):
         raise TypeError('%s instance is immutable' % (self.__class__.__name__))
+
+    def as_list(self):
+        r = self.keys()
+        r.sort(Basic.compare)
+        return [dict.__getitem__(self, k) for k in r]
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return dict.__eq__(self, other)
+        if isinstance(self, (Basic,bool)):
+            return False
+        return self==sympify(other)
+
+class ImmutableSetMeths(BasicImmutableMeths):
+    """ Auxiliary class for making set immutable.
+    """
+
+    def clear(self):
+        raise TypeError('%s instance is immutable' % (self.__class__.__name__))
+
+    def add(self, other):
+        raise TypeError('%s instance is immutable' % (self.__class__.__name__))
+
+    def discard(self, other):
+        raise TypeError('%s instance is immutable' % (self.__class__.__name__))
+
+    def pop(self):
+        raise TypeError('%s instance is immutable' % (self.__class__.__name__))
+
+    def remove(self, other):
+        raise TypeError('%s instance is immutable' % (self.__class__.__name__))
+
+    def update(self, other):
+        raise TypeError('%s instance is immutable' % (self.__class__.__name__))
+
+    def as_list(self):
+        r = list(self)
+        r.sort(Basic.compare)
+        return r
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return set.__eq__(self, other)
+        if isinstance(self, (Basic,bool)):
+            return False
+        return self==sympify(other)
+
 
 class NumberMeths(ArithMeths):
 

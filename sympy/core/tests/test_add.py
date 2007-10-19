@@ -1,5 +1,5 @@
-from sympy.sandbox.core import Symbol, Rational
-from sympy.sandbox.core.add import MutableAdd, Add
+from sympy.core import Symbol, Rational
+from sympy.core.add import MutableAdd, Add
 
 a = Symbol("a")
 b = Symbol("b")

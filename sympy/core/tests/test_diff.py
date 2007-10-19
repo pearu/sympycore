@@ -1,4 +1,4 @@
-from sympy.sandbox import Symbol, Rational, cos, sin, exp, log, tan, cot
+from sympy import Symbol, Rational, cos, sin, exp, log, tan, cot
 
 def testdiff():
     a = Symbol("a")
