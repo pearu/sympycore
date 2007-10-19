@@ -202,7 +202,7 @@ def test_minus():
     assert Minus(Evens, Odds)==Evens
     assert Minus(Odds, Evens)==Odds
 
-def test_range():
+def test_integer_range():
     r = OORange(3,9,Integers)
     assert [i for i in range(0,20) if r.contains(i)]==[4,5,6,7,8]
     r = OCRange(3,9,Integers)
@@ -211,6 +211,78 @@ def test_range():
     assert [i for i in range(0,20) if r.contains(i)]==[3,4,5,6,7,8]
     r = CCRange(3,9,Integers)
     assert [i for i in range(0,20) if r.contains(i)]==[3,4,5,6,7,8,9]
+
+def test_range_bounds():
+    r = OORange(3,9,Integers)
+    assert Min(r)==4
+    assert Max(r)==8
+    assert Element(3,r)==False
+    assert Element(9,r)==False
+    r = OCRange(3,9,Integers)
+    assert Min(r)==4
+    assert Max(r)==9
+    assert Element(3,r)==False
+    assert Element(9,r)==True
+    r = CORange(3,9,Integers)
+    assert Min(r)==3
+    assert Max(r)==8
+    assert Element(3,r)==True
+    assert Element(9,r)==False
+    r = CCRange(3,9,Integers)
+    assert Min(r)==3
+    assert Max(r)==9
+    assert Element(3,r)==True
+    assert Element(9,r)==True
+
+    r = OORange(3,9,Reals)
+    assert Min(r)==3
+    assert Max(r)==9
+    assert Element(3,r)==False
+    assert Element(9,r)==False
+    r = OCRange(3,9,Reals)
+    assert Min(r)==3
+    assert Max(r)==9
+    assert Element(3,r)==False
+    assert Element(9,r)==True
+    r = CORange(3,9,Reals)
+    assert Min(r)==3
+    assert Max(r)==9
+    assert Element(3,r)==True
+    assert Element(9,r)==False
+    r = CCRange(3,9,Reals)
+    assert Min(r)==3
+    assert Max(r)==9
+    assert Element(3,r)==True
+    assert Element(9,r)==True
+
+def test_shifted_integer_range():
+    r = Shifted(OORange(3,9,Integers),3)
+    assert [i for i in range(0,20) if r.contains(i)]==[4+3,5+3,6+3,7+3,8+3]
+    r = Shifted(OCRange(3,9,Integers),3)
+    assert [i for i in range(0,20) if r.contains(i)]==[4+3,5+3,6+3,7+3,8+3,9+3]
+    r = Shifted(CORange(3,9,Integers),3)
+    assert [i for i in range(0,20) if r.contains(i)]==[3+3,4+3,5+3,6+3,7+3,8+3]
+    r = Shifted(CCRange(3,9,Integers),3)
+    assert [i for i in range(0,20) if r.contains(i)]==[3+3,4+3,5+3,6+3,7+3,8+3,9+3]
+
+def test_maximum_range():
+    assert OORange(-oo,oo,Integers)==Integers
+    assert OCRange(-oo,oo,Integers)==Integers
+    assert CORange(-oo,oo,Integers)==Integers
+    assert CCRange(-oo,oo,Integers)==Integers
+
+    assert OORange(-oo,oo,Reals)==Reals
+    assert OCRange(-oo,oo,Reals)==Reals
+    assert CORange(-oo,oo,Reals)==Reals
+    assert CCRange(-oo,oo,Reals)==Reals
+
+    assert OORange(oo,-oo,Integers)==Empty
+
+def test_pos_neg_integer_range():
+    r = CCRange(-3,3,Integers)
+    assert [i for i in range(-10,10) if r.contains(i)]==[-3,-2,-1,0,1,2,3]
+    assert [i for i in range(-10,10) if Positive(r).contains(i)]==[1,2,3]
+    assert [i for i in range(-10,10) if Negative(r).contains(i)]==[-3,-2,-1]
 
 if __name__=='__main__':
     pass

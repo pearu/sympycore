@@ -44,6 +44,14 @@ class BasicSet(Basic):
         (as returned by the superset property).
         """
         return
+    def try_positive(self):
+        return
+    def try_negative(self):
+        return
+    def try_shifted(self, shift):
+        return
+    def try_divisible(self, divisor):
+        return
 
     def __invert__(self):
         """ Convinience method to construct a complementary set.
@@ -82,13 +90,24 @@ class BasicSet(Basic):
         """ Return infimum of a set.
         """
         return
+    @property
+    def is_unbounded_left(self):
+        m = Basic.Min(self)
+        if m.is_Number: return False
+        if m==-Basic.oo: return True
+        return
 
+    @property
+    def is_unbounded_right(self):
+        m = Basic.Max(self)
+        if m.is_Number: return False
+        if m==Basic.oo: return True
+        return
 
 
 class Set(ImmutableSetMeths, BasicSet, Composite, set):
     """ A set object with elements.
     """
-    #XXX: force Set to be immutable.
 
     def __new__(cls, *args):
         if not args: return Empty
@@ -119,15 +138,17 @@ class Set(ImmutableSetMeths, BasicSet, Composite, set):
     def superset(self):
         return self
 
+
 class SetSymbol(BasicSet, BasicSymbol):
     """ Set symbol.
     """
+
 
 class SetFunction(BasicSet, Function):
     """ Base class for Set functions.
     """
 
-    __new__ = Function.__new__ # avoid caching until Set is truelly immutable
+    #__new__ = Function.__new__ # avoid caching until Set is truelly immutable
 
     @property
     def domain(self):
@@ -165,6 +186,18 @@ class Complementary(SetFunction):
     """
     signature = FunctionSignature((set_values,set_values), set_values)
 
+    @property
+    def domain(self):
+        return self[1].domain
+
+    @property
+    def superset(self):
+        return self[1]
+
+    @property
+    def set(self):
+        return self[0]
+
     def __new__(cls, set, superset=None):
         if superset is None:
             superset = set.superset
@@ -172,24 +205,17 @@ class Complementary(SetFunction):
     
     @classmethod
     def canonize(cls, (set, superset)):
-        if set.is_Complementary:
-            if set.superset==superset:
-                return set[0]
-            if superset.is_subset_of(set.superset) and set[0].is_subset_of(superset):
-                return set[0]
         if set==superset:
             return Empty
         if superset.is_Field and set.superset!=superset:
             return Union(Complementary(set, set.superset), Complementary(set.superset, superset))
         return set.try_complementary(superset)
 
-    @property
-    def domain(self):
-        return self.args[1].domain
-
-    @property
-    def superset(self):
-        return self.args[1]
+    def try_complementary(self, superset):
+        if self.superset==superset:
+            return self.set
+        if superset.is_subset_of(self.superset) and self.set.is_subset_of(superset):
+            return self.set
 
     def try_contains(self, other):
         set = self.args[0]
@@ -216,6 +242,7 @@ class Complementary(SetFunction):
     def try_supremum(self):
         return Basic.Max(self.superset)    
 
+
 class Positive(SetFunction):
     """ Set of positive values in a set S.
 
@@ -224,19 +251,19 @@ class Positive(SetFunction):
 
     @classmethod
     def canonize(cls, (set,)):
-        if set.is_Positive:
-            return set
-        if set.is_Negative:
-            return Empty
-        if set.is_PrimeSet:
-            return set
-        if set.is_Shifted:
+        if 1 and set.is_Shifted:
             shift = set[1]
             if shift.is_Number:
                 if set[0].is_Negative and shift.is_negative:
                     return Empty
                 if set[0].is_Positive and shift.is_positive:
                     return Empty
+        return set.try_positive()
+    def try_positive(self):
+        return self
+    def try_negative(self):
+        return Empty
+
     def try_contains(self, other):
         set = self.args[0]
         r = set.contains(other)
@@ -252,10 +279,16 @@ class Positive(SetFunction):
             return True
 
     def try_infimum(self):
-        return Basic.Max(Basic.Min(self[0]), 0)
+        m = 0
+        if self.domain==Integers:
+            m = 1
+        return Basic.Max(Basic.Min(self[0]), m)
 
     def try_supremum(self):
-        return Basic.Max(Basic.Max(self[0]),0)
+        m = 0
+        if self.domain==Integers:
+            m = 1
+        return Basic.Max(Basic.Max(self[0]), m)
 
 
 class Negative(SetFunction):
@@ -265,13 +298,11 @@ class Negative(SetFunction):
     """
     @classmethod
     def canonize(cls, (set,)):
-        if set.is_Negative:
-            return set[0]
-        if set.is_Positive:
-            return Empty
-        if set.is_PrimeSet:
-            return Empty
-
+        return set.try_negative()
+    def try_negative(self):
+        return self
+    def try_positive(self):
+        return Empty
     def try_contains(self, other):
         set = self.args[0]
         r = set.contains(other)
@@ -287,10 +318,16 @@ class Negative(SetFunction):
             return True
 
     def try_infimum(self):
-        return Basic.Min(Basic.Min(self[0]), 0)
+        m = 0
+        if self.domain==Integers:
+            m = -1
+        return Basic.Min(Basic.Min(self[0]), m)
 
     def try_supremum(self):
-        return Basic.Min(Basic.Max(self[0]),0)
+        m = 0
+        if self.domain==Integers:
+            m = -1
+        return Basic.Min(Basic.Max(self[0]), m)
 
 
 class Shifted(SetFunction):
@@ -299,16 +336,18 @@ class Shifted(SetFunction):
     x in Shifted(S, s) <=> x-s in S
     """
     signature = FunctionSignature((set_values,Basic), set_values)
+    @property
+    def shift(self):
+        return self[1]
 
     @classmethod
     def canonize(cls, (set, shift)):
         if shift==0: return set
-        if set.is_Shifted:
-            return cls(set[0], shift+set[1])
         if set.is_EmptySet: return set
-        if (set.is_IntegerSet or set.is_Field) and set.contains(shift):
-            return set
-        return
+        return set.try_shifted(shift)
+
+    def try_shifted(self, shift):
+        return Shifted(self[0], self.shift+shift)
 
     def try_contains(self, other):
         set, shift = self.args
@@ -325,6 +364,7 @@ class Shifted(SetFunction):
         r = self[0].try_infimum()
         if r is not None:
             return r + self[1]
+
 
 class Divisible(SetFunction):
     """ Set of values in S that divide by divisor.
@@ -369,6 +409,7 @@ class Divisible(SetFunction):
     def try_supremum(self):
         set,divisor = self.args
         return Basic.Max(set) / divisor
+
 
 class Union(SetFunction):
     """ Union of sets.
@@ -433,6 +474,7 @@ class Union(SetFunction):
     def domain(self):
         return Union(*[s.domain for s in self.args])
 
+
 class Intersection(SetFunction):
     """ Intersection of sets.
     """
@@ -477,6 +519,7 @@ class Intersection(SetFunction):
     def domain(self):
         return Union(*[s.domain for s in self.args])
 
+
 class Minus(SetFunction):
     """ Set minus.
     """
@@ -487,6 +530,7 @@ class Minus(SetFunction):
             return Complementary(rhs, lhs)
         if rhs.is_subset_of(lhs) is False:
             return lhs
+
 
 class UniversalSet(SetSymbol):
     """ A set of all sets.
@@ -506,6 +550,13 @@ class UniversalSet(SetSymbol):
         return True
     def try_complementary(self, superset):
         return Empty
+    def try_shifted(self, shift):
+        return self
+    def try_positive(self):
+        return Positive(Reals)
+    def try_negative(self):
+        return Negative(Reals)
+
 
 class EmptySet(SetSymbol):
     is_empty = True
@@ -522,12 +573,20 @@ class EmptySet(SetSymbol):
         return self
     def try_complementary(self, superset):
         return superset
+    def try_shifted(self, shift):
+        return self
+    def try_positive(self):
+        return self
+    def try_negative(self):
+        return self
 
 Basic.is_empty = None
+
 
 class Field(SetSymbol):
     """ Represents abstract field.
     """
+
 
 class ComplexSet(Field):
     """ Represents a field of complex numbers.
@@ -543,6 +602,11 @@ class ComplexSet(Field):
             return True
     @property
     def superset(self): return Universal
+    def try_positive(self):
+        return Positive(Reals)
+    def try_negative(self):
+        return Negative(Reals)
+
 
 class RealSet(Field):
     """ Represents a field of real numbers.
@@ -566,6 +630,10 @@ class RealSet(Field):
         return Basic.oo
     def try_infimum(self):
         return -Basic.oo
+    def try_positive(self):
+        return OORange(0, Basic.oo, self)
+    def try_negative(self):
+        return OORange(-Basic.oo, 0, self)
 
 
 class RealCSet(SetSymbol):
@@ -585,6 +653,7 @@ class RealCSet(SetSymbol):
     def try_complementary(self, superset):
         if superset==self.superset:
             return Reals
+
 
 class RationalSet(Field):
     """ Field of rational numbers.
@@ -606,6 +675,11 @@ class RationalSet(Field):
         return Basic.oo
     def try_infimum(self):
         return -Basic.oo
+    def try_positive(self):
+        return OORange(0, Basic.oo, self)
+    def try_negative(self):
+        return OORange(-Basic.oo, 0, self)
+
 
 class RationalCSet(SetSymbol):
     """ Set of irrational numbers.
@@ -632,6 +706,7 @@ class RationalCSet(SetSymbol):
 
 IrrationalSet = RationalCSet
 
+
 class IntegerSet(SetSymbol):
     """ Field of integers.
     """
@@ -656,7 +731,13 @@ class IntegerSet(SetSymbol):
         return Basic.oo
     def try_infimum(self):
         return -Basic.oo
+
+    def try_positive(self):
+        return OORange(0, Basic.oo, self)
+    def try_negative(self):
+        return OORange(-Basic.oo, 0, self)
     
+
 class IntegerCSet(SetSymbol):
     """ Set of nontrivial fractions.
     """
@@ -684,6 +765,7 @@ class IntegerCSet(SetSymbol):
 
 FractionSet = IntegerCSet
 
+
 class PrimeSet(SetSymbol):
     """ Set of positive prime numbers.
     """
@@ -704,53 +786,182 @@ class PrimeSet(SetSymbol):
     def try_supremum(self):
         return Basic.oo
     def try_infimum(self):
-        return Basic.Number(1)
+        return Basic.Number(2)
+    def try_positive(self):
+        return self
+    def try_negative(self):
+        return Empty
+
 
 class BasicRange(SetFunction):
     """ Base class for range functions.
     """
     signature = FunctionSignature((Basic, Basic, set_values),set_values)
+    @property
+    def a(self):
+        return self[0]
+    @property
+    def b(self):
+        return self[1]
+    @property
+    def superset(self):
+        return self[2]
+    @property
+    def domain(self):
+        return self[2].domain
+
+    @classmethod
+    def canonize(cls, (a, b, set)):
+        d = b - a
+        if d.is_Number and d.is_negative:
+            return Empty
+        if d==-Basic.oo:
+            return Empty
+        if set==set.domain and a==Basic.Min(set) and b==Basic.Max(set):
+            return set
+
+    def try_contains(self, other):
+        r = self.superset.contains(other)
+        if r is False:
+            return False
+        if r is not True:
+            return
+        if self.a.is_Number:
+            if other.is_Number:
+                if other < self.a:
+                    return False
+                if self.b.is_Number:
+                    return other < self.b
+                elif self.is_unbounded_right:
+                    return True
+        elif self.b.is_Number:
+            if other.is_Number:
+                if self.b < other:
+                    return False
+                if self.is_unbounded_left:
+                    return True
+
+    def try_shifted(self, shift):
+        return self.__class__(self.a+shift, self.b+shift, self.superset)
+
 
 class OORange(BasicRange):
     """ An open range (a,b) of a set S."""
 
     @classmethod
     def canonize(cls, (a, b, set)):
-        assert set is set.domain,`set`
-        h1 = Negative(set)
-        h3 = Shifted(h1, b-a)
-        h4 = Positive(h3)
-        h5 = Shifted(h4, a)
-        return h5
+        if a==b: return Empty
+        return BasicRange.canonize((a, b, set))
+
+    def try_contains(self, other):
+        if self.a==other: return False
+        if self.b==other: return False
+        return super(OORange, self).try_contains(other)
+
+    def try_supremum(self):
+        if self.domain==Integers:
+            return self.b-1
+        return self.b
+    def try_infimum(self):
+        if self.domain==Integers:
+            return self.a+1
+        return self.a
+    def try_positive(self):
+        return self.__class__(0, self.b, self.superset)
+    def try_negative(self):
+        return self.__class__(self.a, 0, self.superset)
+    def try_complementary(self, superset):
+        if self.superset==superset:
+            if self.is_unbounded_left:
+                return CORange(self.b, Max(superset), superset)
+            if self.is_unbounded_right:
+                return OCRange(Min(superset),self.a, superset)
+
 
 class OCRange(BasicRange):
     """ An semi-open range (a,b] of a set S."""
+
     @classmethod
     def canonize(cls, (a, b, set)):
-        assert set is set.domain,`set`
-        h1 = Positive(set)
-        h2 = Complementary(h1, set)
-        h3 = Shifted(h2, b-a)
-        h4 = Positive(h3)
-        h5 = Shifted(h4, a)
-        return h5
+        if a==b: return b
+        return BasicRange.canonize((a, b, set))
 
-class CORange(Function):
+    def try_contains(self, other):
+        if self.a==other: return False
+        if self.b==other: return self.superset.contains(other)
+        return super(OCRange, self).try_contains(other)
+
+    def try_supremum(self):
+        return self.b
+    def try_infimum(self):
+        if self.domain==Integers:
+            return self.a+1
+        return self.a
+    def try_positive(self):
+        return self.__class__(0, self.b, self.superset)
+    def try_negative(self):
+        return OORange(self.a, 0, self.superset)
+    def try_complementary(self, superset):
+        if self.superset==superset:
+            if self.is_unbounded_left:
+                return OORange(self.b, Max(superset), superset)
+            assert not self.is_unbounded_right,`self`
+
+
+class CORange(BasicRange):
     """ An semi-open range [a,b) of a set S."""
-    @classmethod
-    def canonize(cls, (a, b, set)):
-        h1 = Negative(set)
-        h2 = Complementary(h1, set)
-        h3 = Shifted(h2, a-b)
-        h4 = Negative(h3)
-        h5 = Shifted(h4, b)
-        return h5
 
-class CCRange(Function):
-    """ An closed range [a,b] of a set S."""
     @classmethod
     def canonize(cls, (a, b, set)):
-        return Union(Set(a,b),OORange(a,b,set))
+        if a==b: return a
+        return BasicRange.canonize((a, b, set))
+
+    def try_contains(self, other):
+        if self.a==other: return self.superset.contains(other)
+        if self.b==other: return False
+        return super(CORange, self).try_contains(other)
+
+    def try_supremum(self):
+        if self.domain==Integers:
+            return self.b-1
+        return self.b
+    def try_infimum(self):
+        return self.a
+    def try_positive(self):
+        return OORange(0, self.b, self.superset)
+    def try_negative(self):
+        return self.__class__(self.a, 0, self.superset)
+    def try_complementary(self, superset):
+        if self.superset==superset:
+            if self.is_unbounded_right:
+                return OORange(Min(superset),self.a, superset)
+            assert not self.is_unbounded_left,`self`
+
+
+class CCRange(BasicRange):
+    """ An closed range [a,b] of a set S."""
+
+    @classmethod
+    def canonize(cls, (a, b, set)):
+        if a==b: return b
+        return BasicRange.canonize((a, b, set))
+
+    def try_contains(self, other):
+        if self.a==other: return self.superset.contains(other)
+        if self.b==other: return self.superset.contains(other)
+        return super(CCRange, self).try_contains(other)
+    def try_supremum(self):
+        return self.b
+    def try_infimum(self):
+        return self.a
+    def try_positive(self):
+        return OCRange(0, self.b, self.superset)
+    def try_negative(self):
+        return CORange(self.a, 0, self.superset)
+    def try_complementary(self, superset):
+        if self.superset==superset:
+            assert not self.is_unbounded_left,`self`
+            assert not self.is_unbounded_right,`self`
 
 
 Range = OORange
