@@ -11,25 +11,32 @@ from number import Number, Real, Rational, Integer, Fraction, Float
 #from mul import Mul
 from add import Add, MutableAdd
 from mul import Mul, MutableMul, Pow, sqrt
-#from relational import Equality, Inequality, Unequality, StrictInequality
-#from new_function import NewFunction, sin_
 #from function import Lambda, Function, Apply, FApply, Composition, FPow, WildFunction, Derivative, DefinedFunction, diff
 from function import Function, Lambda
 from functions import Max, Min
 from interval import Interval
+
+from predicate import And, Or, XOr, Not, Implies, Equiv, Boolean
+from predicate import Element, Subset
+from sets import Set, SetSymbol, Union, Minus, Intersection, Complementary
+from sets import Empty, Universal
+from sets import Positive, Negative, Shifted, Divisible
+from sets import Complexes, Reals, Rationals, Integers, Primes, Evens, Odds
+from sets import Range, OORange, CCRange, CORange, OCRange
+
 from singleton import pi, I, oo, zoo, E, nan
 
-import assume
-from predicate import And, Or, XOr, Not, Implies, Equiv, \
-     Equal, Less, IsReal, IsInteger, IsRational, IsPositive,\
-     IsNegative, Boolean, IsNonPositive, IsNonNegative, \
-     IsPrime, IsComposite, IsFraction, IsComplex, LessEqual, \
-     GreaterEqual, Greater, IsImaginary, IsEven, IsOdd, IsZero, \
-     IsIrrational, IsNonZero
-from sets import Set, Union, SetSymbol, Complexes, Reals, Rationals, Integers,\
-     Primes, Irrationals, Fractions, Shifted, Positive, Negative, Divisible, \
-     Evens, Odds, Complementary, Element, Intersection, Minus, Empty, Universal,\
-     Range, OORange, CCRange, CORange, OCRange
+
+#import assume
+
+#, \
+#     Equal, Less, IsReal, IsInteger, IsRational, IsPositive,\
+#     IsNegative, Boolean, IsNonPositive, IsNonNegative, \
+#     IsPrime, IsComposite, IsFraction, IsComplex, LessEqual, \
+#     GreaterEqual, Greater, IsImaginary, IsEven, IsOdd, IsZero, \
+#     IsIrrational, IsNonZero
+
+
 
 
 # set repr output to pretty output:

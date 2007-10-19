@@ -22,23 +22,19 @@ class BooleanMeths:
         """ Returns True if from other follows self.
         """
         return False
-
     def is_opposite_to(self, other):
         """ Returns True if from not other follows self.
         """
         return False
-
     def intersection_subset(self, other):
         """ Assume that self = smth xor smth2 and other = smth xor smth3.
         Return smth or None.
         """
         return
-
     def minus_subset(self, other, negative=False):
         """ Assume self = smth xor other. Return smth or None.
         """
         return
-
     def truth_table(self, atoms=None):
         """ Compute truth table of boolean expression.
 
@@ -94,7 +90,6 @@ class BooleanMeths:
             else:
                 assert isinstance(v, bool),`v`
         return atoms + conditions, table
-
     def test(self, test):
         """
         Return conditions when test holds assuming that self is True.
@@ -133,7 +128,6 @@ class BooleanMeths:
         if not l:
             return False
         return And(*l)
-
     def conditions(self, type=None):
         """
         Return a set of Condition instances.
@@ -146,7 +140,6 @@ class BooleanMeths:
             if obj.is_Predicate:
                 s = s.union(obj.conditions(type=type))
         return s
-
     def minimize(self):
         """ Return minimal boolean expression using Quine-McCluskey algorithm.
 
@@ -174,13 +167,10 @@ class Boolean(BooleanMeths, BasicSymbol):
 
     def as_dummy(self):
         return DummyBoolean(self.name)
-
     def compute_truth_table(self):
         return [self],{1:[True]}
-
     def conditions(self, type=None):
         return set()
-
     def minimize(self):
         return self
 
@@ -241,7 +231,6 @@ class And(Predicate):
             return cls(*new_operants)
         operants.sort(Basic.compare)
         return        
-
     def tostr(self, level=0):
         return '%s(%s)' % (self.__class__.__name__,
                            ', '.join([c.tostr(self.precedence) for c in self]))
@@ -288,7 +277,6 @@ class Or(Predicate):
             return cls(*new_operants)
         operants.sort(Basic.compare)
         return
-
     def tostr(self, level=0):
         return '%s(%s)' % (self.__class__.__name__,
                            ', '.join([c.tostr(self.precedence) for c in self]))
@@ -372,7 +360,6 @@ class Not(Predicate):
             return not arg
         if arg.is_Not:
             return arg[0]
-
     def tostr(self, level=0):
         return '%s(%s)' % (self.__class__.__name__,
                            ', '.join([c.tostr(self.precedence) for c in self]))
@@ -410,6 +397,38 @@ class Equiv(Predicate):
 #
 #
 
+class Element(Predicate):
+    """ Predicate function 'object is an element of a set'.
+    """
+
+    # Element.signature is initialized in sets module
+    
+    @classmethod
+    def canonize(cls, (obj, set)):
+        return set.try_contains(obj)
+
+    def __nonzero__(self):
+        return False
+
+
+class Subset(Predicate):
+    """ Predicate function 'object is a subset of a set'.
+    """
+
+    # Subset.signature is initialized in sets module
+    
+    @classmethod
+    def canonize(cls, (obj, set)):
+        if obj.domain==set:
+            return True
+        if obj.is_EmptySet:
+            return True
+        return set.try_includes(obj)
+
+    def __nonzero__(self):
+        return False
+
+'''
 class Condition(Predicate):
     """ Base class for conditions.
 
@@ -419,7 +438,6 @@ class Condition(Predicate):
       Equal, Less
       IsComplex, IsReal, IsRational, IsInteger, IsPrime
     """
-
     def subs(self, old, new):
         old = sympify(old)
         new = sympify(new)
@@ -523,40 +541,6 @@ class Greater(Relational):
     @classmethod
     def canonize(cls, (lhs, rhs)):
         return Less(rhs, lhs)
-
-## class IsNonNegative(Predicate):
-##     signature = FunctionSignature((Basic,), boolean_classes)
-##     @classmethod
-##     def canonize(cls, (arg,)):
-##         if arg.is_ImaginaryUnit: return False
-##         return Not(Less(arg, 0))
-
-## class IsPositive(Predicate):
-
-##     signature = FunctionSignature((Basic,), boolean_classes)
-    
-##     @classmethod
-##     def canonize(cls, (arg,)):
-##         if arg.is_ImaginaryUnit: return False
-##         return Less(0, arg)
-
-## class IsNonPositive(Predicate):
-
-##     signature = FunctionSignature((Basic,), boolean_classes)
-    
-##     @classmethod
-##     def canonize(cls, (arg,)):
-##         if arg.is_ImaginaryUnit: return False
-##         return Not(Less(0, arg))
-
-## class IsNegative(Predicate):
-
-##     signature = FunctionSignature((Basic,), boolean_classes)
-    
-##     @classmethod
-##     def canonize(cls, (arg,)):
-##         if arg.is_ImaginaryUnit: return False
-##         return Less(arg, 0)
 
 #
 # Inclusion conditions:
@@ -876,3 +860,5 @@ class IsNonZero(IsNegative, IsPositive, IsOdd, IsPrime):
             # IsNonZero(2*x) -> IsNonZero(x)
             s,n = arg.items()[0]
             return IsNonZero(s)
+
+'''

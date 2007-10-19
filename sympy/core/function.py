@@ -49,15 +49,29 @@ class FunctionSignature:
         cls = self.argument_classes
         if self.nof_arguments is not None:
             if self.nof_arguments!=len(args):
-                raise TypeError('%s: wrong number of arguments, expected %s, got %s'\
+                raise TypeError('function %s: wrong number of arguments, expected %s, got %s'\
                                 % (funcname, self.nof_arguments, len(args)))
+            i = 0
             for a,cls in zip(args, self.argument_classes):
+                i += 1
                 if not isinstance(a, cls):
-                    raise TypeError('%s: wrong argument type %r, expected %s' % (funcname, a, cls))
+                    if isinstance(cls, tuple):
+                        clsinfo = '|'.join([c.__name__ for c in cls])
+                    else:
+                        clsinfo = cls.__name__
+                    raise TypeError('function %s: wrong argument[%s] type %r, expected %r'\
+                                    % (funcname, i, type(a).__name__, clsinfo))
         elif cls is not None:
+            i = 0
             for a in args:
+                i += 1
                 if not isinstance(a, cls):
-                    raise TypeError('%s: wrong argument type %r, expected %s' % (funcname, a, cls))
+                    if isinstance(cls, tuple):
+                        clsinfo = '|'.join([c.__name__ for c in cls])
+                    else:
+                        clsinfo = cls.__name__
+                    raise TypeError('function %s: wrong argument[%s] type %r, expected %r'\
+                                    % (funcname, i, type(a).__name__, clsinfo))
 
     def __repr__(self):
         return '%s(%r, %r)' % (self.__class__.__name__,

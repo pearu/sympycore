@@ -1,6 +1,7 @@
 
 from sympy import *
 
+'''
 def test_truth_table():
 
     assert Not(False)==True
@@ -141,6 +142,7 @@ def test_test_logic():
     assert And(a,b).test(a)==b
     assert And(~a,b).test(a)==False
 
+
 def test_bug2():
     x = Symbol('x')
     a = IsEven(x)
@@ -176,8 +178,10 @@ def test_signed():
     assert a.test(IsNonPositive(x))==IsZero(x)
     assert a.test(IsZero(x))==IsNonPositive(x)
 
+
 def test_ispositive():
     x = Symbol('x')
     a = Less(1,x)
     assert a.test(IsPositive(x))==True
     
+'''
