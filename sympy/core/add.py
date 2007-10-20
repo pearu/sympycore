@@ -109,10 +109,39 @@ class MutableAdd(ArithMeths, MutableCompositeDict):
 
 
 class Add(ImmutableDictMeths, MutableAdd):
-    """ Represents a sum.
+    """
+    Represents a sum. For example, Add(x, -y/2, 3*sin(x)) represents
+    the symbolic expression x - y/2 + 3*sin(x).
 
-    Add returns an immutable object. See MutableAdd for
-    a more efficient way to compute sums.
+    Automatic simplifications are performed when an Add object is
+    constructed. In particular, rational multiples of identical terms
+    are combined and nested sums are flattened. For example,
+
+        Add(3*x, Add(4*x, y)) -> Add(7*x, y).
+
+    The result from calling Add may be a simpler object. For example,
+
+        Add(2, 3) -> 5
+        Add(x, -x) -> 0
+        Add() -> 0
+
+    An Add instance is a dict-like object. Its terms are stored along
+    with their rational multiplicities as key:value pairs. For example,
+    x - y/2  + 3*sin(x) is equivalent to
+
+        Add({x:Integer(1), y:Rational(-1,2), sin(x):Integer(3)}).
+
+    You can create an Add object directly from a Python dict as above
+    (however, when constructing an Add from a dict, the keys and values
+    you provide must be ready canonical SymPy expressions.)
+
+    Note that a rational multiple of a single term is represented as
+    an Add object in SymPy. For example, 3*x*y is represented as
+    Add({x*y:3}).
+
+    Add is immutable. The MutableAdd class can be used for more
+    efficient sequential summation (see its documentation for more
+    information).
     """
 
     # constructor methods
