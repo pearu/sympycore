@@ -44,6 +44,7 @@ class MutableAdd(ArithMeths, MutableCompositeDict):
         Add({}).update(a,p) -> Add({a:p})
         """
         acls = a.__class__
+
         if acls is dict:
             # construct Add instance from a canonical dictionary
             # it must contain Basic instances as keys as well as values.
@@ -53,18 +54,26 @@ class MutableAdd(ArithMeths, MutableCompositeDict):
         if acls is tuple and len(a)==2:
             self.update(*a)
             return
+
         a = Basic.sympify(a)
+        # Flatten sum
         if a.is_MutableAdd:
-            for k,v in a.items():
-                self.update(k, v * p)
+            for k, v in a.items():
+                self.update(k, v*p)
             return
+        # Add(3) -> Add({1:3})
         if a.is_Number:
             p = a * p
             a = Basic.one
-        b = self.get(a,None)
+
+        # If term is already present, add the coefficients together.
+        # Otherwise insert new term.
+        b = self.get(a, None)
         if b is None:
             self[a] = sympify(p)
         else:
+            # Note: we don't have to check if the coefficient turns to
+            # zero here. Zero terms are cleaned up later, in canonical()
             self[a] = b + p
         return
 
