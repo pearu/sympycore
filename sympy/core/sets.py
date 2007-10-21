@@ -617,9 +617,9 @@ class RealSet(Field):
     def try_infimum(self):
         return -Basic.oo
     def try_positive(self):
-        return Basic.OORange(0, Basic.oo, self)
+        return Basic.RangeOO(0, Basic.oo, self)
     def try_negative(self):
-        return Basic.OORange(-Basic.oo, 0, self)
+        return Basic.RangeOO(-Basic.oo, 0, self)
     def try_includes(self, set):
         if isinstance(set.domain, (RationalSet, IntegerSet, PrimeSet)):
             return True
@@ -646,9 +646,9 @@ class RationalSet(Field):
     def try_infimum(self):
         return -Basic.oo
     def try_positive(self):
-        return Basic.OORange(0, Basic.oo, self)
+        return Basic.RangeOO(0, Basic.oo, self)
     def try_negative(self):
-        return Basic.OORange(-Basic.oo, 0, self)
+        return Basic.RangeOO(-Basic.oo, 0, self)
     def try_includes(self, set):
         if isinstance(set.domain, (IntegerSet, PrimeSet)):
             return True
@@ -679,9 +679,9 @@ class IntegerSet(SetSymbol):
     def try_infimum(self):
         return -Basic.oo
     def try_positive(self):
-        return Basic.OORange(0, Basic.oo, self)
+        return Basic.RangeOO(0, Basic.oo, self)
     def try_negative(self):
-        return Basic.OORange(-Basic.oo, 0, self)
+        return Basic.RangeOO(-Basic.oo, 0, self)
     def try_includes(self, set):
         if isinstance(set.domain, PrimeSet):
             return True

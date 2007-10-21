@@ -21,7 +21,7 @@ ordering_of_classes = [
     'Union','Complementary','Positive','Negative','Shifted','Divisible',
     'PrimeSet','IntegerSet','IntegerCSet','RationalSet','RationalCSet',
     'RealSet','RealCSet','ComplexSet',
-    'OORange','OCRange','CORange','CCRange'
+    'RangeOO','RangeOC','RangeCO','RangeCC'
     ]
 
 class BasicType(type):

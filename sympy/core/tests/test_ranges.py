@@ -2,130 +2,130 @@
 from sympy import *
 
 def test_integer_range():
-    r = OORange(3,9,Integers)
+    r = RangeOO(3,9,Integers)
     assert [i for i in range(0,20) if r.contains(i)]==[4,5,6,7,8]
-    r = OCRange(3,9,Integers)
+    r = RangeOC(3,9,Integers)
     assert [i for i in range(0,20) if r.contains(i)]==[4,5,6,7,8,9]
-    r = CORange(3,9,Integers)
+    r = RangeCO(3,9,Integers)
     assert [i for i in range(0,20) if r.contains(i)]==[3,4,5,6,7,8]
-    r = CCRange(3,9,Integers)
+    r = RangeCC(3,9,Integers)
     assert [i for i in range(0,20) if r.contains(i)]==[3,4,5,6,7,8,9]
 
 def test_range_bounds():
-    r = OORange(3,9,Integers)
+    r = RangeOO(3,9,Integers)
     assert Min(r)==4
     assert Max(r)==8
     assert Element(3,r)==False
     assert Element(9,r)==False
-    r = OCRange(3,9,Integers)
+    r = RangeOC(3,9,Integers)
     assert Min(r)==4
     assert Max(r)==9
     assert Element(3,r)==False
     assert Element(9,r)==True
-    r = CORange(3,9,Integers)
+    r = RangeCO(3,9,Integers)
     assert Min(r)==3
     assert Max(r)==8
     assert Element(3,r)==True
     assert Element(9,r)==False
-    r = CCRange(3,9,Integers)
+    r = RangeCC(3,9,Integers)
     assert Min(r)==3
     assert Max(r)==9
     assert Element(3,r)==True
     assert Element(9,r)==True
 
-    r = OORange(3,9,Reals)
+    r = RangeOO(3,9,Reals)
     assert Min(r)==3
     assert Max(r)==9
     assert Element(3,r)==False
     assert Element(9,r)==False
-    r = OCRange(3,9,Reals)
+    r = RangeOC(3,9,Reals)
     assert Min(r)==3
     assert Max(r)==9
     assert Element(3,r)==False
     assert Element(9,r)==True
-    r = CORange(3,9,Reals)
+    r = RangeCO(3,9,Reals)
     assert Min(r)==3
     assert Max(r)==9
     assert Element(3,r)==True
     assert Element(9,r)==False
-    r = CCRange(3,9,Reals)
+    r = RangeCC(3,9,Reals)
     assert Min(r)==3
     assert Max(r)==9
     assert Element(3,r)==True
     assert Element(9,r)==True
 
 def test_shifted_integer_range():
-    r = Shifted(OORange(3,9,Integers),3)
+    r = Shifted(RangeOO(3,9,Integers),3)
     assert [i for i in range(0,20) if r.contains(i)]==[4+3,5+3,6+3,7+3,8+3]
-    r = Shifted(OCRange(3,9,Integers),3)
+    r = Shifted(RangeOC(3,9,Integers),3)
     assert [i for i in range(0,20) if r.contains(i)]==[4+3,5+3,6+3,7+3,8+3,9+3]
-    r = Shifted(CORange(3,9,Integers),3)
+    r = Shifted(RangeCO(3,9,Integers),3)
     assert [i for i in range(0,20) if r.contains(i)]==[3+3,4+3,5+3,6+3,7+3,8+3]
-    r = Shifted(CCRange(3,9,Integers),3)
+    r = Shifted(RangeCC(3,9,Integers),3)
     assert [i for i in range(0,20) if r.contains(i)]==[3+3,4+3,5+3,6+3,7+3,8+3,9+3]
 
 def test_maximum_range():
-    assert OORange(-oo,oo,Integers)==Integers
-    assert OCRange(-oo,oo,Integers)==Integers
-    assert CORange(-oo,oo,Integers)==Integers
-    assert CCRange(-oo,oo,Integers)==Integers
+    assert RangeOO(-oo,oo,Integers)==Integers
+    assert RangeOC(-oo,oo,Integers)==Integers
+    assert RangeCO(-oo,oo,Integers)==Integers
+    assert RangeCC(-oo,oo,Integers)==Integers
 
-    assert OORange(-oo,oo,Reals)==Reals
-    assert OCRange(-oo,oo,Reals)==Reals
-    assert CORange(-oo,oo,Reals)==Reals
-    assert CCRange(-oo,oo,Reals)==Reals
+    assert RangeOO(-oo,oo,Reals)==Reals
+    assert RangeOC(-oo,oo,Reals)==Reals
+    assert RangeCO(-oo,oo,Reals)==Reals
+    assert RangeCC(-oo,oo,Reals)==Reals
 
-    assert OORange(oo,-oo,Integers)==Empty
+    assert RangeOO(oo,-oo,Integers)==Empty
 
 def test_pos_neg_integer_range():
-    r = CCRange(-3,3,Integers)
+    r = RangeCC(-3,3,Integers)
     assert [i for i in range(-10,10) if r.contains(i)]==[-3,-2,-1,0,1,2,3]
     assert [i for i in range(-10,10) if Positive(r).contains(i)]==[1,2,3]
     assert [i for i in range(-10,10) if Negative(r).contains(i)]==[-3,-2,-1]
 
 def test_union_range():
-    r1 = OORange(0,10,Integers)
-    r2 = OORange(5,15,Integers)
-    assert Union(r1,r2)==OORange(0,15,Integers)
+    r1 = RangeOO(0,10,Integers)
+    r2 = RangeOO(5,15,Integers)
+    assert Union(r1,r2)==RangeOO(0,15,Integers)
 
-    r3 = OORange(10,15,Integers)
+    r3 = RangeOO(10,15,Integers)
     assert Union(r1,r3).is_Union
-    assert Union(r1,r3-1)==OORange(0,14,Integers)
-    r3 = CORange(10,15,Integers)
-    assert Union(r1,r3)==OORange(0,15,Integers)
+    assert Union(r1,r3-1)==RangeOO(0,14,Integers)
+    r3 = RangeCO(10,15,Integers)
+    assert Union(r1,r3)==RangeOO(0,15,Integers)
 
-    r4 = OORange(2,7,Integers)
+    r4 = RangeOO(2,7,Integers)
     assert Union(r1,r4)==r1
 
     assert Union(Positive(Integers),Negative(Integers)).is_Union
     assert Union(Positive(Integers),Negative(Integers)+1)==Integers
     assert Union(Positive(Integers)-1,Negative(Integers))==Integers
-    assert Union(Positive(Integers)+3,OORange(0,4,Integers))==Positive(Integers)
+    assert Union(Positive(Integers)+3,RangeOO(0,4,Integers))==Positive(Integers)
 
 def test_minus_range():
-    r1 = OORange(0,10,Integers)
-    r2 = OORange(5,15,Integers)
-    assert Minus(r1,r2)==OCRange(0,5,Integers)
-    r2 = CORange(5,15,Integers)
-    assert Minus(r1,r2)==OORange(0,5,Integers)
+    r1 = RangeOO(0,10,Integers)
+    r2 = RangeOO(5,15,Integers)
+    assert Minus(r1,r2)==RangeOC(0,5,Integers)
+    r2 = RangeCO(5,15,Integers)
+    assert Minus(r1,r2)==RangeOO(0,5,Integers)
 
-    rbig = OORange(0,20,Integers)
-    r0 = OORange(5,15,Integers)
-    assert Minus(rbig,r0)==Union(CORange(15, 20, Integers), OCRange(0, 5, Integers))
+    rbig = RangeOO(0,20,Integers)
+    r0 = RangeOO(5,15,Integers)
+    assert Minus(rbig,r0)==Union(RangeCO(15, 20, Integers), RangeOC(0, 5, Integers))
 
 def test_intersection_range():
-    r1 = OORange(0,10,Integers)
-    r2 = OORange(5,15,Integers)
-    assert Intersection(r1,r2)==OORange(5,10,Integers)
+    r1 = RangeOO(0,10,Integers)
+    r2 = RangeOO(5,15,Integers)
+    assert Intersection(r1,r2)==RangeOO(5,10,Integers)
 
 def xtest_bug1_intersection_range():
-    assert Intersection(Range(0,10), Range(3,15))==CCRange(3,10,Reals)
+    assert Intersection(Range(0,10), Range(3,15))==RangeCC(3,10,Reals)
 
 def test_union_real_ranges():
     OO = Range
-    OC = lambda s,e: OCRange(s,e,Reals)
-    CO = lambda s,e: CORange(s,e,Reals)
-    CC = lambda s,e: CCRange(s,e,Reals)
+    OC = lambda s,e: RangeOC(s,e,Reals)
+    CO = lambda s,e: RangeCO(s,e,Reals)
+    CC = lambda s,e: RangeCC(s,e,Reals)
 
     assert Union(OO(1,4),OO(1,6))==OO(1,6)
     assert Union(OO(1,4),OO(2,3))==OO(1,4)
@@ -208,9 +208,9 @@ def test_union_real_ranges():
 
 def test_union_symbolic_ranges():
     OO = Range
-    OC = lambda s,e: OCRange(s,e,Reals)
-    CO = lambda s,e: CORange(s,e,Reals)
-    CC = lambda s,e: CCRange(s,e,Reals)
+    OC = lambda s,e: RangeOC(s,e,Reals)
+    CO = lambda s,e: RangeCO(s,e,Reals)
+    CC = lambda s,e: RangeCC(s,e,Reals)
     a = Symbol('a')
     b = Symbol('b')
     assert Union(OO(b-1,b+1), OO(b,b+2))==OO(b-1,b+2)
@@ -226,9 +226,9 @@ def test_union_symbolic_ranges():
 
 def test_intersection_real_ranges():
     OO = Range
-    OC = lambda s,e: OCRange(s,e,Reals)
-    CO = lambda s,e: CORange(s,e,Reals)
-    CC = lambda s,e: CCRange(s,e,Reals)
+    OC = lambda s,e: RangeOC(s,e,Reals)
+    CO = lambda s,e: RangeCO(s,e,Reals)
+    CC = lambda s,e: RangeCC(s,e,Reals)
 
     assert Intersection(OO(1,4),OO(1,3))==OO(1,3)
     assert Intersection(OO(1,4),OO(1,4))==OO(1,4)
@@ -322,9 +322,9 @@ def test_intersection_real_ranges():
 
 def test_minus_real_ranges():
     OO = Range
-    OC = lambda s,e: OCRange(s,e,Reals)
-    CO = lambda s,e: CORange(s,e,Reals)
-    CC = lambda s,e: CCRange(s,e,Reals)
+    OC = lambda s,e: RangeOC(s,e,Reals)
+    CO = lambda s,e: RangeCO(s,e,Reals)
+    CC = lambda s,e: RangeCC(s,e,Reals)
 
     assert Minus(OO(1,4),OO(-1,0))==OO(1,4)
     assert Minus(OO(1,4),OO(-1,1))==OO(1,4)
