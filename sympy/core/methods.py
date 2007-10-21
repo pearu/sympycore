@@ -212,3 +212,4 @@ class NumberMeths(ArithMeths):
 
     def __pow__(self, other):
         raise NotImplementedError('%s must implement __pow__ method' % (self.__class__.__name__))
+
