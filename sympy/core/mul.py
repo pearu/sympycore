@@ -91,6 +91,7 @@ class MutableMul(ArithMeths, MutableCompositeDict):
         return Basic.Add((obj,n))
 
     # arithmetics methods
+
     def __imul__(self, other):
         self.update(other)
         return self
@@ -112,26 +113,12 @@ class Mul(ImmutableDictMeths, MutableMul):
         return MutableMul(*args, **options).canonical()
 
     # arithmetics methods
+
     def __imul__(self, other):
         return Mul(self, other)
 
     # object identity methods
-    def DISABLE__hash__(self):
-        h = self.__dict__.get('_cached_hash', None)
-        if h is None:
-            h = hash((Mul,)+ self.as_tuple())
-            self._cached_hash = h
-        return h
 
-    def DISABLEas_tuple(self):
-        r = self.__dict__.get('_cached_as_tuple', None)
-        if r is None:
-            l = self.items()
-            l.sort()
-            r = tuple(l)
-            self._cached_as_tuple = r
-        return r
-    
     def __getitem__(self, key):
         if isinstance(key, slice) or key.__class__ in [int, long]:
             return self.items()[key]
@@ -148,6 +135,7 @@ class Mul(ImmutableDictMeths, MutableMul):
         return [self]
 
     @property
+
     def precedence(self):
         return Basic.Mul_precedence
 
@@ -273,6 +261,7 @@ class Pow(Basic):
 
     Pow instances will be never created.
     """
+
     def __new__(cls, a, b):
         a = Basic.sympify(a)
         b = Basic.sympify(b)

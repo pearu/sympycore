@@ -112,6 +112,7 @@ class MutableAdd(ArithMeths, MutableCompositeDict):
         return self
 
     # arithmetics methods
+
     def __iadd__(self, other):
         self.update(other)
         return self
@@ -155,41 +156,21 @@ class Add(ImmutableDictMeths, MutableAdd):
 
     # constructor methods
     @memoizer_immutable_args("Add.__new__")
+
     def __new__(cls, *args, **options):
         return MutableAdd(*args, **options).canonical()
 
     # canonize methods
+
     def canonical(self):
         return self
 
     # arithmetics methods
+
     def __iadd__(self, other):
         return Add(self, other)
 
     # object identity methods
-    def DISABLE__hash__(self):
-        h = self.__dict__.get('_cached_hash', None)
-        if h is None:
-            h = hash((Add,)+ self.as_tuple())
-            self._cached_hash = h
-        return h
-
-    def DISABLEas_tuple(self):
-        r = self.__dict__.get('_cached_as_tuple', None)
-        if r is None:
-            l = self.items()
-            l.sort()
-            r = tuple(l)
-            self._cached_as_tuple = r
-        return r
-
-
-    def DISABLE__eq__(self, other):
-        if isinstance(self, Add):
-            return dict.__eq__(self, other)
-        if isinstance(self, Basic):
-            return False
-        return self==sympify(other)
 
     def __getitem__(self, key):
         if isinstance(key, slice) or key.__class__ in [int, long]:
