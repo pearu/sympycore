@@ -319,3 +319,219 @@ def test_intersection_real_ranges():
     assert Intersection(CC(1,4),CC(2,6))==CC(2,4)
     assert Intersection(CC(1,4),CC(4,6))==Set(4)
     assert Intersection(CC(1,4),CC(5,6))==Empty
+
+def test_minus_real_ranges():
+    OO = Range
+    OC = lambda s,e: OCRange(s,e,Reals)
+    CO = lambda s,e: CORange(s,e,Reals)
+    CC = lambda s,e: CCRange(s,e,Reals)
+
+    assert Minus(OO(1,4),OO(-1,0))==OO(1,4)
+    assert Minus(OO(1,4),OO(-1,1))==OO(1,4)
+    assert Minus(OO(1,4),OO(-1,2))==CO(2,4)
+    assert Minus(OO(1,4),OO(-1,4))==Empty
+    assert Minus(OO(1,4),OO(-1,5))==Empty
+    assert Minus(OO(1,4),OO(1,3))==CO(3,4)
+    assert Minus(OO(1,4),OO(1,4))==Empty
+    assert Minus(OO(1,4),OO(1,5))==Empty
+    assert Minus(OO(1,4),OO(2,3))==Union(OC(1,2),CO(3,4))
+    assert Minus(OO(1,4),OO(2,4))==OC(1,2)
+    assert Minus(OO(1,4),OO(2,5))==OC(1,2)
+    assert Minus(OO(1,4),OO(4,5))==OO(1,4)
+    assert Minus(OO(1,4),OO(5,6))==OO(1,4)
+
+    assert Minus(OO(1,4),OC(-1,0))==OO(1,4)
+    assert Minus(OO(1,4),OC(-1,1))==OO(1,4)
+    assert Minus(OO(1,4),OC(-1,2))==OO(2,4)
+    assert Minus(OO(1,4),OC(-1,4))==Empty
+    assert Minus(OO(1,4),OC(-1,5))==Empty
+    assert Minus(OO(1,4),OC(1,3))==OO(3,4)
+    assert Minus(OO(1,4),OC(1,4))==Empty
+    assert Minus(OO(1,4),OC(1,5))==Empty
+    assert Minus(OO(1,4),OC(2,3))==Union(OC(1,2),OO(3,4))
+    assert Minus(OO(1,4),OC(2,4))==OC(1,2)
+    assert Minus(OO(1,4),OC(2,5))==OC(1,2)
+    assert Minus(OO(1,4),OC(4,5))==OO(1,4)
+    assert Minus(OO(1,4),OC(5,6))==OO(1,4)
+
+    assert Minus(OO(1,4),CO(-1,0))==OO(1,4)
+    assert Minus(OO(1,4),CO(-1,1))==OO(1,4)
+    assert Minus(OO(1,4),CO(-1,2))==CO(2,4)
+    assert Minus(OO(1,4),CO(-1,4))==Empty
+    assert Minus(OO(1,4),CO(-1,5))==Empty
+    assert Minus(OO(1,4),CO(1,3))==CO(3,4)
+    assert Minus(OO(1,4),CO(1,4))==Empty
+    assert Minus(OO(1,4),CO(1,5))==Empty
+    assert Minus(OO(1,4),CO(2,3))==Union(OO(1,2),CO(3,4))
+    assert Minus(OO(1,4),CO(2,4))==OO(1,2)
+    assert Minus(OO(1,4),CO(2,5))==OO(1,2)
+    assert Minus(OO(1,4),CO(4,5))==OO(1,4)
+    assert Minus(OO(1,4),CO(5,6))==OO(1,4)
+
+    assert Minus(OO(1,4),CC(-1,0))==OO(1,4)
+    assert Minus(OO(1,4),CC(-1,1))==OO(1,4)
+    assert Minus(OO(1,4),CC(-1,2))==OO(2,4)
+    assert Minus(OO(1,4),CC(-1,4))==Empty
+    assert Minus(OO(1,4),CC(-1,5))==Empty
+    assert Minus(OO(1,4),CC(1,3))==OO(3,4)
+    assert Minus(OO(1,4),CC(1,4))==Empty
+    assert Minus(OO(1,4),CC(1,5))==Empty
+    assert Minus(OO(1,4),CC(2,3))==Union(OO(1,2),OO(3,4))
+    assert Minus(OO(1,4),CC(2,4))==OO(1,2)
+    assert Minus(OO(1,4),CC(2,5))==OO(1,2)
+    assert Minus(OO(1,4),CC(4,5))==OO(1,4)
+    assert Minus(OO(1,4),CC(5,6))==OO(1,4)
+
+    assert Minus(OC(1,4),OO(-1,0))==OC(1,4)
+    assert Minus(OC(1,4),OO(-1,1))==OC(1,4)
+    assert Minus(OC(1,4),OO(-1,2))==CC(2,4)
+    assert Minus(OC(1,4),OO(-1,4))==Set(4)
+    assert Minus(OC(1,4),OO(-1,5))==Empty
+    assert Minus(OC(1,4),OO(1,3))==CC(3,4)
+    assert Minus(OC(1,4),OO(1,4))==Set(4)
+    assert Minus(OC(1,4),OO(1,5))==Empty
+    assert Minus(OC(1,4),OO(2,3))==Union(OC(1,2),CC(3,4))
+    assert Minus(OC(1,4),OO(2,4))==Union(OC(1,2),Set(4))
+    assert Minus(OC(1,4),OO(2,5))==OC(1,2)
+    assert Minus(OC(1,4),OO(4,5))==OO(1,4)
+    assert Minus(OC(1,4),OO(5,6))==OC(1,4)
+
+    assert Minus(OC(1,4),OC(-1,0))==OC(1,4)
+    assert Minus(OC(1,4),OC(-1,1))==OC(1,4)
+    assert Minus(OC(1,4),OC(-1,2))==OC(2,4)
+    assert Minus(OC(1,4),OC(-1,4))==Empty
+    assert Minus(OC(1,4),OC(-1,5))==Empty
+    assert Minus(OC(1,4),OC(1,3))==OC(3,4)
+    assert Minus(OC(1,4),OC(1,4))==Empty
+    assert Minus(OC(1,4),OC(1,5))==Empty
+    assert Minus(OC(1,4),OC(2,3))==Union(OC(1,2),OC(3,4))
+    assert Minus(OC(1,4),OC(2,4))==OC(1,2)
+    assert Minus(OC(1,4),OC(2,5))==OC(1,2)
+    assert Minus(OC(1,4),OC(4,5))==OO(1,4)
+    assert Minus(OC(1,4),OC(5,6))==OC(1,4)
+
+    assert Minus(OC(1,4),CO(-1,0))==OC(1,4)
+    assert Minus(OC(1,4),CO(-1,1))==OC(1,4)
+    assert Minus(OC(1,4),CO(-1,2))==CC(2,4)
+    assert Minus(OC(1,4),CO(-1,4))==Set(4)
+    assert Minus(OC(1,4),CO(-1,5))==Empty
+    assert Minus(OC(1,4),CO(1,3))==CC(3,4)
+    assert Minus(OC(1,4),CO(1,4))==Set(4)
+    assert Minus(OC(1,4),CO(1,5))==Empty
+    assert Minus(OC(1,4),CO(2,3))==Union(OO(1,2),CC(3,4))
+    assert Minus(OC(1,4),CO(2,4))==Union(OO(1,2),Set(4))
+    assert Minus(OC(1,4),CO(2,5))==OO(1,2)
+    assert Minus(OC(1,4),CO(4,5))==OO(1,4)
+    assert Minus(OC(1,4),CO(5,6))==OC(1,4)
+
+    assert Minus(OC(1,4),CC(-1,0))==OC(1,4)
+    assert Minus(OC(1,4),CC(-1,1))==OC(1,4)
+    assert Minus(OC(1,4),CC(-1,2))==OC(2,4)
+    assert Minus(OC(1,4),CC(-1,4))==Empty
+    assert Minus(OC(1,4),CC(-1,5))==Empty
+    assert Minus(OC(1,4),CC(1,3))==OC(3,4)
+    assert Minus(OC(1,4),CC(1,4))==Empty
+    assert Minus(OC(1,4),CC(1,5))==Empty
+    assert Minus(OC(1,4),CC(2,3))==Union(OO(1,2),OC(3,4))
+    assert Minus(OC(1,4),CC(2,4))==OO(1,2)
+    assert Minus(OC(1,4),CC(2,5))==OO(1,2)
+    assert Minus(OC(1,4),CC(4,5))==OO(1,4)
+    assert Minus(OC(1,4),CC(5,6))==OC(1,4)
+
+    assert Minus(CO(1,4),OO(-1,0))==CO(1,4)
+    assert Minus(CO(1,4),OO(-1,1))==CO(1,4)
+    assert Minus(CO(1,4),OO(-1,2))==CO(2,4)
+    assert Minus(CO(1,4),OO(-1,4))==Empty
+    assert Minus(CO(1,4),OO(-1,5))==Empty
+    assert Minus(CO(1,4),OO(1,3))==Union(Set(1),CO(3,4))
+    assert Minus(CO(1,4),OO(1,4))==Set(1)
+    assert Minus(CO(1,4),OO(1,5))==Set(1)
+    assert Minus(CO(1,4),OO(2,3))==Union(CC(1,2),CO(3,4))
+    assert Minus(CO(1,4),OO(2,4))==CC(1,2)
+    assert Minus(CO(1,4),OO(2,5))==CC(1,2)
+    assert Minus(CO(1,4),OO(4,5))==CO(1,4)
+    assert Minus(CO(1,4),OO(5,6))==CO(1,4)
+
+    assert Minus(CO(1,4),OC(-1,0))==CO(1,4)
+    assert Minus(CO(1,4),OC(-1,1))==OO(1,4)
+    assert Minus(CO(1,4),OC(-1,2))==OO(2,4)
+    assert Minus(CO(1,4),OC(-1,4))==Empty
+    assert Minus(CO(1,4),OC(-1,5))==Empty
+    assert Minus(CO(1,4),OC(1,3))==Union(Set(1),OO(3,4))
+    assert Minus(CO(1,4),OC(1,4))==Set(1)
+    assert Minus(CO(1,4),OC(1,5))==Set(1)
+    assert Minus(CO(1,4),OC(2,3))==Union(CC(1,2),OO(3,4))
+    assert Minus(CO(1,4),OC(2,4))==CC(1,2)
+    assert Minus(CO(1,4),OC(2,5))==CC(1,2)
+    assert Minus(CO(1,4),OC(4,5))==CO(1,4)
+    assert Minus(CO(1,4),OC(5,6))==CO(1,4)
+
+    assert Minus(CO(1,4),CC(-1,0))==CO(1,4)
+    assert Minus(CO(1,4),CC(-1,1))==OO(1,4)
+    assert Minus(CO(1,4),CC(-1,2))==OO(2,4)
+    assert Minus(CO(1,4),CC(-1,4))==Empty
+    assert Minus(CO(1,4),CC(-1,5))==Empty
+    assert Minus(CO(1,4),CC(1,3))==OO(3,4)
+    assert Minus(CO(1,4),CC(1,4))==Empty
+    assert Minus(CO(1,4),CC(1,5))==Empty
+    assert Minus(CO(1,4),CC(2,3))==Union(CO(1,2),OO(3,4))
+    assert Minus(CO(1,4),CC(2,4))==CO(1,2)
+    assert Minus(CO(1,4),CC(2,5))==CO(1,2)
+    assert Minus(CO(1,4),CC(4,5))==CO(1,4)
+    assert Minus(CO(1,4),CC(5,6))==CO(1,4)
+
+    assert Minus(CC(1,4),OO(-1,0))==CC(1,4)
+    assert Minus(CC(1,4),OO(-1,1))==CC(1,4)
+    assert Minus(CC(1,4),OO(-1,2))==CC(2,4)
+    assert Minus(CC(1,4),OO(-1,4))==Set(4)
+    assert Minus(CC(1,4),OO(-1,5))==Empty
+    assert Minus(CC(1,4),OO(1,3))==Union(Set(1),CC(3,4))
+    assert Minus(CC(1,4),OO(1,4))==Set(1,4)
+    assert Minus(CC(1,4),OO(1,5))==Set(1)
+    assert Minus(CC(1,4),OO(2,3))==Union(CC(1,2),CC(3,4))
+    assert Minus(CC(1,4),OO(2,4))==Union(CC(1,2),Set(4))
+    assert Minus(CC(1,4),OO(2,5))==CC(1,2)
+    assert Minus(CC(1,4),OO(4,5))==CC(1,4)
+    assert Minus(CC(1,4),OO(5,6))==CC(1,4)
+
+    assert Minus(CC(1,4),OC(-1,0))==CC(1,4)
+    assert Minus(CC(1,4),OC(-1,1))==OC(1,4)
+    assert Minus(CC(1,4),OC(-1,2))==OC(2,4)
+    assert Minus(CC(1,4),OC(-1,4))==Empty
+    assert Minus(CC(1,4),OC(-1,5))==Empty
+    assert Minus(CC(1,4),OC(1,3))==Union(Set(1),OC(3,4))
+    assert Minus(CC(1,4),OC(1,4))==Set(1)
+    assert Minus(CC(1,4),OC(1,5))==Set(1)
+    assert Minus(CC(1,4),OC(2,3))==Union(CC(1,2),OC(3,4))
+    assert Minus(CC(1,4),OC(2,4))==CC(1,2)
+    assert Minus(CC(1,4),OC(2,5))==CC(1,2)
+    assert Minus(CC(1,4),OC(4,5))==CC(1,4)
+    assert Minus(CC(1,4),OC(5,6))==CC(1,4)
+
+    assert Minus(CC(1,4),CO(-1,0))==CC(1,4)
+    assert Minus(CC(1,4),CO(-1,1))==CC(1,4)
+    assert Minus(CC(1,4),CO(-1,2))==CC(2,4)
+    assert Minus(CC(1,4),CO(-1,4))==Set(4)
+    assert Minus(CC(1,4),CO(-1,5))==Empty
+    assert Minus(CC(1,4),CO(1,3))==CC(3,4)
+    assert Minus(CC(1,4),CO(1,4))==Set(4)
+    assert Minus(CC(1,4),CO(1,5))==Empty
+    assert Minus(CC(1,4),CO(2,3))==Union(CO(1,2),CC(3,4))
+    assert Minus(CC(1,4),CO(2,4))==Union(CO(1,2),Set(4))
+    assert Minus(CC(1,4),CO(2,5))==CO(1,2)
+    assert Minus(CC(1,4),CO(4,5))==CO(1,4)
+    assert Minus(CC(1,4),CO(5,6))==CC(1,4)
+
+    assert Minus(CC(1,4),CC(-1,0))==CC(1,4)
+    assert Minus(CC(1,4),CC(-1,1))==OC(1,4)
+    assert Minus(CC(1,4),CC(-1,2))==OC(2,4)
+    assert Minus(CC(1,4),CC(-1,4))==Empty
+    assert Minus(CC(1,4),CC(-1,5))==Empty
+    assert Minus(CC(1,4),CC(1,3))==OC(3,4)
+    assert Minus(CC(1,4),CC(1,4))==Empty
+    assert Minus(CC(1,4),CC(1,5))==Empty
+    assert Minus(CC(1,4),CC(2,3))==Union(CO(1,2),OC(3,4))
+    assert Minus(CC(1,4),CC(2,4))==CO(1,2)
+    assert Minus(CC(1,4),CC(2,5))==CO(1,2)
+    assert Minus(CC(1,4),CC(4,5))==CO(1,4)
+    assert Minus(CC(1,4),CC(5,6))==CC(1,4)

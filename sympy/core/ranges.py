@@ -3,6 +3,8 @@ from basic import Basic
 from function import FunctionSignature
 from sets import SetFunction, set_classes, Empty, Reals, Integers, Minus, Intersection, Union, Set
 
+__all__ = ['OORange', 'OCRange', 'CORange', 'CCRange', 'Range']
+
 eq = Basic.is_equal
 lt = Basic.is_less
 le = Basic.is_less_equal
@@ -35,12 +37,6 @@ class BasicRange(SetFunction):
             return Empty
         if set==set.domain and a==Basic.Min(set) and b==Basic.Max(set):
             return set
-
-    def _get_combined_class4minus(self, other):
-        if other.__class__.__name__[0]=='O':
-            return getattr(Basic,self.__class__.__name__[0]+'CRange')
-        return getattr(Basic,self.__class__.__name__[0]+'ORange')
-
     def try_contains(self, other):
         r = self.superset.contains(other)
         if r is False:
@@ -49,53 +45,20 @@ class BasicRange(SetFunction):
             return
         if self.a.is_Number:
             if other.is_Number:
-                if other < self.a:
+                if lt(other,self.a):
                     return False
                 if self.b.is_Number:
-                    return other < self.b
+                    return lt(other, self.b)
                 elif self.is_unbounded_right:
                     return True
         elif self.b.is_Number:
             if other.is_Number:
-                if self.b < other:
+                if lt(self.b, other):
                     return False
                 if self.is_unbounded_left:
                     return True
     def try_shifted(self, shift):
         return self.__class__(self.a+shift, self.b+shift, self.superset)
-    def try_minus(self, other):
-        if other.is_BasicRange and self.superset==other.superset:
-            flag = 'C' in (self.__class__.__name__[1]+other.__class__.__name__[0])
-            n = self.__class__.__name__[:2]+other.__class__.__name__[:2]
-            if self.a.is_Number and self.b.is_Number and other.a.is_Number and other.b.is_Number:
-                if other.a <= self.a:
-                    if other.b > self.b:
-                        return Empty
-                    if n[3]=='O':
-                        clsname = 'C'+n[1]+'Range'
-                    else:
-                        clsname = 'O'+n[1]+'Range'
-                    cls = getattr(Basic, clsname)
-                    return cls(other.b, self.b, self.superset)
-                if other.a < self.b:
-                    if other.b >= self.b:
-                        if n[2]=='O':
-                            clsname = n[0]+'CRange'
-                        else:
-                            clsname = n[0]+'ORange'
-                        cls = getattr(Basic, clsname)
-                        return cls(self.a, other.a, self.superset)
-                    if n[2]=='O':
-                        clsname = n[0]+'CRange'
-                    else:
-                        clsname = n[0]+'ORange'
-                    cls1 = getattr(Basic, clsname)
-                    if n[3]=='O':
-                        clsname = 'C'+n[1]+'Range'
-                    else:
-                        clsname = 'O'+n[1]+'Range'
-                    cls2 = getattr(Basic, clsname)
-                    return Union(cls1(self.a, other.a, self.superset), cls2(other.b, self.b, self.superset))
 
 class OORange(BasicRange):
     """ An open range (a,b) of a set S."""
@@ -224,13 +187,58 @@ class OORange(BasicRange):
                         if le(b,d): return CORange(c,b,superset)
                         if lt(d,b): return CCRange(c,d,superset)
                 return
+    def try_minus(self, other):
+        if not other.is_BasicRange:
+            return
+        a,b,d1 = self[:]
+        c,d,d2 = other[:]
+        if not d1==d2:
+            return
+        superset = d1
+        # (a,b) \ (c,d)
+        if le(b,c) or le(d,a):
+            # (a,b<=c,d), (c,d<=a,b)
+            return self
+        if eq(a, c):
+            if le(b,d): return Empty
+            if lt(d,b):
+                # (a=c,d<b)
+                if other.is_OORange or other.is_CORange:
+                    return CORange(d,b,superset)
+                return OORange(d,b,superset)
+        if lt(a,c):
+            if le(b,d):
+                # (a<c,b<=d)
+                if other.is_OORange or other.is_OCRange:
+                    return OCRange(a,c,superset)
+                return OORange(a,c,superset)
+            if lt(d,b):
+                # (a<c,d<b)
+                if other.is_OORange:
+                    return Union(OCRange(a,c,superset), CORange(d,b,superset))
+                if other.is_OCRange:
+                    return Union(OCRange(a,c,superset), OORange(d,b,superset))
+                if other.is_CORange:
+                    return Union(OORange(a,c,superset), CORange(d,b,superset))
+                if other.is_CCRange:
+                    return Union(OORange(a,c,superset), OORange(d,b,superset))
+        if lt(c,a):
+            # (c,a,d,b), (c,a,b,d)
+            if le(b,d):
+                # (c<a,b<=d)
+                return Empty
+            if lt(d,b):
+                # (c<a,d<b)
+                if other.is_OORange or other.is_CORange:
+                    return CORange(d,b,superset)
+                return OORange(d,b,superset)
 
 class OCRange(BasicRange):
     """ An semi-open range (a,b] of a set S."""
 
     @classmethod
     def canonize(cls, (a, b, set)):
-        if a==b: return b
+        if a==b: return Empty
         return BasicRange.canonize((a, b, set))
     def try_contains(self, other):
         if self.a==other: return False
@@ -353,13 +361,79 @@ class OCRange(BasicRange):
                         if le(b,d): return CCRange(c,b,superset)
                         if lt(d,b): return other
                 return
+    def try_minus(self, other):
+        if not other.is_BasicRange:
+            return
+        a,b,d1 = self[:]
+        c,d,d2 = other[:]
+        if not d1==d2:
+            return
+        superset = d1
+        # (a,b] \ (c,d)
+        if lt(b,c) or le(d,a):
+            # (a,b<=c,d), (c,d<=a,b)
+            return self
+        if eq(b,c):
+            return OORange(a,b,superset)
+        if eq(a, c):
+            if eq(b,d):
+                if other.is_OORange or other.is_CORange:
+                    return Set(b)
+                return Empty
+            if lt(b,d): return Empty
+            if lt(d,b):
+                # (a=c,d<b)
+                if other.is_OORange or other.is_CORange:
+                    return CCRange(d,b,superset)
+                return OCRange(d,b,superset)
+        if lt(a,c):
+            if eq(b,d):
+                if other.is_OORange:
+                    return Union(OCRange(a,c,superset),Set(b))
+                if other.is_CORange:
+                    return Union(OORange(a,c,superset),Set(b))
+                if other.is_OCRange:
+                    return OCRange(a,c,superset)
+                if other.is_CCRange:
+                    return OORange(a,c,superset)
+                return
+            if lt(b,d):
+                # (a<c,b<=d)
+                if other.is_OORange or other.is_OCRange:
+                    return OCRange(a,c,superset)
+                return OORange(a,c,superset)
+            if lt(d,b):
+                # (a<c,d<b)
+                if other.is_OORange:
+                    return Union(OCRange(a,c,superset), CCRange(d,b,superset))
+                if other.is_OCRange:
+                    return Union(OCRange(a,c,superset), OCRange(d,b,superset))
+                if other.is_CORange:
+                    return Union(OORange(a,c,superset), CCRange(d,b,superset))
+                if other.is_CCRange:
+                    return Union(OORange(a,c,superset), OCRange(d,b,superset))
+        if lt(c,a):
+            # (c,a,d,b), (c,a,b,d)
+            if eq(b,d):
+                # (c<a,b=d)
+                if other.is_OORange or other.is_CORange:
+                    return Set(b)
+                return Empty
+            if lt(b,d):
+                # (c<a,b<d)
+                return Empty
+            if lt(d,b):
+                # (c<a,d<b)
+                if other.is_OORange or other.is_CORange:
+                    return CCRange(d,b,superset)
+                return OCRange(d,b,superset)
 
 class CORange(BasicRange):
     """ An semi-open range [a,b) of a set S."""
 
     @classmethod
     def canonize(cls, (a, b, set)):
-        if a==b: return a
+        if a==b: return Empty
         return BasicRange.canonize((a, b, set))
     def try_contains(self, other):
         if self.a==other: return self.superset.contains(other)
@@ -466,13 +540,78 @@ class CORange(BasicRange):
                     if le(b,d): return CORange(c,b,superset)
                     if lt(d,b): return other
                 return
+    def try_minus(self, other):
+        if not other.is_BasicRange:
+            return
+        a,b,d1 = self[:]
+        c,d,d2 = other[:]
+        if not d1==d2:
+            return
+        superset = d1
+        # [a,b) \ (c,d)
+        if eq(d,a):
+            if other.is_OORange or other.is_CORange:
+                return CORange(a,b,superset)
+            if other.is_OCRange or other.is_CCRange:
+                return OORange(a,b,superset)
+            return
+        if le(b,c) or lt(d,a):
+            # (a,b<=c,d), (c,d<=a,b)
+            return self
+        if eq(a, c):
+            if eq(b,d):
+                if other.is_OORange or other.is_OCRange:
+                    return Set(a)
+                return Empty
+            if lt(b,d):
+                if other.is_OORange or other.is_OCRange:
+                    return Set(a)
+                return Empty
+            if lt(d,b):
+                # (a=c,d<b)
+                if other.is_OORange:
+                    return Union(Set(a),CORange(d,b,superset))
+                if other.is_OCRange:
+                    return Union(Set(a),OORange(d,b,superset))
+                if other.is_CORange:
+                    return CORange(d,b,superset)
+                if other.is_CCRange:
+                    return OORange(d,b,superset)
+        if lt(a,c):
+            if le(b,d):
+                # (a<c,b<=d)
+                if other.is_OORange or other.is_OCRange:
+                    return CCRange(a,c,superset)
+                return CORange(a,c,superset)
+            if lt(d,b):
+                # (a<c,d<b)
+                if other.is_OORange:
+                    return Union(CCRange(a,c,superset), CORange(d,b,superset))
+                if other.is_OCRange:
+                    return Union(CCRange(a,c,superset), OORange(d,b,superset))
+                if other.is_CORange:
+                    return Union(CORange(a,c,superset), CORange(d,b,superset))
+                if other.is_CCRange:
+                    return Union(CORange(a,c,superset), OORange(d,b,superset))
+        if lt(c,a):
+            # (c,a,d,b), (c,a,b,d)
+            if le(b,d):
+                # (c<a,b<=d)
+                return Empty
+            if lt(d,b):
+                # (c<a,d<b)
+                if other.is_OORange or other.is_CORange:
+                    return CORange(d,b,superset)
+                if other.is_OCRange or other.is_CCRange:
+                    return OORange(d,b,superset)
+                return
 
 class CCRange(BasicRange):
     """ An closed range [a,b] of a set S."""
 
     @classmethod
     def canonize(cls, (a, b, set)):
-        if a==b: return b
+        if a==b: return Set(b)
         return BasicRange.canonize((a, b, set))
     def try_contains(self, other):
         if self.a==other: return self.superset.contains(other)
@@ -575,6 +714,97 @@ class CCRange(BasicRange):
                 if lt(c,b):
                     if le(b,d): return CCRange(c,b,superset)
                     if lt(d,b): return other
+                return
+    def try_minus(self, other):
+        if not other.is_BasicRange:
+            return
+        a,b,d1 = self[:]
+        c,d,d2 = other[:]
+        if not d1==d2:
+            return
+        superset = d1
+        # [a,b] \ (c,d)
+        if eq(d,a):
+            if other.is_OORange or other.is_CORange:
+                return CCRange(a,b,superset)
+            if other.is_OCRange or other.is_CCRange:
+                return OCRange(a,b,superset)
+            return
+        if eq(b,c):
+            if other.is_OORange or other.is_OCRange:
+                return self
+            if other.is_CORange or other.is_CCRange:
+                return CORange(a,b,superset)
+            return
+        if lt(b,c) or lt(d,a):
+            # (a,b<=c,d), (c,d<=a,b)
+            return self
+        if eq(a, c):
+            if eq(b,d):
+                if other.is_OORange:
+                    return Set(a,b)
+                if other.is_OCRange:
+                    return Set(a)
+                if other.is_CORange:
+                    return Set(b)
+                if other.is_CCRange:
+                    return Empty
+                return
+            if lt(b,d):
+                if other.is_OORange or other.is_OCRange:
+                    return Set(a)
+                return Empty
+            if lt(d,b):
+                # (a=c,d<b)
+                if other.is_OORange:
+                    return Union(Set(a),CCRange(d,b,superset))
+                if other.is_OCRange:
+                    return Union(Set(a),OCRange(d,b,superset))
+                if other.is_CORange:
+                    return CCRange(d,b,superset)
+                if other.is_CCRange:
+                    return OCRange(d,b,superset)
+        if lt(a,c):
+            if eq(b,d):
+                if other.is_OORange:
+                    return Union(CCRange(a,c,superset),Set(b))
+                if other.is_OCRange:
+                    return CCRange(a,c,superset)
+                if other.is_CORange:
+                    return Union(CORange(a,c,superset),Set(b))
+                if other.is_CCRange:
+                    return CORange(a,c,superset)
+                return
+            if lt(b,d):
+                # (a<c,b<d)
+                if other.is_OORange or other.is_OCRange:
+                    return CCRange(a,c,superset)
+                return CORange(a,c,superset)
+            if lt(d,b):
+                # (a<c,d<b)
+                if other.is_OORange:
+                    return Union(CCRange(a,c,superset), CCRange(d,b,superset))
+                if other.is_OCRange:
+                    return Union(CCRange(a,c,superset), OCRange(d,b,superset))
+                if other.is_CORange:
+                    return Union(CORange(a,c,superset), CCRange(d,b,superset))
+                if other.is_CCRange:
+                    return Union(CORange(a,c,superset), OCRange(d,b,superset))
+        if lt(c,a):
+            # (c,a,d,b), (c,a,b,d)
+            if eq(b,d):
+                if other.is_OORange or other.is_CORange:
+                    return Set(b)
+                return Empty
+            if lt(b,d):
+                # (c<a,b<=d)
+                return Empty
+            if lt(d,b):
+                # (c<a,d<b)
+                if other.is_OORange or other.is_CORange:
+                    return CCRange(d,b,superset)
+                if other.is_OCRange or other.is_CCRange:
+                    return OCRange(d,b,superset)
                 return
 
 class Range(OORange):
