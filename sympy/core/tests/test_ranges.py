@@ -238,3 +238,84 @@ def test_intersection_real_ranges():
     assert Intersection(OO(1,4),OO(2,6))==OO(2,4)
     assert Intersection(OO(1,4),OO(4,6))==Empty
     assert Intersection(OO(1,4),OO(5,6))==Empty
+
+    assert Intersection(OO(1,4),OC(1,3))==OC(1,3)
+    assert Intersection(OO(1,4),OC(1,4))==OO(1,4)
+    assert Intersection(OO(1,4),OC(1,6))==OO(1,4)
+    assert Intersection(OO(1,4),OC(2,3))==OC(2,3)
+    assert Intersection(OO(1,4),OC(2,4))==OO(2,4)
+    assert Intersection(OO(1,4),OC(2,6))==OO(2,4)
+    assert Intersection(OO(1,4),OC(4,6))==Empty
+    assert Intersection(OO(1,4),OC(5,6))==Empty
+
+    assert Intersection(OO(1,4),CO(1,3))==OO(1,3)
+    assert Intersection(OO(1,4),CO(1,4))==OO(1,4)
+    assert Intersection(OO(1,4),CO(1,6))==OO(1,4)
+    assert Intersection(OO(1,4),CO(2,3))==CO(2,3)
+    assert Intersection(OO(1,4),CO(2,4))==CO(2,4)
+    assert Intersection(OO(1,4),CO(2,6))==CO(2,4)
+    assert Intersection(OO(1,4),CO(4,6))==Empty
+    assert Intersection(OO(1,4),CO(5,6))==Empty
+
+    assert Intersection(OO(1,4),CC(1,3))==OC(1,3)
+    assert Intersection(OO(1,4),CC(1,4))==OO(1,4)
+    assert Intersection(OO(1,4),CC(1,6))==OO(1,4)
+    assert Intersection(OO(1,4),CC(2,3))==CC(2,3)
+    assert Intersection(OO(1,4),CC(2,4))==CO(2,4)
+    assert Intersection(OO(1,4),CC(2,6))==CO(2,4)
+    assert Intersection(OO(1,4),CC(4,6))==Empty
+    assert Intersection(OO(1,4),CC(5,6))==Empty
+
+    assert Intersection(OC(1,4),OC(1,3))==OC(1,3)
+    assert Intersection(OC(1,4),OC(1,4))==OC(1,4)
+    assert Intersection(OC(1,4),OC(1,6))==OC(1,4)
+    assert Intersection(OC(1,4),OC(2,3))==OC(2,3)
+    assert Intersection(OC(1,4),OC(2,4))==OC(2,4)
+    assert Intersection(OC(1,4),OC(2,6))==OC(2,4)
+    assert Intersection(OC(1,4),OC(4,6))==Empty
+    assert Intersection(OC(1,4),OC(5,6))==Empty
+
+    assert Intersection(OC(1,4),CO(1,3))==OO(1,3)
+    assert Intersection(OC(1,4),CO(1,4))==OO(1,4)
+    assert Intersection(OC(1,4),CO(1,6))==OC(1,4)
+    assert Intersection(OC(1,4),CO(2,3))==CO(2,3)
+    assert Intersection(OC(1,4),CO(2,4))==CO(2,4)
+    assert Intersection(OC(1,4),CO(2,6))==CC(2,4)
+    assert Intersection(OC(1,4),CO(4,6))==Set(4)
+    assert Intersection(OC(1,4),CO(5,6))==Empty
+
+    assert Intersection(OC(1,4),CC(1,3))==OC(1,3)
+    assert Intersection(OC(1,4),CC(1,4))==OC(1,4)
+    assert Intersection(OC(1,4),CC(1,6))==OC(1,4)
+    assert Intersection(OC(1,4),CC(2,3))==CC(2,3)
+    assert Intersection(OC(1,4),CC(2,4))==CC(2,4)
+    assert Intersection(OC(1,4),CC(2,6))==CC(2,4)
+    assert Intersection(OC(1,4),CC(4,6))==Set(4)
+    assert Intersection(OC(1,4),CC(5,6))==Empty
+
+    assert Intersection(CO(1,4),CO(1,3))==CO(1,3)
+    assert Intersection(CO(1,4),CO(1,4))==CO(1,4)
+    assert Intersection(CO(1,4),CO(1,6))==CO(1,4)
+    assert Intersection(CO(1,4),CO(2,3))==CO(2,3)
+    assert Intersection(CO(1,4),CO(2,4))==CO(2,4)
+    assert Intersection(CO(1,4),CO(2,6))==CO(2,4)
+    assert Intersection(CO(1,4),CO(4,6))==Empty
+    assert Intersection(CO(1,4),CO(5,6))==Empty
+
+    assert Intersection(CO(1,4),CC(1,3))==CC(1,3)
+    assert Intersection(CO(1,4),CC(1,4))==CO(1,4)
+    assert Intersection(CO(1,4),CC(1,6))==CO(1,4)
+    assert Intersection(CO(1,4),CC(2,3))==CC(2,3)
+    assert Intersection(CO(1,4),CC(2,4))==CO(2,4)
+    assert Intersection(CO(1,4),CC(2,6))==CO(2,4)
+    assert Intersection(CO(1,4),CC(4,6))==Empty
+    assert Intersection(CO(1,4),CC(5,6))==Empty
+
+    assert Intersection(CC(1,4),CC(1,3))==CC(1,3)
+    assert Intersection(CC(1,4),CC(1,4))==CC(1,4)
+    assert Intersection(CC(1,4),CC(1,6))==CC(1,4)
+    assert Intersection(CC(1,4),CC(2,3))==CC(2,3)
+    assert Intersection(CC(1,4),CC(2,4))==CC(2,4)
+    assert Intersection(CC(1,4),CC(2,6))==CC(2,4)
+    assert Intersection(CC(1,4),CC(4,6))==Set(4)
+    assert Intersection(CC(1,4),CC(5,6))==Empty
