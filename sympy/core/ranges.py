@@ -29,13 +29,13 @@ class BasicRange(SetFunction):
     @property
     def domain(self):
         return self[2].domain
-
+    
     @classmethod
-    def canonize_xx(cls, (a,b,set), may_contain_boundary):
+    def canonize(cls, (a,b,set)):
         if lt(b, a):
             return Empty
         if eq(a,b):
-            if may_contain_boundary:
+            if cls is RangeCC:
                 r = es(a, set)
                 if isinstance(r, bool):
                     if r: return Set(a)
@@ -75,18 +75,17 @@ class BasicRange(SetFunction):
                            (True,False):RangeCO,
                            (True,True):RangeCC}[(b1,b2)]
                 return new_cls(new_a, new_b, superset)
-
-    def try_contains_xx(self, other, may_contain_left_bound, may_contain_right_bound):
+    def try_contains(self, other):
         a,b,superset = self.args
         if lt(other,a) or lt(b,other):
             return False
         isboundary = False
         if self.a==other:
             isboundary = True
-            if not may_contain_left_bound: return False
+            if self.__class__.__name__[-2]=='O': return False
         elif self.b==other:
             isboundary = True
-            if not may_contain_right_bound: return False
+            if self.__class__.__name__[-1]=='O': return False
         if isboundary or (lt(a,other) and lt(other, b)):
             r = es(other, superset)
             if isinstance(r,bool):
@@ -98,7 +97,6 @@ class BasicRange(SetFunction):
             return
     def try_shifted(self, shift):
         return self.__class__(self.a+shift, self.b+shift, self.superset)
-
     def try_intersection(self, other):
         if not other.is_BasicRange:
             return
@@ -106,15 +104,10 @@ class BasicRange(SetFunction):
         if r.is_BasicRange and r.superset==other:
             return
         return r
-    
+
 class RangeOO(BasicRange):
     """ An open range (a,b) of a set S."""
 
-    @classmethod
-    def canonize(cls, (a, b, set)):
-        return cls.canonize_xx((a,b,set), False)
-    def try_contains(self, other):
-        return self.try_contains_xx(other, False, False)
     def try_supremum(self):
         if self.domain==Integers:
             return self.b-1
@@ -235,11 +228,6 @@ class RangeOO(BasicRange):
 class RangeOC(BasicRange):
     """ An semi-open range (a,b] of a set S."""
 
-    @classmethod
-    def canonize(cls, (a, b, set)):
-        return cls.canonize_xx((a,b,set), False)
-    def try_contains(self, other):
-        return self.try_contains_xx(other, False, True)
     def try_supremum(self):
         return self.b
     def try_infimum(self):
@@ -375,11 +363,6 @@ class RangeOC(BasicRange):
 class RangeCO(BasicRange):
     """ An semi-open range [a,b) of a set S."""
 
-    @classmethod
-    def canonize(cls, (a, b, set)):
-        return cls.canonize_xx((a,b,set), False)
-    def try_contains(self, other):
-        return self.try_contains_xx(other, True, False)
     def try_supremum(self):
         if self.domain==Integers:
             return self.b-1
@@ -509,12 +492,6 @@ class RangeCO(BasicRange):
 class RangeCC(BasicRange):
     """ An closed range [a,b] of a set S."""
 
-
-    @classmethod
-    def canonize(cls, (a, b, set)):
-        return cls.canonize_xx((a,b,set), True)
-    def try_contains(self, other):
-        return self.try_contains_xx(other, True, True)
     def try_supremum(self):
         return self.b
     def try_infimum(self):
