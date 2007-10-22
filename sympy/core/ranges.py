@@ -42,38 +42,40 @@ class BasicRange(SetFunction):
                     return Empty
                 return
             return Empty
-        if set==set.domain and eq(a,Basic.Min(set)) and eq(b,Basic.Max(set)):
-            return set
-        if set.is_BasicRange:
-            sa, sb, superset = set.args
-            new_a, new_b = a, b
-            n = cls.__name__
-            b1,b2 = n[-2]=='C', n[-1]=='C'
-            n = set.__class__.__name__
-            c1,c2 = n[-2]=='C', n[-1]=='C'
-            if eq(sa, a):
-                b1 = b1 and c1
-            elif lt(a, sa):
-                new_a = sa
-                b1 = c1
-            elif lt(sa, a):
-                pass
-            else:
-                return
-            if eq(b, sb):
-                b2 = b2 and c2
-            elif lt(sb, b):
-                new_b = sb
-                b2 = c2
-            elif lt(b, sb):
-                pass
-            else:
-                return
-            new_cls = {(False,False):RangeOO,
-                       (False,True):RangeOC,
-                       (True,False):RangeCO,
-                       (True,True):RangeCC}[(b1,b2)]
-            return new_cls(new_a, new_b, superset)
+        if lt(a, b):
+            if set==set.domain and eq(a,Basic.Min(set)) and eq(b,Basic.Max(set)):
+                return set
+            if set.is_BasicRange:
+                sa, sb, superset = set.args
+                new_a, new_b = a, b
+                n = cls.__name__
+                b1,b2 = n[-2]=='C', n[-1]=='C'
+                n = set.__class__.__name__
+                c1,c2 = n[-2]=='C', n[-1]=='C'
+                if eq(sa, a):
+                    b1 = b1 and c1
+                elif lt(a, sa):
+                    new_a = sa
+                    b1 = c1
+                elif lt(sa, a):
+                    pass
+                else:
+                    return
+                if eq(b, sb):
+                    b2 = b2 and c2
+                elif lt(sb, b):
+                    new_b = sb
+                    b2 = c2
+                elif lt(b, sb):
+                    pass
+                else:
+                    return
+                new_cls = {(False,False):RangeOO,
+                           (False,True):RangeOC,
+                           (True,False):RangeCO,
+                           (True,True):RangeCC}[(b1,b2)]
+                return new_cls(new_a, new_b, superset)
+
     def try_contains_xx(self, other, may_contain_left_bound, may_contain_right_bound):
         a,b,superset = self.args
         if lt(other,a) or lt(b,other):
@@ -97,6 +99,14 @@ class BasicRange(SetFunction):
     def try_shifted(self, shift):
         return self.__class__(self.a+shift, self.b+shift, self.superset)
 
+    def try_intersection(self, other):
+        if not other.is_BasicRange:
+            return
+        r = self.__class__(self.a, self.b, other)
+        if r.is_BasicRange and r.superset==other:
+            return
+        return r
+    
 class RangeOO(BasicRange):
     """ An open range (a,b) of a set S."""
 
@@ -176,51 +186,6 @@ class RangeOO(BasicRange):
                     if le(b, d): return RangeOC(a, d, superset)
                     return
             return
-    def try_intersection(self, other):
-        if not other.is_BasicRange:
-            return
-        a,b,d1 = self[:]
-        c,d,d2 = other[:]
-        if not d1==d2:
-            return
-        superset = d1
-        if eq(b, c):
-            # (a,b) A (b,d), (a,b) A (b,d], (a,b) A [b,d), (a,b) A [b,d]
-            return Empty
-        if le(a, c):
-            # code below assumes a<=c for simplicity
-            if other.is_RangeOO:
-                # (a,b) A (c,d)
-                if le(b,c): return Empty
-                if lt(c,b):
-                    if le(b,d): return RangeOO(c,b,superset)
-                    if lt(d,b): return other
-                return
-            if other.is_RangeOC:
-                # (a,b) A (c,d]
-                if le(b,c): return Empty
-                if lt(c,b):
-                    if le(b,d): return RangeOO(c,b,superset)
-                    if lt(d,b): return RangeOC(c,d,superset)
-                return
-            if other.is_RangeCO:
-                # (a,b) A [c,d)
-                if lt(b,c): return Empty
-                if lt(c,b):
-                    if le(b,d): return RangeCO(c,b,superset)
-                    if lt(d,b): return RangeCO(c,d,superset)
-                return
-            if other.is_RangeCC:
-                # (a,b) A [c,d]
-                if lt(b,c): return Empty
-                if lt(c,b):
-                    if eq(a,c):
-                        if le(b,d): return self
-                        if lt(d,b): return RangeOC(c,d,superset)
-                    else:
-                        if le(b,d): return RangeCO(c,b,superset)
-                        if lt(d,b): return RangeCC(c,d,superset)
-                return
     def try_minus(self, other):
         if not other.is_BasicRange:
             return
@@ -340,58 +305,6 @@ class RangeOC(BasicRange):
                     if lt(b, d): return RangeOC(a, d, superset)
                     return
             return
-    def try_intersection(self, other):
-        if not other.is_BasicRange:
-            return
-        a,b,d1 = self[:]
-        c,d,d2 = other[:]
-        if not d1==d2:
-            return
-        superset = d1
-        if eq(b, c):
-            # (a,b] A (b,d), (a,b] A (b,d]
-            if other.is_RangeOO or other.is_RangeOC:
-                return Empty
-            # (a,b] A [b,d), (a,b] A [b,d]
-            return Set(b)
-        if le(a, c):
-            # code below assumes a<=c for simplicity
-            if other.is_RangeOO:
-                # (a,b] A (c,d)
-                if lt(b,c): return Empty
-                if le(c,b):
-                    if lt(b,d): return RangeOC(c,b,superset)
-                    if le(d,b): return RangeOO(c,d,superset)
-                return
-            if other.is_RangeOC:
-                # (a,b] A (c,d]
-                if lt(b,c): return Empty
-                if le(c,b):
-                    if le(b,d): return RangeOC(c,b,superset)
-                    if lt(d,b): return other
-                return
-            if other.is_RangeCO:
-                # (a,b] A [c,d)
-                if lt(b,c): return Empty
-                if lt(c,b):
-                    if eq(a,c):
-                        if lt(b,d): return self
-                        if le(d,b): return RangeOO(c,d,superset)
-                    else:
-                        if lt(b,d): return RangeCC(c,b,superset)
-                        if le(d,b): return other
-                return
-            if other.is_RangeCC:
-                # (a,b] A [c,d]
-                if lt(b,c): return Empty
-                if lt(c,b):
-                    if eq(a,c):
-                        if le(b,d): return self
-                        if lt(d,b): return RangeOC(c,d,superset)
-                    else:
-                        if le(b,d): return RangeCC(c,b,superset)
-                        if lt(d,b): return other
-                return
     def try_minus(self, other):
         if not other.is_BasicRange:
             return
@@ -527,47 +440,6 @@ class RangeCO(BasicRange):
                     if le(b, d): return RangeCC(a, d, superset)
                     return
             return
-    def try_intersection(self, other):
-        if not other.is_BasicRange:
-            return
-        a,b,d1 = self[:]
-        c,d,d2 = other[:]
-        if not d1==d2:
-            return
-        superset = d1
-        if eq(b, c):
-            # [a,b) A (b,d), [a,b) A (b,d], [a,b) A [b,d), [a,b) A [b,d] 
-            return Empty
-        if le(a, c):
-            # code below assumes a<=c for simplicity
-            if other.is_RangeOO:
-                # [a,b) A (c,d)
-                if le(b,c): return Empty
-                if lt(c,b):
-                    if le(b,d): return RangeOO(c,b,superset)
-                    if lt(d,b): return other
-                return
-            if other.is_RangeOC:
-                # [a,b) A (c,d]
-                if le(b,c): return Empty
-                if lt(c,b):
-                    if le(b,d): return RangeOO(c,b,superset)
-                    if lt(d,b): return other
-                return
-            if other.is_RangeCO:
-                # [a,b) A [c,d)
-                if lt(b,c): return Empty
-                if lt(c,b):
-                    if le(b,d): return RangeCO(c,b,superset)
-                    if lt(d,b): return other
-                return
-            if other.is_RangeCC:
-                # [a,b) A [c,d]
-                if lt(b,c): return Empty
-                if lt(c,b):
-                    if le(b,d): return RangeCO(c,b,superset)
-                    if lt(d,b): return other
-                return
     def try_minus(self, other):
         if not other.is_BasicRange:
             return
@@ -697,50 +569,6 @@ class RangeCC(BasicRange):
                     if lt(b, d): return RangeCC(a, d, superset)
                     return
             return
-    def try_intersection(self, other):
-        if not other.is_BasicRange:
-            return
-        a,b,d1 = self[:]
-        c,d,d2 = other[:]
-        if not d1==d2:
-            return
-        superset = d1
-        if eq(b, c):
-            # [a,b] A (b,d), [a,b] A (b,d]
-            if other.is_RangeOO or other.is_RangeOC:
-                return Empty
-            # [a,b] A [b,d), [a,b] A [b,d]
-            return Set(b)
-        if le(a, c):
-            # code below assumes a<=c for simplicity
-            if other.is_RangeOO:
-                # [a,b] A (c,d)
-                if lt(b,c): return Empty
-                if le(c,b):
-                    if lt(b,d): return RangeOC(c,b,superset)
-                    if le(d,b): return other
-                return
-            if other.is_RangeOC:
-                # [a,b] A (c,d]
-                if lt(b,c): return Empty
-                if le(c,b):
-                    if le(b,d): return RangeOC(c,b,superset)
-                    if lt(d,b): return other
-                return
-            if other.is_RangeCO:
-                # [a,b] A [c,d)
-                if lt(b,c): return Empty
-                if lt(c,b):
-                    if le(b,d): return RangeCC(c,b,superset)
-                    if lt(d,b): return other
-                return
-            if other.is_RangeCC:
-                # [a,b] A [c,d]
-                if lt(b,c): return Empty
-                if lt(c,b):
-                    if le(b,d): return RangeCC(c,b,superset)
-                    if lt(d,b): return other
-                return
     def try_minus(self, other):
         if not other.is_BasicRange:
             return

@@ -118,8 +118,8 @@ def test_intersection_range():
     r2 = RangeOO(5,15,Integers)
     assert Intersection(r1,r2)==RangeOO(5,10,Integers)
 
-def xtest_bug1_intersection_range():
-    assert Intersection(Range(0,10), Range(3,15))==RangeCC(3,10,Reals)
+def test_bug1_intersection_range():
+    assert Intersection(Range(0,10), Range(3,15))==RangeOO(3,10,Reals)
 
 def test_union_real_ranges():
     OO = Range
