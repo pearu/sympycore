@@ -238,7 +238,7 @@ class RangeOO(BasicRange):
                     return RangeCO(d,b,superset)
                 return RangeOO(d,b,superset)
     def try_complementary(self, superset):
-        if self.superset==superset:
+        if self.superset==superset.domain:
             return Union(RangeCC(Basic.Min(superset), self.a, superset),
                          RangeCC(self.b, Basic.Max(superset), superset),
                          )
@@ -373,7 +373,7 @@ class RangeOC(BasicRange):
                     return RangeCC(d,b,superset)
                 return RangeOC(d,b,superset)
     def try_complementary(self, superset):
-        if self.superset==superset:
+        if self.superset==superset.domain:
             return Union(RangeCC(Basic.Min(superset), self.a, superset),
                          RangeOC(self.b, Basic.Max(superset), superset),
                          )
@@ -502,7 +502,7 @@ class RangeCO(BasicRange):
                     return RangeOO(d,b,superset)
                 return
     def try_complementary(self, superset):
-        if self.superset==superset:
+        if self.superset==superset.domain:
             return Union(RangeCO(Basic.Min(superset), self.a, superset),
                          RangeCC(self.b, Basic.Max(superset), superset),
                          )
@@ -652,7 +652,7 @@ class RangeCC(BasicRange):
                     return RangeOC(d,b,superset)
                 return
     def try_complementary(self, superset):
-        if self.superset==superset:
+        if self.superset==superset.domain:
             return Union(RangeCO(Basic.Min(superset), self.a, superset),
                          RangeOC(self.b, Basic.Max(superset), superset),
                          )

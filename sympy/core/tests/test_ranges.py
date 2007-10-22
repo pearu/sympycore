@@ -672,10 +672,34 @@ def test_range_of_ranges():
 
 def test_range_complementary():
     OO = Range
-    OC = lambda s,e: RangeOC(s,e,Reals)
-    CO = lambda s,e: RangeCO(s,e,Reals)
-    CC = lambda s,e: RangeCC(s,e,Reals)
-    assert Complementary(OO(1,10))==Union(OC(-oo,1),CO(10,oo))
-    assert Complementary(OC(1,10))==Union(OC(-oo,1),OO(10,oo))
-    assert Complementary(CO(1,10))==Union(OO(-oo,1),CO(10,oo))
-    assert Complementary(CC(1,10))==Union(OO(-oo,1),OO(10,oo))
+    OC = lambda s,e,set=Reals: RangeOC(s,e,set)
+    CO = lambda s,e,set=Reals: RangeCO(s,e,set)
+    CC = lambda s,e,set=Reals: RangeCC(s,e,set)
+    assert Complementary(OO(1,10), Reals)==Union(OC(-oo,1),CO(10,oo))
+    assert Complementary(OC(1,10), Reals)==Union(OC(-oo,1),OO(10,oo))
+    assert Complementary(CO(1,10), Reals)==Union(OO(-oo,1),CO(10,oo))
+    assert Complementary(CC(1,10), Reals)==Union(OO(-oo,1),OO(10,oo))
+
+    bigrange = OO(-10,10)
+    assert Complementary(OO(1,5, bigrange), bigrange)==Union(OC(-10,1),CO(5,10))
+    assert Complementary(OC(1,5, bigrange), bigrange)==Union(OC(-10,1),OO(5,10))
+    assert Complementary(CO(1,5, bigrange), bigrange)==Union(OO(-10,1),CO(5,10))
+    assert Complementary(CC(1,5, bigrange), bigrange)==Union(OO(-10,1),OO(5,10))
+
+    bigrange = OC(-10,10)
+    assert Complementary(OO(1,5, bigrange), bigrange)==Union(OC(-10,1),CC(5,10))
+    assert Complementary(OC(1,5, bigrange), bigrange)==Union(OC(-10,1),OC(5,10))
+    assert Complementary(CO(1,5, bigrange), bigrange)==Union(OO(-10,1),CC(5,10))
+    assert Complementary(CC(1,5, bigrange), bigrange)==Union(OO(-10,1),OC(5,10))
+
+    bigrange = CO(-10,10)
+    assert Complementary(OO(1,5, bigrange), bigrange)==Union(CC(-10,1),CO(5,10))
+    assert Complementary(OC(1,5, bigrange), bigrange)==Union(CC(-10,1),OO(5,10))
+    assert Complementary(CO(1,5, bigrange), bigrange)==Union(CO(-10,1),CO(5,10))
+    assert Complementary(CC(1,5, bigrange), bigrange)==Union(CO(-10,1),OO(5,10))
+
+    bigrange = CC(-10,10)
+    assert Complementary(OO(1,5, bigrange), bigrange)==Union(CC(-10,1),CC(5,10))
+    assert Complementary(OC(1,5, bigrange), bigrange)==Union(CC(-10,1),OC(5,10))
+    assert Complementary(CO(1,5, bigrange), bigrange)==Union(CO(-10,1),CC(5,10))
+    assert Complementary(CC(1,5, bigrange), bigrange)==Union(CO(-10,1),OC(5,10))
