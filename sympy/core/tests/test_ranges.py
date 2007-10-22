@@ -65,15 +65,15 @@ def test_shifted_integer_range():
     assert [i for i in range(0,20) if r.contains(i)]==[3+3,4+3,5+3,6+3,7+3,8+3,9+3]
 
 def test_maximum_range():
-    assert RangeOO(-oo,oo,Integers)==Integers
-    assert RangeOC(-oo,oo,Integers)==Integers
-    assert RangeCO(-oo,oo,Integers)==Integers
-    assert RangeCC(-oo,oo,Integers)==Integers
+    assert RangeOO(-oo,oo,Integers)==Integers.as_range()
+    assert RangeOC(-oo,oo,Integers)==Integers.as_range()
+    assert RangeCO(-oo,oo,Integers)==Integers.as_range()
+    assert RangeCC(-oo,oo,Integers)==Integers.as_range()
 
-    assert RangeOO(-oo,oo,Reals)==Reals
-    assert RangeOC(-oo,oo,Reals)==Reals
-    assert RangeCO(-oo,oo,Reals)==Reals
-    assert RangeCC(-oo,oo,Reals)==Reals
+    assert RangeOO(-oo,oo,Reals)==Reals.as_range()
+    assert RangeOC(-oo,oo,Reals)==Reals.as_range()
+    assert RangeCO(-oo,oo,Reals)==Reals.as_range()
+    assert RangeCC(-oo,oo,Reals)==Reals.as_range()
 
     assert RangeOO(oo,-oo,Integers)==Empty
 
@@ -98,8 +98,8 @@ def test_union_range():
     assert Union(r1,r4)==r1
 
     assert Union(Positive(Integers),Negative(Integers)).is_Union
-    assert Union(Positive(Integers),Negative(Integers)+1)==Integers
-    assert Union(Positive(Integers)-1,Negative(Integers))==Integers
+    assert Union(Positive(Integers),Negative(Integers)+1)==Integers.as_range()
+    assert Union(Positive(Integers)-1,Negative(Integers))==Integers.as_range()
     assert Union(Positive(Integers)+3,RangeOO(0,4,Integers))==Positive(Integers)
 
 def test_minus_range():
@@ -669,3 +669,13 @@ def test_range_of_ranges():
     assert CC(1,5,CC(1,10))==CC(1,5)
     assert CC(-3,15,CC(1,10))==CC(1,10)
     assert CC(1,10,CC(1,10))==CC(1,10)
+
+def test_range_complementary():
+    OO = Range
+    OC = lambda s,e: RangeOC(s,e,Reals)
+    CO = lambda s,e: RangeCO(s,e,Reals)
+    CC = lambda s,e: RangeCC(s,e,Reals)
+    assert Complementary(OO(1,10))==Union(OC(-oo,1),CO(10,oo))
+    assert Complementary(OC(1,10))==Union(OC(-oo,1),OO(10,oo))
+    assert Complementary(CO(1,10))==Union(OO(-oo,1),CO(10,oo))
+    assert Complementary(CC(1,10))==Union(OO(-oo,1),OO(10,oo))

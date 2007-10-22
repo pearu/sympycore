@@ -370,7 +370,7 @@ class Divisible(SetFunction):
         set = self.args[0]
         if set==other:
             return True
-        if Complementary(self)==other:
+        if other.is_Complementary and other.set==self:
             return False
     def try_infimum(self):
         set,divisor = self.args
@@ -403,14 +403,6 @@ class Union(SetFunction):
                 if n==len(new_sets):
                     flag = True
         for s in new_sets:
-            c = Complementary(s)
-            if c in new_sets:
-                f = s.superset
-                if f is not None:
-                    new_sets.remove(s)
-                    new_sets.remove(c)
-                    new_sets.add(f)
-                    return cls(*new_sets)
             for s1 in new_sets:
                 if s is s1: continue
                 if s.is_subset_of(s1):
@@ -425,6 +417,12 @@ class Union(SetFunction):
                         return cls(*new_sets)
         if flag:
             return cls(*new_sets)
+        if len(sets)==2:
+            s1,s2 = list(sets)
+            if s1.is_Complementary and s1.set==s2:
+                return s1.superset
+            elif s2.is_Complementary and s2.set==s1:
+                return s2.superset
         sets.sort(Basic.compare)
         return
 
@@ -473,9 +471,6 @@ class Intersection(SetFunction):
                 if n==len(new_sets):
                     flag = True
         for s in new_sets:
-            c = Complementary(s)
-            if c in new_sets:
-                return Empty
             for s1 in new_sets:
                 if s is s1: continue
                 if s.is_subset_of(s1):
@@ -490,6 +485,12 @@ class Intersection(SetFunction):
                         return cls(*new_sets)
         if flag:
             return cls(*new_sets)
+        if len(sets)==2:
+            s1,s2 = list(sets)
+            if s1.is_Complementary and s1.set==s2:
+                return Empty
+            if s2.is_Complementary and s2.set==s1:
+                return Empty
         sets.sort(Basic.compare)
         return      
 
@@ -571,7 +572,6 @@ class Field(SetSymbol):
     """ Represents abstract field.
     """
 
-
 class ComplexSet(Field):
     """ Represents a field of complex numbers.
     """
@@ -625,7 +625,9 @@ class RealSet(Field):
             return True
         if isinstance(set, ComplexSet):
             return False
-
+        
+    def as_range(self):
+        return Basic.RangeOO(-Basic.oo, Basic.oo, self)
 
 class RationalSet(Field):
     """ Field of rational numbers.
@@ -655,6 +657,8 @@ class RationalSet(Field):
         if isinstance(set, (ComplexSet, RealSet)):
             return False
 
+    def as_range(self):
+        return Basic.RangeOO(-Basic.oo, Basic.oo, self)
 
 class IntegerSet(SetSymbol):
     """ Field of integers.
@@ -688,6 +692,8 @@ class IntegerSet(SetSymbol):
         if isinstance(set, (ComplexSet, RealSet, RationalSet)):
             return False
 
+    def as_range(self):
+        return Basic.RangeOO(-Basic.oo, Basic.oo, self)
 
 class PrimeSet(SetSymbol):
     """ Set of positive prime numbers.
@@ -716,6 +722,8 @@ class PrimeSet(SetSymbol):
     def try_negative(self):
         return Empty
 
+    def as_range(self):
+        return Basic.RangeCO(2, Basic.oo, self)
 
 SetFunction.signature = FunctionSignature((set_classes,), set_classes)
 Element.signature = FunctionSignature((Basic,set_classes), (bool,))

@@ -43,8 +43,6 @@ class BasicRange(SetFunction):
                 return
             return Empty
         if lt(a, b):
-            if set==set.domain and eq(a,Basic.Min(set)) and eq(b,Basic.Max(set)):
-                return set
             if set.is_BasicRange:
                 sa, sb, superset = set.args
                 new_a, new_b = a, b
@@ -70,11 +68,30 @@ class BasicRange(SetFunction):
                     pass
                 else:
                     return
+                if new_a==-Basic.oo:
+                    b1 = False
+                if new_b==Basic.oo:
+                    b2 = False
                 new_cls = {(False,False):RangeOO,
                            (False,True):RangeOC,
                            (True,False):RangeCO,
                            (True,True):RangeCC}[(b1,b2)]
                 return new_cls(new_a, new_b, superset)
+        if cls.__name__[-2]=='C':
+            if a==-Basic.oo:
+                if cls.__name__[-1]=='C':
+                    if b==Basic.oo:
+                        return RangeOO(a,b,set)
+                    return RangeOC(a,b,set)
+                else:
+                    return RangeOO(a,b,set)
+            elif b==Basic.oo:
+                if cls.__name__[-1]=='C':
+                    return RangeCO(a,b,set)
+        elif cls.__name__[-1]=='C':
+            if b==Basic.oo:
+                return RangeOO(a,b,set)
+
     def try_contains(self, other):
         a,b,superset = self.args
         if lt(other,a) or lt(b,other):
@@ -104,6 +121,8 @@ class BasicRange(SetFunction):
         if r.is_BasicRange and r.superset==other:
             return
         return r
+        
+
 
 class RangeOO(BasicRange):
     """ An open range (a,b) of a set S."""
@@ -120,12 +139,6 @@ class RangeOO(BasicRange):
         return self.__class__(0, self.b, self.superset)
     def try_negative(self):
         return self.__class__(self.a, 0, self.superset)
-    def try_complementary(self, superset):
-        if self.superset==superset:
-            if self.is_unbounded_left:
-                return RangeCO(self.b, Basic.Max(superset), superset)
-            if self.is_unbounded_right:
-                return RangeOC(Basic.Min(superset),self.a, superset)
     def try_union(self, other):
         if not other.is_BasicRange:
             return
@@ -224,6 +237,11 @@ class RangeOO(BasicRange):
                 if other.is_RangeOO or other.is_RangeCO:
                     return RangeCO(d,b,superset)
                 return RangeOO(d,b,superset)
+    def try_complementary(self, superset):
+        if self.superset==superset:
+            return Union(RangeCC(Basic.Min(superset), self.a, superset),
+                         RangeCC(self.b, Basic.Max(superset), superset),
+                         )
 
 class RangeOC(BasicRange):
     """ An semi-open range (a,b] of a set S."""
@@ -238,11 +256,6 @@ class RangeOC(BasicRange):
         return self.__class__(0, self.b, self.superset)
     def try_negative(self):
         return RangeOO(self.a, 0, self.superset)
-    def try_complementary(self, superset):
-        if self.superset==superset:
-            if self.is_unbounded_left:
-                return RangeOO(self.b, Basic.Max(superset), superset)
-            assert not self.is_unbounded_right,`self`
     def try_union(self, other):
         if not other.is_BasicRange:
             return
@@ -359,6 +372,11 @@ class RangeOC(BasicRange):
                 if other.is_RangeOO or other.is_RangeCO:
                     return RangeCC(d,b,superset)
                 return RangeOC(d,b,superset)
+    def try_complementary(self, superset):
+        if self.superset==superset:
+            return Union(RangeCC(Basic.Min(superset), self.a, superset),
+                         RangeOC(self.b, Basic.Max(superset), superset),
+                         )
 
 class RangeCO(BasicRange):
     """ An semi-open range [a,b) of a set S."""
@@ -373,11 +391,6 @@ class RangeCO(BasicRange):
         return RangeOO(0, self.b, self.superset)
     def try_negative(self):
         return self.__class__(self.a, 0, self.superset)
-    def try_complementary(self, superset):
-        if self.superset==superset:
-            if self.is_unbounded_right:
-                return RangeOO(Basic.Min(superset),self.a, superset)
-            assert not self.is_unbounded_left,`self`
     def try_union(self, other):
         if not other.is_BasicRange:
             return
@@ -488,6 +501,11 @@ class RangeCO(BasicRange):
                 if other.is_RangeOC or other.is_RangeCC:
                     return RangeOO(d,b,superset)
                 return
+    def try_complementary(self, superset):
+        if self.superset==superset:
+            return Union(RangeCO(Basic.Min(superset), self.a, superset),
+                         RangeCC(self.b, Basic.Max(superset), superset),
+                         )
 
 class RangeCC(BasicRange):
     """ An closed range [a,b] of a set S."""
@@ -500,10 +518,6 @@ class RangeCC(BasicRange):
         return RangeOC(0, self.b, self.superset)
     def try_negative(self):
         return RangeCO(self.a, 0, self.superset)
-    def try_complementary(self, superset):
-        if self.superset==superset:
-            assert not self.is_unbounded_left,`self`
-            assert not self.is_unbounded_right,`self`
     def try_union(self, other):
         if not other.is_BasicRange:
             return
@@ -637,6 +651,11 @@ class RangeCC(BasicRange):
                 if other.is_RangeOC or other.is_RangeCC:
                     return RangeOC(d,b,superset)
                 return
+    def try_complementary(self, superset):
+        if self.superset==superset:
+            return Union(RangeCO(Basic.Min(superset), self.a, superset),
+                         RangeOC(self.b, Basic.Max(superset), superset),
+                         )
 
 class Range(RangeOO):
     """ An open range (a,b) of a set S (default=Reals).
