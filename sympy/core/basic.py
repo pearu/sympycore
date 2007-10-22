@@ -365,8 +365,12 @@ class Basic(object):
     @staticmethod
     def is_greater_equal(lhs, rhs, assumptions=None):
         return Basic.is_less_equal(rhs, lhs, assumptions)
-    
-    
+    def is_element_of_set(lhs, rhs, assumptions=None):
+        r = rhs.contains(lhs)
+        if isinstance(r, bool):
+            return r
+        #XXX: implement assumptions model
+
 class Atom(Basic):
 
     canonical = evalf = lambda self: self

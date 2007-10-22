@@ -1,7 +1,8 @@
 
 from basic import Basic
 from function import FunctionSignature
-from sets import SetFunction, set_classes, Empty, Reals, Integers, Minus, Intersection, Union, Set
+from sets import SetFunction, set_classes, Minus, Intersection, Union, Set
+from sets import Complexes, Reals, Integers, Empty
 
 __all__ = ['RangeOO', 'RangeOC', 'RangeCO', 'RangeCC', 'Range']
 
@@ -10,6 +11,7 @@ lt = Basic.is_less
 le = Basic.is_less_equal
 gt = Basic.is_greater
 ge = Basic.is_greater_equal
+es = Basic.is_element_of_set
 
 class BasicRange(SetFunction):
     """ Base class for range functions.
@@ -29,34 +31,69 @@ class BasicRange(SetFunction):
         return self[2].domain
 
     @classmethod
-    def canonize(cls, (a, b, set)):
-        d = b - a
-        if d.is_Number and d.is_negative:
+    def canonize_xx(cls, (a,b,set), may_contain_boundary):
+        if lt(b, a):
             return Empty
-        if d==-Basic.oo:
+        if eq(a,b):
+            if may_contain_boundary:
+                r = es(a, set)
+                if isinstance(r, bool):
+                    if r: return Set(a)
+                    return Empty
+                return
             return Empty
-        if set==set.domain and a==Basic.Min(set) and b==Basic.Max(set):
+        if set==set.domain and eq(a,Basic.Min(set)) and eq(b,Basic.Max(set)):
             return set
-    def try_contains(self, other):
-        r = self.superset.contains(other)
-        if r is False:
+        if set.is_BasicRange:
+            sa, sb, superset = set.args
+            new_a, new_b = a, b
+            n = cls.__name__
+            b1,b2 = n[-2]=='C', n[-1]=='C'
+            n = set.__class__.__name__
+            c1,c2 = n[-2]=='C', n[-1]=='C'
+            if eq(sa, a):
+                b1 = b1 and c1
+            elif lt(a, sa):
+                new_a = sa
+                b1 = c1
+            elif lt(sa, a):
+                pass
+            else:
+                return
+            if eq(b, sb):
+                b2 = b2 and c2
+            elif lt(sb, b):
+                new_b = sb
+                b2 = c2
+            elif lt(b, sb):
+                pass
+            else:
+                return
+            new_cls = {(False,False):RangeOO,
+                       (False,True):RangeOC,
+                       (True,False):RangeCO,
+                       (True,True):RangeCC}[(b1,b2)]
+            return new_cls(new_a, new_b, superset)
+    def try_contains_xx(self, other, may_contain_left_bound, may_contain_right_bound):
+        a,b,superset = self.args
+        if lt(other,a) or lt(b,other):
             return False
-        if r is not True:
+        isboundary = False
+        if self.a==other:
+            isboundary = True
+            if not may_contain_left_bound: return False
+        elif self.b==other:
+            isboundary = True
+            if not may_contain_right_bound: return False
+        if isboundary or (lt(a,other) and lt(other, b)):
+            r = es(other, superset)
+            if isinstance(r,bool):
+                return r
+            if superset.domain.is_RealSet:
+                # Element(x,Range(x-1,x+1,Reals)) -> True
+                return True
+            # Element(x,Range(x-1,x+1,Integers)) -> None
             return
-        if self.a.is_Number:
-            if other.is_Number:
-                if lt(other,self.a):
-                    return False
-                if self.b.is_Number:
-                    return lt(other, self.b)
-                elif self.is_unbounded_right:
-                    return True
-        elif self.b.is_Number:
-            if other.is_Number:
-                if lt(self.b, other):
-                    return False
-                if self.is_unbounded_left:
-                    return True
     def try_shifted(self, shift):
         return self.__class__(self.a+shift, self.b+shift, self.superset)
 
@@ -65,12 +102,9 @@ class RangeOO(BasicRange):
 
     @classmethod
     def canonize(cls, (a, b, set)):
-        if a==b: return Empty
-        return BasicRange.canonize((a, b, set))
+        return cls.canonize_xx((a,b,set), False)
     def try_contains(self, other):
-        if self.a==other: return False
-        if self.b==other: return False
-        return super(RangeOO, self).try_contains(other)
+        return self.try_contains_xx(other, False, False)
     def try_supremum(self):
         if self.domain==Integers:
             return self.b-1
@@ -238,12 +272,9 @@ class RangeOC(BasicRange):
 
     @classmethod
     def canonize(cls, (a, b, set)):
-        if a==b: return Empty
-        return BasicRange.canonize((a, b, set))
+        return cls.canonize_xx((a,b,set), False)
     def try_contains(self, other):
-        if self.a==other: return False
-        if self.b==other: return self.superset.contains(other)
-        return super(RangeOC, self).try_contains(other)
+        return self.try_contains_xx(other, False, True)
     def try_supremum(self):
         return self.b
     def try_infimum(self):
@@ -433,12 +464,9 @@ class RangeCO(BasicRange):
 
     @classmethod
     def canonize(cls, (a, b, set)):
-        if a==b: return Empty
-        return BasicRange.canonize((a, b, set))
+        return cls.canonize_xx((a,b,set), False)
     def try_contains(self, other):
-        if self.a==other: return self.superset.contains(other)
-        if self.b==other: return False
-        return super(RangeCO, self).try_contains(other)
+        return self.try_contains_xx(other, True, False)
     def try_supremum(self):
         if self.domain==Integers:
             return self.b-1
@@ -609,14 +637,12 @@ class RangeCO(BasicRange):
 class RangeCC(BasicRange):
     """ An closed range [a,b] of a set S."""
 
+
     @classmethod
     def canonize(cls, (a, b, set)):
-        if a==b: return Set(b)
-        return BasicRange.canonize((a, b, set))
+        return cls.canonize_xx((a,b,set), True)
     def try_contains(self, other):
-        if self.a==other: return self.superset.contains(other)
-        if self.b==other: return self.superset.contains(other)
-        return super(RangeCC, self).try_contains(other)
+        return self.try_contains_xx(other, True, True)
     def try_supremum(self):
         return self.b
     def try_infimum(self):
