@@ -12,6 +12,7 @@ le = Basic.is_less_equal
 gt = Basic.is_greater
 ge = Basic.is_greater_equal
 es = Basic.is_element_of_set
+ss = Basic.is_subset_of_set
 
 class BasicRange(SetFunction):
     """ Base class for range functions.
@@ -121,8 +122,91 @@ class BasicRange(SetFunction):
         if r.is_BasicRange and r.superset==other:
             return
         return r
-        
-
+    def try_includes(self, other):
+        if other.is_BasicRange:
+            r = ss(other.domain, self.domain)
+            if not isinstance(r, bool):
+                return
+            if not r: return False
+            a,b,s1 = other.args
+            c,d,s2 = self.args
+            if self.is_RangeOO:
+                if other.is_RangeOO:
+                    # (a,b) is subset of (c,d)
+                    cf = (le,le,le,le,lt,lt)
+                elif other.is_RangeOC:
+                    # (a,b] is subset of (c,d)
+                    cf = (le,lt,le,le,lt,le)
+                elif other.is_RangeCO:
+                    # [a,b) is subset of (c,d)
+                    cf = (lt,le,le,le,le,lt)
+                elif other.is_RangeCC:
+                    # [a,b] is subset of (c,d)
+                    cf = (lt,lt,le,le,le,le)
+                else:
+                    return
+            elif self.is_RangeOC:
+                if other.is_RangeOO:
+                    # (a,b) is subset of (c,d]
+                    cf = (le,le,le,lt,lt,lt)
+                elif other.is_RangeOC:
+                    # (a,b] is subset of (c,d]
+                    cf = (le,le,le,lt,lt,lt)
+                elif other.is_RangeCO:
+                    # [a,b) is subset of (c,d]
+                    cf = (lt,le,le,lt,le,lt)
+                elif other.is_RangeCC:
+                    # [a,b] is subset of (c,d]
+                    cf = (lt,le,le,lt,le,lt)
+                else:                
+                    return
+            elif self.is_RangeCO:
+                if other.is_RangeOO:
+                    # (a,b) is subset of [c,d)
+                    cf = (le,le,le,le,lt,lt)
+                elif other.is_RangeOC:
+                    # (a,b] is subset of [c,d)
+                    cf = (le,lt,lt,le,lt,le)
+                elif other.is_RangeCO:
+                    # [a,b) is subset of [c,d)
+                    cf = (le,le,lt,le,lt,lt)
+                elif other.is_RangeCC:
+                    # [a,b] is subset of [c,d)
+                    cf = (le,lt,lt,le,lt,le)
+                else:
+                    return
+            elif self.is_RangeCC:
+                if other.is_RangeOO:
+                    # (a,b) is subset of [c,d]
+                    cf = (le,le,le,le,lt,lt)
+                elif other.is_RangeOC:
+                    # (a,b] is subset of [c,d]
+                    cf = (le,le,lt,lt,lt,lt)
+                elif other.is_RangeCO:
+                    # [a,b) is subset of [c,d]
+                    cf = (le,le,lt,lt,lt,lt)
+                elif other.is_RangeCC:
+                    # [a,b] is subset of [c,d]
+                    cf = (le,le,lt,lt,lt,lt)
+                else:
+                    return
+            else:
+                return
+            if cf[0](c,a) and cf[1](b,d):
+                return True
+            if cf[2](b,c) or cf[3](d,a) or cf[4](a,c) or cf[5](d,b):
+                return False
+        if other.is_Set:
+            flag = False
+            for e in other:
+                r = es(e, self)
+                if isinstance(r, bool):
+                    if not r: return False
+                else:
+                    flag = True
+            if flag:
+                return
+            return True
 
 class RangeOO(BasicRange):
     """ An open range (a,b) of a set S."""

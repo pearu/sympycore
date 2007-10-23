@@ -333,9 +333,9 @@ class Basic(object):
         """
         return self
 
-    
-    # The following static methods should be used in places
-    # where assumptions may be required
+
+# The following static methods should be used in places
+# where assumptions may be required
     @staticmethod
     def is_less(lhs, rhs, assumptions=None):
         """ Return True or False if the relation 'lhs < rhs' is satisfied or not.
@@ -351,22 +351,32 @@ class Basic(object):
         if d==-Basic.oo: return False
         #print lhs, rhs
         #XXX: implement assumptions model
-
+#
     @staticmethod
     def is_equal(lhs, rhs, assumptions=None):
         return lhs==rhs
+    
     @staticmethod
     def is_less_equal(lhs, rhs, assumptions=None):
         if Basic.is_equal(lhs, rhs, assumptions): return True
         return Basic.is_less(lhs, rhs, assumptions)
+
     @staticmethod
     def is_greater(lhs, rhs, assumptions=None):
         return Basic.is_less(rhs, lhs, assumptions)
+
     @staticmethod
     def is_greater_equal(lhs, rhs, assumptions=None):
         return Basic.is_less_equal(rhs, lhs, assumptions)
+    @staticmethod
     def is_element_of_set(lhs, rhs, assumptions=None):
-        r = rhs.contains(lhs)
+        r = rhs.try_contains(lhs)
+        if isinstance(r, bool):
+            return r
+        #XXX: implement assumptions model
+    @staticmethod
+    def is_subset_of_set(lhs, rhs, assumptions=None):
+        r = rhs.try_includes(lhs)
         if isinstance(r, bool):
             return r
         #XXX: implement assumptions model

@@ -703,3 +703,269 @@ def test_range_complementary():
     assert Complementary(OC(1,5, bigrange), bigrange)==Union(CC(-10,1),OC(5,10))
     assert Complementary(CO(1,5, bigrange), bigrange)==Union(CO(-10,1),CC(5,10))
     assert Complementary(CC(1,5, bigrange), bigrange)==Union(CO(-10,1),OC(5,10))
+
+def test_range_subset():
+    OO = lambda s,e,set=Reals: RangeOO(s,e,set)
+    OC = lambda s,e,set=Reals: RangeOC(s,e,set)
+    CO = lambda s,e,set=Reals: RangeCO(s,e,set)
+    CC = lambda s,e,set=Reals: RangeCC(s,e,set)
+
+    assert Subset(OO(1,10),Reals)==True
+    assert Subset(OO(1,10),Complexes)==True
+    assert Subset(OO(1,10),Integers)==False
+
+    assert Subset(OO(1,10),OO(3,7))==False
+    assert Subset(OO(1,7),OO(3,7))==False
+    assert Subset(OO(1,6),OO(3,7))==False
+    assert Subset(OO(1,3),OO(3,7))==False
+    assert Subset(OO(1,2),OO(3,7))==False
+    assert Subset(OO(3,10),OO(3,7))==False
+    assert Subset(OO(3,7),OO(3,7))==True
+    assert Subset(OO(3,6),OO(3,7))==True
+    assert Subset(OO(3,3),OO(3,7))==True
+    assert Subset(OO(4,10),OO(3,7))==False
+    assert Subset(OO(4,7),OO(3,7))==True
+    assert Subset(OO(4,6),OO(3,7))==True
+    assert Subset(OO(7,10),OO(3,7))==False
+    assert Subset(OO(7,7),OO(3,7))==True
+    assert Subset(OO(8,10),OO(3,7))==False
+
+    assert Subset(OO(1,10),OC(3,7))==False
+    assert Subset(OO(1,7),OC(3,7))==False
+    assert Subset(OO(1,6),OC(3,7))==False
+    assert Subset(OO(1,3),OC(3,7))==False
+    assert Subset(OO(1,2),OC(3,7))==False
+    assert Subset(OO(3,10),OC(3,7))==False
+    assert Subset(OO(3,7),OC(3,7))==True
+    assert Subset(OO(3,6),OC(3,7))==True
+    assert Subset(OO(3,3),OC(3,7))==True
+    assert Subset(OO(4,10),OC(3,7))==False
+    assert Subset(OO(4,7),OC(3,7))==True
+    assert Subset(OO(4,6),OC(3,7))==True
+    assert Subset(OO(7,10),OC(3,7))==False
+    assert Subset(OO(7,7),OC(3,7))==True
+    assert Subset(OO(8,10),OC(3,7))==False
+
+    assert Subset(OO(1,10),CO(3,7))==False
+    assert Subset(OO(1,7),CO(3,7))==False
+    assert Subset(OO(1,6),CO(3,7))==False
+    assert Subset(OO(1,3),CO(3,7))==False
+    assert Subset(OO(1,2),CO(3,7))==False
+    assert Subset(OO(3,10),CO(3,7))==False
+    assert Subset(OO(3,7),CO(3,7))==True
+    assert Subset(OO(3,6),CO(3,7))==True
+    assert Subset(OO(3,3),CO(3,7))==True
+    assert Subset(OO(4,10),CO(3,7))==False
+    assert Subset(OO(4,7),CO(3,7))==True
+    assert Subset(OO(4,6),CO(3,7))==True
+    assert Subset(OO(7,10),CO(3,7))==False
+    assert Subset(OO(7,7),CO(3,7))==True
+    assert Subset(OO(8,10),CO(3,7))==False
+
+    assert Subset(OO(1,10),CC(3,7))==False
+    assert Subset(OO(1,7),CC(3,7))==False
+    assert Subset(OO(1,6),CC(3,7))==False
+    assert Subset(OO(1,3),CC(3,7))==False
+    assert Subset(OO(1,2),CC(3,7))==False
+    assert Subset(OO(3,10),CC(3,7))==False
+    assert Subset(OO(3,7),CC(3,7))==True
+    assert Subset(OO(3,6),CC(3,7))==True
+    assert Subset(OO(3,3),CC(3,7))==True
+    assert Subset(OO(4,10),CC(3,7))==False
+    assert Subset(OO(4,7),CC(3,7))==True
+    assert Subset(OO(4,6),CC(3,7))==True
+    assert Subset(OO(7,10),CC(3,7))==False
+    assert Subset(OO(7,7),CC(3,7))==True
+    assert Subset(OO(8,10),CC(3,7))==False
+
+    assert Subset(OC(1,10),OO(3,7))==False
+    assert Subset(OC(1,7),OO(3,7))==False
+    assert Subset(OC(1,6),OO(3,7))==False
+    assert Subset(OC(1,3),OO(3,7))==False
+    assert Subset(OC(1,2),OO(3,7))==False
+    assert Subset(OC(3,10),OO(3,7))==False
+    assert Subset(OC(3,7),OO(3,7))==False
+    assert Subset(OC(3,6),OO(3,7))==True
+    assert Subset(OC(3,3),OO(3,7))==True
+    assert Subset(OC(4,10),OO(3,7))==False
+    assert Subset(OC(4,7),OO(3,7))==False
+    assert Subset(OC(4,6),OO(3,7))==True
+    assert Subset(OC(7,10),OO(3,7))==False
+    assert Subset(OC(7,7),OO(3,7))==True
+    assert Subset(OC(8,10),OO(3,7))==False
+
+    assert Subset(OC(1,10),OC(3,7))==False
+    assert Subset(OC(1,7),OC(3,7))==False
+    assert Subset(OC(1,6),OC(3,7))==False
+    assert Subset(OC(1,3),OC(3,7))==False
+    assert Subset(OC(1,2),OC(3,7))==False
+    assert Subset(OC(3,10),OC(3,7))==False
+    assert Subset(OC(3,7),OC(3,7))==True
+    assert Subset(OC(3,6),OC(3,7))==True
+    assert Subset(OC(3,3),OC(3,7))==True
+    assert Subset(OC(4,10),OC(3,7))==False
+    assert Subset(OC(4,7),OC(3,7))==True
+    assert Subset(OC(4,6),OC(3,7))==True
+    assert Subset(OC(7,10),OC(3,7))==False
+    assert Subset(OC(7,7),OC(3,7))==True
+    assert Subset(OC(8,10),OC(3,7))==False
+
+    assert Subset(OC(1,10),CO(3,7))==False
+    assert Subset(OC(1,7),CO(3,7))==False
+    assert Subset(OC(1,6),CO(3,7))==False
+    assert Subset(OC(1,3),CO(3,7))==False
+    assert Subset(OC(1,2),CO(3,7))==False
+    assert Subset(OC(3,10),CO(3,7))==False
+    assert Subset(OC(3,7),CO(3,7))==False
+    assert Subset(OC(3,6),CO(3,7))==True
+    assert Subset(OC(3,3),CO(3,7))==True
+    assert Subset(OC(4,10),CO(3,7))==False
+    assert Subset(OC(4,7),CO(3,7))==False
+    assert Subset(OC(4,6),CO(3,7))==True
+    assert Subset(OC(7,10),CO(3,7))==False
+    assert Subset(OC(7,7),CO(3,7))==True
+    assert Subset(OC(8,10),CO(3,7))==False
+
+    assert Subset(OC(1,10),CC(3,7))==False
+    assert Subset(OC(1,7),CC(3,7))==False
+    assert Subset(OC(1,6),CC(3,7))==False
+    assert Subset(OC(1,3),CC(3,7))==False
+    assert Subset(OC(1,2),CC(3,7))==False
+    assert Subset(OC(3,10),CC(3,7))==False
+    assert Subset(OC(3,7),CC(3,7))==True
+    assert Subset(OC(3,6),CC(3,7))==True
+    assert Subset(OC(3,3),CC(3,7))==True
+    assert Subset(OC(4,10),CC(3,7))==False
+    assert Subset(OC(4,7),CC(3,7))==True
+    assert Subset(OC(4,6),CC(3,7))==True
+    assert Subset(OC(7,10),CC(3,7))==False
+    assert Subset(OC(7,7),CC(3,7))==True
+    assert Subset(OC(8,10),CC(3,7))==False
+
+    assert Subset(CO(1,10),OO(3,7))==False
+    assert Subset(CO(1,7),OO(3,7))==False
+    assert Subset(CO(1,6),OO(3,7))==False
+    assert Subset(CO(1,3),OO(3,7))==False
+    assert Subset(CO(1,2),OO(3,7))==False
+    assert Subset(CO(3,10),OO(3,7))==False
+    assert Subset(CO(3,7),OO(3,7))==False
+    assert Subset(CO(3,6),OO(3,7))==False
+    assert Subset(CO(3,3),OO(3,7))==True
+    assert Subset(CO(4,10),OO(3,7))==False
+    assert Subset(CO(4,7),OO(3,7))==True
+    assert Subset(CO(4,6),OO(3,7))==True
+    assert Subset(CO(7,10),OO(3,7))==False
+    assert Subset(CO(7,7),OO(3,7))==True
+    assert Subset(CO(8,10),OO(3,7))==False
+
+    assert Subset(CO(1,10),OC(3,7))==False
+    assert Subset(CO(1,7),OC(3,7))==False
+    assert Subset(CO(1,6),OC(3,7))==False
+    assert Subset(CO(1,3),OC(3,7))==False
+    assert Subset(CO(1,2),OC(3,7))==False
+    assert Subset(CO(3,10),OC(3,7))==False
+    assert Subset(CO(3,7),OC(3,7))==False
+    assert Subset(CO(3,6),OC(3,7))==False
+    assert Subset(CO(3,3),OC(3,7))==True
+    assert Subset(CO(4,10),OC(3,7))==False
+    assert Subset(CO(4,7),OC(3,7))==True
+    assert Subset(CO(4,6),OC(3,7))==True
+    assert Subset(CO(7,10),OC(3,7))==False
+    assert Subset(CO(7,7),OC(3,7))==True
+    assert Subset(CO(8,10),OC(3,7))==False
+
+    assert Subset(CO(1,10),CO(3,7))==False
+    assert Subset(CO(1,7),CO(3,7))==False
+    assert Subset(CO(1,6),CO(3,7))==False
+    assert Subset(CO(1,3),CO(3,7))==False
+    assert Subset(CO(1,2),CO(3,7))==False
+    assert Subset(CO(3,10),CO(3,7))==False
+    assert Subset(CO(3,7),CO(3,7))==True
+    assert Subset(CO(3,6),CO(3,7))==True
+    assert Subset(CO(3,3),CO(3,7))==True
+    assert Subset(CO(4,10),CO(3,7))==False
+    assert Subset(CO(4,7),CO(3,7))==True
+    assert Subset(CO(4,6),CO(3,7))==True
+    assert Subset(CO(7,10),CO(3,7))==False
+    assert Subset(CO(7,7),CO(3,7))==True
+    assert Subset(CO(8,10),CO(3,7))==False
+
+    assert Subset(CO(1,10),CC(3,7))==False
+    assert Subset(CO(1,7),CC(3,7))==False
+    assert Subset(CO(1,6),CC(3,7))==False
+    assert Subset(CO(1,3),CC(3,7))==False
+    assert Subset(CO(1,2),CC(3,7))==False
+    assert Subset(CO(3,10),CC(3,7))==False
+    assert Subset(CO(3,7),CC(3,7))==True
+    assert Subset(CO(3,6),CC(3,7))==True
+    assert Subset(CO(3,3),CC(3,7))==True
+    assert Subset(CO(4,10),CC(3,7))==False
+    assert Subset(CO(4,7),CC(3,7))==True
+    assert Subset(CO(4,6),CC(3,7))==True
+    assert Subset(CO(7,10),CC(3,7))==False
+    assert Subset(CO(7,7),CC(3,7))==True
+    assert Subset(CO(8,10),CC(3,7))==False
+
+    assert Subset(CC(1,10),OO(3,7))==False
+    assert Subset(CC(1,7),OO(3,7))==False
+    assert Subset(CC(1,6),OO(3,7))==False
+    assert Subset(CC(1,3),OO(3,7))==False
+    assert Subset(CC(1,2),OO(3,7))==False
+    assert Subset(CC(3,10),OO(3,7))==False
+    assert Subset(CC(3,7),OO(3,7))==False
+    assert Subset(CC(3,6),OO(3,7))==False
+    assert Subset(CC(3,3),OO(3,7))==False
+    assert Subset(CC(4,10),OO(3,7))==False
+    assert Subset(CC(4,7),OO(3,7))==False
+    assert Subset(CC(4,6),OO(3,7))==True
+    assert Subset(CC(7,10),OO(3,7))==False
+    assert Subset(CC(7,7),OO(3,7))==False
+    assert Subset(CC(8,10),OO(3,7))==False
+
+    assert Subset(CC(1,10),OC(3,7))==False
+    assert Subset(CC(1,7),OC(3,7))==False
+    assert Subset(CC(1,6),OC(3,7))==False
+    assert Subset(CC(1,3),OC(3,7))==False
+    assert Subset(CC(1,2),OC(3,7))==False
+    assert Subset(CC(3,10),OC(3,7))==False
+    assert Subset(CC(3,7),OC(3,7))==False
+    assert Subset(CC(3,6),OC(3,7))==False
+    assert Subset(CC(3,3),OC(3,7))==False
+    assert Subset(CC(4,10),OC(3,7))==False
+    assert Subset(CC(4,7),OC(3,7))==True
+    assert Subset(CC(4,6),OC(3,7))==True
+    assert Subset(CC(7,10),OC(3,7))==False
+    assert Subset(CC(7,7),OC(3,7))==True
+    assert Subset(CC(8,10),OC(3,7))==False
+
+    assert Subset(CC(1,10),CO(3,7))==False
+    assert Subset(CC(1,7),CO(3,7))==False
+    assert Subset(CC(1,6),CO(3,7))==False
+    assert Subset(CC(1,3),CO(3,7))==False
+    assert Subset(CC(1,2),CO(3,7))==False
+    assert Subset(CC(3,10),CO(3,7))==False
+    assert Subset(CC(3,7),CO(3,7))==False
+    assert Subset(CC(3,6),CO(3,7))==True
+    assert Subset(CC(3,3),CO(3,7))==True
+    assert Subset(CC(4,10),CO(3,7))==False
+    assert Subset(CC(4,7),CO(3,7))==False
+    assert Subset(CC(4,6),CO(3,7))==True
+    assert Subset(CC(7,10),CO(3,7))==False
+    assert Subset(CC(7,7),CO(3,7))==False
+    assert Subset(CC(8,10),CO(3,7))==False
+
+    assert Subset(CC(1,10),CC(3,7))==False
+    assert Subset(CC(1,7),CC(3,7))==False
+    assert Subset(CC(1,6),CC(3,7))==False
+    assert Subset(CC(1,3),CC(3,7))==False
+    assert Subset(CC(1,2),CC(3,7))==False
+    assert Subset(CC(3,10),CC(3,7))==False
+    assert Subset(CC(3,7),CC(3,7))==True
+    assert Subset(CC(3,6),CC(3,7))==True
+    assert Subset(CC(3,3),CC(3,7))==True
+    assert Subset(CC(4,10),CC(3,7))==False
+    assert Subset(CC(4,7),CC(3,7))==True
+    assert Subset(CC(4,6),CC(3,7))==True
+    assert Subset(CC(7,10),CC(3,7))==False
+    assert Subset(CC(7,7),CC(3,7))==True
+    assert Subset(CC(8,10),CC(3,7))==False

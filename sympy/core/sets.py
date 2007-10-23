@@ -40,6 +40,11 @@ class BasicSet(Basic):
         """
         return Element(sympify(other), self)
 
+    def includes(self, other):
+        """ Convenience method to construct Subset(other, self) instance.
+        """
+        return Subset(sympify(other), self)
+
     def is_subset_of(self, other):
         """ Check if self is a subset of other.
         """
@@ -140,8 +145,7 @@ class Set(ImmutableSetMeths, BasicSet, Composite, set):
 
     @property
     def domain(self):
-        # XXX: need a way to deterimine the domain of a symbolic expression
-        raise NotImplementedError('%s.domain property' % (self.__class__.__name__))
+        return self
 
     @property
     def superset(self):
@@ -593,8 +597,10 @@ class ComplexSet(Field):
     def try_includes(self, set):
         if isinstance(set.domain, (RealSet, RationalSet, IntegerSet, PrimeSet)):
             return True
-        if isinstance(set, UniversalSet):
+        if isinstance(set.domain, UniversalSet):
             return False
+        if set.is_ComplexSet:
+            return True
 
 class RealSet(Field):
     """ Represents a field of real numbers.
@@ -623,9 +629,11 @@ class RealSet(Field):
     def try_includes(self, set):
         if isinstance(set.domain, (RationalSet, IntegerSet, PrimeSet)):
             return True
-        if isinstance(set, ComplexSet):
+        if isinstance(set.domain, ComplexSet):
             return False
-        
+        if set.is_RealSet:
+            return True
+
     def as_range(self):
         return Basic.RangeOO(-Basic.oo, Basic.oo, self)
 
@@ -654,8 +662,10 @@ class RationalSet(Field):
     def try_includes(self, set):
         if isinstance(set.domain, (IntegerSet, PrimeSet)):
             return True
-        if isinstance(set, (ComplexSet, RealSet)):
+        if isinstance(set.domain, (ComplexSet, RealSet)):
             return False
+        if set.is_RationalSet:
+            return True
 
     def as_range(self):
         return Basic.RangeOO(-Basic.oo, Basic.oo, self)
@@ -689,8 +699,10 @@ class IntegerSet(SetSymbol):
     def try_includes(self, set):
         if isinstance(set.domain, PrimeSet):
             return True
-        if isinstance(set, (ComplexSet, RealSet, RationalSet)):
+        if isinstance(set.domain, (ComplexSet, RealSet, RationalSet)):
             return False
+        if set.is_IntegerSet:
+            return True
 
     def as_range(self):
         return Basic.RangeOO(-Basic.oo, Basic.oo, self)
