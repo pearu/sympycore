@@ -204,5 +204,18 @@ def test_minus():
 
 
 
+def test_set_subset():
+    assert Subset(Set(1,2), Set(1,2))==True
+    assert Subset(Set(1,2), Set(1,2,3))==True
+    assert Subset(Set(1,2), Set(1))==False
+
+    assert Subset(Set(1,2), Reals)==True
+    assert Subset(Set(1,2), Integers)==True
+    assert Subset(Set(1,2.2), Integers)==False
+    assert Subset(Integers, Reals)==True
+
+    assert Subset(Set(1,2), Range(0,10))==True
+    assert Subset(Set(-1,2), Range(0,10))==False
+
 if __name__=='__main__':
     pass

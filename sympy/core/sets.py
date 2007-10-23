@@ -7,6 +7,8 @@ from function import Function, FunctionSignature
 from predicate import Element, Subset
 
 
+es = Basic.is_element_of_set
+
 class BasicSet(Basic):
     """ Defines generic methods for set classes.
     """
@@ -33,6 +35,19 @@ class BasicSet(Basic):
         """ Check if other is a subset of self.
         If the result is undefined, return None.
         """
+        if other==self:
+            return True
+        if other.is_Set:
+            flag = False
+            for e in other:
+                r = es(e, self)
+                if isinstance(r, bool):
+                    if not r: return False
+                else:
+                    flag = True
+            if flag:
+                return
+            return True
         return
 
     def contains(self, other):
@@ -633,6 +648,7 @@ class RealSet(Field):
             return False
         if set.is_RealSet:
             return True
+        return BasicSet.try_includes(self, set)
 
     def as_range(self):
         return Basic.RangeOO(-Basic.oo, Basic.oo, self)
@@ -666,6 +682,7 @@ class RationalSet(Field):
             return False
         if set.is_RationalSet:
             return True
+        return BasicSet.try_includes(self, set)
 
     def as_range(self):
         return Basic.RangeOO(-Basic.oo, Basic.oo, self)
@@ -703,6 +720,7 @@ class IntegerSet(SetSymbol):
             return False
         if set.is_IntegerSet:
             return True
+        return BasicSet.try_includes(self, set)
 
     def as_range(self):
         return Basic.RangeOO(-Basic.oo, Basic.oo, self)

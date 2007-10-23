@@ -5,7 +5,7 @@ from utils import memoizer_immutable_args, DualProperty
 ordering_of_classes = [
     'int','long','str',
     'ImaginaryUnit','Infinity','ComplexInfinity','NaN','Exp1','Pi',
-    'Integer','Fraction','Real','Interval',
+    'Integer','Fraction','Real','Float','Interval',
     'Symbol','Dummy','Wild','Boolean','DummyBoolean',
     'MutableMul', 'Mul', 'MutableAdd', 'Add',
     'FunctionClass',

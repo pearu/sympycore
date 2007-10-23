@@ -196,17 +196,7 @@ class BasicRange(SetFunction):
                 return True
             if cf[2](b,c) or cf[3](d,a) or cf[4](a,c) or cf[5](d,b):
                 return False
-        if other.is_Set:
-            flag = False
-            for e in other:
-                r = es(e, self)
-                if isinstance(r, bool):
-                    if not r: return False
-                else:
-                    flag = True
-            if flag:
-                return
-            return True
+        return Basic.BasicSet.try_includes(self, other)
 
 class RangeOO(BasicRange):
     """ An open range (a,b) of a set S."""
