@@ -1,8 +1,8 @@
 
-from basic import Basic
-from function import FunctionSignature
-from sets import SetFunction, set_classes, Minus, Intersection, Union, Set
-from sets import Complexes, Reals, Integers, Empty
+from ...core import Basic
+from ...core.function import FunctionSignature
+from ...logic.sets import SetFunction, set_classes, Union, Set, Empty
+from .basic import ArithmeticSetFunction
 
 __all__ = ['RangeOO', 'RangeOC', 'RangeCO', 'RangeCC', 'Range']
 
@@ -14,10 +14,11 @@ ge = Basic.is_greater_equal
 es = Basic.is_element_of_set
 ss = Basic.is_subset_of_set
 
-class BasicRange(SetFunction):
+class BasicRange(ArithmeticSetFunction):
     """ Base class for range functions.
     """
     signature = FunctionSignature((Basic, Basic, set_classes),set_classes)
+    
     @property
     def a(self):
         return self[0]
@@ -202,11 +203,11 @@ class RangeOO(BasicRange):
     """ An open range (a,b) of a set S."""
 
     def try_supremum(self):
-        if self.domain==Integers:
+        if self.domain.is_IntegerSet:
             return self.b-1
         return self.b
     def try_infimum(self):
-        if self.domain==Integers:
+        if self.domain.is_IntegerSet:
             return self.a+1
         return self.a
     def try_positive(self):
@@ -323,7 +324,7 @@ class RangeOC(BasicRange):
     def try_supremum(self):
         return self.b
     def try_infimum(self):
-        if self.domain==Integers:
+        if self.domain.is_IntegerSet:
             return self.a+1
         return self.a
     def try_positive(self):
@@ -456,7 +457,7 @@ class RangeCO(BasicRange):
     """ An semi-open range [a,b) of a set S."""
 
     def try_supremum(self):
-        if self.domain==Integers:
+        if self.domain.is_IntegerSet:
             return self.b-1
         return self.b
     def try_infimum(self):
@@ -736,6 +737,6 @@ class Range(RangeOO):
     """
     def __new__(cls, a, b, set=None):
         if set is None:
-            set = Reals
+            set = Basic.RealSet()
         return RangeOO(a, b, set)
 

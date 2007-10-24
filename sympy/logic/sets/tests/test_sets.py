@@ -144,7 +144,7 @@ def test_positive_evens():
     assert E.contains(x)==Element(x, E)
 
 def test_negative_odds():
-    O = -Odds
+    O = Negative(Odds)
     n = Fraction(1,2)
     x = Symbol('x')
     assert O.contains(-3)==True

@@ -294,3 +294,21 @@ def clear_cache():
     """Clear all cached objects."""
     for cache in all_caches.values():
         cache.clear()
+
+
+def singleton(func):
+    """ Decorator for singletons.
+    """
+    func._cache_it_cache = func_cache_it_cache = {}
+    def wrapper(*args):
+        try:
+            r = func_cache_it_cache.get(args, None)
+        except TypeError, msg:
+            if 'dict objects are unhashable'==str(msg):
+                return func(*args)
+            raise
+        if r is None:
+            func_cache_it_cache[args] = r = func(*args)
+        return r
+    #wrapper.__name__ = 'wrapper.%s' % (name)
+    return wrapper

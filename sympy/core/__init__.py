@@ -16,13 +16,13 @@ from function import Function, Lambda
 from functions import Max, Min
 from interval import Interval
 
-from predicate import And, Or, XOr, Not, Implies, Equiv, Boolean
-from predicate import Element, Subset
-from sets import Set, SetSymbol, Union, Minus, Intersection, Complementary
-from sets import Empty, Universal
-from sets import Positive, Negative, Shifted, Divisible
-from sets import Complexes, Reals, Rationals, Integers, Primes, Evens, Odds
-from ranges import Range, RangeOO, RangeOC, RangeCO, RangeCC
+#from predicate import And, Or, XOr, Not, Implies, Equiv, Boolean
+#from predicate import Element, Subset
+#from sets import Set, SetSymbol, Union, Minus, Intersection, Complementary
+#from sets import Empty, Universal
+#from sets import Positive, Negative, Shifted, Divisible
+#from sets import Complexes, Reals, Rationals, Integers, Primes, Evens, Odds
+#from ranges import Range, RangeOO, RangeOC, RangeCO, RangeCC
 
 from singleton import pi, I, oo, zoo, E, nan
 
