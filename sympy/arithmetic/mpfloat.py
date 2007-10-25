@@ -58,7 +58,7 @@ class Float(Number):
             a.val = float_from_int(v, bitcount(v), ROUND_FLOOR)
             a._acc = exact
         if accuracy is not None:
-            a.val = fpos(a.val, int(accuracy), ROUND_HALF_EVEN)
+            a.val = fpos(a.val, int(accuracy*bitrate+1), ROUND_HALF_EVEN)
             a._acc = float(accuracy * bitrate)
         return a
 
