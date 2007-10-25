@@ -249,7 +249,7 @@ class Float(Real, tuple):
 
     def __pow__(self, other):
         Float = self.__class__
-        if isinstance(other, (int,long,float)):
+        if isinstance(other, (int,long)):
             precision = self.prec
             rounding = Float._rounding
             if isinstance(other, Basic): other = other.p

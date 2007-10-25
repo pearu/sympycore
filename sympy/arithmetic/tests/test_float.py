@@ -30,3 +30,4 @@ def test_arithmetic():
     assert 2/Float(1.2)==Float(2/1.2)
     assert Float(1.2)**2==Float(1.2**2)
     assert Float(2**Float(1.2),40)==Float(2**1.2,40)
+    assert Float(1.2)**0.4==Float(1.2**0.4)
