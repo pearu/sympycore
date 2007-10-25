@@ -1,6 +1,6 @@
-from utils import memoizer_immutable_args
-from basic import Basic, sympify
-from number import Rational
+from ..core.utils import memoizer_immutable_args
+from ..core import Basic, sympify
+from .number import Rational
 
 def integer_nthroot(y, n):
     """

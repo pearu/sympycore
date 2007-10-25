@@ -1,4 +1,4 @@
-from sympy.core import Symbol, Rational, sqrt
+from sympy import Symbol, Rational, sqrt
 
 a = Symbol("a")
 b = Symbol("b")
@@ -50,7 +50,7 @@ def test_arit():
     e=2+a*2/2
     assert e == 2+a
     e=2-a-2
-    assert e == -a
+    assert e == -a,`e.__eq__`
     e=2*a*2
     assert e == 4*a
     e=2/a/2

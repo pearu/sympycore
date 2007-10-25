@@ -1,5 +1,5 @@
 #from sympy import Symbol, Rational, Derivative, I, log, sqrt, exp
-from sympy.core import Symbol, Rational, sqrt
+from sympy import Symbol, Rational, sqrt
 
 x = Symbol('x')
 y = Symbol('y')

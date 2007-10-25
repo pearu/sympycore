@@ -1,6 +1,6 @@
-from utils import memoizer_immutable_args
-from basic import Basic, sympify
-from number import Rational
+from ..core.utils import memoizer_immutable_args
+from ..core import Basic, sympify
+from .number import Rational
 
 @memoizer_immutable_args('makefraction')
 def makefraction(p,q):
@@ -43,6 +43,10 @@ class Fraction(Rational, tuple):
     def q(self): return self[1]
 
     __hash__ = tuple.__hash__
+
+    @property
+    def is_half(self):
+        return self[:]==(1,2)
 
     def __eq__(self, other):
         if isinstance(other, Basic):

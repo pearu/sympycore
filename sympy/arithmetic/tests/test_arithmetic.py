@@ -1,5 +1,4 @@
-from sympy.core import *
-
+from sympy import Float, Integer, Fraction, Symbol
 def test_arithmetic():
     x = Symbol('x')
     y = Symbol('y')

@@ -1,6 +1,7 @@
-from sympy.core import Symbol, Rational
-from sympy.core.add import Add
-from sympy.core.mul import MutableMul, Mul
+from sympy import Symbol, Rational
+from sympy.arithmetic.add import MutableAdd, Add
+from sympy.arithmetic.mul import MutableMul, Mul
+
 
 a = Symbol("a")
 b = Symbol("b")

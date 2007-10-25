@@ -1,5 +1,5 @@
 
-from sympy.core import *
+from sympy import *
 
 def test_integer():
     i = Integer(2)

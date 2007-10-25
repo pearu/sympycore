@@ -1,7 +1,7 @@
 
-from utils import memoizer_immutable_args, get_object_by_name
-from basic import Basic, MutableCompositeDict, sympify
-from methods import ArithMeths, ImmutableDictMeths#, RelationalMeths
+from ..core.utils import memoizer_immutable_args, get_object_by_name
+from ..core import Basic, MutableCompositeDict, sympify
+from ..core.methods import ArithMeths, ImmutableDictMeths
 
 class MutableMul(ArithMeths, MutableCompositeDict):
     """Mutable base class for Mul. This class is used temporarily

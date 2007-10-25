@@ -1,7 +1,8 @@
+
 def test_mul_performance():
     from time import clock
     from random import randint
-    from sympy.core import Symbol, Mul, Add
+    from sympy import Symbol, Mul, Add
     x = Symbol('x')
     y = Symbol('y')
     i = 1000
@@ -12,7 +13,7 @@ def test_mul_performance():
     t2 = clock()
     d1 = t2-t1
 
-    from sympy.core import Symbol, Mul, Add
+    from sympy import Symbol, Mul, Add
     x = Symbol('x')
     y = Symbol('y')
     i = 1000
@@ -27,7 +28,7 @@ def test_mul_performance():
 def test_add_performance():
     from time import clock
     from random import randint
-    from sympy.core import Symbol, Mul, Add
+    from sympy import Symbol, Mul, Add
     x = Symbol('x')
     y = Symbol('y')
     i = 1000
@@ -38,7 +39,7 @@ def test_add_performance():
     t2 = clock()
     d1 = t2-t1
 
-    from sympy.core import Symbol, Mul, Add
+    from sympy import Symbol, Mul, Add
     x = Symbol('x')
     y = Symbol('y')
     i = 1000
@@ -52,7 +53,7 @@ def test_add_performance():
 
 def xtest_sum_performance():
     from time import clock
-    from sympy.core import Symbol, MutableAdd, Integer
+    from sympy import Symbol, MutableAdd, Integer
     x = Symbol('x')
     n = 500
 

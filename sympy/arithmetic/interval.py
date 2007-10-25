@@ -3,18 +3,22 @@ Interval arithmetic with correct rounding.
 
 """
 
-from utils import memoizer_Interval_new
-from basic import sympify
-from number import Number
-from numerics_float import *
+from ..core.utils import memoizer_Interval_new
+from ..core import sympify, Basic
+from .number import Number
+from .float import Float, ROUND_FLOOR, ROUND_CEILING
 
-
+__all__ = ['Interval']
 
 class _Rounding:
-    def begin(self): self.stored = Float.getmode()
-    def end(self): Float.setmode(self.stored)
-    def down(self): Float.setmode(ROUND_FLOOR)
-    def up(self): Float.setmode(ROUND_CEILING)
+    def begin(self):
+        self.stored = Float._rounding
+    def end(self):
+        Float._rounding = self.stored
+    def down(self):
+        Float._rounding = ROUND_FLOOR
+    def up(self):
+        Float._rounding = ROUND_CEILING
 
 rounding = _Rounding()
 

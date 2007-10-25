@@ -1,39 +1,13 @@
 
-from utils import memoizer_immutable_args
-from basic import Atom, Basic, sympify
-from methods import ArithMeths#, RelationalMeths
+from ..core import Atom, Basic, sympify
+from ..core.utils import singleton
+from .methods import ArithmeticMethods
 
-class NumberSymbol(ArithMeths, Atom):
+class NumberSymbol(ArithmeticMethods, Atom):
 
-    @memoizer_immutable_args('NumberSymbol.__new__')
+    @singleton
     def __new__(cls):
         return object.__new__(cls)
-
-    def __eq__(self, other):
-        other = sympify(other)
-        if other is self: return True
-        return False
-
-class ImaginaryUnit(ArithMeths, Atom):
-
-    @memoizer_immutable_args('ImaginaryUnit.__new__')
-    def __new__(cls):
-        return object.__new__(cls)
-
-    def tostr(self, level=0):
-        return 'I'
-
-    def try_power(self, other):
-        if other.is_Integer:
-            if other.is_one:
-                # nothing to evaluate
-                return
-            e = other.p % 4
-            if e==0: return Basic.one
-            if e==1: return Basic.I
-            if e==2: return -Basic.one
-            return -Basic.I
-        return
 
     def __eq__(self, other):
         other = sympify(other)
@@ -45,31 +19,32 @@ class Exp1(NumberSymbol):
     def tostr(self, level=0):
         return 'E'
 
-    def evalf(self):
-        return Basic.exp(Float(1))
+    def evalf(self, precision=None):
+        return Basic.Float(1, precision).evalf_exp()
 
 class Pi(NumberSymbol):
 
     def tostr(self, level=0):
         return "pi"
 
-
+    def evalf(self, precision=None):
+        return Basic.Float.evalf_pi(precision)
 
 class GoldenRatio(NumberSymbol):
 
     def tostr(self, level=0):
         return 'GoldenRatio'
 
+    def evalf(self, precision=None):
+        return (Basic.Float(5).evalf_sqrt(precision)+1)/2
+
 class EulerGamma(NumberSymbol):
 
     def tostr(self, level=0):
         return 'EulerGamma'
 
-class Catalan(NumberSymbol):
-
-    def tostr(self, level=0):
-        return 'Catalan'
-
+    def evalf(self, precision=None):
+        return Basic.Float.evalf_gamma(precision)
 
 class NaN(NumberSymbol):
 
@@ -103,6 +78,7 @@ class Infinity(NumberSymbol):
         if other==-self:
             return Basic.zero
 
+
 class ComplexInfinity(NumberSymbol):
 
     def tostr(self, level=0):
@@ -119,25 +95,28 @@ class ComplexInfinity(NumberSymbol):
             if other.is_negative:
                 return Basic.zero
 
-I = ImaginaryUnit()
-nan = NaN()
-oo = Infinity()
-zoo = ComplexInfinity()
-E = Exp1()
-pi = Pi()
+class ImaginaryUnit(ArithmeticMethods, Atom):
 
-Basic.nan = nan
-Basic.oo = oo
-Basic.zoo = zoo
-Basic.E = E
-Basic.I = I
-Basic.pi = pi
+    @singleton
+    def __new__(cls):
+        return object.__new__(cls)
 
-Basic.predefined_objects.update(
-    pi = pi,
-    nan = nan,
-    oo = oo,
-    zoo = zoo,
-    E = E,
-    I = I,
-    )
+    def tostr(self, level=0):
+        return 'I'
+
+    def try_power(self, other):
+        if other.is_Integer:
+            if other.is_one:
+                # nothing to evaluate
+                return
+            e = other.p % 4
+            if e==0: return Basic.one
+            if e==1: return Basic.I
+            if e==2: return -Basic.one
+            return -Basic.I
+        return
+
+    def __eq__(self, other):
+        other = sympify(other)
+        if other is self: return True
+        return False

@@ -1,7 +1,7 @@
 import py
 
-from sympy.core import *
-from sympy.core.interval import *
+from sympy import *
+#from sympy.arithmetic.interval impor
 
 def test_membership():
     assert Interval(2) == Interval(2, 2)
@@ -23,7 +23,7 @@ def test_div():
     assert Interval(-15, 30) / Interval(3, 5) == Interval(-5, 10)
     assert Interval(-15, 30) / Interval(-5, -3) == Interval(-10, 5)
     # assert 3 / Interval(1, 2) == Interval(Fraction(3,2), 3)
-    Float.setdps(15)
+    #Float.setdps(15)
     a = Interval(1) / Float(3)
     b = Interval(-1) / Float(3)
     assert a == Interval(0.33333333333333331, 0.33333333333333337)
@@ -41,7 +41,7 @@ def test_add():
 def test_pi():
     def acot(x):
         x = Interval(Float(x))
-        p = Float(10) ** (-Float.getdps() - 2)
+        p = Float(10) ** (-Float._precision - 2)
         s = w = Interval(1)/x
         x = x*x
         n = 3
@@ -54,7 +54,7 @@ def test_pi():
                 break
             n += 2
         return s
-    Float.setdps(15)
+    #Float.setdps(15)
     pi = 16*acot(5) - 4*acot(239)
     a = float(pi.a)
     b = float(pi.b)

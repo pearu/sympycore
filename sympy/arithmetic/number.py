@@ -1,6 +1,6 @@
-from utils import memoizer_immutable_args
-from basic import Basic, Atom, sympify
-from methods import NumberMeths
+from ..core.utils import memoizer_immutable_args
+from ..core import Basic, Atom, sympify
+from .methods import NumberMethods
 
 Basic.is_zero = None
 Basic.is_one = None
@@ -20,7 +20,7 @@ Basic.is_bounded = None
 Basic.is_commutative = None
 Basic.is_prime = None
 
-class Number(NumberMeths, Atom):
+class Number(NumberMethods, Atom):
     """A Number is an atomic object with a definite numerical value
     that gives a Number when added or multiplied to another Number.
     Examples include rational numbers (-25, 2/3, ...) via the Rational
@@ -92,7 +92,7 @@ class Real(Number):
     The implementation of a floating point number must
     derive from Real class and have the methods defined
     in the following template class:
-
+    
     class Float(Real, <floating point implementation class>):
 
         def __new__(cls, f):
@@ -103,9 +103,6 @@ class Real(Number):
             # can handle.
             obj = <floating point implementation class>.__new__(cls,..)
             return obj
-
-        def as_native(self):
-            return <floating point implementation instance>
 
         def __float__(self):
             return <python float instance>
@@ -207,10 +204,10 @@ class Rational(Real):
     def __float__(self):
         return float(self.evalf())
 
-from integer import Integer
-from fraction import Fraction
-from numerics_float import Float
-from interval import Interval
+from .integer import Integer
+from .fraction import Fraction
+from .float import Float
+from .interval import Interval
 
 Basic.one = Integer(1)
 Basic.zero = Integer(0)

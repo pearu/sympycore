@@ -1,6 +1,7 @@
-from sympy.core.utils import DualProperty
-from sympy.core import Basic, Mul, Integer, Rational, sqrt, pi, I
-from sympy.core.function import SingleValuedFunction, FunctionSignature
+from ...core.utils import DualProperty
+from ...core import Basic
+from ...arithmetic import Mul, Integer, Rational, sqrt, pi, I
+from ...core.function import SingleValuedFunction, FunctionSignature
 
 def without(L, x):
     L = L[:]

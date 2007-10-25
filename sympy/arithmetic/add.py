@@ -1,7 +1,7 @@
 
-from utils import memoizer_immutable_args
-from basic import Basic, MutableCompositeDict, sympify
-from methods import ArithMeths, ImmutableDictMeths#, RelationalMeths
+from ..core.utils import memoizer_immutable_args
+from ..core import Basic, MutableCompositeDict, sympify
+from ..core.methods import ArithMeths, ImmutableDictMeths
 
 class MutableAdd(ArithMeths, MutableCompositeDict):
     """ Represents a sum.
