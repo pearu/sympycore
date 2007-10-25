@@ -1,7 +1,6 @@
 
 from ..core import Basic, sympify
 
-
 """
 To override arithmetic methods, use the following templates:
 
@@ -84,7 +83,6 @@ class ArithmeticMethods:
         if op == '**':
             return [self, Basic.Number(1)]
         return [self]
-
 
 
 class NumberMethods(ArithmeticMethods):

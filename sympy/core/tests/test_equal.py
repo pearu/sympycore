@@ -1,5 +1,5 @@
 #from sympy.utilities.pytest import XFAIL
-from sympy import Symbol, Rational, exp
+from sympy import Symbol, Rational, Exp
 
 def testequal():
     b = Symbol("b")
@@ -17,13 +17,13 @@ def testequal():
     assert not e2 == e3
 
     x = Symbol("x")
-    e1 = exp(x+1/x)
+    e1 = Exp(x+1/x)
     y = Symbol("x")
-    e2 = exp(y+1/y)
+    e2 = Exp(y+1/y)
     assert e1 == e2
     assert not e1 != e2
     y = Symbol("y")
-    e2 = exp(y+1/y)
+    e2 = Exp(y+1/y)
     assert not e1 == e2
     assert e1 != e2
 
@@ -36,8 +36,8 @@ def testequal():
     assert 3+x != e5
 
 #@XFAIL
-def test_expevalbug():
+def test_Expevalbug():
     x = Symbol("x")
-    e1 = exp(1*x)
-    e3 = exp(x)
+    e1 = Exp(1*x)
+    e3 = Exp(x)
     assert e1 == e3

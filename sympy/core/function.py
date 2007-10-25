@@ -1,9 +1,10 @@
 
 import types
-#from utils import dualmethod, dualproperty, FDiffMethod, Decorator
-from utils import DualMethod, DualProperty, FDiffMethod
-from basic import Atom, Composite, Basic, BasicType, sympify
-from methods import ArithMeths
+
+from .utils import DualMethod, DualProperty, FDiffMethod
+from .basic import Atom, Composite, Basic, BasicType, sympify
+
+__all__ = ['FunctionSignature', 'BasicFunctionClass', 'BasicFunction']
 
 class FunctionSignature:
     """
@@ -80,7 +81,7 @@ class FunctionSignature:
 
 Basic.FunctionSignature = FunctionSignature
 
-class FunctionClass(ArithMeths, Atom, BasicType):
+class BasicFunctionClass(Atom, BasicType):
     """
     Base class for function classes. FunctionClass is a subclass of type.
 
@@ -99,7 +100,7 @@ class FunctionClass(ArithMeths, Atom, BasicType):
                 ftype, name, signature = args
                 attrdict = ftype.__dict__.copy()
                 attrdict['signature'] = signature
-            assert ftype is UndefinedFunction,`ftype`
+            assert ftype is Basic.UndefinedFunction,`ftype`
             bases = (ftype,)
             #typ.set_methods_as_dual(name, attrdict)
             func = type.__new__(typ, name, bases, attrdict)
@@ -150,7 +151,7 @@ class FunctionClass(ArithMeths, Atom, BasicType):
         return
 
     def torepr(cls):
-        if issubclass(cls, UndefinedFunction):
+        if issubclass(cls, Basic.UndefinedFunction):
             for b in cls.__bases__:
                 if b.__name__.endswith('Function'):
                     return "%s('%s')" % (b.__name__, cls.__name__)
@@ -180,7 +181,7 @@ class FunctionClass(ArithMeths, Atom, BasicType):
     def compare(self, other):
         raise
         if isinstance(other, Basic):
-            if other.is_FunctionClass:
+            if other.is_BasicFunctionClass:
                 return cmp(self.__name__, other.__name__)
         c = cmp(self.__class__, other.__class__)
         if c: return c
@@ -188,7 +189,7 @@ class FunctionClass(ArithMeths, Atom, BasicType):
 
     def __eq__(self, other):
         if isinstance(other, Basic):
-            if other.is_FunctionClass:
+            if other.is_BasicFunctionClass:
                 return self.__name__==other.__name__
             return False
         if isinstance(other, bool):
@@ -199,7 +200,8 @@ class FunctionClass(ArithMeths, Atom, BasicType):
             return False
         return sympify(other)==self
 
-class Function(ArithMeths, Composite, tuple):
+
+class BasicFunction(Composite, tuple):
     """
     Base class for applied functions.
     Constructor of undefined classes.
@@ -209,18 +211,12 @@ class Function(ArithMeths, Composite, tuple):
     called as class method as well as an instance method.
     """
 
-    __metaclass__ = FunctionClass
+    __metaclass__ = BasicFunctionClass
     
     signature = FunctionSignature(None, None)
     return_canonize_types = (Basic,)
 
     def __new__(cls, *args, **options):
-        if cls.__name__.endswith('Function'):
-            if cls is Function and len(args)==1:
-                # Default function signature is of SingleValuedFunction
-                # that provides basic arithmetic methods.
-                cls = UndefinedFunction
-            return FunctionClass(cls, *args)
         args = map(sympify, args)
         cls.signature.validate(cls.__name__, args)
         r = cls.canonize(args, **options)
@@ -243,7 +239,7 @@ class Function(ArithMeths, Composite, tuple):
 
     def __eq__(self, other):
         if isinstance(other, Basic):
-            if not other.is_Function: return False
+            if not other.is_BasicFunction: return False
             if self.func==other.func:
                 return tuple.__eq__(self, other)
             return False
@@ -344,20 +340,8 @@ class Function(ArithMeths, Composite, tuple):
             l.append(df * da)
         return Basic.Add(*l)
 
-class UndefinedFunction(Function):
 
-    signature = FunctionSignature(None, (Basic,))
-
-    def fdiff(cls, index=1):
-        return UndefinedFunction('%s_%s' % (cls.__name__, index), cls.signature)
-
-class SingleValuedFunction(Function):
-    """
-    Single-valued functions.
-    """
-    signature = FunctionSignature(None, (Basic,))
-
-class Lambda(FunctionClass):
+class Lambda(BasicFunctionClass):
     """
     Lambda(x, expr) represents a lambda function similar to Python's
     'lambda x: expr'. A function of several variables is written
@@ -402,7 +386,7 @@ class Lambda(FunctionClass):
     def __init__(cls,*args):
         pass
 
-class LambdaFunction(Function):
+class LambdaFunction(BasicFunction):
     """ Defines Lambda function properties.
     
     LambdaFunction instance will never be created.

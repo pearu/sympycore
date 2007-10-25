@@ -53,30 +53,30 @@ def test_simple():
     assert m.is_Add==False
     assert m.is_Function==False
     assert m.is_FunctionClass==False
-    assert m.is_sin==False
+    assert m.is_Sin==False
 
-def test_sin_applied():
-    s = sin(2)
-    assert s.is_sin==True
+def test_Sin_applied():
+    s = Sin(2)
+    assert s.is_Sin==True
     assert s.is_Function==True
     assert s.is_Basic==True
     assert s.is_FunctionClass==False
     assert s.is_Atom==False
-    assert s.is_cos==False
+    assert s.is_Cos==False
     assert s.is_Symbol==False
     assert s.is_Number==False
     assert s.is_UndefinedFunction==False
 
-def test_sin_unapplied():
-    assert sin.is_Basic==True
-    assert sin.is_Atom==True,`sin.is_Atom`
-    assert sin.is_FunctionClass==True, `sin.is_FunctionClass`
-    assert sin.is_Add==False,`sin.is_Add`
-    assert sin.is_Symbol==False
-    assert sin.is_Function==False
-    assert sin.is_sin==False
-    assert sin.is_cos==False
-    assert sin.is_UndefinedFunction==False
+def test_Sin_unapplied():
+    assert Sin.is_Basic==True
+    assert Sin.is_Atom==True,`Sin.is_Atom`
+    assert Sin.is_FunctionClass==True, `Sin.is_FunctionClass`
+    assert Sin.is_Add==False,`Sin.is_Add`
+    assert Sin.is_Symbol==False
+    assert Sin.is_Function==False
+    assert Sin.is_Sin==False
+    assert Sin.is_Cos==False
+    assert Sin.is_UndefinedFunction==False
 
 def test_undefined_unapplied():
     f = Function('f')
@@ -86,7 +86,7 @@ def test_undefined_unapplied():
     assert f.is_Add==False,`f.is_Add`
     assert f.is_Symbol==False
     assert f.is_Function==False
-    assert f.is_cos==False
+    assert f.is_Cos==False
     assert f.is_UndefinedFunction==False
 
 def test_undefined_applied():
@@ -101,4 +101,4 @@ def test_undefined_applied():
     assert g.is_Add==False
     assert g.is_Symbol==False
     assert g.is_Function==True
-    assert g.is_cos==False
+    assert g.is_Cos==False

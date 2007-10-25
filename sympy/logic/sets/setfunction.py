@@ -1,8 +1,8 @@
 
-from ...core.function import Function
+from ...core.function import BasicFunction
 from .basic import BasicSet
 
-class SetFunction(BasicSet, Function):
+class SetFunction(BasicSet, BasicFunction):
     """ Base class for Set functions.
     """
     @property

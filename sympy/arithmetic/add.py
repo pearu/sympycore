@@ -1,9 +1,11 @@
 
 from ..core.utils import memoizer_immutable_args
-from ..core import Basic, MutableCompositeDict, sympify
-from ..core.methods import ArithMeths, ImmutableDictMeths
+from ..core import Basic, sympify
+from ..core.methods import MutableCompositeDict, ImmutableDictMeths
 
-class MutableAdd(ArithMeths, MutableCompositeDict):
+from .methods import ArithmeticMethods
+
+class MutableAdd(ArithmeticMethods, MutableCompositeDict):
     """ Represents a sum.
 
     3 + a + 2*b is Add({1:3, a:1, b:2})

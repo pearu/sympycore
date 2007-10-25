@@ -6,8 +6,6 @@ import decimal
 
 from ..core import Basic, sympify, BasicType
 from .number import Real
-from .mpmath import mpf
-from .mpmath.mpmath import context
 from .mpmath.lib import (fzero,
                          fcmp, fneg_noround, fadd, fsub, fmul, fdiv, fpow,
                          fabs, flog, fexp, fatan,fsqrt,

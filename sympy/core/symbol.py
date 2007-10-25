@@ -1,7 +1,8 @@
 
-from utils import memoizer_immutable_args, memoizer_Symbol_new
-from basic import Atom, Basic, sympify
-from methods import ArithMeths
+from .utils import memoizer_immutable_args
+from .basic import Atom, Basic, sympify
+
+__all__ = ['BasicSymbol', 'BasicDummySymbol','BasicWildSymbol']
 
 class BasicSymbol(Atom, str):
 
@@ -27,7 +28,7 @@ class BasicSymbol(Atom, str):
 
     def __eq__(self, other):
         if isinstance(other, Basic):
-            if other.is_Dummy: return False
+            if other.is_BasicDummySymbol: return False
             if not isinstance(other, self.__class__): return False
         return str.__eq__(self, other)            
 
@@ -50,43 +51,15 @@ class BasicDummySymbol(BasicSymbol):
     def __eq__(self, other):
         return self is other
 
-
-class Symbol(ArithMeths, BasicSymbol):
-
-    """ Represents a symbol.
-
-    Symbol('x', dummy=True) returns a unique Symbol instance.
-    """
-
-    def __call__(self, *args):
-        signature = Basic.FunctionSignature((Basic,)*len(args), (Basic,))
-        return Basic.UndefinedFunction(self, signature)(*args)
-
-    def as_dummy(self):
-        return Dummy(self.name)
-
-    def try_derivative(self, s):
-        if self==s:
-            return Basic.one
-        return Basic.zero
-
-    def fdiff(self, index=1):
-        return Basic.zero
-
-class Dummy(BasicDummySymbol, Symbol):
-    """ Dummy Symbol.
-    """
-
-
-class Wild(Dummy):
+class BasicWildSymbol(BasicDummySymbol):
     """
     Wild() matches any expression but another Wild().
     """
 
     def __new__(cls, name=None, exclude=None):
         if name is None:
-            name = 'W%s' % (Symbol._dummy_count+1)
-        obj = Dummy.__new__(cls, name)
+            name = 'W%s' % (BasicSymbol._dummy_count+1)
+        obj = BasicDummySymbol.__new__(cls, name)
         if exclude is None:
             obj.exclude = None
         else:

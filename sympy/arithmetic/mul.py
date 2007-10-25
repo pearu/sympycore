@@ -1,9 +1,11 @@
 
 from ..core.utils import memoizer_immutable_args, get_object_by_name
-from ..core import Basic, MutableCompositeDict, sympify
-from ..core.methods import ArithMeths, ImmutableDictMeths
+from ..core import Basic, sympify
+from ..core.methods import MutableCompositeDict, ImmutableDictMeths
 
-class MutableMul(ArithMeths, MutableCompositeDict):
+from .methods import ArithmeticMethods
+
+class MutableMul(ArithmeticMethods, MutableCompositeDict):
     """Mutable base class for Mul. This class is used temporarily
     during construction of Mul objects.
 
@@ -208,7 +210,7 @@ class Mul(ImmutableDictMeths, MutableMul):
             if dexp.is_zero:
                 dt = b**(e-1) * dbase * e
             else:
-                dt = b**e * (dexp * Basic.log(b) + dbase * e/b)
+                dt = b**e * (dexp * Basic.Log(b) + dbase * e/b)
             if dt.is_zero:
                 continue
             factors.append(Mul(*(terms[:i]+[dt]+terms[i+1:])))
