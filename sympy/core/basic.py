@@ -201,32 +201,21 @@ class Basic(object):
     def __eq__(self, other):
         raise NotImplementedError('%s.__eq__(%s)' % (self.__class__.__name__, other.__class__.__name__))
 
+    def __hash__(self):
+        raise NotImplementedError('%s.__hash__()' % (self.__class__.__name__))
+
     def __nonzero__(self):
         # prevent using constructs like:
         #   a = Symbol('a')
         #   if a: ..
         raise AssertionError("only Relational and Number classes can define __nonzero__ method, %r" % (self.__class__))
 
-    def subs(self, old, new):
-        """ Substitute subexpression old with expression new and return result.
+    def replace(self, old, new):
+        """ Replace subexpression old with expression new and return result.
         """
         if self==sympify(old):
             return sympify(new)
         return self
-
-    def subs_dict(self, old_new_dict):
-        r = self
-        for old,new in old_new_dict.items():
-            r = r.subs(old,new)
-            if not isinstance(r, Basic): break
-        return r
-
-    def subs_list(self, expressions, values):
-        r = self
-        for e,b in zip(expressions, values):
-            r = r.subs(e,b)
-            if not isinstance(r, Basic): break
-        return r
 
     def atoms(self, type=None):
         """Returns the atoms that form current object.
@@ -263,12 +252,6 @@ class Basic(object):
                 result = result.union(obj.atoms(type=type))
         return result
 
-    def expand(self, *args, **hints):
-        """Expand an expression based on different hints. Currently
-           supported hints are basic, power, complex, trig and func.
-        """
-        return self
-
     def has(self, *patterns):
         """ Return True if self has any of the patterns.
         """
@@ -283,6 +266,17 @@ class Basic(object):
         if not p.is_Wild:
             return p in self.atoms(p.__class__)
         raise NotImplementedError('has: wild support')
+
+    def clone(self):
+        """ Return recreated composite object.
+        """
+        return self
+
+    def expand(self, *args, **hints):
+        """Expand an expression based on different hints. Currently
+           supported hints are basic, power, complex, trig and func.
+        """
+        return self
 
     def diff(self, *symbols):
         """ Return derivative with respect to symbols. If symbols contains
@@ -321,19 +315,28 @@ class Basic(object):
     def split(self, op, *args, **kwargs):
         return [self]
 
-    def is_callable_notused(self):
-        return False
-
     def refine(self, *assumptions):
         if assumptions:
             __assumptions__ = Basic.Assumptions(*assumptions)
         return self.clone()
 
-    def clone(self):
-        """ Return recreated composite object.
-        """
-        return self
 
+    # for backward-compatibility:
+    subs = replace
+
+    def subs_dict(self, old_new_dict):
+        r = self
+        for old,new in old_new_dict.items():
+            r = r.subs(old,new)
+            if not isinstance(r, Basic): break
+        return r
+
+    def subs_list(self, expressions, values):
+        r = self
+        for e,b in zip(expressions, values):
+            r = r.subs(e,b)
+            if not isinstance(r, Basic): break
+        return r
 
 # The following static methods should be used in places
 # where assumptions may be required

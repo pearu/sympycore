@@ -14,6 +14,9 @@ class NumberSymbol(ArithmeticMethods, Atom):
         if other is self: return True
         return False
 
+    def __hash__(self):
+        return hash(self.__class__)
+
 class Exp1(NumberSymbol):
 
     def tostr(self, level=0):
@@ -120,3 +123,6 @@ class ImaginaryUnit(ArithmeticMethods, Atom):
         other = sympify(other)
         if other is self: return True
         return False
+
+    def __hash__(self):
+        return hash(self.__class__)

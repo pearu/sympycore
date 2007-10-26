@@ -51,16 +51,16 @@ def test_simple():
     assert m.is_Rational==False
     assert m.is_Symbol==False
     assert m.is_Add==False
-    assert m.is_Function==False
-    assert m.is_FunctionClass==False
+    assert m.is_BasicFunction==False
+    assert m.is_BasicFunctionType==False
     assert m.is_Sin==False
 
 def test_Sin_applied():
     s = Sin(2)
     assert s.is_Sin==True
-    assert s.is_Function==True
+    assert s.is_BasicFunction==True
     assert s.is_Basic==True
-    assert s.is_FunctionClass==False
+    assert s.is_BasicFunctionType==False
     assert s.is_Atom==False
     assert s.is_Cos==False
     assert s.is_Symbol==False
@@ -70,10 +70,10 @@ def test_Sin_applied():
 def test_Sin_unapplied():
     assert Sin.is_Basic==True
     assert Sin.is_Atom==True,`Sin.is_Atom`
-    assert Sin.is_FunctionClass==True, `Sin.is_FunctionClass`
+    assert Sin.is_BasicFunctionType==True, `Sin.is_BasicFunctionType`
     assert Sin.is_Add==False,`Sin.is_Add`
     assert Sin.is_Symbol==False
-    assert Sin.is_Function==False
+    assert Sin.is_BasicFunction==False
     assert Sin.is_Sin==False
     assert Sin.is_Cos==False
     assert Sin.is_UndefinedFunction==False
@@ -82,10 +82,10 @@ def test_undefined_unapplied():
     f = Function('f')
     assert f.is_Basic==True
     assert f.is_Atom==True,`f.is_Atom`
-    assert f.is_FunctionClass==True, `f.is_FunctionClass`
+    assert f.is_BasicFunctionType==True, `f.is_BasicFunctionType`
     assert f.is_Add==False,`f.is_Add`
     assert f.is_Symbol==False
-    assert f.is_Function==False
+    assert f.is_BasicFunction==False
     assert f.is_Cos==False
     assert f.is_UndefinedFunction==False
 
@@ -94,11 +94,11 @@ def test_undefined_applied():
     x = Symbol('x')
     g=f(x)
     assert g.is_Basic==True
-    assert g.is_Function==True,`g.is_Function`
-    assert g.is_FunctionClass==False
+    assert g.is_BasicFunction==True,`g.is_BasicFunction`
+    assert g.is_BasicFunctionType==False
     assert g.is_Basic==True
     assert g.is_UndefinedFunction==True
     assert g.is_Add==False
     assert g.is_Symbol==False
-    assert g.is_Function==True
+    assert g.is_BasicFunction==True
     assert g.is_Cos==False

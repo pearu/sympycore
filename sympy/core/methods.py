@@ -56,6 +56,8 @@ class MutableCompositeDict(Composite, dict):
         # avoid calling default dict.__init__.
         pass
 
+    __hash__ = dict.__hash__
+
     # representation methods
     def torepr(self):
         return '%s(%s)' % (self.__class__.__name__, dict(self))

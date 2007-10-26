@@ -1,17 +1,17 @@
 
 from ..core import Basic
-from ..core.function import BasicFunctionClass, BasicFunction, FunctionSignature
+from ..core.function import BasicFunctionType, BasicFunction, FunctionSignature, BasicLambda
 from .methods import ArithmeticMethods
 
-__all__ = ['FunctionClass', 'Function']
+__all__ = ['FunctionClass', 'Function', 'Lambda']
 
-class FunctionClass(ArithmeticMethods, BasicFunctionClass):
+class FunctionType(ArithmeticMethods, BasicFunctionType):
 
     pass
 
 class Function(ArithmeticMethods, BasicFunction):
 
-    __metaclass__ = FunctionClass
+    __metaclass__ = FunctionType
 
     def __new__(cls, *args, **options):
         if cls.__name__.endswith('Function'):
@@ -28,3 +28,7 @@ class UndefinedFunction(Function):
 
     def fdiff(cls, index=1):
         return UndefinedFunction('%s_%s' % (cls.__name__, index), cls.signature)
+
+
+class Lambda(BasicLambda, FunctionType):
+    pass

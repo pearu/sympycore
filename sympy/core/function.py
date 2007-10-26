@@ -4,7 +4,7 @@ import types
 from .utils import DualMethod, DualProperty, FDiffMethod
 from .basic import Atom, Composite, Basic, BasicType, sympify
 
-__all__ = ['FunctionSignature', 'BasicFunctionClass', 'BasicFunction']
+__all__ = ['FunctionSignature', 'BasicFunctionType', 'BasicFunction']
 
 class FunctionSignature:
     """
@@ -81,9 +81,9 @@ class FunctionSignature:
 
 Basic.FunctionSignature = FunctionSignature
 
-class BasicFunctionClass(Atom, BasicType):
+class BasicFunctionType(Atom, BasicType):
     """
-    Base class for function classes. FunctionClass is a subclass of type.
+    Base class for function classes. FunctionType is a subclass of type.
 
     Use Function('<function name>' [ , signature ]) to create
     undefined function classes.
@@ -165,6 +165,9 @@ class BasicFunctionClass(Atom, BasicType):
     def precedence(cls):
         return Basic.Atom_precedence
 
+    def __hash__(cls):
+        return hash(cls.__name__)
+
     def try_power(cls, exponent):
         return
 
@@ -181,7 +184,7 @@ class BasicFunctionClass(Atom, BasicType):
     def compare(self, other):
         raise
         if isinstance(other, Basic):
-            if other.is_BasicFunctionClass:
+            if other.is_BasicFunctionType:
                 return cmp(self.__name__, other.__name__)
         c = cmp(self.__class__, other.__class__)
         if c: return c
@@ -189,7 +192,7 @@ class BasicFunctionClass(Atom, BasicType):
 
     def __eq__(self, other):
         if isinstance(other, Basic):
-            if other.is_BasicFunctionClass:
+            if other.is_BasicFunctionType:
                 return self.__name__==other.__name__
             return False
         if isinstance(other, bool):
@@ -206,12 +209,12 @@ class BasicFunction(Composite, tuple):
     Base class for applied functions.
     Constructor of undefined classes.
 
-    If Function class (or its derivative) defines a method that FunctionClass
+    If Function class (or its derivative) defines a method that FunctionType
     also has then this method will be DualMethod, i.e. the method can be
     called as class method as well as an instance method.
     """
 
-    __metaclass__ = BasicFunctionClass
+    __metaclass__ = BasicFunctionType
     
     signature = FunctionSignature(None, None)
     return_canonize_types = (Basic,)
@@ -341,7 +344,7 @@ class BasicFunction(Composite, tuple):
         return Basic.Add(*l)
 
 
-class Lambda(BasicFunctionClass):
+class BasicLambda(BasicFunctionType):
     """
     Lambda(x, expr) represents a lambda function similar to Python's
     'lambda x: expr'. A function of several variables is written
@@ -360,7 +363,7 @@ class Lambda(BasicFunctionClass):
         else:
             arguments = map(sympify, arguments)
         expr = sympify(expression)
-        if expr.is_Function and tuple(arguments)==expr.args:
+        if expr.is_BasicFunction and tuple(arguments)==expr.args:
             return expr.__class__
         args = []
         # The bound variables must be changed to dummy symbols; otherwise
@@ -374,9 +377,9 @@ class Lambda(BasicFunctionClass):
             expr = expr.subs(a, d)
             args.append(d)
         args = tuple(args)
-        name = 'Lambda(%s, %s)' % (args, expr)
-        bases = (LambdaFunction,)
-        attrdict = LambdaFunction.__dict__.copy()
+        name = 'BasicLambda(%s, %s)' % (args, expr)
+        bases = (BasicLambdaFunction,)
+        attrdict = BasicLambdaFunction.__dict__.copy()
         attrdict['_args'] = args
         attrdict['_expr'] = expr
         attrdict['nofargs'] = len(args)
@@ -386,10 +389,10 @@ class Lambda(BasicFunctionClass):
     def __init__(cls,*args):
         pass
 
-class LambdaFunction(BasicFunction):
+class BasicLambdaFunction(BasicFunction):
     """ Defines Lambda function properties.
     
-    LambdaFunction instance will never be created.
+    BasicLambdaFunction instance will never be created.
     """
 
     def __new__(cls, *args):
