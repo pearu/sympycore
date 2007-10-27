@@ -158,7 +158,6 @@ class Add(ImmutableDictMeths, MutableAdd):
 
     # constructor methods
     @memoizer_immutable_args("Add.__new__")
-
     def __new__(cls, *args, **options):
         return MutableAdd(*args, **options).canonical()
 

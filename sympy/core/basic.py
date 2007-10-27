@@ -33,20 +33,25 @@ class BasicType(type):
         # set obj.is_Class attributes such that
         #   isinstance(obj, Class)==obj.is_Class
         # holds:
-        if name=='Basic':
-            attrdict['is_Basic'] = property(lambda self: True)
-        else:
-            attrdict['is_'+name] = DualProperty(lambda self:True)
-            setattr(Basic, 'is_' + name,
-                    DualProperty(lambda self:False,
-                                 lambda cls:isinstance(cls, getattr(Basic, name))))
+        attrdict['is_'+name] = True
 
         # create Class:
         cls = type.__new__(typ, name, bases, attrdict)
 
         # set Basic.Class attributes:
         if name!='Basic':
+            def is_cls(self):
+                # Uncommenting the following statement makes <expr>.is_<Class>
+                # to be 3x faster. However, there is almost no change in the
+                # timing of unittests. So, we don't use it as it just increases
+                # memory consumption.
+                #setattr(self, 'is_'+name, False)
+                return False
+            def is_cls_type(cl):
+                return isinstance(cl, cls)
             setattr(Basic, cls.__name__, cls)
+            setattr(Basic, 'is_' + name,
+                    DualProperty(is_cls, is_cls_type))
 
         return cls
 

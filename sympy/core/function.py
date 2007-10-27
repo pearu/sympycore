@@ -108,12 +108,12 @@ class BasicFunctionType(Atom, BasicType):
             # defined functions
             name, bases, attrdict = args
 
-            attrdict['is_'+name] = DualProperty(lambda self:True)
-            setattr(Basic, 'is_' + name,
-                    property(lambda self:False,
-                             lambda cls:isinstance(cls, getattr(Basic, name))))
-            
+            attrdict['is_'+name] = True
+
             func = type.__new__(typ, name, bases, attrdict)
+
+            def is_cls(self): return False
+            setattr(Basic, 'is_' + name, property(is_cls))
 
             typ._fix_methods(func, attrdict)
 
