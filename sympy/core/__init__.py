@@ -2,7 +2,9 @@
 """
 from .basic import Basic, Composite, Atom, sympify, BasicType
 from .symbol import BasicSymbol, BasicDummySymbol, BasicWildSymbol
-from .function import BasicFunction, BasicFunctionType, BasicLambda
+from .function import (BasicFunction, BasicFunctionType, BasicLambda,
+                       FunctionSignature,
+                       Callable)
 
 __all__ = ['Basic', 'BasicType',
            'Composite', 'Atom',
@@ -10,4 +12,5 @@ __all__ = ['Basic', 'BasicType',
            'sympify',
            'BasicFunction', 'BasicFunctionType',
            'BasicLambda',
+           'FunctionSignature','Callable'
            ]

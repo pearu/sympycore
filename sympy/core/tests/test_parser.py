@@ -1,9 +1,9 @@
 
-from sympy import Symbol, sympify, Fraction, Sin, Function, pi
+from sympy import Symbol, sympify, Fraction, Sin, FunctionType, pi
 
 def test_parser():
     x = Symbol('x')
-    f = Function('f')
+    f = FunctionType('f')
     assert sympify('x')==x
     assert sympify('x+1')==1+x
     assert sympify('x*2')==2*x

@@ -9,7 +9,7 @@ from ..core import Basic
 from .number import (Number, Real, Rational, Float, Fraction, Integer,
                      Interval)
 from .symbol import Symbol, Dummy, Wild
-from .function import Function, Lambda
+from .function import Function, Lambda, FunctionType
 from .add import Add, MutableAdd
 from .mul import Mul, MutableMul, Pow, sqrt
 from .sets import (Complexes, Reals, Rationals, Integers, Primes,
@@ -24,7 +24,7 @@ from .constants import (Exp1, Pi, Infinity, NaN, ComplexInfinity,
 __all__ = ['Number','Real','Rational','Float', 'Fraction', 'Integer',
            'Interval',
            'Symbol','Dummy','Wild',
-           'Function','Lambda',
+           'Function','Lambda','FunctionType',
            'Sin', 'Cos', 'Exp', 'Log', 'Tan', 'Cot',
            'Min', 'Max', 'Sqrt',
            'Add','Mul',

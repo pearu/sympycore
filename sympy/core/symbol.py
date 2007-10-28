@@ -34,6 +34,9 @@ class BasicSymbol(Atom, str):
 
     __hash__ = str.__hash__
 
+    def as_dummy(self):
+        return BasicDummySymbol(self.name)
+
 class BasicDummySymbol(BasicSymbol):
 
     def __new__(cls, name):

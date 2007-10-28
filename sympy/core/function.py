@@ -1,10 +1,14 @@
 
+import os
+import sys
 import types
 
 from .utils import DualMethod, DualProperty, FDiffMethod
 from .basic import Atom, Composite, Basic, BasicType, sympify
 
-__all__ = ['FunctionSignature', 'BasicFunctionType', 'BasicFunction']
+__all__ = ['FunctionSignature',
+           'BasicFunctionType', 'BasicFunction',
+           'BasicLambda', 'Callable']
 
 class FunctionSignature:
     """
@@ -32,6 +36,10 @@ class FunctionSignature:
     """
 
     def __init__(self, argument_classes = (Basic,), value_classes = (Basic,)):
+        if isinstance(argument_classes, type):
+            argument_classes = (argument_classes,)
+        if isinstance(value_classes, type):
+            value_classes = (value_classes,)
         self.argument_classes = argument_classes
         self.value_classes = value_classes
         self.nof_arguments = None
@@ -81,144 +89,11 @@ class FunctionSignature:
 
 Basic.FunctionSignature = FunctionSignature
 
-class BasicFunctionType(Atom, BasicType):
-    """
-    Base class for function classes. FunctionType is a subclass of type.
+class FunctionTemplate(Composite, tuple):
 
-    Use Function('<function name>' [ , signature ]) to create
-    undefined function classes.
-
-    """
-
-    def __new__(typ, *args, **kws):
-        if isinstance(args[0], type):
-            # create a class of undefined function
-            if len(args)==2:
-                ftype, name = args
-                attrdict = ftype.__dict__.copy()
-            else:
-                ftype, name, signature = args
-                attrdict = ftype.__dict__.copy()
-                attrdict['signature'] = signature
-            assert ftype is Basic.UndefinedFunction,`ftype`
-            bases = (ftype,)
-            #typ.set_methods_as_dual(name, attrdict)
-            func = type.__new__(typ, name, bases, attrdict)
-        else:
-            # defined functions
-            name, bases, attrdict = args
-
-            attrdict['is_'+name] = True
-
-            func = type.__new__(typ, name, bases, attrdict)
-
-            def is_cls(self): return False
-            setattr(Basic, 'is_' + name, property(is_cls))
-
-            typ._fix_methods(func, attrdict)
-
-            # predefined objest is used by parser
-            Basic.predefined_objects[name] = func
-
-            # set Basic.Class attributes:
-            setattr(Basic, func.__name__, func)
-            
-        return func
-
-    @classmethod
-    def _fix_methods(cls, func, attrdict):
-        """ Apply DualMethod and FDiffMethod to func methods.
-        """
-        name = func.__name__
-        methods = []
-        names = []
-        mth_names = []
-        for c in func.mro():
-            if c.__module__=='__builtin__':
-                continue
-            for n,mth in c.__dict__.items():
-                if not isinstance(mth, (types.FunctionType,DualMethod)):
-                    continue
-                if n in mth_names: continue
-                mth_names.append(n)
-                # being verbose for a while:
-                if n=='fdiff':
-                    #print 'applying FDiffMethod to %s.%s' % (name, n)
-                    setattr(func, n, FDiffMethod(mth, name))
-                else:
-                    #print 'applying DualMethod to %s.%s (using %s.%s)' % (name, n, c.__name__, n)
-                    setattr(func, n, DualMethod(mth, name))
-        return
-
-    def torepr(cls):
-        if issubclass(cls, Basic.UndefinedFunction):
-            for b in cls.__bases__:
-                if b.__name__.endswith('Function'):
-                    return "%s('%s')" % (b.__name__, cls.__name__)
-            return "Function('%s')" % (cls.__name__)
-        return type.__repr__(cls)
-
-    def tostr(cls, level=0):
-        return cls.__name__
-
-    @property
-    def precedence(cls):
-        return Basic.Atom_precedence
-
-    def __hash__(cls):
-        return hash(cls.__name__)
-
-    def try_power(cls, exponent):
-        return
-
-    def split(cls, op, *args, **kwargs):
-        return [cls]
-
-    def atoms(cls, type=None):
-        if type is not None and not isinstance(type, (object.__class__, tuple)):
-            type = Basic.sympify(type).__class__
-        if type is None or isinstance(cls, type):
-            return set([cls])
-        return set()
-
-    def compare(self, other):
-        raise
-        if isinstance(other, Basic):
-            if other.is_BasicFunctionType:
-                return cmp(self.__name__, other.__name__)
-        c = cmp(self.__class__, other.__class__)
-        if c: return c
-        raise NotImplementedError(`self, other`)
-
-    def __eq__(self, other):
-        if isinstance(other, Basic):
-            if other.is_BasicFunctionType:
-                return self.__name__==other.__name__
-            return False
-        if isinstance(other, bool):
-            return False
-        if isinstance(other, type):
-            if isinstance(self, type):
-                return self.__name__ == other.__name__
-            return False
-        return sympify(other)==self
-
-
-class BasicFunction(Composite, tuple):
-    """
-    Base class for applied functions.
-    Constructor of undefined classes.
-
-    If Function class (or its derivative) defines a method that FunctionType
-    also has then this method will be DualMethod, i.e. the method can be
-    called as class method as well as an instance method.
-    """
-
-    __metaclass__ = BasicFunctionType
-    
     signature = FunctionSignature(None, None)
     return_canonize_types = (Basic,)
-
+    
     def __new__(cls, *args, **options):
         args = map(sympify, args)
         cls.signature.validate(cls.__name__, args)
@@ -231,6 +106,10 @@ class BasicFunction(Composite, tuple):
             args = (r,)
         # else we have multiple valued function
         return tuple.__new__(cls, args)
+
+    @classmethod
+    def canonize(cls, args, **options):
+        return
 
     def __hash__(self):
         try:
@@ -257,10 +136,10 @@ class BasicFunction(Composite, tuple):
     @property
     def func(self):
         return self.__class__
-        
-    @classmethod
-    def canonize(cls, args, **options):
-        return
+
+    @DualProperty
+    def precedence(cls):
+        return Basic.Apply_precedence
 
     def torepr(self):
         return '%s(%s)' % (self.__class__.torepr(),
@@ -274,9 +153,202 @@ class BasicFunction(Composite, tuple):
             return '(%s)' % (r)
         return r
 
-    @DualProperty
+    def __call__(self, *args):
+        """
+        (f(g))(x) -> f(g(x))
+        (f(g1,g2))(x) -> f(g1(x), g2(x))
+        """
+        return self.__class__(*[a(*args) for a in self.args])
+
+    def atoms(self, type=None):
+        return Basic.atoms(self, type).union(self.__class__.atoms(type))
+
+
+class Callable(Basic, BasicType):
+    """ Callable is base class for symbolic function classes.
+    """
+
+    def __new__(typ, name, bases, attrdict):
+        func = type.__new__(typ, name, bases, attrdict)
+        func._fix_methods()
+        return func
+
+    def _fix_methods(func):
+        """ Apply DualMethod and FDiffMethod to func methods.
+        """
+        name = func.__name__
+        methods = []
+        names = []
+        mth_names = []
+        for c in func.mro():
+            if c.__module__=='__builtin__':
+                continue
+            for n,mth in c.__dict__.items():
+                if not isinstance(mth, (types.FunctionType,DualMethod)):
+                    continue
+                if n in mth_names: continue
+                mth_names.append(n)
+                # being verbose for a while:
+                if n=='fdiff':
+                    #print 'applying FDiffMethod to %s.%s' % (name, n)
+                    setattr(func, n, FDiffMethod(mth, name))
+                else:
+                    #print 'applying DualMethod to %s.%s (using %s.%s)' % (name, n, c.__name__, n)
+                    setattr(func, n, DualMethod(mth, name))
+        return
+
+    def _update_Basic(func):
+        name = func.__name__
+        setattr(func, 'is_'+name, True)
+        
+        # set Basic.is_Class attribute:
+        def is_cls(self): return False
+        setattr(Basic, 'is_' + name, property(is_cls))
+
+        # predefined objest is used by parser
+        Basic.predefined_objects[name] = func
+
+        # set Basic.Class attribute:
+        setattr(Basic, name, func)
+
+    def torepr(cls):
+        return type.__repr__(cls)
+
+    def tostr(cls, level=0):
+        return cls.__name__
+
+    @property
     def precedence(cls):
-        return Basic.Apply_precedence
+        return Basic.Atom_precedence
+
+    def __hash__(cls):
+        return hash(cls.__name__)
+
+    def split(cls, op, *args, **kwargs):
+        return [cls]
+
+    def atoms(cls, type=None):
+        if type is not None and not isinstance(type, (object.__class__, tuple)):
+            type = Basic.sympify(type).__class__
+        if type is None or isinstance(cls, type):
+            return set([cls])
+        return set()
+
+    def compare(self, other):
+        raise
+        if isinstance(other, Basic):
+            if other.is_Callable:
+                return cmp(self.__name__, other.__name__)
+        c = cmp(self.__class__, other.__class__)
+        if c: return c
+        raise NotImplementedError(`self, other`)
+
+
+    def __eq__(self, other):
+        if isinstance(other, Basic):
+            if other.is_Callable:
+                return self.__name__==other.__name__
+            return False
+        if isinstance(other, bool):
+            return False
+        if isinstance(other, type):
+            if isinstance(self, type):
+                return self.__name__ == other.__name__
+            return False
+        return sympify(other)==self
+
+
+def _get_class_statement(frame = None):
+    """ Return a Python class definition line or None.
+    The function must be called inside a __new__ function.
+    """
+    if frame is None:
+        frame = sys._getframe(2)
+    fn = frame.f_code.co_filename
+    lno = frame.f_lineno
+    if fn.endswith('.pyc') or fn.endswith('.pyo'):
+        fn = fn[:-1]
+    if os.path.isfile(fn):
+        f = open(fn,'r')
+        i = lno
+        line = None
+        while i:
+            i -= 1
+            line = f.readline()
+        f.close()
+        if line.lstrip().startswith('class '):
+            return line
+        if frame.f_back is not None:
+            return _get_class_statement(frame.f_back)
+
+
+class BasicFunctionType(Atom, Callable):
+    """ Base class for defined symbolic function.
+
+    Template for defined functions:
+
+      class Func(<BasicFunction or its derivative>):
+          signature = ...
+          @classmethod
+          def canonize(cls, args):
+              ...
+
+    Function symbols (also called as undefined functions):
+    
+      The statements
+
+        Func = BasicFunctionType('Func'),
+        Func = BasicFunctionType('Func', BasicFunction)
+        Func = BasicFunctionType('Func', (BasicFunction,))
+        Func = BasicFunctionType('Func', BasicFunction, {'signature':FunctionSignature(None, None)})
+
+      are equivalent to
+
+        class Func(BasicFunction):
+            signature = FunctionSignature(None, None)
+
+      except that no `is_Func` and `Func` attributes are added to Basic class.
+
+    """
+
+    def __new__(typ, name, bases=None, attrdict=None, is_global=None):
+        if is_global is None:
+            is_global = False
+            if isinstance(bases, tuple) and isinstance(attrdict, dict):
+                # The following statement reads python module that
+                # defines class `name`:
+                line = _get_class_statement()
+                if line is not None:
+                    if line.replace(' ','').startswith('class'+name+'('):
+                        is_global = True
+                    else:
+                        print >> sys.stderr, 'Unexpected class definition line %r when defining class %r' % (line, name)
+        if bases is None:
+            bases = typ.instance_type
+        if isinstance(bases, type):
+            bases = (bases,)
+        if attrdict is None:
+            attrdict = {}
+
+        func = Callable.__new__(typ, name, bases, attrdict)
+
+        if not typ.__dict__.has_key('instance_type'):
+            typ.instance_type = func
+
+        if is_global:
+            func._update_Basic()
+        return func
+
+class BasicFunction(FunctionTemplate):
+    """
+    Base class for applied functions.
+    Constructor of undefined classes.
+
+    If Function class (or its derivative) defines a method that FunctionType
+    also has then this method will be DualMethod, i.e. the method can be
+    called as class method as well as an instance method.
+    """
+    __metaclass__ = BasicFunctionType
 
     def subs(self, old, new):
         old = sympify(old)
@@ -303,16 +375,6 @@ class BasicFunction(Composite, tuple):
 
     def split(cls, op, *args, **kwargs):
         return [cls]
-
-    def atoms(self, type=None):
-        return Basic.atoms(self, type).union(self.__class__.atoms(type))
-
-    def __call__(self, *args):
-        """
-        (f(g))(x) -> f(g(x))
-        (f(g1,g2))(x) -> f(g1(x), g2(x))
-        """
-        return self.__class__(*[a(*args) for a in self.args])
 
     def try_derivative(self, s):
         i = 0
@@ -344,7 +406,7 @@ class BasicFunction(Composite, tuple):
         return Basic.Add(*l)
 
 
-class BasicLambda(BasicFunctionType):
+class BasicLambda(Composite, Callable):
     """
     Lambda(x, expr) represents a lambda function similar to Python's
     'lambda x: expr'. A function of several variables is written
@@ -377,23 +439,24 @@ class BasicLambda(BasicFunctionType):
             expr = expr.subs(a, d)
             args.append(d)
         args = tuple(args)
-        name = 'BasicLambda(%s, %s)' % (args, expr)
+        name = '%s(%s, %s)' % (cls.__name__, args, expr)
         bases = (BasicLambdaFunction,)
         attrdict = BasicLambdaFunction.__dict__.copy()
         attrdict['_args'] = args
         attrdict['_expr'] = expr
         attrdict['nofargs'] = len(args)
-        func = type.__new__(cls, name, bases, attrdict)        
+        func = type.__new__(cls, name, bases, attrdict)
         return func
 
-    def __init__(cls,*args):
-        pass
 
-class BasicLambdaFunction(BasicFunction):
+class BasicLambdaFunction(FunctionTemplate):
     """ Defines Lambda function properties.
     
-    BasicLambdaFunction instance will never be created.
+    BasicLambdaFunction instances will be never created and therefore
+    when subclassing BasicLambda subclassing BasicLambdaFunction
+    is not needed.
     """
+    __metaclass__ = Callable
 
     def __new__(cls, *args):
         n = cls.nofargs

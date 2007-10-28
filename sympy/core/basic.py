@@ -67,13 +67,13 @@ class BasicType(type):
         try:
             i1 = ordering_of_classes.index(n1)
         except ValueError:
-            if not issubclass(cls, Basic.UndefinedFunction):
+            if 1 or not issubclass(cls, Basic.BasicFunctionSymbol):
                 print 'ordering_of_classes is missing',n1,cls
             i1 = unknown
         try:
             i2 = ordering_of_classes.index(n2)
         except ValueError:
-            if not issubclass(cls, Basic.UndefinedFunction):
+            if 1 or not issubclass(cls, Basic.BasicFunctionSymbol):
                 print 'ordering_of_classes is missing',n2,other
             i2 = unknown
         if i1 == unknown and i2 == unknown:

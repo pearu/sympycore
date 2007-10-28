@@ -14,7 +14,7 @@ class Symbol(ArithmeticMethods, BasicSymbol):
 
     def __call__(self, *args):
         signature = Basic.FunctionSignature((Basic,)*len(args), (Basic,))
-        return Basic.UndefinedFunction(self, signature)(*args)
+        return Basic.FunctionType(self, attrdict=dict(signature=signature))(*args)
 
     def as_dummy(self):
         return Dummy(self.name)

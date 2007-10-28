@@ -65,7 +65,7 @@ def test_Sin_applied():
     assert s.is_Cos==False
     assert s.is_Symbol==False
     assert s.is_Number==False
-    assert s.is_UndefinedFunction==False
+    #assert s.is_UndefinedFunction==False
 
 def test_Sin_unapplied():
     assert Sin.is_Basic==True
@@ -76,10 +76,10 @@ def test_Sin_unapplied():
     assert Sin.is_BasicFunction==False
     assert Sin.is_Sin==False
     assert Sin.is_Cos==False
-    assert Sin.is_UndefinedFunction==False
+    #assert Sin.is_UndefinedFunction==False
 
 def test_undefined_unapplied():
-    f = Function('f')
+    f = FunctionType('f')
     assert f.is_Basic==True
     assert f.is_Atom==True,`f.is_Atom`
     assert f.is_BasicFunctionType==True, `f.is_BasicFunctionType`
@@ -87,18 +87,18 @@ def test_undefined_unapplied():
     assert f.is_Symbol==False
     assert f.is_BasicFunction==False
     assert f.is_Cos==False
-    assert f.is_UndefinedFunction==False
+    #assert f.is_UndefinedFunction==False
 
 def test_undefined_applied():
-    f = Function('f')
+    f = FunctionType('f')
     x = Symbol('x')
     g=f(x)
     assert g.is_Basic==True
     assert g.is_BasicFunction==True,`g.is_BasicFunction`
     assert g.is_BasicFunctionType==False
     assert g.is_Basic==True
-    assert g.is_UndefinedFunction==True
     assert g.is_Add==False
     assert g.is_Symbol==False
     assert g.is_BasicFunction==True
     assert g.is_Cos==False
+    #assert g.is_UndefinedFunction==True
