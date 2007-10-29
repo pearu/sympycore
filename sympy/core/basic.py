@@ -176,6 +176,9 @@ class Basic(object):
     def tostr(self, level=0):
         return self.torepr()
 
+    def torepr(self):
+        return '<%r instance %s>' % (self.__class__, id(self))
+
     def compare(self, other):
         """
         Return -1,0,1 if the object is smaller, equal, or greater than other
@@ -282,40 +285,6 @@ class Basic(object):
            supported hints are basic, power, complex, trig and func.
         """
         return self
-
-    def diff(self, *symbols):
-        """ Return derivative with respect to symbols. If symbols contains
-        positive integer then differentation is repeated as many times as
-        is the value with respect to preceding symbol in symbols.
-        """
-        new_symbols = []
-        for s in symbols:
-            s = Basic.sympify(s)
-            if s.is_Integer and new_symbols and s.is_positive:
-                last_s = new_symbols.pop()
-                new_symbols += [last_s] * int(s)
-            elif s.is_Symbol:
-                new_symbols.append(s)
-            else:
-                raise TypeError(".diff() argument must be Symbol|Integer instance (got %s)"\
-                                % (s.__class__.__name__))
-        expr = self
-        unused_symbols = []
-        for s in new_symbols:
-            obj = expr.try_derivative(s)
-            if obj is not None:
-                expr = obj
-            else:
-                unused_symbols.append(s)
-        if not unused_symbols:
-            return expr
-        for s in unused_symbols:
-            if not expr.has(s):
-                return Basic.zero
-        return Basic.Derivative(self, *new_symbols)
-
-    def try_derivative(self, s):
-        raise NotImplementedError('%s.try_derivative' % (self.__class__.__name__))
 
     def split(self, op, *args, **kwargs):
         return [self]

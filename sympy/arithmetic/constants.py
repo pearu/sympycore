@@ -1,9 +1,10 @@
 
 from ..core import Atom, Basic, sympify
 from ..core.utils import singleton
-from .methods import ArithmeticMethods
 
-class NumberSymbol(ArithmeticMethods, Atom):
+from .basic import BasicArithmetic
+
+class NumberSymbol(BasicArithmetic, Atom):
 
     @singleton
     def __new__(cls):
@@ -98,7 +99,7 @@ class ComplexInfinity(NumberSymbol):
             if other.is_negative:
                 return Basic.zero
 
-class ImaginaryUnit(ArithmeticMethods, Atom):
+class ImaginaryUnit(BasicArithmetic, Atom):
 
     @singleton
     def __new__(cls):

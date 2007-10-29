@@ -33,41 +33,37 @@ def get_object_by_name(name, default=None):
 class Decorator(object):
     pass
 
-class FDiffMethod(Decorator):
-    ''' FDiffMethod decorator
+class InstanceMethod(Decorator):
 
-    FDiffMethod behaves like a class method but when called
-    as instance method, the call is replaced with instance.instance_fdiff
-    method call.
     '''
+class A(object):
+    @classmethod
+    def foo(cls):
+        pass
+    @InstanceMethod(foo)
+    def foo(self):
+        pass
 
-    def __new__(cls, func, clsname=None):
-        if isinstance(func, cls):
-            return func
-        obj = object.__new__(cls)
-        obj.func = func
-        if clsname is None:
-            obj.class_wrapper_name = '%s(%s) class method wrapper' \
-                                     % (cls.__name__, func.__name__)
-            obj.instance_wrapper_name = '%s(%s) instance method wrapper' \
-                                        % (cls.__name__, func.__name__)
-        else:
-            obj.class_wrapper_name = '%s(%s.%s) class method wrapper' \
-                                     % (cls.__name__, clsname, func.__name__)
-            obj.instance_wrapper_name = '%s(%s.%s) instance method wrapper' \
-                                        % (cls.__name__, clsname, func.__name__)
+    '''
+    def __new__(cls, cls_func):
+        obj = object.__new__(cls)        
+        obj.cls_func = cls_func
         return obj
-        
+    def __call__(self, func):
+        self.func = func
+        return self
     def __get__(self, obj, typ=None):
         if obj is None:
             def class_wrapper(*args, **kw):
                 return self.func(typ, *args, **kw)
             class_wrapper.__name__ = self.class_wrapper_name
+            class_wrapper._universalmethod = self
             return class_wrapper
         else:
             def instance_wrapper(*args, **kw):
-                return getattr(obj, 'instance_fdiff')(*args)
+                return self.func(obj, *args, **kw)
             instance_wrapper.__name__ = self.instance_wrapper_name
+            instance_wrapper._universalmethod = self
             return instance_wrapper    
 
 class UniversalMethod(Decorator):
@@ -90,7 +86,7 @@ A().foo() -> "A.foo(<__main__.A object at 0xfdb3d0>)"
     def __new__(cls, func):
         if isinstance(func, cls):
             return func
-        obj = object.__new__(cls)
+        obj = object.__new__(cls)        
         obj.func = func
         obj.method_name = func.__name__
         obj.class_wrapper_name = '%s(%s) class method wrapper' \
@@ -161,28 +157,34 @@ class DualMethod(Decorator):
     """
     # got the idea from http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/523033
     
-    def __new__(cls, func, clsname=None):
+    def __new__(cls, func, clsname=None, funcname=None):
         if isinstance(func, cls):
             return func
         obj = object.__new__(cls)
         obj.func = func
+        if funcname is None:
+            funcname = func.__name__
+        obj.funcname = funcname
         if clsname is None:
             obj.class_wrapper_name = '%s(%s) class method wrapper' \
-                                     % (cls.__name__, func.__name__)
+                                     % (cls.__name__, funcname)
             obj.instance_wrapper_name = '%s(%s) instance method wrapper' \
-                                        % (cls.__name__, func.__name__)
+                                        % (cls.__name__, funcname)
         else:
             obj.class_wrapper_name = '%s(%s.%s) class method wrapper' \
-                                     % (cls.__name__, clsname, func.__name__)
+                                     % (cls.__name__, clsname, funcname)
             obj.instance_wrapper_name = '%s(%s.%s) instance method wrapper' \
-                                        % (cls.__name__, clsname, func.__name__)
+                                        % (cls.__name__, clsname, funcname)
         return obj
         
     def __get__(self, obj, typ=None):
         if obj is None:
+            funcname = self.funcname
             def class_wrapper(*args, **kw):
+                if hasattr(self.func, 'im_self') and self.func.im_self is not None:
+                    return self.func(*args, **kw)
                 return getattr(typ.__class__,
-                               self.func.__name__)(typ, *args, **kw)
+                               self.funcname)(typ, *args, **kw)
             class_wrapper.__name__ = self.class_wrapper_name
             return class_wrapper
         else:

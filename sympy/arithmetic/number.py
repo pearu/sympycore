@@ -2,6 +2,8 @@ from ..core.utils import memoizer_immutable_args
 from ..core import Basic, Atom, sympify
 from .methods import NumberMethods
 
+from .basic import BasicArithmetic
+
 Basic.is_zero = None
 Basic.is_one = None
 Basic.is_half = None
@@ -20,7 +22,7 @@ Basic.is_bounded = None
 Basic.is_commutative = None
 Basic.is_prime = None
 
-class Number(NumberMethods, Atom):
+class Number(BasicArithmetic, Atom):
     """A Number is an atomic object with a definite numerical value
     that gives a Number when added or multiplied to another Number.
     Examples include rational numbers (-25, 2/3, ...) via the Rational

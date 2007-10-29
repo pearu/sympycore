@@ -1,7 +1,9 @@
 
-from ...core import Basic
+from ...core import Basic, BasicType
 from ...core.function import FunctionSignature
+from ...core.utils import UniversalMethod
 from ..function import Function
+
 
 __all__ = ['Sin', 'Cos', 'Exp', 'Log', 'Tan', 'Cot',
            'Sqrt',
@@ -98,6 +100,27 @@ class Sqrt(Function):
     def canonize(cls, (arg,), **options):
         return arg ** Basic.Rational(1,2)
 
+class Cos(Function):
+
+    signature = FunctionSignature((Basic,), (Basic,))
+
+    @classmethod
+    def canonize(cls, (arg,), **options):
+        if arg.is_NaN: return arg
+        if arg.is_Number:
+            if arg.is_zero: return Basic.one
+            if arg.is_negative: return cls(-arg)
+            return
+
+    @UniversalMethod
+    def fdiff(obj, index=1):
+        if isinstance(obj, BasicType):
+            if index!=1:
+                raise ValueError('%s takes 1 argument, reguested %sth' % (cls.__name__, index))
+            return -Sin
+        return obj._fdiff(index)
+
+
 class Sin(Function):
     """ sin(x)
     """
@@ -128,27 +151,14 @@ class Sin(Function):
             return -Sin(-arg)
         return
 
-    def fdiff(cls, index=1):
-        if index!=1:
-            raise ValueError('%s takes 1 argument, reguested %sth' % (cls.__name__, index))
-        return Cos
+    @UniversalMethod
+    def fdiff(obj, index=1):
+        if isinstance(obj, BasicType):
+            if index!=1:
+                raise ValueError('%s takes 1 argument, reguested %sth' % (obj.__name__, index))
+            return Cos
+        return obj._fdiff(index)
 
-class Cos(Function):
-
-    signature = FunctionSignature((Basic,), (Basic,))
-
-    @classmethod
-    def canonize(cls, (arg,), **options):
-        if arg.is_NaN: return arg
-        if arg.is_Number:
-            if arg.is_zero: return Basic.one
-            if arg.is_negative: return cls(-arg)
-            return
-
-    def fdiff(cls, index=1):
-        if index!=1:
-            raise ValueError('%s takes 1 argument, reguested %sth' % (cls.__name__, index))
-        return -Sin
 
 class Exp(Function):
 
@@ -161,10 +171,14 @@ class Exp(Function):
             if arg.is_zero: return Basic.one
             return
 
-    def fdiff(cls, index=1):
-        if index!=1:
-            raise ValueError('%s takes 1 argument, reguested %sth' % (cls.__name__, index))
-        return cls
+    @UniversalMethod
+    def fdiff(obj, index=1):
+        if isinstance(obj, BasicType):
+            if index!=1:
+                raise ValueError('%s takes 1 argument, reguested %sth' % (cls.__name__, index))
+            return obj
+        return obj._fdiff(index)
+
 
 class Log(Function):
 
@@ -177,11 +191,14 @@ class Log(Function):
             if arg.is_one: return Basic.zero
             return
 
-    def fdiff(cls, index=1):
-        if index!=1:
-            raise ValueError('%s takes 1 argument, reguested %sth' % (cls.__name__, index))
-        x = Basic.Symbol('x',dummy=True)
-        return Basic.Lambda(x,1/x)
+    @UniversalMethod
+    def fdiff(obj, index=1):
+        if isinstance(obj, BasicType):
+            if index!=1:
+                raise ValueError('%s takes 1 argument, reguested %sth' % (cls.__name__, index))
+            x = Basic.Dummy('x')
+            return Basic.Lambda(x,1/x)
+        return obj._fdiff(index)
 
 class Tan(Function):
 
@@ -194,11 +211,13 @@ class Tan(Function):
             if arg.is_zero: return arg
             if arg.is_negative: return -cls(-arg)
 
-
-    def fdiff(cls, index=1):
-        if index!=1:
-            raise ValueError('%s takes 1 argument, reguested %sth' % (cls.__name__, index))
-        return cls**2 + 1
+    @UniversalMethod
+    def fdiff(obj, index=1):
+        if isinstance(obj, BasicType):
+            if index!=1:
+                raise ValueError('%s takes 1 argument, reguested %sth' % (cls.__name__, index))
+            return obj**2 + 1
+        return obj._fdiff(index)
 
 class Cot(Function):
 
@@ -210,7 +229,10 @@ class Cot(Function):
         if arg.is_Number:
             pass
 
-    def fdiff(cls, index=1):
-        if index!=1:
-            raise ValueError('%s takes 1 argument, reguested %sth' % (cls.__name__, index))
-        return -1/Sin**2
+    @UniversalMethod
+    def fdiff(obj, index=1):
+        if isinstance(obj, BasicType):
+            if index!=1:
+                raise ValueError('%s takes 1 argument, reguested %sth' % (cls.__name__, index))
+            return -1/Sin**2
+        return obj._fdiff(index)

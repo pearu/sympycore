@@ -1,11 +1,11 @@
 
-from ..core.utils import memoizer_immutable_args
+from ..core.utils import memoizer_immutable_args, UniversalMethod
 from ..core import Basic, sympify
 from ..core.methods import MutableCompositeDict, ImmutableDictMeths
 
-from .methods import ArithmeticMethods
+from .basic import BasicArithmetic
 
-class MutableAdd(ArithmeticMethods, MutableCompositeDict):
+class MutableAdd(BasicArithmetic, MutableCompositeDict):
     """ Represents a sum.
 
     3 + a + 2*b is Add({1:3, a:1, b:2})
@@ -230,8 +230,10 @@ class Add(ImmutableDictMeths, MutableAdd):
         """
         return Add(*[(t(*args), e) for (t,e) in self.items()])
 
-    def fdiff(self, index=1):
-        return Add(*[(t.fdiff(index), e) for (t,e) in self.items()])
+    @UniversalMethod
+    def fdiff(obj, index=1):
+        assert not isinstance(obj, BasicType),`obj`
+        return Add(*[(t.fdiff(index), e) for (t,e) in obj.items()])
 
     def clone(self):
         return MutableAdd(*[(t.clone(), c.clone()) for t,c in self.items()]).canonical()

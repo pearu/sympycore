@@ -3,7 +3,7 @@ import os
 import sys
 import types
 
-from .utils import DualMethod, DualProperty, FDiffMethod
+from .utils import DualMethod, DualProperty
 from .basic import Atom, Composite, Basic, BasicType, sympify
 
 __all__ = ['FunctionSignature',
@@ -174,7 +174,7 @@ class Callable(Basic, BasicType):
         return func
 
     def _fix_methods(func):
-        """ Apply DualMethod and FDiffMethod to func methods.
+        """ Apply DualMethod to func methods.
         """
         name = func.__name__
         methods = []
@@ -189,12 +189,8 @@ class Callable(Basic, BasicType):
                 if n in mth_names: continue
                 mth_names.append(n)
                 # being verbose for a while:
-                if n=='fdiff':
-                    #print 'applying FDiffMethod to %s.%s' % (name, n)
-                    setattr(func, n, FDiffMethod(mth, name))
-                else:
-                    #print 'applying DualMethod to %s.%s (using %s.%s)' % (name, n, c.__name__, n)
-                    setattr(func, n, DualMethod(mth, name))
+                #print 'applying DualMethod to %s.%s (using %s.%s)' % (name, n, c.__name__, n)
+                setattr(func, n, DualMethod(mth, name))
         return
 
     def _update_Basic(func):
@@ -376,35 +372,6 @@ class BasicFunction(FunctionTemplate):
     def split(cls, op, *args, **kwargs):
         return [cls]
 
-    def try_derivative(self, s):
-        i = 0
-        l = []
-        r = Basic.zero
-        args = self.args
-        for a in args:
-            i += 1
-            da = a.diff(s)
-            if da.is_zero:
-                continue
-            df = self.func.fdiff(i)
-            l.append(df(*args) * da)
-        return Basic.Add(*l)
-
-    # See utils.FDiffMethod docs for how fdiff and instance_fdiff methods are called.
-    def fdiff(cls, index=1):
-        raise NotImplementedError('%s.fdiff(cls, index=1)' % (cls.__name__))
-
-    def instance_fdiff(self, index=1):
-        # handles: sin(cos).fdiff() -> sin'(cos) * cos' -> cos(cos) * sin
-        i = 0
-        l = []
-        for a in self.args:
-            i += 1
-            df = self.func.fdiff(i)(*self.args)
-            da = a.fdiff(index)
-            l.append(df * da)
-        return Basic.Add(*l)
-
 
 class BasicLambda(Composite, Callable):
     """
@@ -446,6 +413,7 @@ class BasicLambda(Composite, Callable):
         attrdict['_expr'] = expr
         attrdict['nofargs'] = len(args)
         func = type.__new__(cls, name, bases, attrdict)
+        func.signature = FunctionSignature((Basic,)*len(args), Basic)
         return func
 
 

@@ -1,11 +1,11 @@
 
-from ..core.utils import memoizer_immutable_args, get_object_by_name
+from ..core.utils import memoizer_immutable_args, get_object_by_name, UniversalMethod
 from ..core import Basic, sympify
 from ..core.methods import MutableCompositeDict, ImmutableDictMeths
 
-from .methods import ArithmeticMethods
+from .basic import BasicArithmetic
 
-class MutableMul(ArithmeticMethods, MutableCompositeDict):
+class MutableMul(BasicArithmetic, MutableCompositeDict):
     """Mutable base class for Mul. This class is used temporarily
     during construction of Mul objects.
 
@@ -222,9 +222,12 @@ class Mul(ImmutableDictMeths, MutableMul):
         """
         return Mul(*[(t(*args), e(*args)) for (t,e) in self.items()])
 
-    def fdiff(self, index=1):
+
+    @UniversalMethod
+    def fdiff(obj, index=1):
+        assert not isinstance(obj, BasicType),`obj`
         # (sin*cos)' = sin'*cos + sin*cos'
-        terms = self.items()
+        terms = obj.items()
         factors = []
         for i in xrange(len(terms)):
             b,e = terms[i]

@@ -1,11 +1,11 @@
 
 from ..core import Basic
 from ..core.symbol import BasicSymbol, BasicDummySymbol, BasicWildSymbol
-from .methods import ArithmeticMethods
+from .basic import BasicArithmetic
 
 __all__ = ['Symbol', 'Dummy', 'Wild']
 
-class Symbol(ArithmeticMethods, BasicSymbol):
+class Symbol(BasicArithmetic, BasicSymbol):
 
     """ Represents a symbol.
 
@@ -14,7 +14,7 @@ class Symbol(ArithmeticMethods, BasicSymbol):
 
     def __call__(self, *args):
         signature = Basic.FunctionSignature((Basic,)*len(args), (Basic,))
-        return Basic.FunctionType(self, attrdict=dict(signature=signature))(*args)
+        return Basic.FunctionType(str(self), attrdict=dict(signature=signature))(*args)
 
     def as_dummy(self):
         return Dummy(self.name)
@@ -22,9 +22,6 @@ class Symbol(ArithmeticMethods, BasicSymbol):
     def try_derivative(self, s):
         if self==s:
             return Basic.one
-        return Basic.zero
-
-    def fdiff(self, index=1):
         return Basic.zero
 
 class Dummy(BasicDummySymbol, Symbol):

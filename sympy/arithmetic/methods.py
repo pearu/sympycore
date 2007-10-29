@@ -68,23 +68,6 @@ class ArithmeticMethods:
             return Basic.Pow(other, self)            
         return sympify(other) ** self
 
-    def try_power(self, exponent):
-        """ Try evaluating power self ** exponent.
-        Return None if no evaluation is carried out.
-        Caller code must ensure that exponent is
-        a Basic instance.
-        """
-        return
-
-    def expand(self, *args, **kwargs):
-        return self
-
-    def split(self, op, *args, **kwargs):
-        if op == '**':
-            return [self, Basic.Number(1)]
-        return [self]
-
-
 class NumberMethods(ArithmeticMethods):
 
     def __eq__(self, other):
