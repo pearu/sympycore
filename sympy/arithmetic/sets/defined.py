@@ -1,6 +1,6 @@
 
 from ...core import Basic
-from ...core.utils import memoizer_immutable_args
+from ...core.utils import memoizer_immutable_args, singleton
 from ...logic.sets import Empty
 from ..primetest import isprime
 from .basic import ArithmeticSetSymbol
@@ -14,7 +14,7 @@ class ComplexSet(Field):
     """ Represents a field of complex numbers.
     """
 
-    @memoizer_immutable_args('ComplexSet.__new__')
+    @singleton
     def __new__(cls):
         return str.__new__(cls, 'Complexes')
     def try_contains(self, other):
@@ -40,7 +40,7 @@ class RealSet(Field):
     """ Represents a field of real numbers.
     """
 
-    @memoizer_immutable_args('RealSet.__new__')
+    @singleton
     def __new__(cls):
         return str.__new__(cls, 'Reals')
 
@@ -75,7 +75,7 @@ class RealSet(Field):
 class RationalSet(Field):
     """ Field of rational numbers.
     """
-    @memoizer_immutable_args('RationalSet.__new__')
+    @singleton
     def __new__(cls):
         return str.__new__(cls, 'Rationals')
     @property
@@ -109,7 +109,7 @@ class RationalSet(Field):
 class IntegerSet(ArithmeticSetSymbol):
     """ Field of integers.
     """
-    @memoizer_immutable_args('IntegerSet.__new__')
+    @singleton
     def __new__(cls):
         return str.__new__(cls, 'Integers')
 
@@ -147,7 +147,7 @@ class IntegerSet(ArithmeticSetSymbol):
 class PrimeSet(ArithmeticSetSymbol):
     """ Set of positive prime numbers.
     """
-    @memoizer_immutable_args('PrimeSet.__new__')
+    @singleton
     def __new__(cls):
         return str.__new__(cls, 'Primes')
     @property

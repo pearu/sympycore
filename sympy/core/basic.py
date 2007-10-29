@@ -294,21 +294,17 @@ class Basic(object):
             __assumptions__ = Basic.Assumptions(*assumptions)
         return self.clone()
 
-
-    # for backward-compatibility:
-    subs = replace
-
-    def subs_dict(self, old_new_dict):
+    def replace_dict(self, old_new_dict):
         r = self
         for old,new in old_new_dict.items():
-            r = r.subs(old,new)
+            r = r.replace(old,new)
             if not isinstance(r, Basic): break
         return r
 
-    def subs_list(self, expressions, values):
+    def replace_list(self, expressions, values):
         r = self
         for e,b in zip(expressions, values):
-            r = r.subs(e,b)
+            r = r.replace(e,b)
             if not isinstance(r, Basic): break
         return r
 

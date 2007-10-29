@@ -346,7 +346,7 @@ class BasicFunction(FunctionTemplate):
     """
     __metaclass__ = BasicFunctionType
 
-    def subs(self, old, new):
+    def replace(self, old, new):
         old = sympify(old)
         new = sympify(new)
         if self==old:
@@ -359,7 +359,7 @@ class BasicFunction(FunctionTemplate):
             flag = True
         args = []
         for a in self.args:
-            new_a = a.subs(old, new)
+            new_a = a.replace(old, new)
             if new_a==a:
                 new_a = a
             if new_a is not a:
@@ -403,7 +403,7 @@ class BasicLambda(Composite, Callable):
         # bound x or y gets mixed up with the unbound x or y.
         for a in arguments:
             d = a.as_dummy()
-            expr = expr.subs(a, d)
+            expr = expr.replace(a, d)
             args.append(d)
         args = tuple(args)
         name = '%s(%s, %s)' % (cls.__name__, args, expr)
@@ -433,5 +433,5 @@ class BasicLambdaFunction(FunctionTemplate):
                             % (cls, n, len(args)))
         expr = cls._expr
         for d,a in zip(cls._args, args):
-            expr = expr.subs(d,sympify(a))
+            expr = expr.replace(d,sympify(a))
         return expr

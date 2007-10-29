@@ -74,7 +74,7 @@ class MutableCompositeDict(Composite, dict):
         if self.__class__ is not other.__class__: return False
         return dict.__eq__(self, other)
 
-    def subs(self, old, new):
+    def replace(self, old, new):
         old = sympify(old)
         new = sympify(new)
         if self==old:
@@ -82,7 +82,7 @@ class MutableCompositeDict(Composite, dict):
         lst = []
         flag = False
         for (term, coeff) in self[:]:
-            new_term = term.subs(old, new)
+            new_term = term.replace(old, new)
             if new_term==term:
                 new_term = term
             if new_term is not term:

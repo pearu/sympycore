@@ -50,7 +50,7 @@ class BasicBoolean(Basic):
         for i in range(2**n):
             # http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/219300
             bvals =  tuple(map(lambda y:bool((i>>y)&1), r))
-            table[bvals] = self.subs_list(atoms, bvals)
+            table[bvals] = self.replace_list(atoms, bvals)
         return atoms, table
 
 
@@ -69,7 +69,7 @@ class BasicBoolean(Basic):
         table = {}
         if conditions:
             bsyms = [DummyBoolean('b%s' % (i)) for i in range(len(conditions))]
-            expr = self.subs_list(conditions, bsyms)
+            expr = self.replace_list(conditions, bsyms)
             syms = map(str, atoms + bsyms)
         else:
             expr = self
@@ -115,14 +115,14 @@ class BasicBoolean(Basic):
         r = range(n-1, -1, -1)
         l = []
         for bvals in table.values():
-            t = test.subs_list(atoms, bvals)
+            t = test.replace_list(atoms, bvals)
             if t is False:
                 continue
             if t is True and indices:
                 bvals = bvals[:]
                 for i in indices:
                     bvals[i] = atoms[i]
-                t = self.subs_list(atoms, bvals)
+                t = self.replace_list(atoms, bvals)
             l.append(t)
         if not l:
             return False
