@@ -1,5 +1,5 @@
 
-from .predicate import Predicate
+from .function import Predicate
 
 __all__ = ['And', 'Or', 'Xor', 'Implies', 'Equiv']
 

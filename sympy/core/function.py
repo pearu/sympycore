@@ -239,7 +239,6 @@ class Callable(Basic, BasicType):
         if c: return c
         raise NotImplementedError(`self, other`)
 
-
     def __eq__(self, other):
         if isinstance(other, Basic):
             if other.is_Callable:
@@ -252,6 +251,9 @@ class Callable(Basic, BasicType):
                 return self.__name__ == other.__name__
             return False
         return sympify(other)==self
+
+    def __nonzero__(cls):
+        return False
 
 
 def _get_class_statement(frame = None):

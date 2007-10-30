@@ -9,9 +9,9 @@ This package defines:
 """
 
 from .basic import BasicBoolean
-from .boolean import Boolean, DummyBoolean
-from .predicate import Predicate
-from .operators import And, Or, Xor, Not, Implies, Equiv
+from .symbol import Boolean, DummyBoolean
+from .function import Predicate
+from .operations import And, Or, Xor, Not, Implies, Equiv
 
 boolean_classes = (BasicBoolean, bool)
 
