@@ -1,8 +1,8 @@
 
 
 from ...core import Basic
-from .setfunction import SetFunction
-from .symbols import Empty, Universal
+from .function import SetFunction
+from .symbol import Empty, Universal
 
 __all__ = ['Union', 'Intersection', 'Minus', 'Complementary']
 
@@ -34,13 +34,12 @@ class Union(SetFunction):
                 if s.is_subset_of(s1):
                     new_sets.remove(s)
                     return cls(*new_sets)
-                if s.is_BasicRange:
-                    s2 = s.try_union(s1)
-                    if s2 is not None:
-                        new_sets.remove(s)
-                        new_sets.remove(s1)
-                        new_sets.add(s2)
-                        return cls(*new_sets)
+                s2 = s.try_union(s1)
+                if s2 is not None:
+                    new_sets.remove(s)
+                    new_sets.remove(s1)
+                    new_sets.add(s2)
+                    return cls(*new_sets)
         if flag:
             return cls(*new_sets)
         if len(sets)==2:
@@ -52,10 +51,10 @@ class Union(SetFunction):
         sets.sort(Basic.compare)
         return
 
-    def try_contains(self, other):
+    def try_element(self, other):
         l = []
         for set in self.args:
-            r = set.contains(other)
+            r = set.try_element(other)
             if isinstance(r, bool):
                 if r:
                     return True
@@ -102,13 +101,12 @@ class Intersection(SetFunction):
                 if s.is_subset_of(s1):
                     new_sets.remove(s1)
                     return cls(*new_sets)
-                if s.is_BasicRange:
-                    s2 = s.try_intersection(s1)
-                    if s2 is not None:
-                        new_sets.remove(s)
-                        new_sets.remove(s1)
-                        new_sets.add(s2)
-                        return cls(*new_sets)
+                s2 = s.try_intersection(s1)
+                if s2 is not None:
+                    new_sets.remove(s)
+                    new_sets.remove(s1)
+                    new_sets.add(s2)
+                    return cls(*new_sets)
         if flag:
             return cls(*new_sets)
         if len(sets)==2:
@@ -178,17 +176,19 @@ class Complementary(SetFunction):
             return self.set
         if superset.is_subset_of(self.superset) and self.set.is_subset_of(superset):
             return self.set
-    def try_contains(self, other):
+    def try_element(self, other):
         set = self.args[0]
         field = self.superset
-        r = field.contains(other)
+        r = field.try_element(other)
         if isinstance(r, bool):
             if r:
-                r = set.contains(other)
+                r = set.try_element(other)
                 if isinstance(r, bool):
                     r = not r
             if isinstance(r, bool):
                 return r
+
+    # methods to be (re)moved:
     def is_subset_of(self, other):
         set = self.args[0]
         if set.is_subset_of(other):

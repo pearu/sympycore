@@ -344,13 +344,13 @@ class Basic(object):
         return Basic.is_less_equal(rhs, lhs, assumptions)
     @staticmethod
     def is_element_of_set(lhs, rhs, assumptions=None):
-        r = rhs.try_contains(lhs)
+        r = rhs.try_element(lhs)
         if isinstance(r, bool):
             return r
         #XXX: implement assumptions model
     @staticmethod
     def is_subset_of_set(lhs, rhs, assumptions=None):
-        r = rhs.try_includes(lhs)
+        r = rhs.try_subset(lhs)
         if isinstance(r, bool):
             return r
         #XXX: implement assumptions model

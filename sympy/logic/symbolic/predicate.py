@@ -12,6 +12,3 @@ class Predicate(BasicBoolean, BasicFunction):
     # Predicate.signature is initialized in __init__.py
     return_canonize_types = (Basic, bool)
 
-    @memoizer_immutable_args('Predicate.__new__')
-    def __new__(cls, *args):
-        return BasicFunction.__new__(cls, *args)

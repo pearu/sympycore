@@ -1,6 +1,8 @@
 
 from .predicate import Predicate
 
+__all__ = ['And', 'Or', 'Xor', 'Implies', 'Equiv']
+
 class And(Predicate):
     """ And(..) predicate.
 

@@ -9,7 +9,7 @@ class Element(Predicate):
     
     @classmethod
     def canonize(cls, (obj, set)):
-        return set.try_contains(obj)
+        return set.try_element(obj)
 
     def __nonzero__(self):
         return False
@@ -27,7 +27,7 @@ class Subset(Predicate):
             return True
         if obj.is_EmptySet:
             return True
-        return set.try_includes(obj)
+        return set.try_subset(obj)
 
     def __nonzero__(self):
         return False

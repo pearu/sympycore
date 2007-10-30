@@ -94,7 +94,7 @@ class BasicRange(ArithmeticSetFunction):
             if b==Basic.oo:
                 return RangeOO(a,b,set)
 
-    def try_contains(self, other):
+    def try_element(self, other):
         a,b,superset = self.args
         if lt(other,a) or lt(b,other):
             return False
@@ -123,7 +123,7 @@ class BasicRange(ArithmeticSetFunction):
         if r.is_BasicRange and r.superset==other:
             return
         return r
-    def try_includes(self, other):
+    def try_subset(self, other):
         if other.is_BasicRange:
             r = ss(other.domain, self.domain)
             if not isinstance(r, bool):
@@ -197,7 +197,7 @@ class BasicRange(ArithmeticSetFunction):
                 return True
             if cf[2](b,c) or cf[3](d,a) or cf[4](a,c) or cf[5](d,b):
                 return False
-        return Basic.BasicSet.try_includes(self, other)
+        return Basic.BasicSet.try_subset(self, other)
 
 class RangeOO(BasicRange):
     """ An open range (a,b) of a set S."""

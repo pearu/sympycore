@@ -4,13 +4,13 @@ from sympy import *
 
 def test_integer_range():
     r = RangeOO(3,9,Integers)
-    assert [i for i in range(0,20) if r.contains(i)]==[4,5,6,7,8]
+    assert [i for i in range(0,20) if Element(i,r)]==[4,5,6,7,8]
     r = RangeOC(3,9,Integers)
-    assert [i for i in range(0,20) if r.contains(i)]==[4,5,6,7,8,9]
+    assert [i for i in range(0,20) if Element(i,r)]==[4,5,6,7,8,9]
     r = RangeCO(3,9,Integers)
-    assert [i for i in range(0,20) if r.contains(i)]==[3,4,5,6,7,8]
+    assert [i for i in range(0,20) if Element(i,r)]==[3,4,5,6,7,8]
     r = RangeCC(3,9,Integers)
-    assert [i for i in range(0,20) if r.contains(i)]==[3,4,5,6,7,8,9]
+    assert [i for i in range(0,20) if Element(i,r)]==[3,4,5,6,7,8,9]
 
 def test_range_bounds():
     r = RangeOO(3,9,Integers)
@@ -57,13 +57,13 @@ def test_range_bounds():
 
 def test_shifted_integer_range():
     r = Shifted(RangeOO(3,9,Integers),3)
-    assert [i for i in range(0,20) if r.contains(i)]==[4+3,5+3,6+3,7+3,8+3]
+    assert [i for i in range(0,20) if Element(i,r)]==[4+3,5+3,6+3,7+3,8+3]
     r = Shifted(RangeOC(3,9,Integers),3)
-    assert [i for i in range(0,20) if r.contains(i)]==[4+3,5+3,6+3,7+3,8+3,9+3]
+    assert [i for i in range(0,20) if Element(i,r)]==[4+3,5+3,6+3,7+3,8+3,9+3]
     r = Shifted(RangeCO(3,9,Integers),3)
-    assert [i for i in range(0,20) if r.contains(i)]==[3+3,4+3,5+3,6+3,7+3,8+3]
+    assert [i for i in range(0,20) if Element(i,r)]==[3+3,4+3,5+3,6+3,7+3,8+3]
     r = Shifted(RangeCC(3,9,Integers),3)
-    assert [i for i in range(0,20) if r.contains(i)]==[3+3,4+3,5+3,6+3,7+3,8+3,9+3]
+    assert [i for i in range(0,20) if Element(i,r)]==[3+3,4+3,5+3,6+3,7+3,8+3,9+3]
 
 def test_maximum_range():
     assert RangeOO(-oo,oo,Integers)==Integers.as_range()
@@ -80,9 +80,9 @@ def test_maximum_range():
 
 def test_pos_neg_integer_range():
     r = RangeCC(-3,3,Integers)
-    assert [i for i in range(-10,10) if r.contains(i)]==[-3,-2,-1,0,1,2,3]
-    assert [i for i in range(-10,10) if Positive(r).contains(i)]==[1,2,3]
-    assert [i for i in range(-10,10) if Negative(r).contains(i)]==[-3,-2,-1]
+    assert [i for i in range(-10,10) if Element(i,r)]==[-3,-2,-1,0,1,2,3]
+    assert [i for i in range(-10,10) if Element(i,Positive(r))]==[1,2,3]
+    assert [i for i in range(-10,10) if Element(i,Negative(r))]==[-3,-2,-1]
 
 def test_union_range():
     r1 = RangeOO(0,10,Integers)

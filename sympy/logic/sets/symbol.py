@@ -10,6 +10,7 @@ __all__ = ['SetSymbol', 'UniversalSet', 'EmptySet',
 class SetSymbol(BasicSet, BasicSymbol):
     """ Set symbol.
     """
+
 class UniversalSet(SetSymbol):
     """ A set of all sets.
     """
@@ -23,12 +24,20 @@ class UniversalSet(SetSymbol):
     @property
     def domain(self):
         return self
-    def is_subset_of(self, other):
-        return self==other
-    def try_contains(self, other):
+    def try_element(self, other):
         return True
     def try_complementary(self, superset):
         return Empty
+    def try_union(self, other):
+        return self
+    def try_intersection(self, other):
+        return other
+    def try_minus(self, other):
+        return Complementary(other, self)
+
+    # methods to be (re)moved:
+    def is_subset_of(self, other):
+        return self==other
     def try_shifted(self, shift):
         return self
     def try_positive(self):
@@ -42,17 +51,26 @@ class EmptySet(SetSymbol):
     @singleton
     def __new__(cls):
         return str.__new__(cls, 'EMPTYSET')
-    def try_contains(self, other): return False
-    def is_subset_of(self, other):
-        return True
     @property
     def superset(self):
         return Universal
     @property
     def domain(self):
         return self
+    def try_element(self, other): return False
+    def try_subset(self, other): return False
     def try_complementary(self, superset):
         return superset
+    def try_union(self, other):
+        return other
+    def try_intersection(self, other):
+        return self
+    def try_minus(self, other):
+        return self
+    
+    # methods to be (re)moved:
+    def is_subset_of(self, other):
+        return True
     def try_shifted(self, shift):
         return self
     def try_positive(self):

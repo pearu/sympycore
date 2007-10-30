@@ -17,7 +17,7 @@ class ComplexSet(Field):
     @singleton
     def __new__(cls):
         return str.__new__(cls, 'Complexes')
-    def try_contains(self, other):
+    def try_element(self, other):
         if other.is_Number:
             return True
         if other.is_ImaginaryUnit:
@@ -28,7 +28,7 @@ class ComplexSet(Field):
         return Positive(Reals)
     def try_negative(self):
         return Negative(Reals)
-    def try_includes(self, set):
+    def try_subset(self, set):
         if isinstance(set.domain, (RealSet, RationalSet, IntegerSet, PrimeSet)):
             return True
         if set.domain.is_UniversalSet:
@@ -47,7 +47,7 @@ class RealSet(Field):
     @property
     def superset(self):
         return Complexes 
-    def try_contains(self, other):
+    def try_element(self, other):
         if other.is_Number:
             if other.is_Real:
                 return True
@@ -60,14 +60,14 @@ class RealSet(Field):
         return Basic.RangeOO(0, Basic.oo, self)
     def try_negative(self):
         return Basic.RangeOO(-Basic.oo, 0, self)
-    def try_includes(self, set):
+    def try_subset(self, set):
         if isinstance(set.domain, (RationalSet, IntegerSet, PrimeSet)):
             return True
         if isinstance(set.domain, ComplexSet):
             return False
         if set.is_RealSet:
             return True
-        return Basic.BasicSet.try_includes(self, set)
+        return Basic.BasicSet.try_subset(self, set)
 
     def as_range(self):
         return Basic.RangeOO(-Basic.oo, Basic.oo, self)
@@ -81,7 +81,7 @@ class RationalSet(Field):
     @property
     def superset(self):
         return Reals
-    def try_contains(self, other):
+    def try_element(self, other):
         if other.is_Number:
             if other.is_Rational:
                 return True
@@ -94,14 +94,14 @@ class RationalSet(Field):
         return Basic.RangeOO(0, Basic.oo, self)
     def try_negative(self):
         return Basic.RangeOO(-Basic.oo, 0, self)
-    def try_includes(self, set):
+    def try_subset(self, set):
         if isinstance(set.domain, (IntegerSet, PrimeSet)):
             return True
         if isinstance(set.domain, (ComplexSet, RealSet)):
             return False
         if set.is_RationalSet:
             return True
-        return Basic.BasicSet.try_includes(self, set)
+        return Basic.BasicSet.try_subset(self, set)
 
     def as_range(self):
         return Basic.RangeOO(-Basic.oo, Basic.oo, self)
@@ -119,7 +119,7 @@ class IntegerSet(ArithmeticSetSymbol):
     @property
     def domain(self):
         return self
-    def try_contains(self, other):
+    def try_element(self, other):
         if other.is_Number:
             if other.is_Integer:
                 return True
@@ -132,14 +132,14 @@ class IntegerSet(ArithmeticSetSymbol):
         return Basic.RangeOO(0, Basic.oo, self)
     def try_negative(self):
         return Basic.RangeOO(-Basic.oo, 0, self)
-    def try_includes(self, set):
+    def try_subset(self, set):
         if isinstance(set.domain, PrimeSet):
             return True
         if isinstance(set.domain, (ComplexSet, RealSet, RationalSet)):
             return False
         if set.is_IntegerSet:
             return True
-        return Basic.BasicSet.try_includes(self, set)
+        return Basic.BasicSet.try_subset(self, set)
 
     def as_range(self):
         return Basic.RangeOO(-Basic.oo, Basic.oo, self)
@@ -156,7 +156,7 @@ class PrimeSet(ArithmeticSetSymbol):
     @property
     def domain(self):
         return Integers
-    def try_contains(self, other):
+    def try_element(self, other):
         if other.is_Number:
             if other.is_Integer and other.is_positive:
                 return isprime(other)

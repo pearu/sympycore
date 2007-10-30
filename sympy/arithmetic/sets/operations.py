@@ -17,9 +17,9 @@ class Positive(ArithmeticSetFunction):
         return self
     def try_negative(self):
         return Empty
-    def try_contains(self, other):
+    def try_element(self, other):
         set = self.args[0]
-        r = set.contains(other)
+        r = set.try_element(other)
         if isinstance(r, bool):
             if r:
                 r = other.is_positive
@@ -53,9 +53,9 @@ class Negative(ArithmeticSetFunction):
         return self
     def try_positive(self):
         return Empty
-    def try_contains(self, other):
+    def try_element(self, other):
         set = self.args[0]
-        r = set.contains(other)
+        r = set.try_element(other)
         if isinstance(r, bool):
             if r:
                 r = other.is_negative
@@ -95,9 +95,9 @@ class Shifted(ArithmeticSetFunction):
 
     def try_shifted(self, shift):
         return Shifted(self[0], self.shift+shift)
-    def try_contains(self, other):
+    def try_element(self, other):
         set, shift = self.args
-        r = set.contains(other-shift)
+        r = set.try_element(other-shift)
         if isinstance(r, bool):
             return r
     def try_supremum(self):
@@ -128,12 +128,12 @@ class Divisible(ArithmeticSetFunction):
             return set
         return
 
-    def try_contains(self, other):
+    def try_element(self, other):
         set, divisor = self.args
-        r = set.contains(other)
+        r = set.try_element(other)
         if isinstance(r, bool):
             if r:
-                r = set.contains(other/divisor)
+                r = set.try_element(other/divisor)
             if isinstance(r, bool):
                 return r
     def is_subset_of(self, other):

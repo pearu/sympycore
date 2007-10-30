@@ -10,18 +10,20 @@ This package provides:
 from ...core import Basic
 from .basic import BasicSet
 
-from .symbols import SetSymbol, UniversalSet, EmptySet
-from .setfunction import SetFunction
+from .symbol import SetSymbol, UniversalSet, EmptySet
+from .function import SetFunction
 from .set import Set
 from .operations import Union, Intersection, Minus, Complementary
 
-from .functions import Element, Subset
+from .predicate import Element, Subset
 
 set_classes = (BasicSet,)
+
 
 # initialize singletons
 Empty = EmptySet()
 Universal = UniversalSet()
+
 
 # initialize signatures:
 from ...core.function import FunctionSignature
