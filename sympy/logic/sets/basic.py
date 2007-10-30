@@ -49,7 +49,7 @@ class BasicSet(Basic):
     def try_intersection(self, other):
         return
 
-    def try_minus(self, other):
+    def try_difference(self, other):
         return
 
     def try_complementary(self, other):

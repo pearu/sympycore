@@ -9,8 +9,8 @@ def test_intersection():
     assert Intersection(Set(1,2),Set(2,3))==Set(2)
 
     
-def test_minus():
-    assert Minus(Set(1,2),Set(2,3))==Set(1)
+def test_difference():
+    assert Difference(Set(1,2),Set(2,3))==Set(1)
 
 def test_set_subset():
     assert Subset(Set(1,2), Set(1,2))==True

@@ -197,11 +197,11 @@ def test_intersection():
     assert Intersection(Odds, Evens)==Empty
     assert Intersection(Evens, Odds)==Empty
     
-def test_minus():
-    assert Minus(Integers, Evens)==Odds
-    assert Minus(Integers, Odds)==Evens
-    assert Minus(Evens, Odds)==Evens
-    assert Minus(Odds, Evens)==Odds
+def test_difference():
+    assert Difference(Integers, Evens)==Odds
+    assert Difference(Integers, Odds)==Evens
+    assert Difference(Evens, Odds)==Evens
+    assert Difference(Odds, Evens)==Odds
 
 
 

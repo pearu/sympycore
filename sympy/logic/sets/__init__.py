@@ -13,7 +13,7 @@ from .basic import BasicSet
 from .symbol import SetSymbol, UniversalSet, EmptySet
 from .function import SetFunction
 from .set import Set
-from .operations import Union, Intersection, Minus, Complementary
+from .operations import Union, Intersection, Difference, Complementary
 
 from .predicate import Element, Subset
 
@@ -29,7 +29,7 @@ Universal = UniversalSet()
 from ...core.function import FunctionSignature
 Union.signature = FunctionSignature([set_classes], set_classes)
 Intersection.signature = FunctionSignature([set_classes], set_classes)
-Minus.signature = FunctionSignature((set_classes, set_classes), set_classes)
+Difference.signature = FunctionSignature((set_classes, set_classes), set_classes)
 Complementary.signature = FunctionSignature((set_classes,set_classes), set_classes)
 
 Element.signature = FunctionSignature((Basic,set_classes), (bool,))

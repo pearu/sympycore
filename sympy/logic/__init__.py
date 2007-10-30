@@ -8,5 +8,5 @@ This package defines:
 from .symbolic import (Boolean, DummyBoolean,
                        Not, And, Or, Xor, Equiv, Implies)
 
-from .sets import (Union, Intersection, Minus, Complementary, Set,
+from .sets import (Union, Intersection, Difference, Complementary, Set,
                    SetSymbol, Empty, Universal, Element, Subset)

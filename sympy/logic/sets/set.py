@@ -56,7 +56,7 @@ class Set(BasicImmutableMeths, BasicSet, Composite, frozenset):
     def try_intersection(self, other):
         if other.is_Set:
             return Set(*set(self).intersection(other))
-    def try_minus(self, other):
+    def try_difference(self, other):
         if other.is_Set:
             return Set(*set(self).difference(other))
 

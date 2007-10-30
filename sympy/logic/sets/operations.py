@@ -4,7 +4,7 @@ from ...core import Basic
 from .function import SetFunction
 from .symbol import Empty, Universal
 
-__all__ = ['Union', 'Intersection', 'Minus', 'Complementary']
+__all__ = ['Union', 'Intersection', 'Difference', 'Complementary']
 
 class Union(SetFunction):
     """ Union of sets.
@@ -127,8 +127,8 @@ class Intersection(SetFunction):
         return Union(*[s.domain for s in self.args])
 
 
-class Minus(SetFunction):
-    """ Set minus.
+class Difference(SetFunction):
+    """ Set difference.
     """
     # signature is initialized in __init__.py
     
@@ -138,7 +138,7 @@ class Minus(SetFunction):
             return Complementary(rhs, lhs)
         if rhs.is_subset_of(lhs) is False:
             return lhs
-        return lhs.try_minus(rhs)
+        return lhs.try_difference(rhs)
 
 class Complementary(SetFunction):
     """ Complementary set of a set S within F.

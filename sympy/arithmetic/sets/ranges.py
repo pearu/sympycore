@@ -267,7 +267,7 @@ class RangeOO(BasicRange):
                     if le(b, d): return RangeOC(a, d, superset)
                     return
             return
-    def try_minus(self, other):
+    def try_difference(self, other):
         if not other.is_BasicRange:
             return
         a,b,d1 = self[:]
@@ -381,7 +381,7 @@ class RangeOC(BasicRange):
                     if lt(b, d): return RangeOC(a, d, superset)
                     return
             return
-    def try_minus(self, other):
+    def try_difference(self, other):
         if not other.is_BasicRange:
             return
         a,b,d1 = self[:]
@@ -511,7 +511,7 @@ class RangeCO(BasicRange):
                     if le(b, d): return RangeCC(a, d, superset)
                     return
             return
-    def try_minus(self, other):
+    def try_difference(self, other):
         if not other.is_BasicRange:
             return
         a,b,d1 = self[:]
@@ -635,7 +635,7 @@ class RangeCC(BasicRange):
                     if lt(b, d): return RangeCC(a, d, superset)
                     return
             return
-    def try_minus(self, other):
+    def try_difference(self, other):
         if not other.is_BasicRange:
             return
         a,b,d1 = self[:]

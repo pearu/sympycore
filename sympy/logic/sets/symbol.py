@@ -32,7 +32,7 @@ class UniversalSet(SetSymbol):
         return self
     def try_intersection(self, other):
         return other
-    def try_minus(self, other):
+    def try_difference(self, other):
         return Complementary(other, self)
 
     # methods to be (re)moved:
@@ -65,7 +65,7 @@ class EmptySet(SetSymbol):
         return other
     def try_intersection(self, other):
         return self
-    def try_minus(self, other):
+    def try_difference(self, other):
         return self
     
     # methods to be (re)moved:
