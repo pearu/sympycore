@@ -1,27 +1,12 @@
 
+import types
 from .parser import Expr
-from .utils import memoizer_immutable_args, DualProperty
+from .utils import memoizer_immutable_args, DualProperty, singleton
 
 ordering_of_classes = [
-    'int','long','str',
-    'ImaginaryUnit','Infinity','ComplexInfinity','NaN','Exp1','Pi',
-    'Integer','Fraction','Real','Float','Interval',
-    'Symbol','Dummy','Wild','Boolean','DummyBoolean',
-    'MutableMul', 'Mul', 'MutableAdd', 'Add',
-    'FunctionClass',
-    'Function',
-    'Sin','Cos','Exp','Log','Tan','Cot',
-    'Equality','Unequality','StrictInequality','Inequality',
-    'Equal','Less',
-    'Not','And','XOr','Or',
-    'IsComplex','IsReal','IsImaginary','IsRational','IsIrrational',
-    'IsInteger','IsFraction','IsPrime','IsComposite','IsEven','IsOdd',
-    'IsZero','IsPositive','IsNonPositive',
-    'Set',
-    'Union','Complementary','Positive','Negative','Shifted','Divisible',
-    'PrimeSet','IntegerSet','IntegerCSet','RationalSet','RationalCSet',
-    'RealSet','RealCSet','ComplexSet',
-    'RangeOO','RangeOC','RangeCO','RangeCC'
+    'Number','NumberSymbol','ImaginaryUnit','BasicSymbol','BasicFunction',
+    'Callable',
+    'Atom','Composite','Basic',
     ]
 
 class BasicType(type):
@@ -61,25 +46,28 @@ class BasicType(type):
             if isinstance(other.__class__, Basic):
                 return cmp(cls, other.__class__) or -1
             return -1
-        n1 = cls.__name__
-        n2 = other.__name__
-        unknown = len(ordering_of_classes)+1
-        try:
-            i1 = ordering_of_classes.index(n1)
-        except ValueError:
-            if 1 or not issubclass(cls, Basic.BasicFunctionSymbol):
-                print 'ordering_of_classes is missing',n1,cls
-            i1 = unknown
-        try:
-            i2 = ordering_of_classes.index(n2)
-        except ValueError:
-            if 1 or not issubclass(cls, Basic.BasicFunctionSymbol):
-                print 'ordering_of_classes is missing',n2,other
-            i2 = unknown
-        if i1 == unknown and i2 == unknown:
-            return cmp(n1, n2)
-        return cmp(i1,i2)
+        c = cmp(_get_class_index(cls),_get_class_index(other))
+        if c: return c
+        return cmp(cls.__name__, other.__name__)
 
+@singleton
+def _get_class_index(cls):
+    clsbase = None
+    clsindex = len(ordering_of_classes)
+    for i in range(len(ordering_of_classes)):
+        basename = ordering_of_classes[i]
+        base = getattr(Basic, basename, None)
+        if base is None:
+            base = getattr(types, basename, object)
+        if issubclass(cls, base):
+            if clsbase is None:
+                clsbase = base
+                clsindex = i
+            else:
+                if issubclass(base, clsbase):
+                    clsbase = base
+                    clsindex = i
+    return clsindex
 
 class Basic(object):
 
