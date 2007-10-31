@@ -39,7 +39,7 @@ class And(Predicate):
             return new_operants.pop()
         if flag:
             return cls(*new_operants)
-        operants.sort(Basic.compare)
+        operants.sort(Basic.static_compare)
         return        
     def tostr(self, level=0):
         return '%s(%s)' % (self.__class__.__name__,
@@ -85,7 +85,7 @@ class Or(Predicate):
             return new_operants.pop()
         if flag:
             return cls(*new_operants)
-        operants.sort(Basic.compare)
+        operants.sort(Basic.static_compare)
         return
     def tostr(self, level=0):
         return '%s(%s)' % (self.__class__.__name__,
@@ -147,7 +147,7 @@ class Xor(Predicate):
                 else:
                     return True
             return cls(*new_operants)
-        operants.sort(Basic.compare)
+        operants.sort(Basic.static_compare)
         return
     
     def tostr(self, level=0):

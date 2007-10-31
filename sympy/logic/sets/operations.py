@@ -48,7 +48,7 @@ class Union(SetFunction):
                 return s1.superset
             elif s2.is_Complementary and s2.set==s1:
                 return s2.superset
-        sets.sort(Basic.compare)
+        sets.sort(Basic.static_compare)
         return
 
     def try_element(self, other):
@@ -115,7 +115,7 @@ class Intersection(SetFunction):
                 return Empty
             if s2.is_Complementary and s2.set==s1:
                 return Empty
-        sets.sort(Basic.compare)
+        sets.sort(Basic.static_compare)
         return      
 
     @property

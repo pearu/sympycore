@@ -22,7 +22,7 @@ class Set(BasicImmutableMeths, BasicSet, Composite, frozenset):
 
     def as_list(self):
         r = list(self)
-        r.sort(Basic.compare)
+        r.sort(Basic.static_compare)
         return r
 
     def compare(self, other):

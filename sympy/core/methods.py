@@ -125,7 +125,7 @@ class ImmutableDictMeths(BasicImmutableMeths):
 
     def as_list(self):
         r = self.keys()
-        r.sort(Basic.compare)
+        r.sort(Basic.static_compare)
         return [dict.__getitem__(self, k) for k in r]
 
     def __eq__(self, other):
@@ -159,7 +159,7 @@ class ImmutableSetMeths(BasicImmutableMeths):
 
     def as_list(self):
         r = list(self)
-        r.sort(Basic.compare)
+        r.sort(Basic.static_compare)
         return r
 
     def __eq__(self, other):

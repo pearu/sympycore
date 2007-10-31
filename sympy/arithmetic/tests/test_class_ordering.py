@@ -6,5 +6,5 @@ def test_arithmetic():
     c = E
     d = Integer(3)
     l = [b,c,a,d]
-    l.sort(Basic.compare)
+    l.sort(Basic.static_compare)
     assert l==[d,c,a,b]

@@ -167,6 +167,14 @@ class Basic(object):
     def torepr(self):
         return '<%r instance %s>' % (self.__class__, id(self))
 
+    @staticmethod
+    def static_compare(obj1, obj2):
+        if isinstance(obj1, Basic):
+            return obj1.compare(obj2)
+        if isinstance(obj2, Basic):
+            return -obj2.compare(obj1)
+        return cmp(obj1, obj2)
+
     def compare(self, other):
         """
         Return -1,0,1 if the object is smaller, equal, or greater than other
