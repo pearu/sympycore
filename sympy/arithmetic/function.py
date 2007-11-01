@@ -1,7 +1,7 @@
 
 from types import ClassType
 
-from ..core import Basic, Atom
+from ..core import Basic, Atom, BasicType
 from ..core.function import (BasicFunctionType, BasicFunction,
                              FunctionSignature, BasicLambda,
                              Callable)
