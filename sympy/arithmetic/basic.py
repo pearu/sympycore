@@ -60,3 +60,18 @@ class BasicArithmetic(ArithmeticMethods, Basic):
             if not expr.has(s):
                 return Basic.zero
         return Basic.Derivative(self, *new_symbols)
+
+    def try_get_coefficient(self, expr):
+        """
+        Extracts symbolic coefficient at the given expression. In
+        other words, this functions separates 'self' into product
+        of 'expr' and 'expr'-free coefficient. If such separation
+        is not possible it will return None.
+        """
+        expr = sympify(expr)
+        if expr.is_Add: return
+        w = Basic.Wild()
+        coeff = self.match(w * expr)
+        if coeff is not None:
+            coeff = coeff[w]
+        return coeff

@@ -18,7 +18,6 @@ from .sets import (Complexes, Reals, Rationals, Integers, Primes,
                    Positive, Negative, Divisible, Shifted,
                    Range, RangeOO, RangeOC, RangeCO, RangeCC)
 
-from .functions import Sin, Cos, Exp, Log, Tan, Cot, Min, Max, Sqrt
 from .constants import (Exp1, Pi, Infinity, NaN, ComplexInfinity,
                         GoldenRatio, EulerGamma, ImaginaryUnit)
 
@@ -26,8 +25,6 @@ __all__ = ['Number','Real','Rational','Float', 'Fraction', 'Integer',
            'Interval',
            'Symbol','Dummy','Wild',
            'Function','Lambda','FunctionType',
-           'Sin', 'Cos', 'Exp', 'Log', 'Tan', 'Cot',
-           'Min', 'Max', 'Sqrt',
            'Add','Mul',
            'Equal','Less',
            'Complexes', 'Reals', 'Rationals', 'Integers', 'Primes',
@@ -50,5 +47,5 @@ Basic.nan = nan
 Basic.zoo = zoo
 Basic.I = I
 Basic.pi = pi
-
+Basic.E = E
 
