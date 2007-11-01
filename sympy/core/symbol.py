@@ -1,6 +1,6 @@
 
 from .utils import memoizer_immutable_args
-from .basic import Atom, Basic, sympify
+from .basic import Atom, Basic, sympify, BasicWild
 
 __all__ = ['BasicSymbol', 'BasicDummySymbol','BasicWildSymbol']
 
@@ -69,9 +69,11 @@ class BasicDummySymbol(BasicSymbol):
     def __eq__(self, other):
         return self is other
 
-class BasicWildSymbol(BasicDummySymbol):
+class BasicWildSymbol(BasicWild, BasicDummySymbol):
     """
-    Wild() matches any expression but another Wild().
+    Wild(exclude=[..]) matches any expression but another Wild instance
+    and expression that has symbols from exclude list.
+    Both pattern and expression must have the same metaclasses.
     """
 
     def __new__(cls, name=None, exclude=None):
@@ -83,19 +85,6 @@ class BasicWildSymbol(BasicDummySymbol):
         else:
             obj.exclude = [Basic.sympify(x) for x in exclude]
         return obj
-
-    def matches(pattern, expr, repl_dict={}, evaluate=False):
-        for p,v in repl_dict.items():
-            if p==pattern:
-                if v==expr: return repl_dict
-                return None
-        if pattern.exclude:
-            for x in pattern.exclude:
-                if x in expr:
-                    return None
-        repl_dict = repl_dict.copy()
-        repl_dict[pattern] = expr
-        return repl_dict
 
     def tostr(self, level=0):
         return self.name + '_'

@@ -4,10 +4,11 @@ import sys
 import types
 
 from .utils import DualMethod, DualProperty
-from .basic import Atom, Composite, Basic, BasicType, sympify
+from .basic import Atom, Composite, Basic, BasicType, sympify, BasicWild
 
 __all__ = ['FunctionSignature',
            'BasicFunctionType', 'BasicFunction',
+           'BasicWildFunctionType',
            'BasicLambda', 'Callable']
 
 class FunctionSignature:
@@ -340,6 +341,19 @@ class BasicFunctionType(Atom, Callable):
     def torepr(cls):
         return cls.__name__
 
+class BasicWildFunctionType(BasicWild, BasicFunctionType):
+    # Todo: derive BasicWildFunctionType from BasicDummyFunctionType.
+    def __new__(typ, name=None, exclude=None):
+        if name is None:
+            name = 'WF'
+        func = BasicFunctionType.__new__(typ, name)
+        if exclude is None:
+            func.exclude = None
+        else:
+            func.exclude = [Basic.sympify(x) for x in exclude]
+        return func
+
+    
 class BasicFunction(FunctionTemplate):
     """
     Base class for applied functions.

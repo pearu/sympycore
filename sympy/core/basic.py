@@ -2,6 +2,8 @@
 import types
 from .utils import memoizer_immutable_args, DualProperty, singleton
 
+__all__ = ['BasicType', 'Basic', 'Atom', 'Composite', 'BasicWild']
+
 ordering_of_classes = [
     'Number','NumberSymbol','ImaginaryUnit','BasicSymbol','BasicFunction',
     'Callable',
@@ -153,6 +155,20 @@ class Basic(object):
             return sympify(new)
         return self
 
+    def replace_dict(self, old_new_dict):
+        r = self
+        for old,new in old_new_dict.items():
+            r = r.replace(old,new)
+            if not isinstance(r, Basic): break
+        return r
+
+    def replace_list(self, expressions, values):
+        r = self
+        for e,b in zip(expressions, values):
+            r = r.replace(e,b)
+            if not isinstance(r, Basic): break
+        return r
+
     def atoms(self, type=None):
         """Returns the atoms that form current object.
 
@@ -203,6 +219,31 @@ class Basic(object):
             return p in self.atoms(p.__class__)
         raise NotImplementedError('has: wild support')
 
+    def match(self, pattern):
+        """
+        Pattern matching.
+
+        Wild symbols match all.
+
+        Return None when expression (self) does not match
+        with pattern. Otherwise return a dictionary such that
+
+          pattern.subs_dict(self.match(pattern)) == self
+
+        Don't redefine this method, redefine matches(..) method instead.
+        """
+        pattern = Basic.sympify(pattern)
+        if isinstance(pattern, bool):
+            return
+        return pattern.matches(self, {})
+
+    def matches(pattern, expr, repl_dict={}, evaluate=False):
+        """
+        Helper method for match().
+        """
+        return None
+
+
     def clone(self):
         """ Return recreated composite object.
         """
@@ -222,19 +263,7 @@ class Basic(object):
             __assumptions__ = Basic.Assumptions(*assumptions)
         return self.clone()
 
-    def replace_dict(self, old_new_dict):
-        r = self
-        for old,new in old_new_dict.items():
-            r = r.replace(old,new)
-            if not isinstance(r, Basic): break
-        return r
 
-    def replace_list(self, expressions, values):
-        r = self
-        for e,b in zip(expressions, values):
-            r = r.replace(e,b)
-            if not isinstance(r, Basic): break
-        return r
 
 # The following static methods should be used in places
 # where assumptions may be required
@@ -299,6 +328,22 @@ class Composite(Basic):
 
     def torepr(self):
         return '%s(%s)' % (self.__class__.__name__,', '.join(map(repr, self)))
+
+class BasicWild(Basic):
+
+    def matches(pattern, expr, repl_dict={}, evaluate=False):
+        if pattern.__metaclass__ != expr.__metaclass__:
+            return
+        for p,v in repl_dict.items():
+            if p==pattern:
+                if v==expr: return repl_dict
+                return None
+        if pattern.exclude:
+            if expr.has(*pattern.exclude):
+                return
+        repl_dict = repl_dict.copy()
+        repl_dict[pattern] = expr
+        return repl_dict
 
 from .sympify import sympify
 Basic.sympify = staticmethod(sympify)
