@@ -65,9 +65,9 @@ def sympify(a, sympify_lists=False, globals=None, locals=None):
         if globals is None or locals is None:
             frame = sys._getframe(1)
             if globals is None:
-                globals = frame.f_globals
+                globals = frame.f_globals.copy()
             if locals is None:
-                locals = frame.f_locals
+                locals = frame.f_locals.copy()
     if isinstance(a, (list,tuple,set)) and sympify_lists:
         return type(a)([Basic.sympify(x, True, globals, locals) for x in a])
     if not isinstance(a, str):
@@ -278,12 +278,17 @@ class SympyTransformer(Transformer):
 
     
 def sympy_eval(a, globals, locals):
-    globals = globals.copy()
     globals['Is'] = lambda x,y: x is y or x == y
     globals['IsNot'] = lambda x,y: not(x is y or x == y)
     exec 'from sympy import *' in globals
     tree = SympyTransformer(globals, locals).parseexpr(a)
     compiler.misc.set_filename('<sympify>', tree)
     code = ExpressionCodeGenerator(tree).getCode()
-    return eval(code, globals, locals)
-
+    result = eval(code, globals, locals)
+    if isinstance(result, Basic):
+        for atom in result.atoms(type=(Basic.BasicSymbol, Basic.BasicFunctionType)):
+            s = str(atom)
+            if globals.has_key(s) or locals.has_key(s):
+                continue
+            locals[s] = atom
+    return result
