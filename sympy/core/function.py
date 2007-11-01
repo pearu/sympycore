@@ -337,6 +337,9 @@ class BasicFunctionType(Atom, Callable):
             func._update_Basic()
         return func
 
+    def torepr(cls):
+        return cls.__name__
+
 class BasicFunction(FunctionTemplate):
     """
     Base class for applied functions.

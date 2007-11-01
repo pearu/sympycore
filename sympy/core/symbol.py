@@ -37,6 +37,21 @@ class BasicSymbol(Atom, str):
     def as_dummy(self):
         return BasicDummySymbol(self.name)
 
+    # disable arithmetic methods for basic strings
+    def __add__(self, other):
+        return NotImplemented
+    def __radd__(self, other):
+        return NotImplemented
+    def __mul__(self, other):
+        return NotImplemented
+    def __rmul__(self, other):
+        return NotImplemented
+    def __mod__(self, other):
+        return NotImplemented
+    def __rmod__(self, other):
+        return NotImplemented
+
+
 class BasicDummySymbol(BasicSymbol):
 
     def __new__(cls, name):

@@ -6,7 +6,11 @@ This package defines:
 """
 
 from .symbolic import (Boolean, DummyBoolean,
-                       Not, And, Or, Xor, Equiv, Implies)
+                       Not, And, Or, Xor, Equiv, Implies,
+                       Predicate, PredicateType)
 
-from .sets import (Union, Intersection, Difference, Complementary, Set,
-                   SetSymbol, Empty, Universal, Element, Subset)
+from .sets import (BasicSet, Union, Intersection, Difference, Complementary, Set,
+                   SetSymbol, Empty, Universal, Element, Subset,
+                   SetFunction, SetFunctionType, AsSet)
+
+    

@@ -1,10 +1,13 @@
 from ...core import Basic, sympify
 
+__all__ = ['BasicSet']
+
 es = Basic.is_element_of_set
 
 class BasicSet(Basic):
     """ Defines generic methods for set classes.
     """
+
     @property
     def superset(self):
         """ Return container set.

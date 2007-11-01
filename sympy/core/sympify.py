@@ -82,6 +82,71 @@ def sympify(a, sympify_lists=False, globals=None, locals=None):
     raise ValueError("%s is NOT a valid SymPy expression" % (`a`))
 
 _is_integer = re.compile(r'\A\d+(l|L)?\Z').match
+_ast_arith_classes = (ast.Add, ast.Sub, ast.Mul, ast.Div, ast.Mod, ast.FloorDiv,
+                      ast.UnaryAdd, ast.UnarySub, ast.Power)
+
+def _mk_mth(mthname, symbol_class):
+    # resets symbol_class if needed
+    def mth(self, nodelist):
+        old_symbol_class = self.symbol_class
+        if len(nodelist)>1:
+            self.symbol_class = symbol_class
+        r = getattr(Transformer, mthname)(self, nodelist)
+        self.symbol_class = old_symbol_class
+        return r
+    return mth
+
+def _is_arithmetic(node):
+    if isinstance(node, _ast_arith_classes):
+        return True
+    elif isinstance(node, ast.CallFunc):
+        if isinstance(node.node, ast.Name):
+            name = node.node.name
+            if hasattr(Basic, name):
+                return issubclass(getattr(Basic, name), Basic.BasicArithmetic)
+        elif isinstance(node.node, ast.CallFunc):
+            return _is_arithmetic(node.node)
+    elif isinstance(node, ast.Const):
+        value = node.value
+        if isinstance(value, Basic):
+            return value.is_BasicArithmetic
+        elif isinstance(value, (int, long, float, complex)):
+            return True
+    
+def _mk_mth_op(mthname, symbol_class, function_name):
+    # resets symbol_class if needed
+    # maps operation to function call
+    if function_name == 'Not':
+        def mth(self, nodelist):
+            old_symbol_class = self.symbol_class
+            if len(nodelist)>1:
+                self.symbol_class = symbol_class
+            r = Transformer.not_test(self, nodelist)
+            if isinstance(r, ast.Not):
+                if _is_arithmetic(r.expr):
+                    # not x+1 -> not Equal(x+1,0)
+                    r.expr = ast.CallFunc(ast.Name('Equal'),[r.expr,ast.Const(0)])
+                r = ast.CallFunc(ast.Name('Not'), [r.expr])
+            self.symbol_class = old_symbol_class
+            return r
+        return mth
+    def mth(self, nodelist):
+        old_symbol_class = self.symbol_class
+        if len(nodelist)>1:
+            self.symbol_class = symbol_class
+        r = getattr(Transformer, mthname)(self, nodelist)
+        if isinstance(r, getattr(ast, function_name)):
+            nodes = []
+            for node in r.nodes:
+                if _is_arithmetic(node):
+                    # .. <logical op> x+1 -> .. <logical op> Equal(x+1,0)
+                    node = ast.CallFunc(ast.Name('Equal'),[node,ast.Const(0)])
+                nodes.append(node)
+            r = ast.CallFunc(ast.Name(function_name), nodes)
+        self.symbol_class = old_symbol_class
+        return r
+    return mth
+
 
 class SympyTransformer(Transformer):
     """
@@ -103,21 +168,8 @@ class SympyTransformer(Transformer):
         Transformer.__init__(self)
         self.globals = globals
         self.locals = locals
+        self.symbol_class = 'Symbol'
 
-    def atom_name(self, nodelist):
-        name, lineno = nodelist[0][1:]
-        if self.locals.has_key(name) or self.globals.has_key(name):
-            return ast.Name(name, lineno=lineno)
-        return ast.CallFunc(ast.Name('Symbol'),[ast.Const(name, lineno=lineno)])
-
-    def atom_number(self, nodelist):
-        n = Transformer.atom_number(self, nodelist)
-        number, lineno = nodelist[0][1:]
-        if _is_integer(number):
-            n = ast.Const(long(number), lineno)
-            return ast.CallFunc(ast.Name('Integer'), [n])
-        n = ast.Const(number, lineno)
-        return ast.CallFunc(ast.Name('Float'), [n])
 
     def lambdef(self, nodelist):
         # lambdef: 'lambda' [varargslist] ':' test
@@ -131,12 +183,105 @@ class SympyTransformer(Transformer):
         assert not defaults,`defaults` # sympy.Lambda does not support optional arguments
         arguments = []
         for name in names:
-            arguments.append(ast.CallFunc(ast.Name('Symbol'),[ast.Const(name, lineno=lineno)]))
+            arguments.append(ast.CallFunc(ast.Name('BasicSymbol'),[ast.Const(name, lineno=lineno)]))
         return ast.CallFunc(ast.Name('Lambda'),[ast.Tuple(arguments,lineno=lineno), code])
 
+    # test
+    or_test = _mk_mth_op('or_test', 'Boolean', 'Or')
+    and_test = _mk_mth_op('and_test', 'Boolean', 'And')
+    not_test = _mk_mth_op('not_test', 'Boolean', 'Not')
 
+    comparison = _mk_mth('comparison', 'Symbol')
+
+    def comparison(self, nodelist):
+        old_symbol_class = self.symbol_class
+        if len(nodelist)>1:
+            self.symbol_class = 'Symbol'
+        r = Transformer.comparison(self, nodelist)
+        if isinstance(r, ast.Compare):
+            ops = []
+            lhs = r.expr
+            for op, rhs in r.ops:
+                if op=='==':
+                   ops.append(ast.CallFunc(ast.Name('Equal'),[lhs, rhs]))
+                elif op=='!=':
+                   ops.append(ast.CallFunc(ast.Name('Not'),[ast.CallFunc(ast.Name('Equal'),[lhs, rhs])]))
+                elif op=='<':
+                    ops.append(ast.CallFunc(ast.Name('Less'),[lhs, rhs]))
+                elif op=='>':
+                    ops.append(ast.CallFunc(ast.Name('Less'),[rhs, lhs]))
+                elif op=='<=':
+                    ops.append(ast.CallFunc(ast.Name('Or'),[
+                        ast.CallFunc(ast.Name('Equal'),[lhs, rhs]),
+                        ast.CallFunc(ast.Name('Less'),[lhs, rhs])]
+                                            ))
+                elif op=='>=':
+                    ops.append(ast.CallFunc(ast.Name('Or'),[
+                        ast.CallFunc(ast.Name('Equal'),[lhs, rhs]),
+                        ast.CallFunc(ast.Name('Less'),[rhs, lhs])]
+                                            ))
+                elif op=='in':
+                    rhs = ast.CallFunc(ast.Name('AsSet'),[rhs])
+                    ops.append(ast.CallFunc(ast.Name('Element'),[lhs, rhs]))
+                elif op=='not in':
+                    rhs = ast.CallFunc(ast.Name('AsSet'),[rhs])
+                    ops.append(ast.CallFunc(ast.Name('Not'),[ast.CallFunc(ast.Name('Element'),[lhs, rhs])]))
+                elif op=='is':
+                    ops.append(ast.CallFunc(ast.Name('Is'),[lhs, rhs]))
+                elif op=='is not':
+                    ops.append(ast.CallFunc(ast.Name('IsNot'),[lhs, rhs]))
+                else:
+                    raise NotImplementedError('%r %r %r' % (lhs, op, rhs))
+                lhs = rhs
+            if len(ops)==1:
+                r = ops[0]
+            else:
+                r = ast.CallFunc(ast.Name('And'),ops)
+        self.symbol_class = old_symbol_class
+        return r
+
+    expr = _mk_mth('expr', 'Symbol')
+    xor_expr = _mk_mth('xor_expr', 'Symbol')
+    and_expr = _mk_mth('and_expr', 'Symbol')
+    shift_expr = _mk_mth('shift_expr', 'Symbol')
+    arith_expr = _mk_mth('arith_expr', 'Symbol')
+    term = _mk_mth('term', 'Symbol')
+    factor = _mk_mth('factor', 'Symbol')
+    power = _mk_mth('power', 'Symbol')
+
+    def com_call_function(self, primaryNode, nodelist):
+        r = Transformer.com_call_function(self, primaryNode, nodelist)
+        return r
+    
+    # atom, atom_lpar, atom_lsqb, atom_lbrace, atom_backquote
+
+    def atom_number(self, nodelist):
+        n = Transformer.atom_number(self, nodelist)
+        number, lineno = nodelist[0][1:]
+        if _is_integer(number):
+            n = ast.Const(long(number), lineno)
+            return ast.CallFunc(ast.Name('Integer'), [n])
+        n = ast.Const(number, lineno)
+        return ast.CallFunc(ast.Name('Float'), [n])
+
+    # decode_literal, atom_string
+    def atom_name(self, nodelist):
+        name, lineno = nodelist[0][1:]
+        if self.locals.has_key(name) or self.globals.has_key(name):
+            obj = eval(name, self.globals, self.locals)
+            #print
+            #print 'HEY:',obj
+            #print
+            return ast.Const(obj, lineno=lineno)
+            return ast.Name(name, lineno=lineno)
+        return ast.CallFunc(ast.Name(self.symbol_class),[ast.Const(name, lineno=lineno)])
+
+    
 def sympy_eval(a, globals, locals):
-    exec 'from sympy import Integer, Float, Symbol, Lambda' in globals, locals
+    globals = globals.copy()
+    globals['Is'] = lambda x,y: x is y or x == y
+    globals['IsNot'] = lambda x,y: not(x is y or x == y)
+    exec 'from sympy import *' in globals
     tree = SympyTransformer(globals, locals).parseexpr(a)
     compiler.misc.set_filename('<sympify>', tree)
     code = ExpressionCodeGenerator(tree).getCode()

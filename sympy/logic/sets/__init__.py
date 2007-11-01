@@ -11,7 +11,7 @@ from ...core import Basic
 from .basic import BasicSet
 
 from .symbol import SetSymbol, UniversalSet, EmptySet
-from .function import SetFunction
+from .function import SetFunction, SetFunctionType
 from .set import Set
 from .operations import Union, Intersection, Difference, Complementary
 
@@ -19,6 +19,19 @@ from .predicate import Element, Subset
 
 set_classes = (BasicSet,)
 
+
+
+def AsSet(obj, Basic=Basic):
+    if isinstance(obj, set_classes):
+        return obj
+    if isinstance(obj, Basic):
+        if obj.is_BasicSymbol:
+            # XXX: check for dummy, wild
+            return Basic.SetSymbol(str(obj))
+        if obj.is_BasicFunctionType:
+            # XXX: check for dummy, wild function
+            return Basic.SetFunctionType(str(obj))
+    return obj
 
 # initialize singletons
 Empty = EmptySet()
@@ -36,3 +49,4 @@ Element.signature = FunctionSignature((Basic,set_classes), (bool,))
 Subset.signature = FunctionSignature((set_classes,set_classes), (bool,))
 
 del FunctionSignature, Basic
+

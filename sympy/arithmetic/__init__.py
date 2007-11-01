@@ -12,6 +12,7 @@ from .symbol import Symbol, Dummy, Wild
 from .function import Function, Lambda, FunctionType
 from .add import Add, MutableAdd
 from .mul import Mul, MutableMul, Pow, sqrt
+from .relational import Equal, Less
 from .sets import (Complexes, Reals, Rationals, Integers, Primes,
                    Evens, Odds,
                    Positive, Negative, Divisible, Shifted,
@@ -28,6 +29,7 @@ __all__ = ['Number','Real','Rational','Float', 'Fraction', 'Integer',
            'Sin', 'Cos', 'Exp', 'Log', 'Tan', 'Cot',
            'Min', 'Max', 'Sqrt',
            'Add','Mul',
+           'Equal','Less',
            'Complexes', 'Reals', 'Rationals', 'Integers', 'Primes',
            'Evens', 'Odds',
            'Positive', 'Negative', 'Divisible', 'Shifted',

@@ -10,7 +10,7 @@ This package defines:
 
 from .basic import BasicBoolean
 from .symbol import Boolean, DummyBoolean
-from .function import Predicate
+from .function import Predicate, PredicateType
 from .operations import And, Or, Xor, Not, Implies, Equiv
 
 boolean_classes = (BasicBoolean, bool)

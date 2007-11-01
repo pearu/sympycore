@@ -1,4 +1,5 @@
 
+from ...core import Basic
 from .function import Predicate
 
 __all__ = ['And', 'Or', 'Xor', 'Implies', 'Equiv']
