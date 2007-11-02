@@ -75,3 +75,13 @@ class BasicArithmetic(ArithmeticMethods, Basic):
         if coeff is not None:
             coeff = coeff[w]
         return coeff
+
+    def as_base_exponent(self):
+        """ Return (b,e) such that self==b**e.
+        """
+        return self, Basic.Integer(1)
+
+    def as_coeff_term(self):
+        """ Return (c,t) such that self==c*t and c is Rational.
+        """
+        return Basic.Integer(1), self

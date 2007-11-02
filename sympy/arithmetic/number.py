@@ -88,6 +88,9 @@ class Number(BasicArithmetic, Atom):
     def fdiff(self, index=1):
         return Basic.zero
 
+    def as_coeff_term(self):
+        return self, Basic.Integer(1)
+
 class Real(Number):
 
     """

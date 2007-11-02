@@ -1,7 +1,7 @@
 
 from types import ClassType
 
-from ..core import Basic, Atom, BasicType
+from ..core import Basic, Atom, BasicType, BasicWild
 from ..core.function import (BasicFunctionType, BasicFunction,
                              FunctionSignature, BasicLambda,
                              Callable)
@@ -9,7 +9,7 @@ from ..core.utils import UniversalMethod
 from .methods import ArithmeticMethods
 from .basic import BasicArithmetic
 
-__all__ = ['FunctionType', 'Function', 'Lambda', 'FunctionSymbol']
+__all__ = ['FunctionType', 'Function', 'Lambda', 'FunctionSymbol', 'WildFunctionType']
 
 class FunctionType(BasicArithmetic, BasicFunctionType):
 
@@ -55,3 +55,15 @@ class Function(BasicArithmetic, BasicFunction):
 class Lambda(BasicArithmetic, BasicLambda):
 
     pass
+
+class WildFunctionType(BasicWild, FunctionType):
+    # Todo: derive WildFunctionType from DummyFunctionType.
+    def __new__(typ, name=None, bases=None, attrdict=None, is_global=None, exclude=None):
+        if name is None:
+            name = 'WF'
+        func = FunctionType.__new__(typ, name, bases, attrdict, is_global)
+        if exclude is None:
+            func.exclude = None
+        else:
+            func.exclude = [Basic.sympify(x) for x in exclude]
+        return func

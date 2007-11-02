@@ -110,9 +110,9 @@ class Mul(ImmutableDictMeths, MutableMul):
     """
 
     # constructor methods
-    @memoizer_immutable_args("Mul.__new__")
-    def __new__(cls, *args, **options):
-        return MutableMul(*args, **options).canonical()
+    #@memoizer_immutable_args("Mul.__new__")
+    def __new__(cls, *args):
+        return MutableMul(*args).canonical()
 
     # arithmetics methods
 
@@ -259,6 +259,90 @@ class Mul(ImmutableDictMeths, MutableMul):
 
     def clone(self):
         return MutableMul(*[(b.clone(), e.clone()) for b,e in self.items()]).canonical()
+
+    @staticmethod
+    def seq_as_base_exponent(seq):
+        # seq = [(b1,e1),(b2,e2),..]
+        # return None if the result would be (Mul(*seq), 1).
+        if len(seq)==1:
+            return seq[0]
+        s = set([e for (b,e) in seq])
+        if len(s)==1:
+            v = s.pop()
+            if v.is_one: return None
+            return Mul(*[b for (b,e) in seq]), v
+        v = s.pop()
+        c,t = v.as_coeff_term()
+        if c==1: return None
+        gcd_numer, gcd_denom = c.p, c.q
+        if c.p<0: sign = -1
+        else: sign = 1
+        for v in s:
+            c,t = v.as_coeff_term()
+            if c==1:
+                return self, Basic.Integer(1)
+            if c.p>0 and sign==-1: sign=1
+            gcd_numer = Basic.Integer.gcd(abs(c.p), gcd_numer)
+            gcd_denom = Basic.Integer.gcd(c.q, gcd_denom)
+        if gcd_numer==gcd_denom==sign==1:
+            return None
+        exponent = Basic.Fraction(sign*gcd_numer, gcd_denom)
+        r = MutableMul()
+        for b,e in seq:
+            r.update(b,e/exponent)
+        return r.canonical(), exponent
+
+    def as_base_exponent(self):
+        r = self.seq_as_base_exponent(self.items())
+        if r is None:
+            return self, Basic.Integer(1)
+        return r
+
+    def matches(pattern, expr, repl_dict={}, evaluate=False):
+        pbase, pexponent = pattern.as_base_exponent()
+        if not pexponent.is_one:
+            ebase, eexponent = expr.as_base_exponent()
+            #print `pbase, pexponent`, `ebase, eexponent`
+            d = pbase.matches(ebase, repl_dict, evaluate)
+            if d is None: return
+            d = pexponent.matches(eexponent, d, evaluate)
+            return d
+
+        wild_classes = (Basic.Wild,Basic.WildFunctionType)
+        wild_part = {}
+        exact_part = {}
+        for b, e in pattern.items():
+            if b.atoms(type=wild_classes) or e.atoms(type=wild_classes):
+                wild_part[b] = e
+            else:
+                exact_part[b] = e
+        if exact_part:
+            if not expr.is_Mul:
+                c, t = expr.as_coeff_term()
+                if c==1:
+                    items = [(t,1)]
+                else:
+                    items = [(c,1),(t,1)]
+            else:
+                items = expr.items()
+            new_expr = MutableMul()
+            for b,e in items:
+                v = exact_part.pop(b, None)
+                if v is None:
+                    new_expr.update(b,e)
+                    continue
+                if v==e:
+                    continue
+                return
+            if exact_part:
+                return
+            return MutableMul(wild_part).canonical()\
+                   .matches(Mul(*new_expr.items()),
+                            repl_dict, evaluate)
+        if len(wild_part)==1:
+            # pattern is b**e
+            b, e = expr.as_base_exponent()
+        print wild_part
 
 class Pow(Basic):
     """

@@ -137,7 +137,8 @@ class Basic(object):
         return 0
 
     def __eq__(self, other):
-        raise NotImplementedError('%s.__eq__(%s)' % (self.__class__.__name__, other.__class__.__name__))
+        raise NotImplementedError('%s.__eq__(%s)' % (self.__class__.__name__,
+                                                     other.__class__.__name__))
 
     def __hash__(self):
         raise NotImplementedError('%s.__hash__()' % (self.__class__.__name__))
@@ -241,8 +242,12 @@ class Basic(object):
         """
         Helper method for match().
         """
-        return None
-
+        for p,v in repl_dict.items():
+            if p==pattern:
+                if v==expr: return repl_dict
+                return None
+        if pattern==expr:
+            return repl_dict
 
     def clone(self):
         """ Return recreated composite object.
@@ -332,8 +337,17 @@ class Composite(Basic):
 class BasicWild(Basic):
 
     def matches(pattern, expr, repl_dict={}, evaluate=False):
-        if pattern.__metaclass__ != expr.__metaclass__:
+        if expr.is_BasicWild:
+            # wilds do not match other wilds
             return
+        if isinstance(pattern, type):
+            if not isinstance(expr, type):
+                # wild functions will not match with non-functions
+                return
+        elif isinstance(expr, type):
+            # wild symbols will not match with functions
+            return
+        
         for p,v in repl_dict.items():
             if p==pattern:
                 if v==expr: return repl_dict

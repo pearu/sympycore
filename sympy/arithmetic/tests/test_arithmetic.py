@@ -12,7 +12,7 @@ def test_arithmetic():
 
 def test_integer_arithmetic():
     i = Integer(2)
-    assert i is Integer(2)
+    assert i==Integer(2)
     j = Integer(-5)
     assert +i==2
     assert -i==-2

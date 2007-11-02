@@ -157,7 +157,7 @@ class Add(ImmutableDictMeths, MutableAdd):
     """
 
     # constructor methods
-    @memoizer_immutable_args("Add.__new__")
+    #@memoizer_immutable_args("Add.__new__")
     def __new__(cls, *args, **options):
         return MutableAdd(*args, **options).canonical()
 
@@ -237,3 +237,65 @@ class Add(ImmutableDictMeths, MutableAdd):
 
     def clone(self):
         return MutableAdd(*[(t.clone(), c.clone()) for t,c in self.items()]).canonical()
+
+    def as_base_exponent(self):
+        c,t = self.as_coeff_term()
+        if c==1:
+            r = None
+        else:
+            r = Basic.Mul.seq_as_base_exponent([(c,Basic.Integer(1)),(t,Basic.Integer(1))])
+        if r is None:
+            return self, Basic.Integer(1)
+        return r
+
+    def as_coeff_term(self):
+        # (2/3 + 1/3*a) -> 1/3 * (2+a)
+        # (2 + 1/3*a) -> 1 * (2+1/3*a)
+        # DO NOT  `(2 + 1/3*a) -> 1/3 * (6+a)` because eg
+        # `b**(2 + 1/3*a)*c**(1/3) -> (b**(6+a)*c) ** (1/3) `
+        # is only valid when `b` is nonnegative and
+        # as_coeff_term is used in the as_base_exponent method.
+        if len(self)==1:
+            t,c = self.items()[0]
+            return c,t
+        s = set(self.values())
+        if len(s)==1:
+            v = s.pop()
+            if v.is_one:
+                return Basic.Integer(1), self
+            return v, Add(*self.keys())
+        v = s.pop()
+        if not v.is_Rational:
+            return Basic.Integer(1), self
+        gcd_numer, gcd_denom = v.p, v.q
+        if v.p<0: sign = -1
+        else: sign = 1
+        for v in s:
+            if v.is_Rational:
+                if v.p>0 and sign==-1: sign=1
+                gcd_numer = Basic.Integer.gcd(abs(v.p), gcd_numer)
+                gcd_denom = Basic.Integer.gcd(v.q, gcd_denom)
+            else:
+                return Basic.Integer(1), self
+        if gcd_numer==gcd_denom==sign==1:
+            return Basic.Integer(1), self
+        coeff = Basic.Fraction(sign*gcd_numer, gcd_denom)
+        r = MutableAdd()
+        for t,c in self.items():
+            r.update(t,c/coeff)
+        return coeff, r.canonical()
+
+    def matches(pattern, expr, repl_dict={}, evaluate=False):
+        pcoeff, pterm = pattern.as_coeff_term()
+        if not pcoeff.is_one:
+            ecoeff, eterm = expr.as_coeff_term()
+            r = ecoeff / pcoeff
+            if r.is_Integer:
+                #ecoeff, eterm = pcoeff, r * eterm
+                return pterm.matches(r * eterm, repl_dict, evaluate)
+            d = pcoeff.matches(ecoeff, repl_dict, evaluate)
+            if d is None: return
+            d = pterm.matches(eterm, d, evaluate)
+            return d
+
+        print pattern, expr

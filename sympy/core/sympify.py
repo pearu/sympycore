@@ -62,12 +62,19 @@ def sympify(a, sympify_lists=False, globals=None, locals=None):
             return ireal + iimag*Basic.I
         return real + Basic.I * imag
     if isinstance(a, str):
-        if globals is None or locals is None:
-            frame = sys._getframe(1)
-            if globals is None:
-                globals = frame.f_globals.copy()
-            if locals is None:
-                locals = frame.f_locals.copy()
+        if globals is None:
+            # using from-import instead of __dict__ to
+            # have only public sympy symbols in globals.
+            globals = {}
+            exec 'from sympy import *' in globals
+        if locals is None:
+            # We cannot use callers locals by default because sympify is
+            # frequently called inside methods that define local
+            # variables with the same names as in sympify argument. Users
+            # must explicitly call `sympify(.., locals=locals())` in
+            # order to reuse local variables.
+            locals = {}
+
     if isinstance(a, (list,tuple,set)) and sympify_lists:
         return type(a)([Basic.sympify(x, True, globals, locals) for x in a])
     if not isinstance(a, str):
@@ -78,7 +85,10 @@ def sympify(a, sympify_lists=False, globals=None, locals=None):
         # XXX: make sure that `a` is actually a SAGE expression
         a = str(a)
     if isinstance(a, str):
-        return sympy_eval(a, globals, locals)
+        try:
+            return sympy_eval(a, globals, locals)
+        except Exception,msg:
+            raise ValueError("Failed to evaluate %s: %s" % (`a`,msg))
     raise ValueError("%s is NOT a valid SymPy expression" % (`a`))
 
 _is_integer = re.compile(r'\A\d+(l|L)?\Z').match
@@ -280,7 +290,7 @@ class SympyTransformer(Transformer):
 def sympy_eval(a, globals, locals):
     globals['Is'] = lambda x,y: x is y or x == y
     globals['IsNot'] = lambda x,y: not(x is y or x == y)
-    exec 'from sympy import *' in globals
+    #exec 'from sympy import *' in globals
     tree = SympyTransformer(globals, locals).parseexpr(a)
     compiler.misc.set_filename('<sympify>', tree)
     code = ExpressionCodeGenerator(tree).getCode()

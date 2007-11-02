@@ -32,7 +32,7 @@ def test_not():
     assert sympify('not x**2')==Not(Equal(Symbol('x')**2,0))
     assert sympify('not 1')==Not(Equal(1,0))
     z = Symbol('z')
-    assert sympify('not z')==Not(Equal(z,0))
+    assert sympify('not z', locals=locals())==Not(Equal(z,0))
 
 
 def test_comparison():
@@ -70,5 +70,5 @@ def test_call():
     assert sympify('not f(x)')==Not(Equal(FunctionType('f')(Symbol('x')),0))
 
     b = PredicateType('b')
-    assert sympify('b(x)')==b('x')
-    assert sympify('not b(x)')==Not(b('x'))
+    assert sympify('b(x)',locals=locals())==b('x')
+    assert sympify('not b(x)',locals=locals())==Not(b('x'))

@@ -164,7 +164,18 @@ class FunctionTemplate(Composite, tuple):
     def atoms(self, type=None):
         return Basic.atoms(self, type).union(self.__class__.atoms(type))
 
-
+    def matches(pattern, expr, repl_dict={}, evaluate=False):
+        d = Basic.matches(pattern, expr, repl_dict, evaluate)
+        if d is not None: return d
+        if not expr.is_FunctionTemplate: return
+        if len(pattern.args)!=len(expr.args): return
+        fd = pattern.func.matches(expr.func, repl_dict, evaluate)
+        if fd is None: return
+        for pa, ea in zip(pattern.args, expr.args):
+            fd = pa.matches(ea, fd, evaluate)
+            if fd is None: return
+        return fd
+        
 class Callable(Basic, BasicType):
     """ Callable is base class for symbolic function classes.
     """
@@ -343,10 +354,10 @@ class BasicFunctionType(Atom, Callable):
 
 class BasicWildFunctionType(BasicWild, BasicFunctionType):
     # Todo: derive BasicWildFunctionType from BasicDummyFunctionType.
-    def __new__(typ, name=None, exclude=None):
+    def __new__(typ, name=None, bases=None, attrdict=None, is_global=None, exclude=None):
         if name is None:
             name = 'WF'
-        func = BasicFunctionType.__new__(typ, name)
+        func = BasicFunctionType.__new__(typ, name, bases, attrdict, is_global)
         if exclude is None:
             func.exclude = None
         else:
