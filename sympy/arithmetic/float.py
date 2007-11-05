@@ -7,11 +7,11 @@ import decimal
 from ..core import Basic, sympify, BasicType
 from .number import Real
 from .mpmath.lib import (fzero,
-                         fcmp, fneg_noround, fadd, fsub, fmul, fdiv, fpow,
+                         fcmp, fneg_exact, fadd, fsub, fmul, fdiv, fpow,
                          fabs, flog, fexp, fatan,fsqrt,
-                         float_from_int, float_from_rational, float_from_pyfloat,
-                         float_to_int, float_to_pyfloat, float_to_rational,
-                         decimal_to_binary,
+                         from_int, from_rational, from_float,
+                         to_int, to_float, to_rational,
+                         from_str,
                          normalize,
                          fpi, fgamma,
                          STANDARD_PREC, ROUND_HALF_EVEN,
@@ -80,20 +80,20 @@ class Float(Real, tuple):
                 else:
                     obj = tuple.__new__(cls, normalize(val[0], val[1], _precision, _rounding))
             elif val.is_Integer:
-                obj = tuple.__new__(cls, float_from_int(val.p, _precision, _rounding))
+                obj = tuple.__new__(cls, from_int(val.p, _precision, _rounding))
             elif val.is_Fraction:
-                obj = tuple.__new__(cls, float_from_rational(val.p, val.q, _precision, _rounding))
+                obj = tuple.__new__(cls, from_rational(val.p, val.q, _precision, _rounding))
             else:
                 return val.evalf(precision=_precision, rounding=_rounding)
         elif isinstance(val, (int, long)):
-            obj = tuple.__new__(cls, float_from_int(val, _precision, _rounding))
+            obj = tuple.__new__(cls, from_int(val, _precision, _rounding))
         elif isinstance(val, float):
-            obj = tuple.__new__(cls, float_from_pyfloat(val, _precision, _rounding))
+            obj = tuple.__new__(cls, from_float(val, _precision, _rounding))
         elif isinstance(val, tuple):
             assert len(val)==3,`val`
             obj = tuple.__new__(cls, val)
         elif isinstance(val, str):
-            obj = tuple.__new__(cls, decimal_to_binary(val, _precision, _rounding))
+            obj = tuple.__new__(cls, from_str(val, _precision, _rounding))
 
         if obj is None:
             raise TypeError('%s: expected int|long|float|str|Number instance but got %r'\
@@ -120,7 +120,7 @@ class Float(Real, tuple):
         _precision = Float._precision
         _rounding = Float._rounding        
         return tuple.__new__(Float,
-                             float_from_rational(p, q, _precision, _rounding))
+                             from_rational(p, q, _precision, _rounding))
 
     @property
     def is_positive(self): return self.man > 0
@@ -215,13 +215,13 @@ class Float(Real, tuple):
         return NotImplemented
 
     def __float__(self):
-        return float_to_pyfloat(self[:])
+        return to_float(self[:])
 
     def __int__(self):
-        return int(float_to_int(self[:]))
+        return int(to_int(self[:]))
 
     def __long__(self):
-        return long(float_to_int(self[:]))
+        return long(to_int(self[:]))
 
     def __abs__(self):
         Float = self.__class__
@@ -234,7 +234,7 @@ class Float(Real, tuple):
 
     def __neg__(self):
         Float = self.__class__
-        return Float(fneg_noround(self), self.prec)
+        return Float(fneg_exact(self), self.prec)
 
     @staticmethod
     def coerce_precisions(mth, s, t):

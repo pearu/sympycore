@@ -12,6 +12,8 @@ import decimal
 # Same as standard Python float
 STANDARD_PREC = 53
 
+LOG2_10 = math.log(10,2)  # 3.3219...
+
 
 # All supported rounding modes. We define them as integer constants for easy
 # management, but change __repr__ to give more information on inspection
@@ -128,6 +130,9 @@ def trailing_zeros(n):
     while not n & 1: n >>= 1; t += 1
     return t
 
+#----------------------------------------------------------------------------
+# Integer shifting with directed rounding
+#
 
 def round_floor(x, n):
     if not n or not x: return x
@@ -237,7 +242,7 @@ def small_numeral(n, base=10, digits=stddigits):
         digs.append(digits[digit])
     return "".join(digs[::-1])
 
-def numeral(n, base, size=0, digits=stddigits):
+def numeral(n, base=10, size=0, digits=stddigits):
     """
     Represent the integer n as a string of digits in the given base.
     Recursive division is used to make this function about 3x faster
@@ -247,6 +252,9 @@ def numeral(n, base, size=0, digits=stddigits):
     number is only used to determine splitting points and need not
     be exact.
     """
+
+    if n < 0:
+        return "-" + numeral(-n, base, size, digits)
 
     # Fast enough to do directly
     if size < 250:

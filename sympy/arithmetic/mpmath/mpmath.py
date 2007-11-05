@@ -1,6 +1,7 @@
 from lib import *
 from decimal import Decimal
 
+
 class mpnumeric(object):
     """Base class for mpf and mpc. Calling mpnumeric(x) returns an mpf
     if x can be converted to an mpf (if it is a float, int, mpf, ...),
@@ -14,7 +15,6 @@ class mpnumeric(object):
             return mpc(val)
         return mpf(val)
 
-
 def convert_lossless(x):
     """Attempt to convert x to an mpf or mpc losslessly. If x is an
     mpf or mpc, return it unchanged. If x is an int, create an mpf with
@@ -26,13 +26,16 @@ def convert_lossless(x):
     if isinstance(x, mpnumeric):
         return x
     if isinstance(x, float):
-        return make_mpf(float_from_pyfloat(x, 53, ROUND_FLOOR))
+        return make_mpf(from_float(x, 53, ROUND_FLOOR))
     if isinstance(x, int_types):
-        return make_mpf(float_from_int(x, bitcount(x), ROUND_FLOOR))
+        return make_mpf(from_int(x, bitcount(x), ROUND_FLOOR))
     if isinstance(x, complex):
         return mpc(x)
     if isinstance(x, (Decimal, str)):
-        return make_mpf(decimal_to_binary(x, mpf._prec, mpf._rounding))
+        if x == 'inf': return inf
+        if x == '-inf': return minus_inf
+        if x == 'nan': return nan
+        return make_mpf(from_str(x, mpf._prec, mpf._rounding))
     raise TypeError("cannot create mpf from " + repr(x))
 
 
@@ -72,11 +75,11 @@ int_types = (int, long)
 def _convert(x):
     """Convet x to mpf data"""
     if isinstance(x, float):
-        return float_from_pyfloat(x, mpf._prec, mpf._rounding)
+        return from_float(x, mpf._prec, mpf._rounding)
     if isinstance(x, int_types):
-        return float_from_int(x, mpf._prec, mpf._rounding)
+        return from_int(x, mpf._prec, mpf._rounding)
     if isinstance(x, (Decimal, str)):
-        return decimal_to_binary(x, mpf._prec, mpf._rounding)
+        return from_str(x, mpf._prec, mpf._rounding)
     raise TypeError("cannot create mpf from " + repr(x))
 
 
@@ -118,7 +121,7 @@ class mpf(mpnumeric):
         """A new mpf can be created from a Python float, an int, a
         Decimal, or a decimal string representing a number in
         floating-point format. Examples:
-        
+
             mpf(25)
             mpf(2.5)
             mpf('2.5')
@@ -145,10 +148,10 @@ class mpf(mpnumeric):
 
     def __repr__(s):
         st = "mpf('%s')"
-        return st % binary_to_decimal(s.val, mpf._dps+2)
+        return st % to_str(s.val, mpf._dps+2)
 
     def __str__(s):
-        return binary_to_decimal(s.val, mpf._dps)
+        return to_str(s.val, mpf._dps)
 
     def __hash__(s):
         try:
@@ -161,10 +164,10 @@ class mpf(mpnumeric):
             return hash(self.val)
 
     def __int__(s):
-        return float_to_int(s.val)
+        return to_int(s.val)
 
     def __float__(s):
-        return float_to_pyfloat(s.val)
+        return to_float(s.val)
 
     def __complex__(s):
         return float(s) + 0j
@@ -335,7 +338,6 @@ def make_mpf(tpl, construct=object.__new__, cls=mpf):
     return a
 
 
-
 class mpc(mpnumeric):
     """An mpc represents a complex number using a pair of mpf:s (one
     for the real part and another for the imaginary part.) The mpc
@@ -497,7 +499,7 @@ class constant(mpf):
     #    return "<%s: %s~>" % (self.name, mpf.__str__(self))
 
 
-_180 = float_from_int(180, 10, ROUND_FLOOR)
+_180 = from_int(180, 10, ROUND_FLOOR)
 
 pi = constant(fpi, "pi")
 degree = constant(lambda p, r: fdiv(fpi(p+4, ROUND_FLOOR), _180, p, r), "degree")
@@ -724,10 +726,14 @@ def atanh(x):
     mpf._prec = oldprec
     return +t
 
+def rand():
+    """Return an mpf chosen randomly from [0, 1)."""
+    return make_mpf(frand(mpf._prec))
+
 
 __all__ = ["mpnumeric", "mpf", "mpc", "pi", "e", "cgamma", "clog2", "clog10",
   "j", "sqrt", "hypot", "exp", "log", "cos", "sin", "tan", "atan", "atan2",
   "power", "asin", "acos", "sinh", "cosh", "tanh", "asinh", "acosh", "atanh",
-  "arg", "degree"]
+  "arg", "degree", "rand"]
 
 
