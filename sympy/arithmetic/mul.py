@@ -4,6 +4,7 @@ from ..core import Basic, sympify
 from ..core.methods import MutableCompositeDict, ImmutableDictMeths
 
 from .basic import BasicArithmetic
+from .function import Function, FunctionSignature
 
 class MutableMul(BasicArithmetic, MutableCompositeDict):
     """Mutable base class for Mul. This class is used temporarily
@@ -344,13 +345,26 @@ class Mul(ImmutableDictMeths, MutableMul):
             b, e = expr.as_base_exponent()
         print wild_part
 
-class Pow(Basic):
+
+class Div(BasicArithmetic):
+    """
+    Div() <=> 1
+    Div(x) <=> 1/x
+    Div(x, y, z, ...) <=> x / (y * z * ...)
+    """
+    def __new__(cls, *args):
+        if len(args) == 1:
+            return 1/sympify(args[0])
+        num, den = list(args[:1]), args[1:]
+        return Mul(*(num + [1/sympify(x) for x in den]))
+
+
+class Pow(BasicArithmetic):
     """
     For backward compatibility.
 
     Pow instances will be never created.
     """
-
     def __new__(cls, a, b):
         a = Basic.sympify(a)
         b = Basic.sympify(b)
@@ -359,8 +373,13 @@ class Pow(Basic):
         if a.is_one: return a
         return Mul((a,b))
 
-def sqrt(x):
-    return Pow(x, Basic.Rational(1,2))
+
+class Sqrt(Function):
+    signature = FunctionSignature((Basic,), (Basic,))
+    @classmethod
+    def canonize(cls, (arg,), **options):
+        return arg ** Basic.Rational(1,2)
+
 
 @memoizer_immutable_args('expand_power')
 def expand_power(x, n):

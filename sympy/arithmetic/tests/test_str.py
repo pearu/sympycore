@@ -1,5 +1,5 @@
-#from sympy import Symbol, Rational, Derivative, I, log, sqrt, exp
-from sympy import Symbol, Rational, sqrt
+#from sympy import Symbol, Rational, Derivative, I, log, Sqrt, exp
+from sympy import Symbol, Rational, Sqrt
 
 x = Symbol('x')
 y = Symbol('y')
@@ -41,13 +41,13 @@ def test_bug2():
 
 def test_bug3():
     x = Symbol("x")
-    e = sqrt(x)
+    e = Sqrt(x)
     assert str(e) == "x**(1/2)"
 
 def test_bug4():
     x = Symbol("x")
     w = Symbol("w")
-    e = -2*sqrt(x)-w/sqrt(x)/2
+    e = -2*Sqrt(x)-w/Sqrt(x)/2
     assert str(e) not in ["(-2)*x**1/2(-1/2)*x**(-1/2)*w",
             "-2*x**1/2(-1/2)*x**(-1/2)*w","-2*x**1/2-1/2*x**-1/2*w"]
     assert str(e) in ["-2*x**(1/2) - 1/2*x**(-1/2)*w", "-2*x**(1/2) - 1/2*w*x**(-1/2)", 

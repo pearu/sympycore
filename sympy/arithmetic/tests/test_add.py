@@ -1,5 +1,5 @@
 from sympy import Symbol, Rational
-from sympy.arithmetic.add import MutableAdd, Add
+from sympy.arithmetic.add import MutableAdd, Add, Sub
 
 a = Symbol("a")
 b = Symbol("b")
@@ -28,3 +28,11 @@ def test_add_update():
     assert dict(s)=={a:5,b:1,a*b:1,1:6}
     assert dict(s.canonical())=={a:5,b:1,a*b:1,1:6}
     assert s.__class__==Add
+
+def test_operations():
+    assert Add() == 0
+    assert Add(a, 0) == a
+    assert Add(2, a, 3) == 5+a
+    assert Sub() == 0
+    assert Sub(1, a) == 1-a
+    assert Sub(a, 4, b) == a-(4+b)

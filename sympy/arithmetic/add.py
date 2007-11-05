@@ -299,3 +299,15 @@ class Add(ImmutableDictMeths, MutableAdd):
             return d
 
         print pattern, expr
+
+class Sub(BasicArithmetic):
+    """
+    Sub() <=> 0
+    Sub(x) <=> -x
+    Sub(x, y, z, ...) <=> x - (y + z + ...)
+    """
+    def __new__(cls, *args):
+        if len(args) == 1:
+            return -sympify(args[0])
+        pos, neg = list(args[:1]), args[1:]
+        return Add(*(pos + [-sympify(x) for x in neg]))

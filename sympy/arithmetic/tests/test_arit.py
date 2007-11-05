@@ -1,4 +1,4 @@
-from sympy import Symbol, Rational, sqrt
+from sympy import Symbol, Rational, Sqrt
 
 a = Symbol("a")
 b = Symbol("b")
@@ -116,7 +116,7 @@ def testpow():
     e=a/b**2
     assert e == a*b**(-2)
 
-    assert sqrt(2*(1+sqrt(2))) == (2*(1+2**(Rational(1,2))))**(Rational(1,2))
+    assert Sqrt(2*(1+Sqrt(2))) == (2*(1+2**(Rational(1,2))))**(Rational(1,2))
 
     x = Symbol('x')
     y = Symbol('y')

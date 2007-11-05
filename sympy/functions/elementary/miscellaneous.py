@@ -85,9 +85,3 @@ class Min(Function):
             arg = list(new_args)[0]
             if not arg.is_BasicSet:
                 return arg
-            
-class Sqrt(Function):
-    signature = FunctionSignature((Basic,), (Basic,))
-    @classmethod
-    def canonize(cls, (arg,), **options):
-        return arg ** Basic.Rational(1,2)
