@@ -122,9 +122,15 @@ class Mul(ImmutableDictMeths, MutableMul):
 
     # object identity methods
 
+    def __iter__(self):
+        return iter([t**c for (t,c) in self.items()])
+
     def __getitem__(self, key):
-        if isinstance(key, slice) or key.__class__ in [int, long]:
-            return self.items()[key]
+        if isinstance(key, slice):
+            return [t**c for (t,c) in self.items()[key]]
+        elif key.__class__ in [int, long]:
+            t,c = self.items()[key]
+            return t**c
         return dict.__getitem__(self, key)
 
     def canonical(self):
@@ -132,7 +138,7 @@ class Mul(ImmutableDictMeths, MutableMul):
 
     def split(self, op, *args, **kwargs):
         if op == '*':
-            return ([x**c for x, c in self[:]])
+            return ([x**c for x, c in self.iteritems()])
         if op == '**' and len(self) == 1:
             return list(self.items()[0])
         return [self]
@@ -144,10 +150,9 @@ class Mul(ImmutableDictMeths, MutableMul):
 
     def tostr(self, level=0):
         seq = []
-        items = self[:]
         p = self.precedence
         pp = Basic.Pow_precedence
-        for base, exp in items:
+        for base, exp in self.iteritems():
             if exp.is_one:
                 term = base.tostr(p)
             else:

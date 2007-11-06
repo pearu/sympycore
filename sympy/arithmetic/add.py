@@ -173,14 +173,20 @@ class Add(ImmutableDictMeths, MutableAdd):
 
     # object identity methods
 
+    def __iter__(self):
+        return iter([t*c for (t,c) in self.items()])
+
     def __getitem__(self, key):
-        if isinstance(key, slice) or key.__class__ in [int, long]:
-            return self.items()[key]
+        if isinstance(key, slice):
+            return [t*c for (t,c) in self.items()[key]]
+        elif key.__class__ in [int, long]:
+            t,c = self.items()[key]
+            return t*c
         return dict.__getitem__(self, key)
 
     def split(self, op, *args, **kwargs):
         if op == "+" and len(self) > 1:
-            return ([c*x for x, c in self[:]])
+            return ([c*x for x, c in self.iteritems()])
         if op == "*" and len(self) == 1:
             x, c = self.items()[0]
             return [c] + x.split(op, *args, **kwargs)
@@ -190,7 +196,7 @@ class Add(ImmutableDictMeths, MutableAdd):
 
     def tostr(self, level=0):
         seq = []
-        items = self[:]
+        items = self.items()
         pp = Basic.Mul_precedence
         p = self.precedence
         for term, coef in items:

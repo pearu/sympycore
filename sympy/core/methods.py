@@ -81,7 +81,7 @@ class MutableCompositeDict(Composite, dict):
             return new
         lst = []
         flag = False
-        for (term, coeff) in self[:]:
+        for (term, coeff) in self.iteritems():
             new_term = term.replace(old, new)
             if new_term==term:
                 new_term = term
