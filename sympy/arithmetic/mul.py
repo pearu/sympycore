@@ -6,6 +6,8 @@ from ..core.methods import MutableCompositeDict, ImmutableDictMeths
 from .basic import BasicArithmetic
 from .function import Function, FunctionSignature
 
+__all__ = ['Mul', 'MutableMul','Pow','Sqrt']
+
 class MutableMul(BasicArithmetic, MutableCompositeDict):
     """Mutable base class for Mul. This class is used temporarily
     during construction of Mul objects.
@@ -18,7 +20,7 @@ class MutableMul(BasicArithmetic, MutableCompositeDict):
 
     # canonize methods
     
-    def update(self, a, p=1, force=False):
+    def update(self, a, p=1, force=False, exp_to_power=True):
         """
         Mul({}).update(a,p) -> Mul({a:p})
         """
@@ -54,8 +56,10 @@ class MutableMul(BasicArithmetic, MutableCompositeDict):
                 for k,v in a.items():
                     self.update(k, v * p)
                 return
+        elif exp_to_power and a.is_Exp:
+            p = a.args[0] * p
+            a = Basic.E
         self.update(a, sympify(p), force=True)
-
 
     def canonical(self):
         # self will be modified in-place,
@@ -75,10 +79,10 @@ class MutableMul(BasicArithmetic, MutableCompositeDict):
             else:
                 if a==k and v.is_one: continue
                 del self[k]
-                self.update(a)
+                self.update(a,exp_to_power=False)
                 return self.canonical()
         if self.has_key(n):
-            self.update(n)
+            self.update(n,exp_to_power=False)
             return self.canonical()
         self.__class__ = Mul
         if len(self)==0:
@@ -199,13 +203,6 @@ class Mul(ImmutableDictMeths, MutableMul):
                 obj = expand_mul2(p1, p2)
         return obj
 
-    def __eq__(self, other):
-        if isinstance(other, Mul):
-            return dict.__eq__(self, other)
-        if isinstance(other, Basic):
-            return False
-        return self==sympify(other)
-
     def try_derivative(self, s):
         terms = self.items()
         factors = []
@@ -263,92 +260,81 @@ class Mul(ImmutableDictMeths, MutableMul):
                     return Mul(*(l1+l2))
         return
 
+    def iterMul(self):
+        iterator = self.iteritems()
+        def itercall():
+            b,e = iterator.next()
+            if e.is_one:
+                return b
+            return b**e
+        return iter(itercall, False)
+
+    def iterLogMul(self):
+        iterator = self.iteritems()
+        def itercall():
+            b,e = iterator.next()
+            if e.is_one:
+                return Basic.Log(b)
+            return e * Basic.Log(b)
+        return iter(itercall, False)
+
     def clone(self):
         return MutableMul(*[(b.clone(), e.clone()) for b,e in self.items()]).canonical()
 
-    @staticmethod
-    def seq_as_base_exponent(seq):
-        # seq = [(b1,e1),(b2,e2),..]
-        # return None if the result would be (Mul(*seq), 1).
-        if len(seq)==1:
-            return seq[0]
-        s = set([e for (b,e) in seq])
-        if len(s)==1:
-            v = s.pop()
-            if v.is_one: return None
-            return Mul(*[b for (b,e) in seq]), v
-        v = s.pop()
-        c,t = v.as_coeff_term()
-        if c==1: return None
-        gcd_numer, gcd_denom = c.p, c.q
-        if c.p<0: sign = -1
-        else: sign = 1
-        for v in s:
-            c,t = v.as_coeff_term()
-            if c==1:
-                return self, Basic.Integer(1)
-            if c.p>0 and sign==-1: sign=1
-            gcd_numer = Basic.Integer.gcd(abs(c.p), gcd_numer)
-            gcd_denom = Basic.Integer.gcd(c.q, gcd_denom)
-        if gcd_numer==gcd_denom==sign==1:
-            return None
-        exponent = Basic.Fraction(sign*gcd_numer, gcd_denom)
-        r = MutableMul()
-        for b,e in seq:
-            r.update(b,e/exponent)
-        return r.canonical(), exponent
-
     def as_base_exponent(self):
-        r = self.seq_as_base_exponent(self.items())
-        if r is None:
-            return self, Basic.Integer(1)
-        return r
+        if len(self)==1:
+            return self.items()[0]
+        s = set(self.values())
+        if len(s)==1:
+            return Mul(*self.keys()), s.pop()
+        v = s.pop()
+        if v.is_Rational:
+            p, q = v.p, v.q
+            if p<0: sign=-1
+            else: sign=1
+            for v in s:
+                if not v.is_Rational:
+                    p = q = sign = 1
+                    break
+                if v.p>0 and sign==-1: sign=1
+                p = Basic.Integer.gcd(abs(v.p), p)
+                q = Basic.Integer.gcd(v.q, q)
+            c = Basic.Fraction(sign*p,q)
+            if c!=1:
+                return Mul(*[(b,e/c) for (b,e) in self.items()]), c
+        return self, Basic.Integer(1)
 
-    def matches(pattern, expr, repl_dict={}, evaluate=False):
-        pbase, pexponent = pattern.as_base_exponent()
-        if not pexponent.is_one:
-            ebase, eexponent = expr.as_base_exponent()
-            #print `pbase, pexponent`, `ebase, eexponent`
-            d = pbase.matches(ebase, repl_dict, evaluate)
-            if d is None: return
-            d = pexponent.matches(eexponent, d, evaluate)
-            return d
-
-        wild_classes = (Basic.Wild,Basic.WildFunctionType)
-        wild_part = {}
-        exact_part = {}
-        for b, e in pattern.items():
-            if b.atoms(type=wild_classes) or e.atoms(type=wild_classes):
-                wild_part[b] = e
-            else:
-                exact_part[b] = e
-        if exact_part:
-            if not expr.is_Mul:
-                c, t = expr.as_coeff_term()
-                if c==1:
-                    items = [(t,1)]
-                else:
-                    items = [(c,1),(t,1)]
-            else:
-                items = expr.items()
-            new_expr = MutableMul()
-            for b,e in items:
-                v = exact_part.pop(b, None)
-                if v is None:
-                    new_expr.update(b,e)
-                    continue
-                if v==e:
-                    continue
-                return
-            if exact_part:
-                return
-            return MutableMul(wild_part).canonical()\
-                   .matches(Mul(*new_expr.items()),
-                            repl_dict, evaluate)
-        if len(wild_part)==1:
-            # pattern is b**e
+    def matches(pattern, expr, repl_dict={}):
+        wild_classes = (Basic.Wild, Basic.WildFunctionType)
+        if not pattern.atoms(type=wild_classes):
+            return Basic.matches(pattern, expr, repl_dict)
+        if len(pattern)==1:
+            base, exponent = pattern.items()[0]
+            if expr.is_Number:
+                return (exponent * Basic.Log(base)).matches(Basic.Log(expr), repl_dict)
             b, e = expr.as_base_exponent()
-        print wild_part
+            p1 = e/exponent
+            if p1.is_Integer:
+                return base.matches(b**p1, repl_dict)
+            d = base.matches(b, repl_dict)
+            if d is not None:
+                d = exponent.replace_dict(d).matches(e, d)
+                if d is not None: return d
+            return
+        wild_part = []
+        exact_part = []
+        for (b,e) in pattern.iteritems():
+            if b.atoms(type=wild_classes) or e.atoms(type=wild_classes):
+                wild_part.append((b,e))
+            else:
+                exact_part.append((b,-e))
+        if exact_part:
+            exact_part.append((expr, Basic.Integer(1)))
+            res = Mul(*wild_part).matches(Mul(*exact_part), repl_dict)
+            return res
+        log_pattern = Basic.Add(*pattern.iterLogMul())
+        log_expr = Basic.Add(*expr.iterLogMul())
+        return log_pattern.matches(log_expr, repl_dict)
 
 
 class Div(BasicArithmetic):

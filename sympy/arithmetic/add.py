@@ -1,4 +1,6 @@
 
+import itertools
+
 from ..core.utils import memoizer_immutable_args, UniversalMethod
 from ..core import Basic, sympify
 from ..core.methods import MutableCompositeDict, ImmutableDictMeths
@@ -244,67 +246,133 @@ class Add(ImmutableDictMeths, MutableAdd):
     def clone(self):
         return MutableAdd(*[(t.clone(), c.clone()) for t,c in self.items()]).canonical()
 
-    def as_base_exponent(self):
-        c,t = self.as_coeff_term()
-        if c==1:
-            r = None
-        else:
-            r = Basic.Mul.seq_as_base_exponent([(c,Basic.Integer(1)),(t,Basic.Integer(1))])
-        if r is None:
-            return self, Basic.Integer(1)
-        return r
+    def iterAdd(self):
+        iterator = self.iteritems()
+        def itercall():
+            t,c = iterator.next()
+            if c.is_one:
+                return t
+            return t*c
+        return iter(itercall, False)
 
-    def as_coeff_term(self):
-        # (2/3 + 1/3*a) -> 1/3 * (2+a)
-        # (2 + 1/3*a) -> 1 * (2+1/3*a)
-        # DO NOT  `(2 + 1/3*a) -> 1/3 * (6+a)` because eg
-        # `b**(2 + 1/3*a)*c**(1/3) -> (b**(6+a)*c) ** (1/3) `
-        # is only valid when `b` is nonnegative and
-        # as_coeff_term is used in the as_base_exponent method.
+    def iterMul(self):
         if len(self)==1:
-            t,c = self.items()[0]
-            return c,t
-        s = set(self.values())
-        if len(s)==1:
-            v = s.pop()
-            if v.is_one:
-                return Basic.Integer(1), self
-            return v, Add(*self.keys())
-        v = s.pop()
-        if not v.is_Rational:
-            return Basic.Integer(1), self
-        gcd_numer, gcd_denom = v.p, v.q
-        if v.p<0: sign = -1
-        else: sign = 1
-        for v in s:
-            if v.is_Rational:
-                if v.p>0 and sign==-1: sign=1
-                gcd_numer = Basic.Integer.gcd(abs(v.p), gcd_numer)
-                gcd_denom = Basic.Integer.gcd(v.q, gcd_denom)
+            t, c = self.iteritems().next()
+            if c.is_one:
+                return t.iterMul()
+            return iter([c,t])
+        return iter([self])
+
+    def iterLogMul(self):
+        if len(self)==1:
+            t, c = self.iteritems().next()
+            if c.is_one:
+                return t.iterLogMul()
+            return itertools.chain(c.iterLogMul(),t.iterLogMul())
+        return iter([Basic.Log(self)])
+
+    def as_term_coeff(self):
+        if len(self)==1:
+            return self.items()[0]
+        return self, Basic.Integer(1)
+
+    def as_base_exponent(self):
+        if len(self)==1:
+            t, c = self.as_term_coeff()
+            b, e = t.as_base_exponent()
+            p = c.try_power(1/e)
+            if p is not None:
+                return p*b, e
+        return self, Basic.Integer(1)
+    
+    def matches(pattern, expr, repl_dict={}):
+        wild_classes = (Basic.Wild, Basic.WildFunctionType)
+        if not pattern.atoms(type=wild_classes):
+            return Basic.matches(pattern, expr, repl_dict)
+        if len(pattern)==1:
+            term, coeff = pattern.items()[0]
+            return term.matches(expr/coeff, repl_dict)
+        wild_part = []
+        exact_part = []
+        for (t,c) in pattern.iteritems():
+            if t.atoms(type=wild_classes):
+                wild_part.append((t,c))
             else:
-                return Basic.Integer(1), self
-        if gcd_numer==gcd_denom==sign==1:
-            return Basic.Integer(1), self
-        coeff = Basic.Fraction(sign*gcd_numer, gcd_denom)
-        r = MutableAdd()
-        for t,c in self.items():
-            r.update(t,c/coeff)
-        return coeff, r.canonical()
+                exact_part.append((t,-c))
+        if exact_part:
+            exact_part.append((expr, Basic.Integer(1)))
+            return Add(*wild_part).matches(Add(*exact_part), repl_dict)
+        piter = pattern.iteritems()
+        t, c = piter.next()
+        rest_pattern = Add(*piter)
+        if expr.is_Add:
+            items = expr.items()
+            items1,items2=[],[]
+            for (t1,c1) in items:
+                if c1==c:
+                    items1.append((t1,c1))
+                else:
+                    items2.append((t1,c1))
+            items = items1 + items2
+        else:
+            items = [(expr, Basic.Integer(1))]
+        for i in range(len(items)):
+            t1,c1 = items[i]
+            d = t.matches(t1*c1/c, repl_dict)
+            if d is not None:
+                new_pattern = rest_pattern.replace_dict(d)
+                new_expr = Add(*(items[:i]+items[i+1:]))
+                d2 = new_pattern.matches(new_expr, d)
+                if d2 is not None:
+                    return d2
+        d = t.matches(Basic.Integer(0), repl_dict)
+        if d is not None:
+            return rest_pattern.replace_dict(d).matches(expr, d)
+        return
 
-    def matches(pattern, expr, repl_dict={}, evaluate=False):
-        pcoeff, pterm = pattern.as_coeff_term()
-        if not pcoeff.is_one:
-            ecoeff, eterm = expr.as_coeff_term()
-            r = ecoeff / pcoeff
-            if r.is_Integer:
-                #ecoeff, eterm = pcoeff, r * eterm
-                return pterm.matches(r * eterm, repl_dict, evaluate)
-            d = pcoeff.matches(ecoeff, repl_dict, evaluate)
-            if d is None: return
-            d = pterm.matches(eterm, d, evaluate)
-            return d
+        if expr.is_Add:
+            eiter = expr.iteritems()
+        else:
+            eiter = iter([(expr,Basic.Integer(1))])
+        unmatched = []
+        try2nd = []
+        for t1,c1 in eiter:
+            if c1!=c:
+                try2nd.append((t1,c1))
+                continue
+            d = t.matches(t1*c1/c, repl_dict)
+            print t,t1,d
+            if d is None:
+                unmatched.append((t1,c1))
+                continue
+            new_pattern = rest_pattern.replace_dict(d)
+            lst_eiter = list(eiter)
+            new_expr = Add(*(unmatched+lst_eiter+try2nd))
+            d2 = new_pattern.matches(new_expr, d)
+            if d2 is None:
+                unmatched.append((t1,c1))
+            else:
+                return d2
+        if try2nd:
+            eiter = iter(try2nd)
+            for t1,c1 in eiter:
+                d = t.matches(t1*(c1/c), repl_dict)
+                if d is None:
+                    unmatched.append((t1,c1))
+                    continue
+                print d
+                new_pattern = rest_pattern.replace_dict(d)
+                new_expr = Add(*(unmatched+list(eiter)))
+                d2 = new_pattern.matches(new_expr, d)
+                if d2 is None:
+                    unmatched.append((t1,c1))
+                else:
+                    return d2
+        d = t.matches(Basic.Integer(0), repl_dict)
+        if d is not None:
+            return rest_pattern.replace_dict(d).matches(expr, d)
 
-        print pattern, expr
+        return
 
 class Sub(BasicArithmetic):
     """
@@ -317,3 +385,4 @@ class Sub(BasicArithmetic):
             return -sympify(args[0])
         pos, neg = list(args[:1]), args[1:]
         return Add(*(pos + [-sympify(x) for x in neg]))
+

@@ -26,6 +26,9 @@ class Exp1(NumberSymbol):
     def evalf(self, precision=None):
         return Basic.Float(1, precision).evalf_exp()
 
+    def try_power(self, other):
+        return Basic.Exp(other)
+
 class Pi(NumberSymbol):
 
     def tostr(self, level=0):

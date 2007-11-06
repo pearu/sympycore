@@ -83,11 +83,15 @@ class MutableCompositeDict(Composite, dict):
         flag = False
         for (term, coeff) in self.iteritems():
             new_term = term.replace(old, new)
-            if new_term==term:
-                new_term = term
-            if new_term is not term:
-                flag = True
-            lst.append((new_term, coeff))
+            new_coeff = coeff.replace(old, new)
+            if not flag:
+                if new_term==term:
+                    new_term = term
+                if new_coeff==coeff:
+                    new_coeff = coeff
+                if new_term is not term or new_coeff is not coeff:
+                    flag = True
+            lst.append((new_term, new_coeff))
         if flag:
             cls = getattr(Basic, 'Mutable'+self.__class__.__name__)
             r = cls()

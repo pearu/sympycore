@@ -76,7 +76,7 @@ class BasicWildSymbol(BasicWild, BasicDummySymbol):
     Both pattern and expression must have the same metaclasses.
     """
 
-    def __new__(cls, name=None, exclude=None):
+    def __new__(cls, name=None, exclude=None, predicate=None):
         if name is None:
             name = 'W%s' % (BasicSymbol._dummy_count+1)
         obj = BasicDummySymbol.__new__(cls, name)
@@ -84,6 +84,9 @@ class BasicWildSymbol(BasicWild, BasicDummySymbol):
             obj.exclude = None
         else:
             obj.exclude = [Basic.sympify(x) for x in exclude]
+        if predicate is None:
+            predicate = lambda expr: True
+        obj.predicate = predicate
         return obj
 
     def tostr(self, level=0):

@@ -58,7 +58,7 @@ class Lambda(BasicArithmetic, BasicLambda):
 
 class WildFunctionType(BasicWild, FunctionType):
     # Todo: derive WildFunctionType from DummyFunctionType.
-    def __new__(typ, name=None, bases=None, attrdict=None, is_global=None, exclude=None):
+    def __new__(typ, name=None, bases=None, attrdict=None, is_global=None, exclude=None, predicate=None):
         if name is None:
             name = 'WF'
         func = FunctionType.__new__(typ, name, bases, attrdict, is_global)
@@ -66,4 +66,7 @@ class WildFunctionType(BasicWild, FunctionType):
             func.exclude = None
         else:
             func.exclude = [Basic.sympify(x) for x in exclude]
+        if predicate is None:
+            predicate = lambda expr: expr.is_FunctionType
+        func.predicate = staticmethod(predicate)
         return func

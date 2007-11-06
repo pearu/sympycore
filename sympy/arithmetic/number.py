@@ -91,6 +91,9 @@ class Number(BasicArithmetic, Atom):
     def as_coeff_term(self):
         return self, Basic.Integer(1)
 
+    def as_term_coeff(self):
+        return Basic.Integer(1), self
+
 class Real(Number):
 
     """
@@ -209,6 +212,21 @@ class Rational(Real):
     def __float__(self):
         return float(self.evalf())
 
+    def as_factors(self, expand=False):
+        dp = Integer.factor_trial_division(self.p)
+        dq = Integer.factor_trial_division(self.q)
+        eb = {}
+        for (b,e) in dp.items():
+            eb[e] = Integer(b)
+        for (b,e) in dq.items():
+            eb[e] = Fraction(eb.get(e,1),b)
+        if len(eb)>1 and eb.get(1)==1:
+            del eb[1]
+        return [(b,Integer(e)) for (e,b) in eb.items()]
+
+    def as_terms(self, expand=False):
+        return [(Integer(1), self)]
+        
 from .integer import Integer
 from .fraction import Fraction
 from .float import Float

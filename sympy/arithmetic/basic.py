@@ -61,6 +61,30 @@ class BasicArithmetic(ArithmeticMethods, Basic):
                 return Basic.zero
         return Basic.Derivative(self, *new_symbols)
 
+    def iterAdd(self):
+        return iter([self])
+
+    def iterMul(self):
+        return iter([self])
+
+    def iterLogMul(self):
+        return iter([Basic.Log(self)])
+
+    def match(self, pattern):
+        pattern = Basic.sympify(pattern)
+        if isinstance(pattern, bool): return
+        return pattern.matches(self, {})
+
+    def as_base_exponent(self):
+        """ Return (b,e) such that self==b**e.
+        """
+        return self, Basic.Integer(1)
+
+    def as_term_coeff(self):
+        """ Return (t,c) such that self==c*t.
+        """
+        return self,Basic.Integer(1)
+
     def try_get_coefficient(self, expr):
         """
         Extracts symbolic coefficient at the given expression. In
@@ -76,12 +100,8 @@ class BasicArithmetic(ArithmeticMethods, Basic):
             coeff = coeff[w]
         return coeff
 
-    def as_base_exponent(self):
-        """ Return (b,e) such that self==b**e.
-        """
-        return self, Basic.Integer(1)
-
     def as_coeff_term(self):
         """ Return (c,t) such that self==c*t and c is Rational.
         """
-        return Basic.Integer(1), self
+        t,c = self.as_term_coeff()
+        return c,t

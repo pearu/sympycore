@@ -280,4 +280,13 @@ class Integer(Rational, pyint):
         if other.is_NaN:
             return other
 
+    def as_factors(self, expand=False):
+        dp = Integer.factor_trial_division(self.p)
+        eb = {}
+        for (b,e) in dp.items():
+            eb[e] = Integer(b)
+        if len(eb)>1 and eb.get(1)==1:
+            del eb[1]
+        return [(b,Integer(e)) for (e,b) in eb.items()]
+
     # __r*__ methods are defined in methods.py

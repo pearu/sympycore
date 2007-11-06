@@ -242,10 +242,13 @@ class Basic(object):
         """
         Helper method for match().
         """
-        for p,v in repl_dict.items():
-            if p==pattern:
-                if v==expr: return repl_dict
-                return None
+        # check if pattern has already a match:
+        v = repl_dict.get(pattern, None)
+        if v is not None:
+            if v==expr:
+                return repl_dict
+            return
+        # match exactly
         if pattern==expr:
             return repl_dict
 
@@ -347,17 +350,20 @@ class BasicWild(Basic):
         elif isinstance(expr, type):
             # wild symbols will not match with functions
             return
-        
-        for p,v in repl_dict.items():
-            if p==pattern:
-                if v==expr: return repl_dict
-                return None
+        # check if pattern has already a match
+        v = repl_dict.get(pattern, None)
+        if v is not None:
+            if v==expr: return repl_dict
+            return
+        # exclude certain expressions, TODO: remove exclude, use match instead
         if pattern.exclude:
             if expr.has(*pattern.exclude):
                 return
-        repl_dict = repl_dict.copy()
-        repl_dict[pattern] = expr
-        return repl_dict
+        # wild matches if pattern.predicate(expr) returns True
+        if pattern.predicate(expr):
+            repl_dict = repl_dict.copy()
+            repl_dict[pattern] = expr
+            return repl_dict
 
 from .sympify import sympify
 Basic.sympify = staticmethod(sympify)
