@@ -330,50 +330,6 @@ class Add(ImmutableDictMeths, MutableAdd):
             return rest_pattern.replace_dict(d).matches(expr, d)
         return
 
-        if expr.is_Add:
-            eiter = expr.iteritems()
-        else:
-            eiter = iter([(expr,Basic.Integer(1))])
-        unmatched = []
-        try2nd = []
-        for t1,c1 in eiter:
-            if c1!=c:
-                try2nd.append((t1,c1))
-                continue
-            d = t.matches(t1*c1/c, repl_dict)
-            print t,t1,d
-            if d is None:
-                unmatched.append((t1,c1))
-                continue
-            new_pattern = rest_pattern.replace_dict(d)
-            lst_eiter = list(eiter)
-            new_expr = Add(*(unmatched+lst_eiter+try2nd))
-            d2 = new_pattern.matches(new_expr, d)
-            if d2 is None:
-                unmatched.append((t1,c1))
-            else:
-                return d2
-        if try2nd:
-            eiter = iter(try2nd)
-            for t1,c1 in eiter:
-                d = t.matches(t1*(c1/c), repl_dict)
-                if d is None:
-                    unmatched.append((t1,c1))
-                    continue
-                print d
-                new_pattern = rest_pattern.replace_dict(d)
-                new_expr = Add(*(unmatched+list(eiter)))
-                d2 = new_pattern.matches(new_expr, d)
-                if d2 is None:
-                    unmatched.append((t1,c1))
-                else:
-                    return d2
-        d = t.matches(Basic.Integer(0), repl_dict)
-        if d is not None:
-            return rest_pattern.replace_dict(d).matches(expr, d)
-
-        return
-
 class Sub(BasicArithmetic):
     """
     Sub() <=> 0
