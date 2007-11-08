@@ -72,3 +72,40 @@ def test_call():
     b = PredicateType('b')
     assert sympify('b(x)',locals=locals())==b('x')
     assert sympify('not b(x)',locals=locals())==Not(b('x'))
+
+def test_builtin_types():
+    assert sympify(1)==Integer(1)
+    assert sympify(2l)==Integer(2)
+    assert sympify(1.0)==Float(1.0)
+    assert sympify(1+2j)==1+2*I
+    assert sympify(1.2+2.1j)==Float(1.2)+Float(2.1)*I
+    assert sympify(1.2+2j)==Float(1.2)+2*I
+    assert sympify(1+2.1j)==1+Float(2.1)*I
+
+    assert sympify('1')==Integer(1)
+    assert sympify('2l')==Integer(2)
+    assert sympify('1.0')==Float(1.0)
+    assert sympify('1+2j')==1+2*I
+    assert sympify('1.2+2.1j')==Float(1.2)+Float(2.1)*I
+    assert sympify('1.2+2j')==Float(1.2)+2*I
+    assert sympify('1+2.1j')==1+Float(2.1)*I
+
+def test_lambda():
+    assert sympify('lambda : 1')==Lambda((),1)
+    x = Symbol('x')
+    assert sympify('lambda x: 2*x')==Lambda((x,),2*x)
+
+def test_failures():
+    try:
+        sympify('++')
+    except ValueError, msg:
+        assert str(msg).startswith('Failed to evaluate')
+    else:
+        assert 0, 'Expected ValueError on sympify("++")'
+        
+    try:
+        sympify({})
+    except TypeError, msg:
+        assert str(msg).startswith('Invalid type')
+    else:
+        assert 0, 'Expected ValueError on sympify("++")'

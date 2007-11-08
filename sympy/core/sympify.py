@@ -24,16 +24,13 @@ def sympify(a, sympify_lists=False, globals=None, locals=None):
        inherit after Basic. This can be useful in cooperation with SAGE.
        
        It currently accepts as arguments:
-         - any object defined in sympy (except maybe matrices [TODO])
-         - standard numeric python types: int, long, float, Decimal
+         - any object defined in sympy
+         - standard numeric python types: int, long, float, complex
          - strings (like "0.09" or "2e-19")
-
-       If sympify_lists is set to True then sympify will also accept
-       lists, tuples and sets. It will return the same type but with
-       all of the entries sympified.
+         - True and False
 
        If the argument is already a type that sympy understands, it will do
-       nothing but return that value. This can be used at the begining of a
+       nothing but return that value. This can be used at the beginning of a
        function to ensure you are working with the correct type.
 
        >>> from sympy import *
@@ -58,11 +55,12 @@ def sympify(a, sympify_lists=False, globals=None, locals=None):
     if isinstance(a, float):
         return Basic.Float(a)
     if isinstance(a, complex):
-        # XXX: fix int-s
         real, imag = sympify(a.real), sympify(a.imag)
         ireal, iimag = int(real), int(imag)
-        if ireal + iimag*1j == a:
-            return ireal + iimag*Basic.I
+        if ireal==real:
+            real = ireal
+        if imag==iimag:
+            imag = iimag
         return real + Basic.I * imag
     if isinstance(a, str):
         if globals is None:
@@ -77,22 +75,22 @@ def sympify(a, sympify_lists=False, globals=None, locals=None):
             # must explicitly call `sympify(.., locals=locals())` in
             # order to reuse local variables.
             locals = {}
-
-    if isinstance(a, (list,tuple,set)) and sympify_lists:
-        return type(a)([Basic.sympify(x, True, globals, locals) for x in a])
     if not isinstance(a, str):
         # At this point we were given an arbitrary expression
         # which does not inherit after Basic. This may be
         # SAGE's expression (or something alike) so take
         # its normal form via str() and try to parse it.
         # XXX: make sure that `a` is actually a SAGE expression
-        a = str(a)
+        #      until then this is disabled to catch invalid
+        #      objects like {}, etc.
+        #a = str(a)
+        pass
     if isinstance(a, str):
         try:
             return sympy_eval(a, globals, locals)
         except Exception,msg:
             raise ValueError("Failed to evaluate %s: %s" % (`a`,msg))
-    raise ValueError("%s is NOT a valid SymPy expression" % (`a`))
+    raise TypeError("Invalid type %s for sympy: %s" % (`type(a)`,`a`))
 
 _is_integer = re.compile(r'\A\d+(l|L)?\Z').match
 _ast_arith_classes = (ast.Add, ast.Sub, ast.Mul, ast.Div, ast.Mod, ast.FloorDiv,
@@ -196,7 +194,7 @@ class SympyTransformer(Transformer):
         assert not defaults,`defaults` # sympy.Lambda does not support optional arguments
         arguments = []
         for name in names:
-            arguments.append(ast.CallFunc(ast.Name('BasicSymbol'),[ast.Const(name, lineno=lineno)]))
+            arguments.append(ast.CallFunc(ast.Name('Symbol'),[ast.Const(name, lineno=lineno)]))
         return ast.CallFunc(ast.Name('Lambda'),[ast.Tuple(arguments,lineno=lineno), code])
 
     # test
@@ -241,10 +239,9 @@ class SympyTransformer(Transformer):
                     ops.append(ast.CallFunc(ast.Name('Not'),[ast.CallFunc(ast.Name('Element'),[lhs, rhs])]))
                 elif op=='is':
                     ops.append(ast.CallFunc(ast.Name('Is'),[lhs, rhs]))
-                elif op=='is not':
-                    ops.append(ast.CallFunc(ast.Name('IsNot'),[lhs, rhs]))
                 else:
-                    raise NotImplementedError('%r %r %r' % (lhs, op, rhs))
+                    assert op=='is not','%r %r %r' % (lhs, op, rhs)
+                    ops.append(ast.CallFunc(ast.Name('IsNot'),[lhs, rhs]))
                 lhs = rhs
             if len(ops)==1:
                 r = ops[0]
@@ -274,6 +271,9 @@ class SympyTransformer(Transformer):
         if _is_integer(number):
             n = ast.Const(long(number), lineno)
             return ast.CallFunc(ast.Name('Integer'), [n])
+        if number.endswith('j'):
+            n = ast.Const(complex(number), lineno)
+            return ast.CallFunc(ast.Name('sympify'), [n])
         n = ast.Const(number, lineno)
         return ast.CallFunc(ast.Name('Float'), [n])
 
@@ -282,11 +282,8 @@ class SympyTransformer(Transformer):
         name, lineno = nodelist[0][1:]
         if self.locals.has_key(name) or self.globals.has_key(name):
             obj = eval(name, self.globals, self.locals)
-            #print
-            #print 'HEY:',obj
-            #print
             return ast.Const(obj, lineno=lineno)
-            return ast.Name(name, lineno=lineno)
+            #return ast.Name(name, lineno=lineno)
         return ast.CallFunc(ast.Name(self.symbol_class),[ast.Const(name, lineno=lineno)])
 
     
