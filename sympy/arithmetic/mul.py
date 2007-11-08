@@ -53,7 +53,7 @@ class MutableMul(BasicArithmetic, MutableCompositeDict):
         if a.is_MutableMul:
             # Mul({x:3}).update(Mul({x:2}), 4) -> Mul({x:3}).update(x,2*4)
             if p.is_Integer:
-                for k,v in a.items():
+                for k,v in a.iteritems():
                     self.update(k, v * p)
                 return
         elif exp_to_power and a.is_Exp:
@@ -319,7 +319,13 @@ class Mul(ImmutableDictMeths, MutableMul):
             d = base.matches(b, repl_dict)
             if d is not None:
                 d = exponent.replace_dict(d).matches(e, d)
-                if d is not None: return d
+                if d is not None:
+                    return d
+            d = exponent.matches(e, repl_dict)
+            if d is not None:
+                d = base.replace_dict(d).matches(b, d)
+                if d is not None:
+                    return d
             return
         wild_part = []
         exact_part = []
@@ -380,10 +386,10 @@ def expand_power(x, n):
     if x.is_Add and n.is_Integer and n.is_positive:
         return expand_integer_power_miller(x, n)
     if x.is_Mul and n.is_Integer:
-        return Mul(*[k**(v*n) for k,v in x.items()])
+        return Mul(*[k**(v*n) for k,v in x.iteritems()])
     if n.is_Add:
         # x ** (a+b) -> x**a * x**b
-        return Mul(*[x**(c*k) for k,c in n.items()])
+        return Mul(*[x**(c*k) for k,c in n.iteritems()])
     return x ** n
 
 @memoizer_immutable_args('expand_mul2')
@@ -393,12 +399,9 @@ def expand_mul2(x, y):
     target must be None or MutableAdd instance.
     """
     if x.is_Add and y.is_Add:
-        yt = y.items()
-        xt = x.items()
-        return Basic.Add(*[(t1*t2,c1*c2) for (t1,c1) in xt for (t2,c2) in yt])
+        return Basic.Add(*[(t1*t2,c1*c2) for (t1,c1) in x.iteritems() for (t2,c2) in y.iteritems()])
     if x.is_Add:
-        xt = x.items()
-        return Basic.Add(*[(t1*y,c1) for (t1,c1) in xt])
+        return Basic.Add(*[(t1*y,c1) for (t1,c1) in x.iteritems()])
     if y.is_Add:
         return expand_mul2(y, x)
     return x * y
@@ -437,7 +440,7 @@ def expand_integer_power_miller(x, m):
                 p0if = p0[i]*f
                 lk = l[k-i]
                 if lk.is_Add:
-                    l1.extend([(t*p0if,c) for (t,c) in lk.items()])
+                    l1.extend([(t*p0if,c) for (t,c) in lk.iteritems()])
                 else:
                     l1.append(lk*p0if)
         a = Add(*l1)

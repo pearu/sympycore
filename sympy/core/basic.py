@@ -140,6 +140,9 @@ class Basic(object):
         raise NotImplementedError('%s.__eq__(%s)' % (self.__class__.__name__,
                                                      other.__class__.__name__))
 
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def __hash__(self):
         raise NotImplementedError('%s.__hash__()' % (self.__class__.__name__))
 
@@ -338,6 +341,9 @@ class Composite(Basic):
         return '%s(%s)' % (self.__class__.__name__,', '.join(map(repr, self)))
 
 class BasicWild(Basic):
+    """ Base class for wild symbols and functions.
+    
+    """
 
     def matches(pattern, expr, repl_dict={}, evaluate=False):
         if expr.is_BasicWild:
@@ -345,20 +351,16 @@ class BasicWild(Basic):
             return
         if isinstance(pattern, type):
             if not isinstance(expr, type):
-                # wild functions will not match with non-functions
+                # wild functions will not match non-functions
                 return
         elif isinstance(expr, type):
-            # wild symbols will not match with functions
+            # wild symbols will not match functions
             return
         # check if pattern has already a match
         v = repl_dict.get(pattern, None)
         if v is not None:
             if v==expr: return repl_dict
             return
-        # exclude certain expressions, TODO: remove exclude, use match instead
-        if pattern.exclude:
-            if expr.has(*pattern.exclude):
-                return
         # wild matches if pattern.predicate(expr) returns True
         if pattern.predicate(expr):
             repl_dict = repl_dict.copy()
@@ -367,4 +369,3 @@ class BasicWild(Basic):
 
 from .sympify import sympify
 Basic.sympify = staticmethod(sympify)
-

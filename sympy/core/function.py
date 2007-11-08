@@ -275,7 +275,11 @@ def _get_class_statement(frame = None):
     """
     if frame is None:
         frame = sys._getframe(2)
-    fn = frame.f_code.co_filename
+    d = frame.f_locals
+    if d.has_key('__file__'):
+        fn = d['__file__']
+    else:
+        fn = frame.f_code.co_filename
     lno = frame.f_lineno
     if fn.endswith('.pyc') or fn.endswith('.pyo'):
         fn = fn[:-1]
@@ -291,7 +295,8 @@ def _get_class_statement(frame = None):
             return line
         if frame.f_back is not None:
             return _get_class_statement(frame.f_back)
-
+    else:
+        print 'Warning: cannot locate file:',fn
 
 class BasicFunctionType(Atom, Callable):
     """ Base class for defined symbolic function.
@@ -329,6 +334,8 @@ class BasicFunctionType(Atom, Callable):
                 # The following statement reads python module that
                 # defines class `name`:
                 line = _get_class_statement()
+                if not line:
+                    print line, name
                 if line is not None:
                     if line.replace(' ','').startswith('class'+name+'('):
                         is_global = True

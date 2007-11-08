@@ -6,12 +6,10 @@ from .basic import BasicArithmetic
 __all__ = ['Symbol', 'Dummy', 'Wild']
 
 class Symbol(BasicArithmetic, BasicSymbol):
-
     """ Represents a symbol.
 
     Symbol('x', dummy=True) returns a unique Symbol instance.
     """
-
     def __call__(self, *args):
         signature = Basic.FunctionSignature((Basic,)*len(args), (Basic,))
         return Basic.FunctionType(str(self), attrdict=dict(signature=signature))(*args)

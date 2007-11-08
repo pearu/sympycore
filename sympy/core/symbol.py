@@ -1,20 +1,15 @@
 
-from .utils import memoizer_immutable_args
+from .utils import memoizer_immutable_args, singleton
 from .basic import Atom, Basic, sympify, BasicWild
 
 __all__ = ['BasicSymbol', 'BasicDummySymbol','BasicWildSymbol']
 
 class BasicSymbol(Atom, str):
+    """ Named symbol.
+    """
 
-    _dummy_count = 0
-    is_dummy = False
-
-    def __new__(cls, name, dummy=False, **options):
-        # when changing the Symbol signature then change memoizer_Symbol_new
-        # accordingly    
+    def __new__(cls, name):
         assert isinstance(name, str), `name`
-        if dummy:
-            return str.__new__(cls, name).as_dummy()
         return str.__new__(cls, name)
 
     @property
@@ -37,10 +32,13 @@ class BasicSymbol(Atom, str):
     def as_dummy(self):
         return BasicDummySymbol(self.name)
 
-    # disable arithmetic methods for basic strings
+    # disable arithmetic methods for basic symbols,
+    # though they can be still used in arithmetic functions.
     def __add__(self, other):
+        # this will prevent `BasicSymbol('a') + 'b'` -> `'ab'`
         return NotImplemented
     def __radd__(self, other):
+        # note that `'a' + BasicSymbol('b')` still returns `'ab'`
         return NotImplemented
     def __mul__(self, other):
         return NotImplemented
@@ -51,16 +49,32 @@ class BasicSymbol(Atom, str):
     def __rmod__(self, other):
         return NotImplemented
 
+#@singleton
+def _get_default_dummy_name(cls):
+    return ''.join([c for c in cls.__name__ if c.isupper()])
 
 class BasicDummySymbol(BasicSymbol):
+    """ Indexed dummy symbol.
+    """
 
-    def __new__(cls, name):
-        BasicSymbol._dummy_count += 1
-        obj = str.__new__(cls, name)
-        obj.dummy_index = BasicSymbol._dummy_count        
-        return obj    
+    _dummy_count = 0
+
+    _get_default_dummy_name = classmethod(_get_default_dummy_name)
+    
+    def __new__(cls, name = None):
+        BasicDummySymbol._dummy_count += 1
+        if name is None:
+            c = BasicDummySymbol._dummy_count
+            n = cls._get_default_dummy_name() + str(c)
+        else:
+            n = name
+        obj = str.__new__(cls, n)
+        obj._name = name
+        return obj
 
     def torepr(self):
+        if self._name is None:
+            return '%s()' % (self.__class__.__name__)
         return '%s(%r)' % (self.__class__.__name__, self.name)
 
     def tostr(self, level=0):
@@ -70,20 +84,11 @@ class BasicDummySymbol(BasicSymbol):
         return self is other
 
 class BasicWildSymbol(BasicWild, BasicDummySymbol):
-    """
-    Wild(exclude=[..]) matches any expression but another Wild instance
-    and expression that has symbols from exclude list.
-    Both pattern and expression must have the same metaclasses.
+    """ Wild symbol.
     """
 
-    def __new__(cls, name=None, exclude=None, predicate=None):
-        if name is None:
-            name = 'W%s' % (BasicSymbol._dummy_count+1)
+    def __new__(cls, name=None, predicate=None):
         obj = BasicDummySymbol.__new__(cls, name)
-        if exclude is None:
-            obj.exclude = None
-        else:
-            obj.exclude = [Basic.sympify(x) for x in exclude]
         if predicate is None:
             predicate = lambda expr: True
         obj.predicate = predicate

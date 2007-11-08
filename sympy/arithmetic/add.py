@@ -62,7 +62,7 @@ class MutableAdd(BasicArithmetic, MutableCompositeDict):
         a = Basic.sympify(a)
         # Flatten sum
         if a.is_MutableAdd:
-            for k, v in a.items():
+            for k, v in a.iteritems():
                 self.update(k, v*p)
             return
         # Add(3) -> Add({1:3})
@@ -176,7 +176,7 @@ class Add(ImmutableDictMeths, MutableAdd):
     # object identity methods
 
     def __iter__(self):
-        return iter([t*c for (t,c) in self.items()])
+        return iter([t*c for (t,c) in self.iteritems()])
 
     def __getitem__(self, key):
         if isinstance(key, slice):
@@ -198,7 +198,7 @@ class Add(ImmutableDictMeths, MutableAdd):
 
     def tostr(self, level=0):
         seq = []
-        items = self.items()
+        items = self.iteritems()
         pp = Basic.Mul_precedence
         p = self.precedence
         for term, coef in items:
@@ -226,17 +226,17 @@ class Add(ImmutableDictMeths, MutableAdd):
     def expand(self, *args, **hints):
         obj = self
         if hints.get('basic', True):
-            obj = Add(*[(t.expand(*args, **hints), e) for (t,e) in self.items()])
+            obj = Add(*[(t.expand(*args, **hints), e) for (t,e) in self.iteritems()])
         return obj
 
     def try_derivative(self, s):
-        return Add(*[(t.diff(s), e) for (t,e) in self.items()])
+        return Add(*[(t.diff(s), e) for (t,e) in self.iteritems()])
 
     def __call__(self, *args):
         """
         (2*a + 3*sin)(x) -> 2*a(x) + 3*sin(x)
         """
-        return Add(*[(t(*args), e) for (t,e) in self.items()])
+        return Add(*[(t(*args), e) for (t,e) in self.iteritems()])
 
     @UniversalMethod
     def fdiff(obj, index=1):
@@ -244,7 +244,7 @@ class Add(ImmutableDictMeths, MutableAdd):
         return Add(*[(t.fdiff(index), e) for (t,e) in obj.items()])
 
     def clone(self):
-        return MutableAdd(*[(t.clone(), c.clone()) for t,c in self.items()]).canonical()
+        return MutableAdd(*[(t.clone(), c.clone()) for t,c in self.iteritems()]).canonical()
 
     def iterAdd(self):
         iterator = self.iteritems()
@@ -318,7 +318,7 @@ class Add(ImmutableDictMeths, MutableAdd):
             items = [(expr, Basic.Integer(1))]
         for i in range(len(items)):
             t1,c1 = items[i]
-            d = t.matches(t1*c1/c, repl_dict)
+            d = t.matches(t1*(c1/c), repl_dict)
             if d is not None:
                 new_pattern = rest_pattern.replace_dict(d)
                 new_expr = Add(*(items[:i]+items[i+1:]))

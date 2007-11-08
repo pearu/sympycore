@@ -3,11 +3,14 @@ from __future__ import absolute_import
 
 import re
 import sys
+import symbol
+import compiler
+
 from compiler.transformer import Transformer
 from compiler.pycodegen import ExpressionCodeGenerator
 from compiler import ast
-import symbol
-import compiler
+
+
 
 from .basic import Basic
 

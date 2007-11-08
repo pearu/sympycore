@@ -411,7 +411,7 @@ def test_behavior1():
     x = Symbol('x')
     p = Wild('p')
     e = 3*x**2
-    a = Wild('a', exclude = [x])
+    a = Wild('a', predicate = lambda expr: expr.is_Atom and expr not in [x])
     assert e.match(a*x) == None
     assert e.match(p*x) == {p: 3*x}
 
@@ -423,8 +423,8 @@ def test_behavior2():
     assert e.match(2*p) == {p: 3}
 
     e = 3*x + 3 + 6/x
-    a = Wild('a', exclude = [x],
-             predicate = lambda expr: expr!=x)
+    a = Wild('a',
+             predicate = lambda expr: expr.is_Atom and expr!=x)
     assert e.expand().match(a*x**2 + a*x + 2*a) == None
     expr = e.expand()
     pat = p*x**2 + p*x + 2*p
@@ -434,10 +434,10 @@ def test_behavior2():
 
 def test_match_polynomial():
     x = Symbol('x')
-    a = Wild('a', exclude=[x])
-    b = Wild('b', exclude=[x])
-    c = Wild('c', exclude=[x])
-    d = Wild('d', exclude=[x])
+    a = Wild('a', predicate = lambda expr: expr.is_Atom and expr!=x)
+    b = Wild('b', predicate = lambda expr: expr.is_Atom and expr!=x)
+    c = Wild('c', predicate = lambda expr: expr.is_Atom and expr!=x)
+    d = Wild('d', predicate = lambda expr: expr.is_Atom and expr!=x)
 
     eq = 4*x**3 + 3*x**2 + 2*x + 1
     pattern = a*x**3 + b*x**2 + c*x + d
@@ -446,9 +446,9 @@ def test_match_polynomial():
 
 def test_exclude():
     x,y,a = map(Symbol, 'xya')
-    p = Wild('p', exclude=[1,x])
-    q = Wild('q', exclude=[x])
-    r = Wild('r', exclude=[y])
+    p = Wild('p', predicate = lambda expr: expr.is_Atom and expr not in [1,x])
+    q = Wild('q', predicate = lambda expr: expr.is_Atom and expr!=x)
+    r = Wild('r', predicate = lambda expr: not expr.has(y))
 
     e = 3*x**2 + y*x + a
     assert e.match(p*x**2 + q*x + r) == {p: 3, q: y, r: a}
