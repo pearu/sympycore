@@ -1,11 +1,20 @@
 
 import sys
 
+__all__ = ['UniversalMethod','DualMethod','DualProperty',
+           'singleton','memoizer_immutable_args','clear_cache',
+           'get_object_by_name'
+           ]
+
 all_caches = {}
 
 def get_object_by_name(name, default=None):
     """ Return object that is a value of a variable with name
-    in the local or parent namespaces.
+    in the local or parent namespaces. If variable is found
+    in parent namespaces then it is added to children
+    namespaces.
+    When no variable with name is found then return default
+    and add a variable only to the callers locals namespace. 
     """
     frame = sys._getframe(1)
     frames = [frame]
@@ -21,9 +30,7 @@ def get_object_by_name(name, default=None):
             except KeyError:
                 _name = None
             if _name is not None and _name=='__main__':
-                obj = frame.f_locals[name] = default
-                for frame in frames:
-                    frame.f_locals[name] = obj
+                obj = frames[0].f_locals[name] = default
                 return obj
         frames.append(frame)
         frame = frame.f_back
@@ -32,39 +39,6 @@ def get_object_by_name(name, default=None):
 
 class Decorator(object):
     pass
-
-class InstanceMethod(Decorator):
-
-    '''
-class A(object):
-    @classmethod
-    def foo(cls):
-        pass
-    @InstanceMethod(foo)
-    def foo(self):
-        pass
-
-    '''
-    def __new__(cls, cls_func):
-        obj = object.__new__(cls)        
-        obj.cls_func = cls_func
-        return obj
-    def __call__(self, func):
-        self.func = func
-        return self
-    def __get__(self, obj, typ=None):
-        if obj is None:
-            def class_wrapper(*args, **kw):
-                return self.func(typ, *args, **kw)
-            class_wrapper.__name__ = self.class_wrapper_name
-            class_wrapper._universalmethod = self
-            return class_wrapper
-        else:
-            def instance_wrapper(*args, **kw):
-                return self.func(obj, *args, **kw)
-            instance_wrapper.__name__ = self.instance_wrapper_name
-            instance_wrapper._universalmethod = self
-            return instance_wrapper    
 
 class UniversalMethod(Decorator):
     ''' universalmethod decorator
@@ -84,8 +58,6 @@ A().foo() -> "A.foo(<__main__.A object at 0xfdb3d0>)"
 
 
     def __new__(cls, func):
-        if isinstance(func, cls):
-            return func
         obj = object.__new__(cls)        
         obj.func = func
         obj.method_name = func.__name__
@@ -200,6 +172,7 @@ class AType(type):
     @property
     def foo(cls):
         return 'AType.foo'
+    # or foo = 'AType.foo'
 
 class A(object):
     __metaclass__ = AType
@@ -221,16 +194,18 @@ See also DualMethod.
         
     def __get__(self, obj, typ=None):
         if obj is None:
+            # called when metaclass or type object does not have the property
+            # but attribute.
             if self.type_callback is not None:
                 return self.type_callback(typ)
-            r = getattr(typ.__base__, self.attr_name)
-            return r
+            return getattr(typ.__class__, self.attr_name)
         else:
             return self.func(obj)
 
 def memoizer_immutable_args(name):
     def make_memoized(func):
         return func
+    """
         func._cache_it_cache = func_cache_it_cache = {}
         def wrapper(*args):
             try:
@@ -245,52 +220,8 @@ def memoizer_immutable_args(name):
         all_caches[name] = func_cache_it_cache
         wrapper.__name__ = 'wrapper.%s' % (name)
         return wrapper
+    """
     return make_memoized
-
-def memoizer_Symbol_new(func):
-    func._cache_it_cache = func_cache_it_cache = {}
-    def wrapper(cls, name, dummy=False, **options):
-        if dummy:
-            return func(cls, name, dummy=dummy, **options)
-        r = func_cache_it_cache.get(name, None)
-        if r is None:
-            func_cache_it_cache[name] = r = func(cls, name, dummy=dummy, **options)
-        return r
-    all_caches['Symbol.__new__'] = func_cache_it_cache
-    wrapper.__name__ = 'wrapper.Symbol.__new__'
-    return wrapper
-
-def memoizer_Interval_new(func):
-    func._cache_it_cache = func_cache_it_cache = {}
-    def wrapper(cls, a, b=None, **options):
-        if b is None:
-            # to ensure that Interval(a) is Interval(a,a)
-            args = (a,a)
-        else:
-            args = (a,b)
-        try:
-            return func_cache_it_cache[args]
-        except KeyError:
-            pass
-        func_cache_it_cache[args] = r = func(cls, a, b, **options)
-        return r
-    all_caches['Interval.__new__'] = func_cache_it_cache
-    return wrapper
-
-def memoizer_Float_new(func):
-    func._cache_it_cache = func_cache_it_cache = {}
-    def wrapper(cls, x=0, prec=None, mode=None, **options):
-        if prec is None: prec = cls._prec
-        if mode is None: mode = cls._mode
-        args = (x, prec, mode)
-        try:
-            return func_cache_it_cache[args]
-        except KeyError:
-            pass
-        func_cache_it_cache[args] = r = func(cls, *args, **options)
-        return r
-    all_caches['Float.__new__'] = func_cache_it_cache
-    return wrapper
 
 def clear_cache():
     """Clear all cached objects."""
@@ -302,15 +233,9 @@ def singleton(func):
     """ Decorator for singletons.
     """
     func._cache_it_cache = func_cache_it_cache = {}
-    def wrapper(*args):
-        try:
-            r = func_cache_it_cache.get(args, None)
-        except TypeError, msg:
-            if 'dict objects are unhashable'==str(msg):
-                return func(*args)
-            raise
+    def wrapper(arg):
+        r = func_cache_it_cache.get(arg, None)
         if r is None:
-            func_cache_it_cache[args] = r = func(*args)
+            func_cache_it_cache[arg] = r = func(arg)
         return r
-    #wrapper.__name__ = 'wrapper.%s' % (name)
     return wrapper

@@ -3,7 +3,7 @@ Interval arithmetic with correct rounding.
 
 """
 
-from ..core.utils import memoizer_Interval_new
+#from ..core.utils import memoizer_Interval_new
 from ..core import sympify, Basic
 from .number import Number
 from .float import Float, ROUND_FLOOR, ROUND_CEILING
@@ -33,7 +33,7 @@ class Interval(Number, tuple):
     by [a, b], is the set of points x satisfying a <= x <= b.
     """
 
-    @memoizer_Interval_new
+    #@memoizer_Interval_new
     def __new__(cls, a, b=None):
         """
         Interval(a) creates an exact interval (width 0)

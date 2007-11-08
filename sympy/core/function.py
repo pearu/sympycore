@@ -196,7 +196,7 @@ class Callable(Basic, BasicType):
         for c in func.mro():
             if c.__module__=='__builtin__':
                 continue
-            for n,mth in c.__dict__.items():
+            for n,mth in c.__dict__.iteritems():
                 if not isinstance(mth, (types.FunctionType,DualMethod)):
                     continue
                 if n in mth_names: continue
@@ -334,8 +334,6 @@ class BasicFunctionType(Atom, Callable):
                 # The following statement reads python module that
                 # defines class `name`:
                 line = _get_class_statement()
-                if not line:
-                    print line, name
                 if line is not None:
                     if line.replace(' ','').startswith('class'+name+'('):
                         is_global = True
@@ -362,14 +360,10 @@ class BasicFunctionType(Atom, Callable):
 
 class BasicWildFunctionType(BasicWild, BasicFunctionType):
     # Todo: derive BasicWildFunctionType from BasicDummyFunctionType.
-    def __new__(typ, name=None, bases=None, attrdict=None, is_global=None, exclude=None, predicate=None):
+    def __new__(typ, name=None, bases=None, attrdict=None, is_global=None, predicate=None):
         if name is None:
             name = 'WF'
         func = BasicFunctionType.__new__(typ, name, bases, attrdict, is_global)
-        if exclude is None:
-            func.exclude = None
-        else:
-            func.exclude = [Basic.sympify(x) for x in exclude]
         if predicate is None:
             predicate = lambda expr: expr.is_BasicFunctionType
         func.predicate = staticmethod(predicate)
