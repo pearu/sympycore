@@ -114,18 +114,12 @@ class BasicImmutableMeths:
             self._cached_hash = h
         return h
 
+    def _typeerror(self, *args): raise TypeError('%s instance is immutable' % (self.__class__.__name__))
 
 class ImmutableDictMeths(BasicImmutableMeths):
     """ Auxiliary class for making set immutable.
     """
-    def __setitem__(self, k, v):
-        raise TypeError('%s instance is immutable' % (self.__class__.__name__))
-
-    def __delitem__(self, k):
-        raise TypeError('%s instance is immutable' % (self.__class__.__name__))
-
-    def popitem(self):
-        raise TypeError('%s instance is immutable' % (self.__class__.__name__))
+    __setitem__ = __delitem__ = popitem = BasicImmutableMeths._typeerror
 
     def as_list(self):
         r = self.keys()
@@ -142,24 +136,7 @@ class ImmutableDictMeths(BasicImmutableMeths):
 class ImmutableSetMeths(BasicImmutableMeths):
     """ Auxiliary class for making set immutable.
     """
-
-    def clear(self):
-        raise TypeError('%s instance is immutable' % (self.__class__.__name__))
-
-    def add(self, other):
-        raise TypeError('%s instance is immutable' % (self.__class__.__name__))
-
-    def discard(self, other):
-        raise TypeError('%s instance is immutable' % (self.__class__.__name__))
-
-    def pop(self):
-        raise TypeError('%s instance is immutable' % (self.__class__.__name__))
-
-    def remove(self, other):
-        raise TypeError('%s instance is immutable' % (self.__class__.__name__))
-
-    def update(self, other):
-        raise TypeError('%s instance is immutable' % (self.__class__.__name__))
+    pop = clear = add = discard = pop = remove = update = BasicImmutableMeths._typeerror
 
     def as_list(self):
         r = list(self)

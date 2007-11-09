@@ -1,6 +1,10 @@
 
 from sympy import *
 
+def test_sympify_types():
+     from sympy.core.basic import sympify_types
+     assert sympify_types[0]==Basic
+
 def test_sympify():
     assert sympify('x+2/3')==Symbol('x')+Fraction(2,3)
 

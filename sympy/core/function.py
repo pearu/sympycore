@@ -4,7 +4,7 @@ import sys
 import types
 
 from .utils import DualMethod, DualProperty
-from .basic import Atom, Composite, Basic, BasicType, sympify, BasicWild
+from .basic import Atom, Composite, Basic, BasicType, sympify, sympify_types, BasicWild
 
 __all__ = ['FunctionSignature',
            'BasicFunctionType', 'BasicFunction',
@@ -126,9 +126,10 @@ class FunctionTemplate(Composite, tuple):
             if self.func==other.func:
                 return tuple.__eq__(self, other)
             return False
-        if isinstance(other, bool):
-            return False
-        return self==sympify(other)
+        if isinstance(other, bool): return False
+        if isinstance(other, sympify_types):
+            return self==sympify(other)
+        return False
 
     @property
     def args(self):
@@ -243,15 +244,6 @@ class Callable(Basic, BasicType):
             return set([cls])
         return set()
 
-    def compare(self, other):
-        raise
-        if isinstance(other, Basic):
-            if other.is_Callable:
-                return cmp(self.__name__, other.__name__)
-        c = cmp(self.__class__, other.__class__)
-        if c: return c
-        raise NotImplementedError(`self, other`)
-
     def __eq__(self, other):
         if isinstance(other, Basic):
             if other.is_Callable:
@@ -263,7 +255,9 @@ class Callable(Basic, BasicType):
             if isinstance(self, type):
                 return self.__name__ == other.__name__
             return False
-        return sympify(other)==self
+        if isinstance(other, sympify_types):
+            return self==sympify(other)
+        return False
 
     def __nonzero__(cls):
         return False

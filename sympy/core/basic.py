@@ -1,6 +1,6 @@
 
 import types
-from .utils import memoizer_immutable_args, DualProperty, singleton
+from .utils import memoizer_immutable_args, DualProperty, singleton, DualMethod, UniversalMethod
 
 __all__ = ['BasicType', 'Basic', 'Atom', 'Composite', 'BasicWild']
 
@@ -10,10 +10,10 @@ ordering_of_classes = [
     'Atom','Composite','Basic',
     ]
 
+
 class BasicType(type):
     """ Metaclass for Basic classes.
     """
-
     def __new__(typ, name, bases, attrdict):
         # set obj.is_Class attributes such that
         #   isinstance(obj, Class)==obj.is_Class
@@ -37,23 +37,12 @@ class BasicType(type):
             setattr(Basic, cls.__name__, cls)
             setattr(Basic, 'is_' + name,
                     DualProperty(is_cls, is_cls_type))
-
         return cls
-
-    def __cmp__(cls, other):
-        if cls is other: return 0
-        if not isinstance(other, type):
-            if isinstance(other.__class__, Basic):
-                return cmp(cls, other.__class__) or -1
-            return -1
-        c = cmp(_get_class_index(cls),_get_class_index(other))
-        if c: return c
-        return cmp(cls.__name__, other.__name__)
 
 @singleton
 def _get_class_index(cls):
     clsbase = None
-    clsindex = len(ordering_of_classes)
+    clsindex = -len(ordering_of_classes)
     for i in range(len(ordering_of_classes)):
         basename = ordering_of_classes[i]
         base = getattr(Basic, basename, None)
@@ -109,36 +98,58 @@ class Basic(object):
             return -obj2.compare(obj1)
         return cmp(obj1, obj2)
 
-    def compare(self, other):
+    @UniversalMethod
+    def compare(obj, other):
         """
         Return -1,0,1 if the object is smaller, equal, or greater than other
-        (not always in mathematical sense).
+        in some sense (not in mathematical sense in most cases).
         If the object is of different type from other then their classes
         are ordered according to sorted_classes list.
+        
+        This method is needed only for sorting. We cannot use __cmp__
+        because of the duality of Callable and __lt__ methods can
+        be defined only for a subset of Basic objects.
         """
-        # all redefinitions of compare method should start with the
-        # following three lines:
-        if self is other: return 0
-        c = cmp(self.__class__, other.__class__)
+        if obj is other: return 0
+        if isinstance(obj, type):
+            # obj is BasicType instance
+            if isinstance(other, type):
+                if isinstance(other, BasicType):
+                    c = cmp(_get_class_index(obj),_get_class_index(other))
+                    if c: return c
+                    # obj and other are subclasses of the same Basic class
+                    # but not necessarily the same classes.
+                    return cmp(obj.__name__, other.__name__)
+                # use Python defined ordering for builtin types
+                return cmp(obj, other)
+            if isinstance(other, Basic):
+                # instances are smaller than types
+                return 1
+            return cmp(obj, other)
+        if isinstance(other, type):
+            # instances are smaller than types
+            return -1
+        if not isinstance(other, Basic):
+            return cmp(obj, other)
+        c = obj.__class__.compare(other.__class__)
         if c: return c
-        if isinstance(self, (str,int,long)):
-            cls = self.__class__.__base__
-            return cmp(cls(self), cls(other))
-        st = self[:]
-        ot = other[:]
-        c = cmp(len(st), len(ot))
-        if c: return c
-        for l,r in zip(st,ot):
-            if isinstance(l, Basic):
-                c = l.compare(r)
-            else:
-                c = cmp(l, r)
+        if isinstance(obj, sympify_types1):
+            # convert Basic object to an instance of builtin type
+            cls = obj.__class__.__base__
+            return cmp(cls(obj), cls(other))
+        if obj.is_Composite:
+            st = obj[:]
+            ot = other[:]
+            c = cmp(len(st), len(ot))
             if c: return c
-        return 0
+            for l,r in zip(st,ot):
+                c = l.compare(r)
+                if c: return c
+            return 0
+        return cmp(obj, other)
 
     def __eq__(self, other):
-        raise NotImplementedError('%s.__eq__(%s)' % (self.__class__.__name__,
-                                                     other.__class__.__name__))
+        return self is other
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -367,5 +378,6 @@ class BasicWild(Basic):
             repl_dict[pattern] = expr
             return repl_dict
 
-from .sympify import sympify
+from .sympify import sympify, sympify_types
 Basic.sympify = staticmethod(sympify)
+sympify_types1 = sympify_types[1:]

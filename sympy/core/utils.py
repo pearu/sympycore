@@ -155,8 +155,8 @@ class DualMethod(Decorator):
             def class_wrapper(*args, **kw):
                 if hasattr(self.func, 'im_self') and self.func.im_self is not None:
                     return self.func(*args, **kw)
-                return getattr(typ.__class__,
-                               self.funcname)(typ, *args, **kw)
+                mth = getattr(typ.__class__, self.funcname)
+                return mth(typ, *args, **kw)
             class_wrapper.__name__ = self.class_wrapper_name
             return class_wrapper
         else:

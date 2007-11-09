@@ -10,13 +10,18 @@ from compiler.transformer import Transformer
 from compiler.pycodegen import ExpressionCodeGenerator
 from compiler import ast
 
-
-
 from .basic import Basic
 
-__all__ = ['sympify']
+__all__ = ['sympify','sympify_types']
 
-def sympify(a, sympify_lists=False, globals=None, locals=None):
+# types that sympify can handle:
+sympify_types = (Basic,int,long,float,complex,str) # the first element must be Basic!
+int_types = (int, long)
+float_types = (float) # XXX: Decimal
+complex_types = (complex)
+string_types = (str) # XXX: unicode
+
+def sympify(a, globals=None, locals=None):
     """Converts an arbitrary expression to a type that can be used
        inside sympy. For example, it will convert python int's into
        instance of sympy.Integer, floats into intances of sympy.Float,
@@ -50,11 +55,11 @@ def sympify(a, sympify_lists=False, globals=None, locals=None):
        """
     if isinstance(a, (Basic,bool)):
         return a
-    if isinstance(a, (int, long)):
+    if isinstance(a, int_types):
         return Basic.Integer(a)
-    if isinstance(a, float):
+    if isinstance(a, float_types):
         return Basic.Float(a)
-    if isinstance(a, complex):
+    if isinstance(a, complex_types):
         real, imag = sympify(a.real), sympify(a.imag)
         ireal, iimag = int(real), int(imag)
         if ireal==real:
@@ -62,7 +67,8 @@ def sympify(a, sympify_lists=False, globals=None, locals=None):
         if imag==iimag:
             imag = iimag
         return real + Basic.I * imag
-    if isinstance(a, str):
+    if isinstance(a, string_types):
+        # initialize globals,locals for sympy_eval call
         if globals is None:
             # using from-import instead of __dict__ to
             # have only public sympy symbols in globals.
@@ -80,17 +86,18 @@ def sympify(a, sympify_lists=False, globals=None, locals=None):
         # which does not inherit after Basic. This may be
         # SAGE's expression (or something alike) so take
         # its normal form via str() and try to parse it.
-        # XXX: make sure that `a` is actually a SAGE expression
-        #      until then this is disabled to catch invalid
+        # XXX: make sure that `a` is actually a SAGE expression.
+        #      Until then this block is disabled to catch invalid
         #      objects like {}, etc.
         #a = str(a)
         pass
-    if isinstance(a, str):
+    if isinstance(a, string_types):
         try:
             return sympy_eval(a, globals, locals)
         except Exception,msg:
             raise ValueError("Failed to evaluate %s: %s" % (`a`,msg))
     raise TypeError("Invalid type %s for sympy: %s" % (`type(a)`,`a`))
+
 
 _is_integer = re.compile(r'\A\d+(l|L)?\Z').match
 _ast_arith_classes = (ast.Add, ast.Sub, ast.Mul, ast.Div, ast.Mod, ast.FloorDiv,
