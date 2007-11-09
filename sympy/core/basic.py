@@ -1,5 +1,7 @@
 
 import types
+import itertools
+
 from .utils import memoizer_immutable_args, DualProperty, singleton, DualMethod, UniversalMethod
 
 __all__ = ['BasicType', 'Basic', 'Atom', 'Composite', 'BasicWild']
@@ -138,12 +140,9 @@ class Basic(object):
             cls = obj.__class__.__base__
             return cmp(cls(obj), cls(other))
         if obj.is_Composite:
-            # XXX: this will create lists which is a waste, use iterators instead
-            st = obj[:]
-            ot = other[:]
-            c = cmp(len(st), len(ot))
+            c = cmp(len(obj), len(other))
             if c: return c
-            for l,r in zip(st,ot):
+            for l,r in itertools.izip(obj,other):
                 c = l.compare(r)
                 if c: return c
             return 0

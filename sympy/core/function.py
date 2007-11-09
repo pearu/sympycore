@@ -33,111 +33,131 @@ class FunctionSignature:
     >>> f = Function('f', FunctionSignature(((float, int), ), (Basic,)))
 
     A function with undefined number of Basic type arguments and return values:
-    >>> f = Function('f', FunctionSignature([Basic], None))    
+    >>> f = Function('f', FunctionSignature([Basic], None))
     """
 
     def __init__(self, argument_classes = (Basic,), value_classes = (Basic,)):
-        if isinstance(argument_classes, type):
-            argument_classes = (argument_classes,)
-        if isinstance(value_classes, type):
-            value_classes = (value_classes,)
-        self.argument_classes = argument_classes
-        self.value_classes = value_classes
-        self.nof_arguments = None
-        if argument_classes is not None:
-            if isinstance(argument_classes, tuple):
-                self.nof_arguments = len(argument_classes)
-            elif isinstance(argument_classes, list):
-                self.argument_classes = tuple(self.argument_classes)
-        if value_classes is None:
-            # unspecified number of arguments
-            self.nof_values = None
-        else:
-            self.nof_values = len(value_classes)
+        self.argument_classes, self.nof_arguments = self._normalize(argument_classes, 1)
+        self.value_classes, self.nof_values = self._normalize(value_classes, 2)
+
+    @staticmethod
+    def _normalize(classes, i):
+        if isinstance(classes, type):
+            classes = (classes,)
+        nof_classes = None
+        if classes is not None:
+            if isinstance(classes, tuple):
+                nof_classes = len(classes)
+            elif isinstance(classes, list):
+                classes = tuple(classes)
+            else:
+                raise TypeError('FunctionSignature: wrong argument[%s] type %s, expected NoneType|tuple|list|type' % (i, type(classes).__name__))
+        return classes, nof_classes
+
+    @staticmethod
+    def _validate(funcname, values, intentname, value_classes, nof_values):
+        if nof_values is not None:
+            if nof_values!=len(values):
+                return ('function %s: wrong number of %ss, expected %s, got %s'\
+                        % (funcname, intentname, nof_values, len(values)))
+            i = 0
+            for a,cls in zip(values, value_classes):
+                i += 1
+                if not isinstance(a, cls):
+                    if isinstance(cls, tuple):
+                        clsinfo = '|'.join([c.__name__ for c in cls])
+                    else:
+                        clsinfo = cls.__name__
+                    return ('function %s: wrong %s[%s] type %r, expected %r'\
+                            % (funcname, intentname, i, type(a).__name__, clsinfo))
+        elif value_classes is not None:
+            i = 0
+            for a in values:
+                i += 1
+                if not isinstance(a, value_classes):
+                    clsinfo = '|'.join([c.__name__ for c in value_classes])
+                    return ('function %s: wrong %s[%s] type %r, expected %r'\
+                            % (funcname, intentname, i, type(a).__name__, clsinfo))
 
     def validate(self, funcname, args):
-        cls = self.argument_classes
-        if self.nof_arguments is not None:
-            if self.nof_arguments!=len(args):
-                raise TypeError('function %s: wrong number of arguments, expected %s, got %s'\
-                                % (funcname, self.nof_arguments, len(args)))
-            i = 0
-            for a,cls in zip(args, self.argument_classes):
-                i += 1
-                if not isinstance(a, cls):
-                    if isinstance(cls, tuple):
-                        clsinfo = '|'.join([c.__name__ for c in cls])
-                    else:
-                        clsinfo = cls.__name__
-                    raise TypeError('function %s: wrong argument[%s] type %r, expected %r'\
-                                    % (funcname, i, type(a).__name__, clsinfo))
-        elif cls is not None:
-            i = 0
-            for a in args:
-                i += 1
-                if not isinstance(a, cls):
-                    if isinstance(cls, tuple):
-                        clsinfo = '|'.join([c.__name__ for c in cls])
-                    else:
-                        clsinfo = cls.__name__
-                    raise TypeError('function %s: wrong argument[%s] type %r, expected %r'\
-                                    % (funcname, i, type(a).__name__, clsinfo))
+        return self._validate(funcname, args, 'argument', self.argument_classes, self.nof_arguments)
+
+    def validate_return(self, funcname, results):
+        return self._validate(funcname, results, 'return', self.value_classes, self.nof_values)
 
     def __repr__(self):
-        return '%s(%r, %r)' % (self.__class__.__name__,
-                               self.argument_classes,
-                               self.value_classes)
+        if self.nof_arguments is None and self.argument_classes is not None:
+            arg1 = [self.argument_classes]
+        else:
+            arg1 = self.argument_classes
+        if self.nof_values is None and self.value_classes is not None:
+            arg2 = [self.value_classes]
+        else:
+            arg2 = self.value_classes
+        return '%s(%r, %r)' % (self.__class__.__name__, arg1, arg2)
+
 
 Basic.FunctionSignature = FunctionSignature
 
-class FunctionTemplate(Composite, tuple):
+def new_function_value(cls, args):
+    if not isinstance(args, tuple):
+        args = tuple(args)
+    obj = object.__new__(cls)
+    obj.args = args
+    obj.func = cls
+    obj._hash_value = hash((cls.__name__, args))
+    return obj
+
+class FunctionTemplate(Composite):
+    """ Base class for function values.
+    """
+    # Not deriving FunctionTemplate from tuple because
+    # we don't want to create an unnecessary copy of the
+    # arguments tuple.
 
     signature = FunctionSignature(None, None)
-    return_canonize_types = (Basic,)
     
-    def __new__(cls, *args, **options):
+    def __new__(cls, *args):
         args = map(sympify, args)
-        cls.signature.validate(cls.__name__, args)
-        r = cls.canonize(args, **options)
-        if isinstance(r, cls.return_canonize_types):
+        errmsg = cls.signature.validate(cls.__name__, args)
+        if errmsg is not None:
+            raise TypeError(errmsg) #pragma NO COVER
+        r = cls.canonize(args)
+        if r is not None:
+            errmsg = cls.signature.validate_return(cls.__name__, (r,))
+            if errmsg is not None:
+                raise TypeError(errmsg) #pragma NO COVER
             return r
-        elif r is None:
-            pass
-        elif not isinstance(r, tuple):
-            args = (r,)
-        # else we have multiple valued function
-        return tuple.__new__(cls, args)
+        return new_function_value(cls, args)
 
     @classmethod
     def canonize(cls, args, **options):
         return
 
     def __hash__(self):
-        try:
-            return self.__dict__['_cached_hash']
-        except KeyError:
-            h = hash((self.__class__.__name__, tuple(self)))
-            self._cached_hash = h
-        return h
+        return self._hash_value
+
+    def __iter__(self):
+        return iter(self.args)
+
+    def __len__(self):
+        return len(self.args)
+
+    def __getitem__(self, key):
+        return self.args[key]
 
     def __eq__(self, other):
         if isinstance(other, Basic):
-            if not other.is_BasicFunction: return False
+            if not other.is_BasicFunction:
+                return False
             if self.func==other.func:
-                return tuple.__eq__(self, other)
+                return self.args==other.args
             return False
-        if isinstance(other, bool): return False
-        if isinstance(other, sympify_types):
+        if isinstance(other, bool):
+            return False
+        if isinstance(other, str):
             return self==sympify(other)
         return False
-
-    @property
-    def args(self):
-        return tuple(self)
-
-    @property
-    def func(self):
-        return self.__class__
 
     @DualProperty
     def precedence(cls):
@@ -145,12 +165,12 @@ class FunctionTemplate(Composite, tuple):
 
     def torepr(self):
         return '%s(%s)' % (self.__class__.torepr(),
-                           ', '.join([a.torepr() for a in self[:]]))
+                           ', '.join([a.torepr() for a in self.args]))
 
     def tostr(self, level=0):
         p = self.precedence
         r = '%s(%s)' % (self.__class__.tostr(),
-                        ', '.join([a.tostr() for a in self[:]]))
+                        ', '.join([a.tostr() for a in self.args]))
         if p<=level:
             return '(%s)' % (r)
         return r
@@ -163,7 +183,7 @@ class FunctionTemplate(Composite, tuple):
         return self.__class__(*[a(*args) for a in self.args])
 
     def atoms(self, type=None):
-        return Basic.atoms(self, type).union(self.__class__.atoms(type))
+        return Basic.atoms(self, type).union(self.func.atoms(type))
 
     def matches(pattern, expr, repl_dict={}, evaluate=False):
         d = Basic.matches(pattern, expr, repl_dict)
@@ -177,7 +197,8 @@ class FunctionTemplate(Composite, tuple):
             fd = pa.replace_dict(fd).matches(ea, fd)
             if fd is None: return
         return fd
-        
+
+
 class Callable(Basic, BasicType):
     """ Callable is base class for symbolic function classes.
     """
@@ -234,6 +255,7 @@ class Callable(Basic, BasicType):
     def __hash__(cls):
         return hash(cls.__name__)
 
+    # XXX: need revision
     def split(cls, op, *args, **kwargs):
         return [cls]
 
@@ -251,10 +273,6 @@ class Callable(Basic, BasicType):
             return False
         if isinstance(other, bool):
             return False
-        if isinstance(other, type):
-            if isinstance(self, type):
-                return self.__name__ == other.__name__
-            return False
         if isinstance(other, sympify_types):
             return self==sympify(other)
         return False
@@ -264,8 +282,8 @@ class Callable(Basic, BasicType):
 
 
 def _get_class_statement(frame = None):
-    """ Return a Python class definition line or None.
-    The function must be called inside a __new__ function.
+    """ Return a Python class definition line or None at frame lineno.
+    This function must be called inside a __new__ function.
     """
     if frame is None:
         frame = sys._getframe(2)
@@ -290,7 +308,8 @@ def _get_class_statement(frame = None):
         if frame.f_back is not None:
             return _get_class_statement(frame.f_back)
     else:
-        print 'Warning: cannot locate file:',fn
+        print >> sys.stderr,'Warning: cannot locate file:',fn #pragma NO COVER
+
 
 class BasicFunctionType(Atom, Callable):
     """ Base class for defined symbolic function.
@@ -332,7 +351,8 @@ class BasicFunctionType(Atom, Callable):
                     if line.replace(' ','').startswith('class'+name+'('):
                         is_global = True
                     else:
-                        print >> sys.stderr, 'Unexpected class definition line %r when defining class %r' % (line, name)
+                        print >> sys.stderr, 'Unexpected class definition line'\
+                              ' %r when defining class %r' % (line, name) #pragma NO COVER
         if bases is None:
             bases = typ.instance_type
         if isinstance(bases, type):
@@ -351,6 +371,7 @@ class BasicFunctionType(Atom, Callable):
 
     def torepr(cls):
         return cls.__name__
+
 
 class BasicWildFunctionType(BasicWild, BasicFunctionType):
     # Todo: derive BasicWildFunctionType from BasicDummyFunctionType.
@@ -380,11 +401,11 @@ class BasicFunction(FunctionTemplate):
         new = sympify(new)
         if self==old:
             return new
-        func = self.__class__
+        func = self.func
         flag = False
         if func==old:
             func = new
-        if func is not self.__class__:
+        if func is not self.func:
             flag = True
         args = []
         for a in self.args:
@@ -398,6 +419,7 @@ class BasicFunction(FunctionTemplate):
             return func(*args)
         return self
 
+    # XXX: need revision
     def split(cls, op, *args, **kwargs):
         return [cls]
 
@@ -414,7 +436,6 @@ class BasicLambda(Composite, Callable):
         >>> f(4)
         16
     """
-
     def __new__(cls, arguments, expression):
         if not isinstance(arguments, (tuple,list)):
             arguments = [sympify(arguments)]

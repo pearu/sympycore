@@ -160,9 +160,9 @@ def test_compare():
     assert cmp(F,[])==F.compare([])
     assert cmp(f,[])==f.compare([])
 
-    l = [a,f,A,1,T,F,g,{}]
+    l = [a,f,1,F,g,{}]
     l.sort(Basic.static_compare)
-    assert l==[1,f,g,a,A,T,F,{}]
+    assert l==[1,f,g,a,F,{}]
 
     assert bool(a)==False
     assert bool(f)==False
