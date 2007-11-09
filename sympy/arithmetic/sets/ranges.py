@@ -6,13 +6,13 @@ from .basic import ArithmeticSetFunction
 
 __all__ = ['RangeOO', 'RangeOC', 'RangeCO', 'RangeCC', 'Range']
 
-eq = Basic.is_equal
-lt = Basic.is_less
-le = Basic.is_less_equal
-gt = Basic.is_greater
-ge = Basic.is_greater_equal
-es = Basic.is_element_of_set
-ss = Basic.is_subset_of_set
+from ...core.assume_utils import is_equal as eq
+from ..assume_utils import is_less as lt
+from ..assume_utils import is_less_equal as le
+from ..assume_utils import is_greater as gt
+from ..assume_utils import is_greater_equal as ge
+from ...logic.sets.assume_utils import is_element_of_set as es
+from ...logic.sets.assume_utils import is_subset_of_set as ss
 
 class BasicRange(ArithmeticSetFunction):
     """ Base class for range functions.

@@ -2,7 +2,7 @@ from ...core import Basic, sympify
 
 __all__ = ['BasicSet']
 
-es = Basic.is_element_of_set
+from .assume_utils import is_element_of_set as es
 
 class BasicSet(Basic):
     """ Defines generic methods for set classes.

@@ -89,9 +89,8 @@ class BasicWildSymbol(BasicWild, BasicDummySymbol):
 
     def __new__(cls, name=None, predicate=None):
         obj = BasicDummySymbol.__new__(cls, name)
-        if predicate is None:
-            predicate = lambda expr: True
-        obj.predicate = predicate
+        if predicate is not None:
+            obj.predicate = predicate
         return obj
 
     def tostr(self, level=0):

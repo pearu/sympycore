@@ -1,5 +1,5 @@
 
-from basic import Basic, Composite, sympify
+from basic import Basic, Composite, sympify, sympify_types
 
 class MutableCompositeDict(Composite, dict):
     """ Base class for MutableAdd, MutableMul, Add, Mul.
@@ -64,14 +64,17 @@ class MutableCompositeDict(Composite, dict):
 
     # comparison methods
     def compare(self, other):
-        if self is other: return 0
+        if self is other:
+            return 0
         c = cmp(self.__class__, other.__class__)
         if c: return c
         return dict.__cmp__(self, other)
 
     def __eq__(self, other):
-        other = sympify(other)
-        if self.__class__ is not other.__class__: return False
+        if self is other:
+            return True
+        if self.__class__ is not other.__class__:
+            return False
         return dict.__eq__(self, other)
 
     def replace(self, old, new):
@@ -127,11 +130,15 @@ class ImmutableDictMeths(BasicImmutableMeths):
         return [dict.__getitem__(self, k) for k in r]
 
     def __eq__(self, other):
+        if self is other:
+            return True
         if isinstance(other, self.__class__):
             return dict.__eq__(self, other)
         if isinstance(self, (Basic,bool)):
             return False
-        return self==sympify(other)
+        if isinstance(other, str):
+            return self==sympify(other)
+        return False
 
 class ImmutableSetMeths(BasicImmutableMeths):
     """ Auxiliary class for making set immutable.
@@ -144,8 +151,12 @@ class ImmutableSetMeths(BasicImmutableMeths):
         return r
 
     def __eq__(self, other):
+        if self is other:
+            return True
         if isinstance(other, self.__class__):
             return set.__eq__(self, other)
         if isinstance(self, (Basic,bool)):
             return False
-        return self==sympify(other)
+        if isinstance(other, str):
+            return self==sympify(other)
+        return False

@@ -5,9 +5,10 @@ from .utils import memoizer_immutable_args, DualProperty, singleton, DualMethod,
 __all__ = ['BasicType', 'Basic', 'Atom', 'Composite', 'BasicWild']
 
 ordering_of_classes = [
-    'Number','NumberSymbol','ImaginaryUnit','BasicSymbol','BasicFunction',
-    'Callable',
-    'Atom','Composite','Basic',
+    'Number','NumberSymbol','ImaginaryUnit','BasicSymbol','Atom',
+    'BasicFunction','Callable',
+    'Composite',
+    'Basic',
     ]
 
 
@@ -50,12 +51,10 @@ def _get_class_index(cls):
             base = getattr(types, basename, object)
         if issubclass(cls, base):
             if clsbase is None:
-                clsbase = base
-                clsindex = i
+                clsbase, clsindex = base, i
             else:
                 if issubclass(base, clsbase):
-                    clsbase = base
-                    clsindex = i
+                    clsbase,clsindex = base, i #pragma NO COVER
     return clsindex
 
 class Basic(object):
@@ -79,7 +78,8 @@ class Basic(object):
             return self.torepr()
         if Basic.repr_level == 1:
             return self.tostr()
-        raise ValueError, "bad value for Basic.repr_level"
+        # XXX: Catch the invalid value of repr_level at the moment of setting it.
+        raise ValueError, "bad value for Basic.repr_level" #pragma NO COVER
 
     def __str__(self):
         return self.tostr()
@@ -88,7 +88,7 @@ class Basic(object):
         return self.torepr()
 
     def torepr(self):
-        return '<%r instance %s>' % (self.__class__, id(self))
+        return '<%s instance at %s>' % (self.__class__.__name__, hex(id(self)))
 
     @staticmethod
     def static_compare(obj1, obj2):
@@ -138,6 +138,7 @@ class Basic(object):
             cls = obj.__class__.__base__
             return cmp(cls(obj), cls(other))
         if obj.is_Composite:
+            # XXX: this will create lists which is a waste, use iterators instead
             st = obj[:]
             ot = other[:]
             c = cmp(len(st), len(ot))
@@ -149,19 +150,20 @@ class Basic(object):
         return cmp(obj, other)
 
     def __eq__(self, other):
+        # redefine __eq__ and __hash__ in parallel, also compare.
         return self is other
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
     def __hash__(self):
-        raise NotImplementedError('%s.__hash__()' % (self.__class__.__name__))
+        h = id(self)
+        self.__hash__ = h.__hash__
+        return h
 
     def __nonzero__(self):
-        # prevent using constructs like:
-        #   a = Symbol('a')
-        #   if a: ..
-        raise AssertionError("only Relational and Number classes can define __nonzero__ method, %r" % (self.__class__))
+        # don't redefine __nonzero__ except for Number types.
+        return False
 
     def replace(self, old, new):
         """ Replace subexpression old with expression new and return result.
@@ -177,12 +179,13 @@ class Basic(object):
             if not isinstance(r, Basic): break
         return r
 
-    def replace_list(self, expressions, values):
-        r = self
-        for e,b in zip(expressions, values):
-            r = r.replace(e,b)
-            if not isinstance(r, Basic): break
-        return r
+    # Do we need replace_list??
+    #def replace_list(self, expressions, values):
+    #    r = self
+    #    for e,b in zip(expressions, values):
+    #        r = r.replace(e,b)
+    #        if not isinstance(r, Basic): break
+    #    return r
 
     def atoms(self, type=None):
         """Returns the atoms that form current object.
@@ -211,9 +214,9 @@ class Basic(object):
             if type is None or isinstance(self, type):
                 result.add(self)
         elif isinstance(self, dict):
-            for k,c in self.items():
+            for k,v in self.iteritems():
                 result = result.union(k.atoms(type=type))
-                result = result.union(c.atoms(type=type))
+                result = result.union(v.atoms(type=type))
         else:
             for obj in self:
                 result = result.union(obj.atoms(type=type))
@@ -228,11 +231,13 @@ class Basic(object):
                     return True
             return False
         elif not patterns:
-            raise TypeError("has() requires at least 1 argument (got none)")
+            return True
         p = Basic.sympify(patterns[0])
-        if not p.is_Wild:
+        if isinstance(p,Basic) and p.is_Atom and not p.is_BasicWild:
             return p in self.atoms(p.__class__)
-        raise NotImplementedError('has: wild support')
+        if self.match(p) is not None:
+            return True
+        return False
 
     def match(self, pattern):
         """
@@ -269,7 +274,7 @@ class Basic(object):
     def clone(self):
         """ Return recreated composite object.
         """
-        return self
+        raise NotImplementedError('%s.clone() method' % (self.__class__.__name__)) #pragma NO COVER
 
     def expand(self, *args, **hints):
         """Expand an expression based on different hints. Currently
@@ -277,6 +282,7 @@ class Basic(object):
         """
         return self
 
+    # XXX: The following methods need a revision:
     def split(self, op, *args, **kwargs):
         return [self]
 
@@ -285,54 +291,6 @@ class Basic(object):
             __assumptions__ = Basic.Assumptions(*assumptions)
         return self.clone()
 
-
-
-# The following static methods should be used in places
-# where assumptions may be required
-    @staticmethod
-    def is_less(lhs, rhs, assumptions=None):
-        """ Return True or False if the relation 'lhs < rhs' is satisfied or not.
-        For non-numeric operants assumptions model will be used.
-        If the result is undefined, return None.
-        """
-        if lhs.is_Number and rhs.is_Number:
-            return lhs < rhs
-        d = rhs - lhs
-        if d.is_Number:
-            return d.is_positive
-        if d.is_Infinity: return True
-        if d==-Basic.oo: return False
-        #print lhs, rhs
-        #XXX: implement assumptions model
-#
-    @staticmethod
-    def is_equal(lhs, rhs, assumptions=None):
-        return lhs==rhs
-    
-    @staticmethod
-    def is_less_equal(lhs, rhs, assumptions=None):
-        if Basic.is_equal(lhs, rhs, assumptions): return True
-        return Basic.is_less(lhs, rhs, assumptions)
-
-    @staticmethod
-    def is_greater(lhs, rhs, assumptions=None):
-        return Basic.is_less(rhs, lhs, assumptions)
-
-    @staticmethod
-    def is_greater_equal(lhs, rhs, assumptions=None):
-        return Basic.is_less_equal(rhs, lhs, assumptions)
-    @staticmethod
-    def is_element_of_set(lhs, rhs, assumptions=None):
-        r = rhs.try_element(lhs)
-        if isinstance(r, bool):
-            return r
-        #XXX: implement assumptions model
-    @staticmethod
-    def is_subset_of_set(lhs, rhs, assumptions=None):
-        r = rhs.try_subset(lhs)
-        if isinstance(r, bool):
-            return r
-        #XXX: implement assumptions model
 
 class Atom(Basic):
 
@@ -355,6 +313,7 @@ class BasicWild(Basic):
     """ Base class for wild symbols and functions.
     
     """
+    predicate = lambda self, expr: True
 
     def matches(pattern, expr, repl_dict={}, evaluate=False):
         if expr.is_BasicWild:
@@ -377,6 +336,7 @@ class BasicWild(Basic):
             repl_dict = repl_dict.copy()
             repl_dict[pattern] = expr
             return repl_dict
+
 
 from .sympify import sympify, sympify_types
 Basic.sympify = staticmethod(sympify)

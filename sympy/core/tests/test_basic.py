@@ -5,9 +5,15 @@ from sympy.core import *
 def test_isinstance():
     class A(Basic):
         pass
+    class S(Atom):
+        pass
+    class C(Composite, tuple):
+        pass
     class T(BasicFunctionType):
         pass
     a = A()
+    s = S()
+    c = C((s,s))
     F = T('F')
     f = F()
 
@@ -26,6 +32,47 @@ def test_isinstance():
     assert isinstance(f, Basic)
     assert not isinstance(f, BasicType)
 
+    assert a.torepr().startswith('<A instance at 0x')==True
+    assert a.tostr()==a.torepr()
+
+    assert s.torepr()=='S()'
+    # Below is inconsistency with `c=C((s,s))`,
+    # one usually needs to redefine __new__() and torepr().
+    assert c.torepr()=='C(S(), S())' 
+
+    assert c.atoms()==set([s])
+    assert c.atoms(type=S)==set([s])
+    assert c.atoms(type=s)==set([s])
+    assert c.atoms(type=A)==set()
+    assert c.atoms(type=a)==set()
+
+    assert c.has()==True
+    assert c.has(s)==True
+    assert c.has(s,a)==True
+    assert c.has(a)==False
+    assert c.has(a,f)==False
+
+    w = BasicWild()
+    w2 = BasicWildSymbol(predicate=lambda expr: not expr.is_Atom)
+    w3 = BasicWildSymbol(predicate=lambda expr: isinstance(expr,int))
+    assert c.has(c)==True
+    assert c.has(w)==True
+    assert c.has(w2)==True
+    assert c.has(w3)==False
+    assert c.has(True)==False
+
+    assert c.matches(c)=={}
+    assert c.matches(c,{c:c})=={c:c}
+    assert s.matches(s)=={}
+    assert s.matches(s,{s:s})=={s:s}
+    assert c.matches(s,{c:s})=={c:s}
+    assert s.matches(c,{s:c})=={s:c}
+    assert s.matches(c,{s:s})==None
+    assert c.matches(s,{c:c})==None
+    assert w.matches(s,{w:s})=={w:s}
+    assert w.matches(s,{w:c})==None
+
+    
 def test_compare():
     class A(Basic):
         pass
@@ -53,12 +100,18 @@ def test_compare():
     assert a.compare(F)==-F.compare(a)!=0
     assert a.compare(f)==-f.compare(a)!=0
 
+    assert A.compare(Basic)==-Basic.compare(A)!=0
     assert A.compare(T)==-T.compare(A)!=0
     assert A.compare(F)==-F.compare(A)!=0
     assert A.compare(f)==-f.compare(A)!=0
 
     assert T.compare(F)==-F.compare(T)!=0
     assert T.compare(f)==-f.compare(T)!=0
+
+    assert Callable.compare(Basic)==-Basic.compare(Callable)!=0
+    assert Number.compare(Basic)==-Basic.compare(Number)!=0
+    assert Number.compare(Atom)==-Atom.compare(Number)!=0
+    assert Number.compare(BasicSymbol)==-BasicSymbol.compare(Number)!=0
 
     # basic objects are compared via pointers (unless overriding __eq__ method):
     assert a.compare(a2)==-a2.compare(a)!=0
@@ -106,3 +159,12 @@ def test_compare():
     assert cmp(T,[])==T.compare([])
     assert cmp(F,[])==F.compare([])
     assert cmp(f,[])==f.compare([])
+
+    l = [a,f,A,1,T,F,g,{}]
+    l.sort(Basic.static_compare)
+    assert l==[1,f,g,a,A,T,F,{}]
+
+    assert bool(a)==False
+    assert bool(f)==False
+
+    
