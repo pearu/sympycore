@@ -9,7 +9,7 @@ This package defines:
 """
 
 from .basic import BasicBoolean
-from .symbol import Boolean, DummyBoolean
+from .symbol import Boolean, DummyBoolean, WildBoolean
 from .function import Predicate, PredicateType
 from .operations import And, Or, Xor, Not, Implies, Equiv
 
@@ -17,9 +17,11 @@ boolean_classes = (BasicBoolean, bool)
 
 # initialize signatures:
 from ...core.function import FunctionSignature
-Predicate.signature = FunctionSignature(None, boolean_classes)
-And.signature = FunctionSignature(list(boolean_classes), boolean_classes)
-Or.signature = FunctionSignature(list(boolean_classes), boolean_classes)
-Xor.signature = FunctionSignature(list(boolean_classes), boolean_classes)
-Not.signature = FunctionSignature((boolean_classes,), boolean_classes)
+Predicate.signature = FunctionSignature(None, (boolean_classes,))
+And.signature = FunctionSignature(list(boolean_classes), (boolean_classes,))
+Or.signature = FunctionSignature(list(boolean_classes), (boolean_classes,))
+Xor.signature = FunctionSignature(list(boolean_classes), (boolean_classes,))
+Not.signature = FunctionSignature((boolean_classes,), (boolean_classes,))
+Implies.signature = FunctionSignature((boolean_classes,boolean_classes), (boolean_classes,))
+Equiv.signature = FunctionSignature((boolean_classes,boolean_classes), (boolean_classes,))
 del FunctionSignature

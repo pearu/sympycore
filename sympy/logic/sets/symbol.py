@@ -1,14 +1,23 @@
 
 from ...core import Basic
 from ...core.utils import singleton
-from ...core.symbol import BasicSymbol
+from ...core.symbol import BasicSymbol, BasicDummySymbol, BasicWildSymbol
 from .basic import BasicSet
 
-__all__ = ['SetSymbol', 'UniversalSet', 'EmptySet',
+__all__ = ['SetSymbol', 'DummySet', 'WildSet',
+           'UniversalSet', 'EmptySet',
            'Empty', 'Universal']
 
 class SetSymbol(BasicSet, BasicSymbol):
     """ Set symbol.
+    """
+
+class DummySet(BasicDummySymbol, SetSymbol):
+    """ Dummy set symbol.
+    """
+
+class WildSet(BasicWildSymbol, SetSymbol):
+    """ Wild set symbol.
     """
 
 class UniversalSet(SetSymbol):

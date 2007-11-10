@@ -5,12 +5,12 @@ This package defines:
   - set theory support features
 """
 
-from .symbolic import (Boolean, DummyBoolean,
+from .symbolic import (Boolean, DummyBoolean,WildBoolean,
                        Not, And, Or, Xor, Equiv, Implies,
                        Predicate, PredicateType)
 
 from .sets import (BasicSet, Union, Intersection, Difference, Complementary, Set,
-                   SetSymbol, Empty, Universal, Element, Subset,
+                   SetSymbol, DummySet, WildSet, Empty, Universal, Element, Subset,
                    SetFunction, SetFunctionType, AsSet)
 
     

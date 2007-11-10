@@ -99,7 +99,7 @@ class FunctionSignature:
 
 Basic.FunctionSignature = FunctionSignature
 
-def new_function_value(cls, args):
+def new_function_value(cls, args, options):
     if not isinstance(args, tuple):
         args = tuple(args)
     obj = object.__new__(cls)
@@ -117,18 +117,32 @@ class FunctionTemplate(Composite):
 
     signature = FunctionSignature(None, None)
     
-    def __new__(cls, *args):
+    def __new__(cls, *args, **options):
         args = map(sympify, args)
+        # options can only be used to control the canonize
+        # method. options should not contain additional data
+        # as the content of options are not used for comparing
+        # instances nor for computing the hash value of an
+        # instance.
         errmsg = cls.signature.validate(cls.__name__, args)
         if errmsg is not None:
             raise TypeError(errmsg) #pragma NO COVER
-        r = cls.canonize(args)
+        # since args is a list, canonize may change it in-place,
+        # e.g. sort it.
+        if cls.canonize.func_code.co_argcount==2:
+            if options:
+                raise NotImplementedError('%s.canonize method does not take'\
+                                          ' options, got %r'\
+                                          % (cls.__name__, options))
+            r = cls.canonize(args)
+        else:
+            r = cls.canonize(args, options)
         if r is not None:
             errmsg = cls.signature.validate_return(cls.__name__, (r,))
             if errmsg is not None:
                 raise TypeError(errmsg) #pragma NO COVER
             return r
-        return new_function_value(cls, args)
+        return new_function_value(cls, args, options)
 
     @classmethod
     def canonize(cls, args, **options):

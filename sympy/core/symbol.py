@@ -30,7 +30,7 @@ class BasicSymbol(Atom, str):
     __hash__ = str.__hash__
 
     def as_dummy(self):
-        return BasicDummySymbol(self.name)
+        return self.__class__._dummy_class(self.name)
 
     # disable arithmetic methods for basic symbols,
     # though they can be still used in arithmetic functions.
@@ -95,3 +95,5 @@ class BasicWildSymbol(BasicWild, BasicDummySymbol):
 
     def tostr(self, level=0):
         return self.name + '_'
+
+

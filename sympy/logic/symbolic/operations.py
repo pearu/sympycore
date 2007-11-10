@@ -21,18 +21,19 @@ class And(Predicate):
         flag = False
         for o in operants:
             if isinstance(o, And):
-                new_operants = new_operants.union(set(o.args))
+                new_operants = new_operants.union(o.args)
                 flag = True
             elif isinstance(o, bool):
-                if not o: return False
+                if not o:
+                    return False
                 flag = True
             else:
                 n = len(new_operants)
                 new_operants.add(o)
                 if n==len(new_operants):
                     flag = True
-        for o in list(new_operants):
-            if Not(o) in new_operants:
+        for o in new_operants:
+            if o.is_Not and o.args[0] in new_operants:
                 return False
         if not new_operants:
             return True
@@ -42,13 +43,6 @@ class And(Predicate):
             return cls(*new_operants)
         operants.sort(Basic.static_compare)
         return        
-    def tostr(self, level=0):
-        return '%s(%s)' % (self.__class__.__name__,
-                           ', '.join([c.tostr(self.precedence) for c in self]))
-        r = ' and '. join([c.tostr(self.precedence) for c in self])
-        if self.precedence <= level:
-            r = '(%s)' % r
-        return r
 
 
 class Or(Predicate):
@@ -67,18 +61,19 @@ class Or(Predicate):
         flag = False
         for o in operants:
             if isinstance(o, Or):
-                new_operants = new_operants.union(set(o.args))
+                new_operants = new_operants.union(o.args)
                 flag = True
             elif isinstance(o, bool):
-                if o: return True
+                if o:
+                    return True
                 flag = True
             else:
                 n=len(new_operants)
                 new_operants.add(o)
                 if n==len(new_operants):
                     flag = True
-        for o in list(new_operants):
-            if Not(o) in new_operants:
+        for o in new_operants:
+            if o.is_Not and o.args[0] in new_operants:
                 return True
         if not new_operants:
             return False
@@ -88,13 +83,7 @@ class Or(Predicate):
             return cls(*new_operants)
         operants.sort(Basic.static_compare)
         return
-    def tostr(self, level=0):
-        return '%s(%s)' % (self.__class__.__name__,
-                           ', '.join([c.tostr(self.precedence) for c in self]))
-        r = ' OR '. join([c.tostr(self.precedence) for c in self])
-        if self.precedence <= level:
-            r = '(%s)' % r
-        return r
+
 
 class Xor(Predicate):
     """
@@ -151,13 +140,6 @@ class Xor(Predicate):
         operants.sort(Basic.static_compare)
         return
     
-    def tostr(self, level=0):
-        return '%s(%s)' % (self.__class__.__name__,
-                           ', '.join([c.tostr(self.precedence) for c in self]))
-        r = ' xor '. join([c.tostr(self.precedence) for c in self])
-        if self.precedence <= level:
-            r = '(%s)' % r
-        return r
 
 class Not(Predicate):
     # signature is initialized in __init__.py
@@ -168,13 +150,7 @@ class Not(Predicate):
             return not arg
         if arg.is_Not:
             return arg[0]
-    def tostr(self, level=0):
-        return '%s(%s)' % (self.__class__.__name__,
-                           ', '.join([c.tostr(self.precedence) for c in self]))
-        r = 'NOT %s' % (self.args[0].tostr(self.precedence))
-        if self.precedence <= level:
-            r = '(%s)' % r
-        return r
+
 
 class Implies(Predicate):
 

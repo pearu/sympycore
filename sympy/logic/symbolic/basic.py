@@ -6,17 +6,6 @@ __all__ = ['BasicBoolean']
 
 class BasicBoolean(Basic):
 
-    def __nonzero__(self): return False
-
-    # convenience methods:
-    def __invert__(self): return Not(self)            # ~ operator
-    def __or__(self, other): return Or(self, other)   # | operator
-    def __xor__(self, other): return XOr(self, other) # ^ operator
-    def __and__(self, other): return And(self, other) # & operator
-    def __ror__(self, other): return Or(self, other)   # | operator
-    def __rxor__(self, other): return XOr(self, other) # ^ operator
-    def __rand__(self, other): return And(self, other) # & operator
-
     def is_subset_of(self, other):
         """ Returns True if from other follows self.
         """

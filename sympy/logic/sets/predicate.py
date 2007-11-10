@@ -11,10 +11,6 @@ class Element(Predicate):
     def canonize(cls, (obj, set)):
         return set.try_element(obj)
 
-    def __nonzero__(self):
-        return False
-
-
 class Subset(Predicate):
     """ Predicate function 'object is a subset of a set'.
     """
@@ -28,6 +24,3 @@ class Subset(Predicate):
         if obj.is_EmptySet:
             return True
         return set.try_subset(obj)
-
-    def __nonzero__(self):
-        return False

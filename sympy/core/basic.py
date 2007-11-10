@@ -40,6 +40,13 @@ class BasicType(type):
             setattr(Basic, cls.__name__, cls)
             setattr(Basic, 'is_' + name,
                     DualProperty(is_cls, is_cls_type))
+
+
+        if getattr(cls, 'is_BasicDummySymbol', None):
+            # _dummy_class attribute is used by the BasicSymbol.as_dummy() method
+            if bases[0].__name__=='BasicDummySymbol' or name=='BasicDummySymbol':
+                cls.__bases__[-1]._dummy_class = cls 
+
         return cls
 
 @singleton
@@ -58,6 +65,7 @@ def _get_class_index(cls):
                 if issubclass(base, clsbase):
                     clsbase,clsindex = base, i #pragma NO COVER
     return clsindex
+
 
 class Basic(object):
 
@@ -220,6 +228,28 @@ class Basic(object):
             for obj in self:
                 result = result.union(obj.atoms(type=type))
         return result
+
+    def visit(self, func, parent=None): # workinprogress
+        """ Visit expression tree.
+        """
+        if self.is_Composite:
+            if isinstance(self, dict):
+                for key, value in self.iteritems():
+                    item = self.__class__((key, value))
+                    for it in (key, value):
+                        if it.is_Composite:
+                            for r in it.visit(func, self):
+                                yield func(it, r)
+                        else:
+                            yield func(item, it)
+            else:
+                for item in self:
+                    if item.is_Composite:
+                        for r in item.visit(func, self):
+                            yield func(item, r)
+                    else:
+                        yield func(self, item)
+        yield func(parent, self)
 
     def has(self, *patterns):
         """ Return True if self has any of the patterns.

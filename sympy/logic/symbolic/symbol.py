@@ -1,22 +1,15 @@
 
-from ...core.symbol import BasicSymbol, BasicDummySymbol
+from ...core.symbol import BasicSymbol, BasicDummySymbol, BasicWildSymbol
 from .basic import BasicBoolean
 
-__all__ = ['Boolean', 'DummyBoolean']
+__all__ = ['Boolean', 'DummyBoolean', 'WildBoolean']
 
 class Boolean(BasicBoolean, BasicSymbol):
-
-    def as_dummy(self):
-        return DummyBoolean(self.name)
-    def compute_truth_table(self):
-        return [self],{1:[True]}
-    def conditions(self, type=None):
-        return set()
-    def minimize(self):
-        return self
+    """ Boolean symbol"""
 
 class DummyBoolean(BasicDummySymbol, Boolean):
+    """ Dummy boolean symbol"""
 
-    pass
-
-
+class WildBoolean(BasicWildSymbol, Boolean):
+    """ Wild boolean symbol.
+    """

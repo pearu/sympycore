@@ -119,6 +119,13 @@ class Mul(ImmutableDictMeths, MutableMul):
     def __new__(cls, *args):
         return MutableMul(*args).canonical()
 
+    def __iter2__(self): # workinprogress
+        for k,v in self.iteritems():
+            if v.is_one:
+                yield k
+            else:
+                yield Basic.Exponentiation(k,v)
+
     # arithmetics methods
 
     def __imul__(self, other):
@@ -148,7 +155,6 @@ class Mul(ImmutableDictMeths, MutableMul):
         return [self]
 
     @property
-
     def precedence(self):
         return Basic.Mul_precedence
 

@@ -2,10 +2,15 @@
 import itertools
 
 from ..core.utils import memoizer_immutable_args, UniversalMethod
-from ..core import Basic, sympify
+from ..core import Basic, sympify, Composite
 from ..core.methods import MutableCompositeDict, ImmutableDictMeths
 
 from .basic import BasicArithmetic
+
+class Add2(BasicArithmetic, Composite):
+
+    def __new__(cls, *args):
+        return MutableAdd(*args, **options).canonical()        
 
 class MutableAdd(BasicArithmetic, MutableCompositeDict):
     """ Represents a sum.
@@ -167,6 +172,15 @@ class Add(ImmutableDictMeths, MutableAdd):
 
     def canonical(self):
         return self
+
+    def __iter2__(self): # workinprogress
+        for k,v in self.iteritems():
+            if k.is_one:
+                yield v
+            elif v.is_one:
+                yield k
+            else:
+                yield Basic.Multiplication(v,k)
 
     # arithmetics methods
 

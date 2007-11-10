@@ -10,7 +10,7 @@ This package provides:
 from ...core import Basic
 from .basic import BasicSet
 
-from .symbol import SetSymbol, UniversalSet, EmptySet
+from .symbol import SetSymbol, DummySet, WildSet, UniversalSet, EmptySet
 from .function import SetFunction, SetFunctionType
 from .set import Set
 from .operations import Union, Intersection, Difference, Complementary
