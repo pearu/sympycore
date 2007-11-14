@@ -4,22 +4,22 @@ x = Symbol('x')
 y = Symbol('y')
 
 def test_split_add():
-    assert (x).split('+') == [x]
-    assert sorted((3+x).split('+')) == sorted([3, x])
-    assert sorted((3+x+y).split('+')) == sorted([3, x, y])
-    assert sorted((1+4*x+y).split('+')) == sorted([1, 4*x, y])
-    assert (3*x).split('+') == [3*x]
-    assert (3*x*y).split('+') == [3*x*y]
+    assert list((x).split(Add)[1]) == [x]
+    assert sorted((3+x).split(Add)[1]) == sorted([3, x])
+    assert sorted((3+x+y).split(Add)[1]) == sorted([3, x, y])
+    assert sorted((1+4*x+y).split(Add)[1]) == sorted([1, 4*x, y])
+    assert list((3*x).split(Add)[1]) == [3*x]
+    assert list((3*x*y).split(Add)[1]) == [3*x*y]
 
 def test_split_mul():
-    assert (x).split('*') == [x]
-    assert (3+x).split('*') == [3+x]
-    assert sorted((3*x).split('*')) == sorted([3, x])
-    assert sorted((3*x*y).split('*')) == sorted([3, x, y])
-    assert sorted((3*x**2*y).split('*')) == sorted([3, x**2, y])
+    assert list((x).split(Mul)[1]) == [x]
+    assert list((3+x).split(Mul)[1]) == [3+x]
+    assert sorted((3*x).split(Mul)[1]) == sorted([3, x])
+    assert sorted((3*x*y).split(Mul)[1]) == sorted([3, x, y])
+    assert sorted((3*x**2*y).split(Mul)[1]) == sorted([3, x**2, y])
 
 def test_split_pow():
-    assert (x).split('**') == [x, 1]
-    assert (3+x).split('**') == [3+x, 1]
-    assert (3*x).split('**') == [3*x, 1]
-    assert (x**4).split('**') == [x, 4]
+    assert list((x).split(Pow)[1]) == [x]
+    assert list((3+x).split(Pow)[1]) == [3+x]
+    assert list((3*x).split(Pow)[1]) == [3*x]
+    assert list((x**4).split(Pow)[1]) == [x, 4]

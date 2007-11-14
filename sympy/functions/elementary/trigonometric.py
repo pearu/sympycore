@@ -45,7 +45,7 @@ class Sin(Function):
             if arg.is_zero: return arg
             if arg.is_negative: return -cls(-arg)
             return
-        factors = arg.split('*')
+        factors = list(arg.split(Basic.Mul)[1])
         I = Basic.I
         pi = Basic.pi
         if I in factors:

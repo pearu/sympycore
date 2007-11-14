@@ -26,27 +26,7 @@ class BasicArithmetic(ArithmeticMethods, Basic):
     def expand(self, *args, **kwargs):
         return self
 
-    def split(self, op, *args, **kwargs):
-        if op == '**':
-            return [self, Basic.Number(1)]
-        return [self]
-
-    def split(self, op, *args, **kwargs):
-        if op == "+":
-            if self.is_Add:
-                return list(self)
-            return [self]
-        elif op == "*":
-            if self.is_Mul:
-                return list(self)
-            return [self]
-        if op == "**":
-            if self.is_Pow:
-                return list(self.args)
-            return [self, Basic.Number(1)]
-        return [self]
-
-    def new_split(self, cls=None):
+    def split(self, cls=None):
         if cls is None:
             cls = self.__class__
         if cls is Basic.Add:
