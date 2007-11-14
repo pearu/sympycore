@@ -51,7 +51,7 @@ def test_add_performance():
     d2 = t2-t1
     print '\ntiming Add(x, <random int>, y): sandbox.core %s secs, sympy.core %s secs' % (d1,d2)
 
-def xtest_sum_performance():
+def xtest_sum_performance(): # obsolute, needs update
     from time import clock
     from sympy import Symbol, MutableAdd, Integer
     x = Symbol('x')
@@ -91,7 +91,7 @@ def xtest_sum_performance():
     #d3 = t2-t1
     #print '\ntiming summation: sandbox.core(direct/MutableAdd) %s/%s secs, sympy.core %s secs' % (d1,d2,d3)
 
-def xtest_expand_performance():
+def test_expand_performance():
     from time import clock
     from sympy.core import sympify
     expr = '(x+z+y)**20 * (z+x)**9'

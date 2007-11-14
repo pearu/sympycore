@@ -4,7 +4,7 @@ import sys
 import types
 
 from .utils import DualMethod, DualProperty
-from .basic import Atom, Composite, Basic, BasicType, sympify, sympify_types, BasicWild
+from .basic import Atom, Composite, Basic, BasicType, sympify, sympify_types, BasicWild, Classes
 
 __all__ = ['FunctionSignature',
            'BasicFunctionType', 'BasicFunction',
@@ -104,8 +104,11 @@ def new_function_value(cls, args, options):
         args = tuple(args)
     obj = object.__new__(cls)
     obj.args = args
+    obj.options = options
     obj.func = cls
-    obj._hash_value = hash((cls.__name__, args))
+    obj.args_sorted = None    # use get_args_sorted() to initialize
+    obj.args_frozenset = None # use get_args_frozenset() to initialize
+    obj._hash_value = None
     return obj
 
 class FunctionTemplate(Composite):
@@ -116,14 +119,24 @@ class FunctionTemplate(Composite):
     # arguments tuple.
 
     signature = FunctionSignature(None, None)
-    
+
+    # when arguments_sorted is True then it is assumed
+    # that the order of arguments is insignificant and
+    # when comparing function instances, arguments must
+    # be sorted first.
+    arguments_sorted = False
+
     def __new__(cls, *args, **options):
         args = map(sympify, args)
         # options can only be used to control the canonize
         # method. options should not contain additional data
         # as the content of options are not used for comparing
         # instances nor for computing the hash value of an
-        # instance.
+        # instance. However, options can be used to save
+        # temporary data when constructing an instance that
+        # could be useful in certain operations. See
+        # Addition and Multiplication operations as for
+        # examples.
         errmsg = cls.signature.validate(cls.__name__, args)
         if errmsg is not None:
             raise TypeError(errmsg) #pragma NO COVER
@@ -149,10 +162,29 @@ class FunctionTemplate(Composite):
         return
 
     def __hash__(self):
+        if self._hash_value is None:
+            cls = self.__class__
+            if cls.arguments_sorted:
+                self._hash_value = hash((cls.__name__, self.get_args_frozenset()))
+            else:
+                self._hash_value = hash((cls.__name__, self.args))
         return self._hash_value
 
     def __iter__(self):
         return iter(self.args)
+
+    def get_args_frozenset(self):
+        if self.args_frozenset is None:
+            self.args_frozenset = frozenset(self.args)
+        return self.args_frozenset
+
+    def get_args_sorted(self):
+        if self.args_sorted is None:
+            self.args_sorted = tuple(sorted(self.args, cmp=Basic.static_compare))
+        return self.args_sorted
+
+    def iterSorted(self):
+        return iter(self.get_args_sorted())
 
     def __len__(self):
         return len(self.args)
@@ -165,9 +197,10 @@ class FunctionTemplate(Composite):
             if not other.is_BasicFunction:
                 return False
             if self.func==other.func:
-                return self.args==other.args
-            return False
-        if isinstance(other, bool):
+                if self.arguments_sorted:
+                    return self.get_args_frozenset()==other.get_args_frozenset()
+                else:
+                    return self.args==other.args
             return False
         if isinstance(other, str):
             return self==sympify(other)
@@ -254,6 +287,7 @@ class Callable(Basic, BasicType):
         Basic.predefined_objects[name] = func
 
         # set Basic.Class attribute:
+        setattr(Classes, name, func)
         setattr(Basic, name, func)
 
     def torepr(cls):

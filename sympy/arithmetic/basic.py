@@ -6,6 +6,7 @@ from .methods import ArithmeticMethods
 class BasicArithmetic(ArithmeticMethods, Basic):
     """ Defines default methods for arithmetic classes.
     """
+
     def try_power(self, exponent):
         """ Try evaluating power self ** exponent.
         Return None if no evaluation is carried out.
@@ -29,6 +30,32 @@ class BasicArithmetic(ArithmeticMethods, Basic):
         if op == '**':
             return [self, Basic.Number(1)]
         return [self]
+
+    def split(self, op, *args, **kwargs):
+        if op == "+":
+            if self.is_Add:
+                return list(self)
+            return [self]
+        elif op == "*":
+            if self.is_Mul:
+                return list(self)
+            return [self]
+        if op == "**":
+            if self.is_Pow:
+                return list(self.args)
+            return [self, Basic.Number(1)]
+        return [self]
+
+    def new_split(self, cls=None):
+        if cls is None:
+            cls = self.__class__
+        if cls is Basic.Add:
+            return (cls, self.iterAdd())
+        if cls is Basic.Mul:
+            return (cls, self.iterMul())
+        if cls is Basic.Pow:
+            return (cls, self.iterPow())
+        raise TypeError('Expressions can be split only with respect to Add, Mul, Pow classes, got %s' % (cls.__name__))
 
     def diff(self, *symbols):
         """ Return derivative with respect to symbols. If symbols contains
@@ -67,8 +94,23 @@ class BasicArithmetic(ArithmeticMethods, Basic):
     def iterMul(self):
         return iter([self])
 
+    def iterPow(self):
+        return iter([self])
+
     def iterLogMul(self):
-        return iter([Basic.Log(self)])
+        iterator = self.iterBaseExp()
+        def itercall():
+            b,e = iterator.next()
+            if e.is_one:
+                return Basic.Log(b)
+            return e * Basic.Log(b)
+        return iter(itercall, False)
+
+    def iterTermCoeff(self):
+        return iter([self.as_term_coeff()])
+
+    def iterBaseExp(self):
+        return iter([self.as_base_exponent()])
 
     def match(self, pattern):
         pattern = Basic.sympify(pattern)
@@ -83,7 +125,7 @@ class BasicArithmetic(ArithmeticMethods, Basic):
     def as_term_coeff(self):
         """ Return (t,c) such that self==c*t.
         """
-        return self,Basic.Integer(1)
+        return self, Basic.Integer(1)
 
     def try_get_coefficient(self, expr):
         """

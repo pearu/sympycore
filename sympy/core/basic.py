@@ -4,7 +4,8 @@ import itertools
 
 from .utils import memoizer_immutable_args, DualProperty, singleton, DualMethod, UniversalMethod
 
-__all__ = ['BasicType', 'Basic', 'Atom', 'Composite', 'BasicWild']
+__all__ = ['BasicType', 'Basic', 'Atom', 'Composite', 'BasicWild',
+           'classes', 'objects']
 
 ordering_of_classes = [
     'Number','NumberSymbol','ImaginaryUnit','BasicSymbol','Atom',
@@ -13,6 +14,26 @@ ordering_of_classes = [
     'Basic',
     ]
 
+class Classes(object):
+    """ Holds all Basic subclasses as attributes.
+    """
+    @singleton
+    def __new__(cls): return object.__new__(cls)
+    def __setattr__(self, name, obj):
+        setattr(self.__class__, name, obj)
+
+classes = Classes()
+
+class Objects(object):
+    """ Holds commonly used instances of Basic classes.
+    """
+    @singleton
+    def __new__(cls):
+        return object.__new__(cls)
+    def __setattr__(self, name, obj):
+        setattr(self.__class__, name, obj)
+
+objects = Objects()
 
 class BasicType(type):
     """ Metaclass for Basic classes.
@@ -38,6 +59,7 @@ class BasicType(type):
             def is_cls_type(cl):
                 return isinstance(cl, cls)
             setattr(Basic, cls.__name__, cls)
+            setattr(Classes, cls.__name__, cls)
             setattr(Basic, 'is_' + name,
                     DualProperty(is_cls, is_cls_type))
 
@@ -119,6 +141,10 @@ class Basic(object):
         This method is needed only for sorting. We cannot use __cmp__
         because of the duality of Callable and __lt__ methods can
         be defined only for a subset of Basic objects.
+
+        Derived classes should define instance_compare method to
+        overwrite this universal compare method. When instance_compare(self, other)
+        is called then other.__class__ is self.__class__.
         """
         if obj is other: return 0
         if isinstance(obj, type):
@@ -147,6 +173,8 @@ class Basic(object):
             # convert Basic object to an instance of builtin type
             cls = obj.__class__.__base__
             return cmp(cls(obj), cls(other))
+        if hasattr(obj, 'instance_compare'):
+            return obj.instance_compare(other)
         if obj.is_Composite:
             c = cmp(len(obj), len(other))
             if c: return c
@@ -163,11 +191,8 @@ class Basic(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def __hash__(self):
-        h = id(self)
-        self.__hash__ = h.__hash__
-        return h
-
+    __hash__ = object.__hash__
+    
     def __nonzero__(self):
         # don't redefine __nonzero__ except for Number types.
         return False

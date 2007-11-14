@@ -69,11 +69,11 @@ def _test_Derivative():
     assert str(e) == "D(x**2/y, x, y)"
 
 # XXX: "/" printing not implemented
-def _test_pow():
+def xtest_pow():
     assert str(1/x) == "1/x"
 
 # XXX: "/" printing not implemented
-def _test_x_div_y():
+def xtest_x_div_y():
     x = Symbol("x")
     y = Symbol("y")
     assert str(x/y) == "x/y"

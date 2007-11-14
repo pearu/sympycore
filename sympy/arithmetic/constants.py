@@ -15,9 +15,6 @@ class NumberSymbol(BasicArithmetic, Atom):
         if other is self: return True
         return False
 
-    def __hash__(self):
-        return hash(self.__class__)
-
 class Exp1(NumberSymbol):
 
     def tostr(self, level=0):

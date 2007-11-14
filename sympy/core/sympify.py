@@ -52,7 +52,7 @@ def sympify(a, globals=None, locals=None):
        >>> sympify("2e-45").is_Real
        True
        
-       """
+    """
     if isinstance(a, (Basic,bool)):
         return a
     if isinstance(a, int_types):
@@ -81,21 +81,13 @@ def sympify(a, globals=None, locals=None):
             # must explicitly call `sympify(.., locals=locals())` in
             # order to reuse local variables.
             locals = {}
-    if not isinstance(a, str):
-        # At this point we were given an arbitrary expression
-        # which does not inherit after Basic. This may be
-        # SAGE's expression (or something alike) so take
-        # its normal form via str() and try to parse it.
-        # XXX: make sure that `a` is actually a SAGE expression.
-        #      Until then this block is disabled to catch invalid
-        #      objects like {}, etc.
-        #a = str(a)
-        pass
     if isinstance(a, string_types):
         try:
             return sympy_eval(a, globals, locals)
         except Exception,msg:
             raise ValueError("Failed to evaluate %s: %s" % (`a`,msg))
+    if hasattr(a, '__sympy__'):
+        return sympify(a.__sympy__())
     raise TypeError("Invalid type %s for sympy: %s" % (`type(a)`,`a`))
 
 
@@ -297,7 +289,6 @@ class SympyTransformer(Transformer):
 def sympy_eval(a, globals, locals):
     globals['Is'] = lambda x,y: x is y or x == y
     globals['IsNot'] = lambda x,y: not(x is y or x == y)
-    #exec 'from sympy import *' in globals
     tree = SympyTransformer(globals, locals).parseexpr(a)
     compiler.misc.set_filename('<sympify>', tree)
     code = ExpressionCodeGenerator(tree).getCode()

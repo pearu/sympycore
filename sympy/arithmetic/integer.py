@@ -1,4 +1,4 @@
-from ..core.utils import memoizer_immutable_args
+from ..core.utils import memoizer_immutable_args, singleton
 from ..core import Basic, sympify
 from .number import Rational
 
@@ -48,15 +48,35 @@ pyint_0 = pyint(0)
 pyint_1 = pyint(1)
 makeinteger = lambda p: pyint.__new__(Integer, p)
 
+@singleton
+def makezero(p):
+    obj = pyint.__new__(Integer, p)
+    obj.is_zero = True
+    obj.is_one = False
+    obj.p = p
+    obj.q = pyint_1
+    return obj
+
+@singleton
+def makeone(p):
+    obj = pyint.__new__(Integer, p)
+    obj.is_zero = False
+    obj.is_one = True
+    obj.p = p
+    obj.q = pyint_1
+    return obj
+
 class Integer(Rational, pyint):
 
     is_integer = True
+    is_zero = False
+    is_one = False
 
     @memoizer_immutable_args('Integer.__new__')
     def __new__(cls, p):
+        if p==0: return makezero(p)
+        if p==1: return makeone(p)
         obj = pyint.__new__(cls, p)
-        obj.is_zero = p==0
-        obj.is_one = p==1
         obj.p = p
         obj.q = pyint_1
         return obj
@@ -69,11 +89,8 @@ class Integer(Rational, pyint):
 
     # relational methods
 
-    def compare(self, other):
-        if self is other: return 0
-        c = cmp(self.__class__, other.__class__)
-        if c: return c
-        return pyint.__cmp__(self, pyint(other))
+    def instance_compare(self, other):
+        return pyint.__cmp__(self, other)
 
     def __eq__(self, other):
         if isinstance(other,(int, long)):

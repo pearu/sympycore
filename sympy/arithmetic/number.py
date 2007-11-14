@@ -1,5 +1,5 @@
 from ..core.utils import memoizer_immutable_args
-from ..core import Basic, Atom, sympify
+from ..core import Basic, Atom, sympify, objects
 from .methods import NumberMethods
 
 from .basic import BasicArithmetic
@@ -189,11 +189,8 @@ class Rational(Real):
     def is_negative(self):
         return self.p < 0
 
-    def compare(self, other):
-        if self is other: return 0
-        c = cmp(self.__class__, other.__class__)
-        if c: return c
-        return cmp(self.p*other.q, self.q*other.p)
+    def instance_compare(self, other):
+        return cmp(self.p*other.q, self.q*other.p) 
 
     def __eq__(self, other):
         other = sympify(other)
@@ -234,3 +231,6 @@ from .interval import Interval
 
 Basic.one = Integer(1)
 Basic.zero = Integer(0)
+
+objects.one = Integer(1)
+objects.zero = Integer(0)

@@ -51,7 +51,7 @@ def test_simple():
     assert m.is_Rational==False
     assert m.is_Symbol==False
     assert m.is_Add==False
-    assert m.is_BasicFunction==False
+    assert m.is_BasicFunction==True
     assert m.is_BasicFunctionType==False
     assert m.is_Sin==False
 

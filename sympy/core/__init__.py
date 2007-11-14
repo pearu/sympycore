@@ -1,6 +1,6 @@
 """Core module. Provides the basic operations needed in sympy.
 """
-from .basic import Basic, Composite, Atom, sympify, BasicType, BasicWild
+from .basic import Basic, Composite, Atom, sympify, BasicType, BasicWild, classes, objects
 from .symbol import BasicSymbol, BasicDummySymbol, BasicWildSymbol
 from .function import (BasicFunction, BasicFunctionType, BasicLambda,
                        FunctionSignature,BasicWildFunctionType,
@@ -12,5 +12,6 @@ __all__ = ['Basic', 'BasicType',
            'sympify',
            'BasicFunction', 'BasicFunctionType','BasicWildFunctionType',
            'BasicLambda',
-           'FunctionSignature','Callable'
+           'FunctionSignature','Callable',
+           'classes', 'objects'
            ]

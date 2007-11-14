@@ -4,16 +4,19 @@ from .number import Rational
 
 @memoizer_immutable_args('makefraction')
 def makefraction(p,q):
-    return tuple.__new__(Fraction, (p, q))
+    obj = object.__new__(Fraction)
+    obj.p = p
+    obj.q = q
+    return obj
 
 def makefraction_from_man_exp(man, exp):
     if exp > 0:
-        return makefraction(man * 2 ** exp, 1)
+        return Basic.Integer(man * 2 ** exp)
     obj = Fraction(man, 2** -exp)
     if obj.is_Fraction: return obj
     return obj.as_Fraction
 
-class Fraction(Rational, tuple):
+class Fraction(Rational):
     """
     Represents a ratio p/q of two integers.
 
@@ -36,24 +39,19 @@ class Fraction(Rational, tuple):
     make = staticmethod(makefraction)
     make_from_man_exp = staticmethod(makefraction_from_man_exp)
 
-    @property
-    def p(self): return self[0]
-    
-    @property
-    def q(self): return self[1]
-
-    __hash__ = tuple.__hash__
+    def __hash__(self):
+        return hash((self.p, self.q))
 
     @property
     def is_half(self):
-        return self[:]==(1,2)
+        return (self.p,self.q)==(1,2)
 
     def __eq__(self, other):
         if isinstance(other, Basic):
             if other.is_Integer:
                 other = other.as_Fraction
             if other.is_Fraction:
-                return tuple.__eq__(self, other)
+                return self.p==other.p and self.q==other.q
             if other.is_Number:
                 return NotImplemented
             return False
@@ -65,7 +63,7 @@ class Fraction(Rational, tuple):
         if other.is_Integer:
             other = other.as_Fraction
         if other.is_Fraction:
-            return tuple.__ne__(self, other)
+            return self.p!=other.p or self.q!=other.q
         return NotImplemented
 
     def __lt__(self, other):

@@ -1,11 +1,11 @@
-from sympy import Symbol, Rational
-from sympy.arithmetic.add import MutableAdd, Add, Sub
+from sympy import Symbol, Rational, Add, Sub
+#from sympy.arithmetic.add import MutableAdd, Add, Sub
 
 a = Symbol("a")
 b = Symbol("b")
 c = Symbol("c")
 
-def test_add_update():
+def xtest_add_update(): # TOBEREMOVED
     s = MutableAdd()
     assert dict(s)=={}
     s.update(a)
@@ -36,7 +36,7 @@ def test_operations():
     assert Sub(1, a) == 1-a
     assert Sub(a, 4, b) == a-(4+b)
 
-def test_mutable():
+def xtest_mutable(): #TOBEREMOVED
     s1 = MutableAdd(4,2)
     s2 = MutableAdd(3,2)
     s3 = MutableAdd(2,2,2)

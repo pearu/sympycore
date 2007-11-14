@@ -119,7 +119,7 @@ def test_wild_factor():
     assert p.matches(s**2*4)=={w:2*s}
     assert p.matches(s**2*t**2)=={w:s*t}
     assert p.matches(4*s**2*t**2)=={w:2*s*t}
-    assert p.matches(s**4*t**4)=={w:s**2*t**2}
+    assert p.matches(s**4*t**4)=={w:(s*t)**2}
     assert p.matches(s**2*t**4)=={w:s*t**2}
     assert p.matches(s**2*t**3)==None
     assert p.matches(s**2*t**-4)=={w:s*t**-2}
@@ -322,7 +322,7 @@ def test_interface():
     assert (x*y+1).match(p*q) in [{p:1, q:1+x*y}, {p:1+x*y, q:1}]
 
 # derivative tests are disabled because Derivative is not impl yet
-def xtest_derivative1():
+def x_test_derivative1():
     x,y = map(Symbol, 'xy')
     p,q = map(Wild, 'pq')
 
@@ -335,7 +335,7 @@ def xtest_derivative1():
     assert (3*fd).match(p*fd) != None
     assert (3*fd-1).match(p*fd + q) == {p: 3, q: -1}
 
-def xtest_derivative_bug1():
+def x_test_derivative_bug1():
     f = Function("f")
     x = Symbol("x")
     a = Wild("a", exclude=[f])
@@ -346,7 +346,7 @@ def xtest_derivative_bug1():
     d2 = pattern.matches(expr, d1, evaluate=True)
     assert d2 == None
 
-def xtest_derivative2():
+def x_test_derivative2():
     f = Function("f")
     x = Symbol("x")
     a = Wild("a", exclude=[f])
@@ -364,7 +364,7 @@ def xtest_derivative2():
     assert e.match(a*Derivative(f(x), x) + b) == None
     assert e.match(a*Derivative(f(x), x, x) + b) == {a: 1, b: x**2}
 
-def xtest_match_deriv_bug1():
+def x_test_match_deriv_bug1():
     n = Function('n')
     l = Function('l')
 

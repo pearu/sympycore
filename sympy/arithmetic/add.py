@@ -329,7 +329,7 @@ class Add(ImmutableDictMeths, MutableAdd):
                     items2.append((t1,c1))
             items = items1 + items2
         else:
-            items = [(expr, Basic.Integer(1))]
+            items = [(expr, objects.one)]
         for i in range(len(items)):
             t1,c1 = items[i]
             d = t.matches(t1*(c1/c), repl_dict)

@@ -34,7 +34,7 @@ def test_Log():
     assert Log(nan) == nan
 
     assert Log(oo) == oo
-    assert Log(-oo) == oo
+    assert Log(-oo) == oo + I*pi
 
     assert Log(0) == -oo
 
