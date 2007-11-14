@@ -469,3 +469,21 @@ def test_floats():
     e = Cos(0.12345)**2
     r = e.match(a*Cos(b)**2)
     assert r == {a: 1, b: Real(0.12345)}
+
+def test_coeff_search():
+    x = Symbol('x')
+    y = Symbol('y')
+    w = Wild('w')
+    def foo(expr):
+        t,c = expr.as_term_coeff()
+        return c.is_one and not t.is_Mul and t.has(x)
+    wx = Wild(predicate=foo)
+
+    assert (w*wx).matches(x)=={wx:x, w:1}
+    assert (w*wx).matches(2*x)=={wx:x, w:2}
+    #assert (w*wx).matches(-x)=={wx:x, w:-1} # fix me
+    assert (w*wx).matches(y*x)=={wx:x, w:y}
+    assert (w*wx).matches(2*y*x)=={wx:x, w:2*y}
+    assert (w*wx).matches(2*y*(x+1))=={wx:x+1, w:2*y}
+    assert (w*wx).matches(2*y*Sin(x))=={wx:Sin(x), w:2*y}
+    assert (w*wx).matches(1+x)=={wx:1+x, w:1}

@@ -296,7 +296,7 @@ class Add(ArithmeticFunction):
         return classes.Mul(self, other)
 
     def matches(pattern, expr, repl_dict={}):
-        wild_classes = (Basic.Wild, Basic.WildFunctionType)
+        wild_classes = (classes.Wild, classes.WildFunctionType)
         if not pattern.atoms(type=wild_classes):
             return Basic.matches(pattern, expr, repl_dict)
         wild_part = TermCoeffDict(())
@@ -310,33 +310,59 @@ class Add(ArithmeticFunction):
             exact_part += expr
             res = wild_part.as_Basic().matches(exact_part.as_Basic(), repl_dict)
             return res
-        piter = pattern.iterTermCoeff()
-        pt, pc = piter.next()
-        rpat = TermCoeffDict(tuple(piter)).as_Basic()
-        if expr.is_Add:
-            items1, items2 = [], []
-            for item in expr.iterTermCoeff():
-                if item[1]==pc:
-                    items1.append(item)
-                else:
-                    items2.append(item)
-            items = items1 + items2
-        else:
-            items = [expr.as_term_coeff()]
-        for i in xrange(len(items)):
-            t, c = items[i]
-            d = pt.matches(t*(c/pc), repl_dict)
-            if d is None:
-                continue
-            npat = rpat.replace_dict(d)
-            nexpr = TermCoeffDict(items[:i]+items[i+1:]).as_Basic()
-            d = npat.matches(nexpr, d)
+        patitems = list(pattern.iterTermCoeff())
+        for i in xrange(len(patitems)):
+            pt,pc = patitems[i]
+            rpat = TermCoeffDict(patitems[:i]+patitems[i+1:]).as_Basic()
+            if expr.is_Add:
+                items1, items2 = [], []
+                for item in expr.iterTermCoeff():
+                    if item[1]==pc:
+                        items1.append(item)
+                    else:
+                        items2.append(item)
+                items = items1 + items2
+            else:
+                items = [expr.as_term_coeff()]
+            for i in xrange(len(items)):
+                t, c = items[i]
+                d = pt.matches(t*(c/pc), repl_dict)
+                if d is None:
+                    continue
+                npat = rpat.replace_dict(d)
+                nexpr = TermCoeffDict(items[:i]+items[i+1:]).as_Basic()
+                d = npat.matches(nexpr, d)
+                if d is not None:
+                    return d
+            d = pt.matches(objects.zero, repl_dict)
+            if d is not None:
+                d = rpat.replace_dict(d).matches(expr, d)
             if d is not None:
                 return d
-        d = pt.matches(objects.zero, repl_dict)
-        if d is not None:
-            d = rpat.replace_dict(d).matches(expr, d)
-        return d
+
+    def as_term_coeff(self):
+        p = None
+        for t,c in self.iterTermCoeff():
+            if not c.is_Rational:
+                p = None
+                break
+            if p is None:
+                p, q = c.p, c.q
+                if p<0:
+                    sign = -1
+                else:
+                    sign = 1
+            else:
+                if c.p>0 and sign==-1:
+                    sign = 1
+                p = classes.Integer.gcd(abs(c.p), p)
+                q = classes.Integer.gcd(c.q, q)
+        if p is not None:
+            c = classes.Fraction(sign*q,p)
+            if not c.is_one:
+                return TermCoeffDict([(t,v*c) for (t,v) in self.iterTermCoeff()]).as_Basic(),1/c
+        return self, objects.one
+
 
 class BaseExpDict(dict):
     """
@@ -568,10 +594,10 @@ class Mul(ArithmeticFunction):
             else:
                 if e.p>0 and sign==-1:
                     sign = 1
-                p = Basic.Integer.gcd(abs(e.p), p)
-                q = Basic.Integer.gcd(e.q, q)
+                p = classes.Integer.gcd(abs(e.p), p)
+                q = classes.Integer.gcd(e.q, q)
         if p is not None:
-            c = Basic.Fraction(sign*q,p)
+            c = classes.Fraction(sign*q,p)
             if not c.is_one:
                 return BaseExpDict([(b,e*c) for (b,e) in self.iterBaseExp()]).as_Basic(),1/c
         return self, objects.one
@@ -618,7 +644,7 @@ class Mul(ArithmeticFunction):
         return classes.Mul(self, other)
 
     def matches(pattern, expr, repl_dict={}):
-        wild_classes = (Basic.Wild, Basic.WildFunctionType)
+        wild_classes = (classes.Wild, classes.WildFunctionType)
         if not pattern.atoms(type=wild_classes):
             return Basic.matches(pattern, expr, repl_dict)
         wild_part = BaseExpDict(())
@@ -632,8 +658,8 @@ class Mul(ArithmeticFunction):
             exact_part *= expr
             res = wild_part.as_Basic().matches(exact_part.as_Basic(), repl_dict)
             return res
-        log_pattern = Basic.Add(*pattern.iterLogMul())
-        log_expr = Basic.Add(*expr.iterLogMul())
+        log_pattern = classes.Add(*pattern.iterLogMul())
+        log_expr = classes.Add(*expr.iterLogMul())
         return log_pattern.matches(log_expr, repl_dict)
 
 
@@ -709,12 +735,12 @@ class Pow(Function):
         return self.base, self.exponent
 
     def matches(pattern, expr, repl_dict={}):
-        wild_classes = (Basic.Wild, Basic.WildFunctionType)
+        wild_classes = (classes.Wild, classes.WildFunctionType)
         if not pattern.atoms(type=wild_classes):
             return Basic.matches(pattern, expr, repl_dict)
         pb, pe = pattern.args
         if expr.is_Number:
-            r = (pe * Basic.Log(pb)).matches(Basic.Log(expr), repl_dict)
+            r = (pe * classes.Log(pb)).matches(classes.Log(expr), repl_dict)
             return r
         b, e = expr.as_base_exponent()
         p1 = e/pe
