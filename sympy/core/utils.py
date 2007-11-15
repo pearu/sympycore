@@ -223,6 +223,26 @@ def memoizer_immutable_args(name):
     """
     return make_memoized
 
+def memoizer_Fraction(func):
+    func._memoizer_cache = cache = {}
+    def wrapper_Fraction(cls, *args):
+        r = cache.get(args, None)
+        if r is None:
+            cache[args] = r = func(cls,*args)
+        return r
+    return wrapper_Fraction
+
+def memoizer_Integer(func):
+    func._memoizer_cache = cache = {}
+    def wrapper_Integer(cls, p):
+        if not(-1000<p<1000):
+            return func(cls,p)
+        r = cache.get(p, None)
+        if r is None:
+            cache[p] = r = func(cls,p)
+        return r
+    return wrapper_Integer
+
 def clear_cache():
     """Clear all cached objects."""
     for cache in all_caches.values():

@@ -11,14 +11,16 @@ from .number import (Number, Real, Rational, Float, Fraction, Integer,
                      Interval)
 from .symbol import Symbol, Dummy, Wild
 from .function import Function, Lambda, FunctionType, WildFunctionType
+from .constants import initialize_constants
+
+initialize_constants() # operations uses oo,nan,etc.
+
 from .operations import Add, Mul, Pow, Sub, Div, Sqrt
 from .relational import Equal, Less
 from .sets import (Complexes, Reals, Rationals, Integers, Primes,
                    Evens, Odds,
                    Positive, Negative, Divisible, Shifted,
                    Range, RangeOO, RangeOC, RangeCO, RangeCC)
-
-from .constants import initialize_constants
 
 __all__ = ['BasicArithmetic',
            'Number','Real','Rational','Float', 'Fraction', 'Integer',
@@ -33,5 +35,4 @@ __all__ = ['BasicArithmetic',
            'Range', 'RangeOO', 'RangeOC', 'RangeCO', 'RangeCC',
            ]
 
-initialize_constants()
 objects.moo = -objects.oo

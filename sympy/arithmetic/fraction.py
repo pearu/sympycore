@@ -1,12 +1,13 @@
-from ..core.utils import memoizer_immutable_args
+from ..core.utils import memoizer_immutable_args, memoizer_Fraction
 from ..core import Basic, sympify, classes, objects
 from .number import Rational
 
-@memoizer_immutable_args('makefraction')
+#@memoizer_immutable_args('makefraction')
 def makefraction(p,q):
     obj = object.__new__(Fraction)
     obj.p = p
     obj.q = q
+    obj._hashvalue = None
     return obj
 
 def makefraction_from_man_exp(man, exp):
@@ -16,6 +17,7 @@ def makefraction_from_man_exp(man, exp):
     if obj.is_Fraction: return obj
     return obj.as_Fraction
 
+
 class Fraction(Rational):
     """
     Represents a ratio p/q of two integers.
@@ -24,7 +26,8 @@ class Fraction(Rational):
     of Integer.
     """
 
-
+    # strangely caching Fraction instances has no noticable effect on speed..
+    #@memoizer_Fraction
     def __new__(cls, p, q):
         if q<0:
             p, q = -p, -q
@@ -40,7 +43,9 @@ class Fraction(Rational):
     make_from_man_exp = staticmethod(makefraction_from_man_exp)
 
     def __hash__(self):
-        return hash((self.p, self.q))
+        if self._hashvalue is None:
+            self._hashvalue = hash((self.p, self.q))
+        return self._hashvalue
 
     @property
     def is_half(self):
@@ -48,6 +53,8 @@ class Fraction(Rational):
 
     def __eq__(self, other):
         if isinstance(other, Basic):
+            if self is other:
+                return True
             if other.is_Integer:
                 other = other.as_Fraction
             if other.is_Fraction:
@@ -55,51 +62,61 @@ class Fraction(Rational):
             if other.is_Number:
                 return NotImplemented
             return False
+        if isinstance(other, bool):
+            return False
         return self == sympify(other)
 
     def __ne__(self, other):
         other = sympify(other)
-        if self is other: return False
-        if other.is_Integer:
-            other = other.as_Fraction
-        if other.is_Fraction:
-            return self.p!=other.p or self.q!=other.q
+        if isinstance(other, Basic):
+            if self is other:
+                return False
+            if other.is_Integer:
+                other = other.as_Fraction
+            if other.is_Fraction:
+                return self.p!=other.p or self.q!=other.q
         return NotImplemented
 
     def __lt__(self, other):
         other = sympify(other)
         if self is other: return False
-        if other.is_Integer:
-            other = other.as_Fraction
-        if other.is_Fraction:
-            return self.p * other.q < self.q * other.p
+        if isinstance(other, Basic):
+            if other.is_Integer:
+                other = other.as_Fraction
+            if other.is_Fraction:
+                return self.p * other.q < self.q * other.p
         return NotImplemented
 
     def __le__(self, other):
         other = sympify(other)
         if self is other: return True
-        if other.is_Integer:
-            other = other.as_Fraction
-        if other.is_Fraction:
-            return self.p * other.q <= self.q * other.p
+        if isinstance(other, Basic):
+            if other.is_Integer:
+                other = other.as_Fraction
+            if other.is_Fraction:
+                return self.p * other.q <= self.q * other.p
         return NotImplemented
 
     def __gt__(self, other):
+        if isinstance(other, bool):
+            return False
         other = sympify(other)
         if self is other: return False
-        if other.is_Integer:
-            other = other.as_Fraction
-        if other.is_Fraction:
-            return self.p * other.q > self.q * other.p
+        if isinstance(other, Basic):
+            if other.is_Integer:
+                other = other.as_Fraction
+            if other.is_Fraction:
+                return self.p * other.q > self.q * other.p
         return NotImplemented
 
     def __ge__(self, other):
         other = sympify(other)
         if self is other: return True
-        if other.is_Integer:
-            other = other.as_Fraction
-        if other.is_Fraction:
-            return self.p * other.q >= self.q * other.p
+        if isinstance(other, Basic):
+            if other.is_Integer:
+                other = other.as_Fraction
+            if other.is_Fraction:
+                return self.p * other.q >= self.q * other.p
         return NotImplemented
 
     def __pos__(self):

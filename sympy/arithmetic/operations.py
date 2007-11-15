@@ -9,9 +9,12 @@ from .function import Function, FunctionSignature
 
 __all__ = ['Pow', 'Mul', 'Add', 'Sub', 'Sqrt', 'Div']
 
-# Exp is defined in sympy.functions but it will be imported
-# after sympy.arithmetic (which is setting moo=-oo).
-Basic.is_Exp = None
+one = objects.one
+zero = objects.zero
+oo = objects.oo
+zoo = objects.zoo
+nan = objects.nan
+E = objects.E
 
 class ArithmeticFunction(Function):
     """ Base class for Add and Mul classes.
@@ -106,9 +109,9 @@ class TermCoeffDict(dict):
         elif a.is_Number:
             # Add(3) -> Add({1:3})
             p = a
-            a = objects.one
+            a = one
         else:
-            p = objects.one
+            p = one
 
         # If term is already present, add the coefficients together.
         # Otherwise insert new term.
@@ -138,7 +141,7 @@ class TermCoeffDict(dict):
             p = c * p
         elif a.is_Number:
             p = a * p
-            a = objects.one
+            a = one
 
         # If term is already present, add the coefficients together.
         # Otherwise insert new term.
@@ -152,40 +155,33 @@ class TermCoeffDict(dict):
         return
 
     def canonical(self):
-        if 1:
-            oo = objects.oo
-            zero = objects.zero
-            moo = objects.moo
-            zoo = objects.zoo
-            nan = objects.nan
-            one = objects.one
-            if self.has_key(nan):
+        if self.has_key(nan):
+            return nan
+        elif self.has_key(zoo):
+            self.pop(one, None)
+            self.pop(oo, None)
+            #self.pop(moo, None)
+        elif self.has_key(oo):
+            #if self.has_key(moo):
+            #    return nan
+            v = self[oo]
+            if v==0:
                 return nan
-            elif self.has_key(zoo):
-                self.pop(one, None)
-                self.pop(oo, None)
-                self.pop(moo, None)
-            elif self.has_key(oo):
-                #if self.has_key(moo):
-                #    return nan
-                v = self[oo]
-                if v==0:
-                    return nan
-                self.pop(one, None)
-            #elif self.has_key(moo):
-            #    if self.has_key(oo):
-            #        return nan
-            #    self.pop(one, None)
+            self.pop(one, None)
+        #elif self.has_key(moo):
+        #    if self.has_key(oo):
+        #        return nan
+        #    self.pop(one, None)
         l = []
         for k, v in self.items():
-            if v.is_zero:
+            if v is zero:
                 del self[k]
-            elif v.is_one:
+            elif v is one:
                 l.append(k)
             else:
                 l.append(k * v)
         if len(l)==0:
-            return objects.zero
+            return zero
         if len(l)==1:
             return l[0]
         self.args_flattened = l
@@ -213,7 +209,7 @@ class TermCoeffDict(dict):
                     self.inplace_add(k*k1,v*v1)
             return self
         term, coeff = a.as_term_coeff()
-        if coeff.is_one:
+        if coeff is one:
             for k, v in items:
                 self.inplace_add(k*term, v)
         else:
@@ -243,7 +239,7 @@ class TermCoeffDict(dict):
         return self
 
     def __mul__(self, a):
-        if a.is_one:
+        if a is one:
             return self
         d = TermCoeffDict(())
         d.update(self)
@@ -251,7 +247,7 @@ class TermCoeffDict(dict):
         return d
 
     def __add__(self, a):
-        if a.is_zero:
+        if a is zero:
             return self
         d = TermCoeffDict(())
         d.update(self)
@@ -334,7 +330,7 @@ class Add(ArithmeticFunction):
                 d = npat.matches(nexpr, d)
                 if d is not None:
                     return d
-            d = pt.matches(objects.zero, repl_dict)
+            d = pt.matches(zero, repl_dict)
             if d is not None:
                 d = rpat.replace_dict(d).matches(expr, d)
             if d is not None:
@@ -359,9 +355,9 @@ class Add(ArithmeticFunction):
                 q = classes.Integer.gcd(c.q, q)
         if p is not None:
             c = classes.Fraction(sign*q,p)
-            if not c.is_one:
+            if not c is one:
                 return TermCoeffDict([(t,v*c) for (t,v) in self.iterTermCoeff()]).as_Basic(),1/c
-        return self, objects.one
+        return self, one
 
 
 class BaseExpDict(dict):
@@ -414,7 +410,7 @@ class BaseExpDict(dict):
             p = a.exponent
             a = a.base
         else:
-            p = objects.one
+            p = one
 
         b = self.get(a)
         if b is None:
@@ -446,17 +442,13 @@ class BaseExpDict(dict):
         return self
 
     def canonical(self):
-        one = objects.one
-        zero = objects.zero
-        oo = objects.oo
-        nan = objects.nan
-        n = objects.one
+        n = one
         
         for k, v in self.items():
-            if v.is_zero:
+            if v is zero:
                 del self[k]
                 continue
-            if v.is_one and not k.is_Number:
+            if v is one and not k.is_Number:
                 continue
             a = k.try_power(v)
             if a is None:
@@ -465,7 +457,7 @@ class BaseExpDict(dict):
             if a.is_Number:
                 n = n * a
             else:
-                if not n.is_one:
+                if not n is one:
                     self *= n
                 self *= a
                 return self.canonical()
@@ -473,14 +465,16 @@ class BaseExpDict(dict):
         if v is not None:
             self[n] = v + one
             n = one
-        if 0: pass
-        elif self.has_key(nan):
+        if self.has_key(nan):
             return nan
         elif self.has_key(oo):
-            if n < 0: n=-one
-            elif n > 0: n=one
-            else: return nan
-        elif n.is_zero:
+            if n < 0:
+                n=-one
+            elif n > 0:
+                n=one
+            else:
+                return nan
+        elif n is zero:
             #XXX: assert not self.has(oo),`self`
             return n
 
@@ -488,22 +482,17 @@ class BaseExpDict(dict):
             return n
         if len(self)==1:
             k, v = self.items()[0]
-            if n.is_one:
-                if v.is_one:
-                    return k
+            if n is one:
                 return Pow(k, v, normalized=False)
-            if v.is_one and k.is_Add:
+            if v is one and k.is_Add:
                 return k * n
         l = []
         for k, v in self.iterBaseExp():
-            if v.is_one:
+            if v is one:
                 l.append(k)
             else:
-                if v.is_one:
-                    l.append(k)
-                else:
-                    l.append(Pow(k, v, normalized=False))
-        if not n.is_one:
+                l.append(Pow(k, v, normalized=False))
+        if n is not one:
             l.insert(0, n)
             self[n] = one
         self.coeff = n
@@ -535,7 +524,7 @@ class Mul(ArithmeticFunction):
 
     def iterBaseExp(self, full=False):
         coeff = self._dict_content
-        if not full or (coeff.is_one or not coeff.is_Rational):
+        if not full or (coeff is one or not coeff.is_Rational):
             return self._dict_content.iterBaseExp()
 
     def expand(self, **hints):
@@ -558,7 +547,7 @@ class Mul(ArithmeticFunction):
     def as_term_coeff(self):
         d = self._dict_content
         c = d.coeff
-        if c.is_one:
+        if c is one:
             return self, c
         d = BaseExpDict(())
         for k,v in self.iterBaseExp():
@@ -567,13 +556,13 @@ class Mul(ArithmeticFunction):
         return d.as_Basic(), c
 
     def as_base_exponent(self):
-        if not self._dict_content.coeff.is_one:
+        if not self._dict_content.coeff is one:
             t, c = self.as_term_coeff()
             b, e = t.as_base_exponent()
             p = c.try_power(1/e)
             if p is not None:
                 return p*b, e
-            return self, objects.one
+            return self, one
         p = None
         for b,e in self.iterBaseExp():
             if not e.is_Rational:
@@ -592,14 +581,14 @@ class Mul(ArithmeticFunction):
                 q = classes.Integer.gcd(e.q, q)
         if p is not None:
             c = classes.Fraction(sign*q,p)
-            if not c.is_one:
+            if not c is one:
                 return BaseExpDict([(b,e*c) for (b,e) in self.iterBaseExp()]).as_Basic(),1/c
-        return self, objects.one
+        return self, one
 
 
     def try_power(self, other):
         t, c = self.as_term_coeff()
-        if not c.is_one and other.is_Rational:
+        if not c is one and other.is_Rational:
             return c**other * t**other
 
     def try_derivative(self, s):
@@ -607,7 +596,7 @@ class Mul(ArithmeticFunction):
         factors = []
         for i in xrange(len(terms)):
             dt = terms[i].diff(s)
-            if dt.is_zero:
+            if dt is zero:
                 continue
             factors.append(classes.Mul(*(terms[:i]+[dt]+terms[i+1:])))
         return classes.Add(*factors)
@@ -615,14 +604,13 @@ class Mul(ArithmeticFunction):
     def __mul__(self, other):
         other = sympify(other)
         if other.is_Number:
-            if other.is_one:
+            if other is one:
                 return self
             # here we shall skip d.canonical()
             d = BaseExpDict(())
-            one = objects.one
             td = self._dict_content
             d.update(td)
-            if td.coeff.is_one:
+            if td.coeff is one:
                 coeff = other
                 l = [other] + td.args_flattened
             else:
@@ -663,13 +651,13 @@ class Pow(Function):
     
     @classmethod
     def canonize(cls, (base, exponent), options):
-        if base.is_EulersNumber:
+        if base is E:
             return classes.Exp(exponent)
-        if exponent.is_zero:
-            return objects.one
-        if exponent.is_one:
+        if exponent is zero:
+            return one
+        if exponent is one:
             return base
-        if base.is_one:
+        if base is one:
             return base
         if options.get('normalized', True):
             return base.try_power(exponent)
@@ -714,7 +702,7 @@ class Pow(Function):
         b,e = self.args
         dbase = b.diff(s)
         dexp = e.diff(s)
-        if dexp.is_zero:
+        if dexp is zero:
             dt = b**(e-1) * dbase * e
         else:
             dt = b**e * (dexp * classes.Log(b) + dbase * e/b)

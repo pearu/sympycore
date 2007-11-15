@@ -1,4 +1,4 @@
-from ..core.utils import memoizer_immutable_args, singleton
+from ..core.utils import memoizer_immutable_args, singleton, memoizer_Integer
 from ..core import Basic, sympify, classes, objects
 from .number import Rational
 
@@ -52,7 +52,6 @@ makeinteger = lambda p: pyint.__new__(Integer, p)
 def makezero(p):
     obj = pyint.__new__(Integer, p)
     obj.is_zero = True
-    obj.is_one = False
     obj.p = p
     obj.q = pyint_1
     objects.zero = obj
@@ -61,11 +60,24 @@ def makezero(p):
 @singleton
 def makeone(p):
     obj = pyint.__new__(Integer, p)
-    obj.is_zero = False
     obj.is_one = True
     obj.p = p
     obj.q = pyint_1
     objects.one = obj
+    return obj
+
+@singleton
+def makemone(p):
+    obj = pyint.__new__(Integer, p)
+    obj.p = p
+    obj.q = pyint_1
+    objects.mone = obj
+    return obj
+
+def makeinteger(p):
+    obj = pyint.__new__(Integer, p)
+    obj.p = p
+    obj.q = pyint_1
     return obj
 
 class Integer(Rational, pyint):
@@ -74,14 +86,12 @@ class Integer(Rational, pyint):
     is_zero = False
     is_one = False
 
-    #@memoizer_immutable_args('Integer.__new__')
+    @memoizer_Integer
     def __new__(cls, p):
         if p==0: return makezero(p)
         if p==1: return makeone(p)
-        obj = pyint.__new__(cls, p)
-        obj.p = p
-        obj.q = pyint_1
-        return obj
+        if p==-1: return makemone(p)
+        return makeinteger(p)
 
     make = staticmethod(makeinteger)
 
@@ -98,10 +108,11 @@ class Integer(Rational, pyint):
         if isinstance(other,(int, long)):
             return pyint(self)==other
         other = sympify(other)
-        if other.is_Integer:
-            return not pyint.__cmp__(self, other)
-        if other.is_Number:
-            return NotImplemented
+        if isinstance(other, Basic):
+            if other.is_Integer:
+                return not pyint.__cmp__(self, other)
+            if other.is_Number:
+                return NotImplemented
         return False
 
     __hash__ = pyint.__hash__
@@ -109,8 +120,9 @@ class Integer(Rational, pyint):
     def __ne__(self, other):
         other = sympify(other)
         if self is other: return False
-        if other.is_Integer:
-            return pyint.__cmp__(self, pyint(other))!=0
+        if isinstance(other, Basic):
+            if other.is_Integer:
+                return pyint.__cmp__(self, pyint(other))!=0
         return NotImplemented
 
     def __lt__(self, other):
