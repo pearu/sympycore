@@ -8,7 +8,7 @@ This package provides:
 """
 
 from ...core import Basic
-from .basic import BasicSet
+from .basic import BasicSet, classes
 
 from .symbol import SetSymbol, DummySet, WildSet, UniversalSet, EmptySet
 from .function import SetFunction, SetFunctionType
@@ -27,10 +27,10 @@ def AsSet(obj, Basic=Basic):
     if isinstance(obj, Basic):
         if obj.is_BasicSymbol:
             # XXX: check for dummy, wild
-            return Basic.SetSymbol(str(obj))
+            return classes.SetSymbol(str(obj))
         if obj.is_BasicFunctionType:
             # XXX: check for dummy, wild function
-            return Basic.SetFunctionType(str(obj))
+            return classes.SetFunctionType(str(obj))
     return obj
 
 # initialize singletons

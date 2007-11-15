@@ -1,5 +1,5 @@
 
-from ...core import Basic
+from ...core import Basic, classes, objects
 from ...core.function import FunctionSignature
 from ...logic.sets import SetFunction, set_classes, Union, Set, Empty
 from .basic import ArithmeticSetFunction
@@ -70,9 +70,9 @@ class BasicRange(ArithmeticSetFunction):
                     pass
                 else:
                     return
-                if new_a==-Basic.oo:
+                if new_a==-objects.oo:
                     b1 = False
-                if new_b==Basic.oo:
+                if new_b==objects.oo:
                     b2 = False
                 new_cls = {(False,False):RangeOO,
                            (False,True):RangeOC,
@@ -80,18 +80,18 @@ class BasicRange(ArithmeticSetFunction):
                            (True,True):RangeCC}[(b1,b2)]
                 return new_cls(new_a, new_b, superset)
         if cls.__name__[-2]=='C':
-            if a==-Basic.oo:
+            if a==-objects.oo:
                 if cls.__name__[-1]=='C':
-                    if b==Basic.oo:
+                    if b==objects.oo:
                         return RangeOO(a,b,set)
                     return RangeOC(a,b,set)
                 else:
                     return RangeOO(a,b,set)
-            elif b==Basic.oo:
+            elif b==objects.oo:
                 if cls.__name__[-1]=='C':
                     return RangeCO(a,b,set)
         elif cls.__name__[-1]=='C':
-            if b==Basic.oo:
+            if b==objects.oo:
                 return RangeOO(a,b,set)
 
     def try_element(self, other):
@@ -197,7 +197,7 @@ class BasicRange(ArithmeticSetFunction):
                 return True
             if cf[2](b,c) or cf[3](d,a) or cf[4](a,c) or cf[5](d,b):
                 return False
-        return Basic.BasicSet.try_subset(self, other)
+        return classes.BasicSet.try_subset(self, other)
 
 class RangeOO(BasicRange):
     """ An open range (a,b) of a set S."""
@@ -314,8 +314,8 @@ class RangeOO(BasicRange):
                 return RangeOO(d,b,superset)
     def try_complementary(self, superset):
         if self.superset==superset.domain:
-            return Union(RangeCC(Basic.Min(superset), self.a, superset),
-                         RangeCC(self.b, Basic.Max(superset), superset),
+            return Union(RangeCC(classes.Min(superset), self.a, superset),
+                         RangeCC(self.b, classes.Max(superset), superset),
                          )
 
 class RangeOC(BasicRange):
@@ -449,8 +449,8 @@ class RangeOC(BasicRange):
                 return RangeOC(d,b,superset)
     def try_complementary(self, superset):
         if self.superset==superset.domain:
-            return Union(RangeCC(Basic.Min(superset), self.a, superset),
-                         RangeOC(self.b, Basic.Max(superset), superset),
+            return Union(RangeCC(classes.Min(superset), self.a, superset),
+                         RangeOC(self.b, classes.Max(superset), superset),
                          )
 
 class RangeCO(BasicRange):
@@ -578,8 +578,8 @@ class RangeCO(BasicRange):
                 return
     def try_complementary(self, superset):
         if self.superset==superset.domain:
-            return Union(RangeCO(Basic.Min(superset), self.a, superset),
-                         RangeCC(self.b, Basic.Max(superset), superset),
+            return Union(RangeCO(classes.Min(superset), self.a, superset),
+                         RangeCC(self.b, classes.Max(superset), superset),
                          )
 
 class RangeCC(BasicRange):
@@ -728,8 +728,8 @@ class RangeCC(BasicRange):
                 return
     def try_complementary(self, superset):
         if self.superset==superset.domain:
-            return Union(RangeCO(Basic.Min(superset), self.a, superset),
-                         RangeOC(self.b, Basic.Max(superset), superset),
+            return Union(RangeCO(classes.Min(superset), self.a, superset),
+                         RangeOC(self.b, classes.Max(superset), superset),
                          )
 
 class Range(RangeOO):
@@ -737,6 +737,6 @@ class Range(RangeOO):
     """
     def __new__(cls, a, b, set=None):
         if set is None:
-            set = Basic.RealSet()
+            set = classes.RealSet()
         return RangeOO(a, b, set)
 

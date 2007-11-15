@@ -3,8 +3,9 @@ from logic import *
 from arithmetic import *
 from functions import *
 
-
-
+# expose predefined objects to sympy namespace
+for _n,_v in objects.iterNameValue():
+    exec '%s = _v' % _n
 
 def profile_expr(expr):
     import sys

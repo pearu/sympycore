@@ -1,5 +1,5 @@
 
-from ...core import Basic
+from ...core import Basic, classes
 from ...core.function import FunctionSignature
 from ...logic.sets import SetFunction, set_classes
 from .basic import ArithmeticSetFunction
@@ -33,12 +33,12 @@ class Positive(ArithmeticSetFunction):
         m = 0
         if self.domain==Integers:
             m = 1
-        return Basic.Max(Basic.Min(self[0]), m)
+        return classes.Max(classes.Min(self[0]), m)
     def try_supremum(self):
         m = 0
         if self.domain==Integers:
             m = 1
-        return Basic.Max(Basic.Max(self[0]), m)
+        return classes.Max(classes.Max(self[0]), m)
 
 
 class Negative(ArithmeticSetFunction):
@@ -70,12 +70,12 @@ class Negative(ArithmeticSetFunction):
         m = 0
         if self.domain==Integers:
             m = -1
-        return Basic.Min(Basic.Min(self[0]), m)
+        return classes.Min(classes.Min(self[0]), m)
     def try_supremum(self):
         m = 0
         if self.domain==Integers:
             m = -1
-        return Basic.Min(Basic.Max(self[0]), m)
+        return classes.Min(classes.Max(self[0]), m)
 
 
 class Shifted(ArithmeticSetFunction):
@@ -144,8 +144,8 @@ class Divisible(ArithmeticSetFunction):
             return False
     def try_infimum(self):
         set,divisor = self.args
-        return Basic.Min(set) / divisor
+        return classes.Min(set) / divisor
     def try_supremum(self):
         set,divisor = self.args
-        return Basic.Max(set) / divisor
+        return classes.Max(set) / divisor
 

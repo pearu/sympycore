@@ -4,7 +4,7 @@ Interval arithmetic with correct rounding.
 """
 
 #from ..core.utils import memoizer_Interval_new
-from ..core import sympify, Basic
+from ..core import sympify, Basic, classes
 from .number import Number
 from .float import Float, ROUND_FLOOR, ROUND_CEILING
 
@@ -122,7 +122,7 @@ class Interval(Number, tuple):
                 other = other.as_Interval
             if other.is_Interval:
                 return other + self
-            return Basic.Add(other, self)
+            return classes.Add(other, self)
         return sympify(other) + self
 
     def __sub__(l, r):
@@ -146,7 +146,7 @@ class Interval(Number, tuple):
                 other = other.as_Interval
             if other.is_Interval:
                 return other - self
-            return Basic.Add(other, -self)
+            return classes.Add(other, -self)
         return sympify(other) - self
 
     def __mul__(l, r):
@@ -171,7 +171,7 @@ class Interval(Number, tuple):
                 other = other.as_Interval
             if other.is_Interval:
                 return other * self
-            return Basic.Mul(other, self)
+            return classes.Mul(other, self)
         return sympify(other) * self
 
     def __div__(l, r):
@@ -198,7 +198,7 @@ class Interval(Number, tuple):
                 other = other.as_Interval
             if other.is_Interval:
                 return other / self
-            return Basic.Mul(other, 1/self)
+            return classes.Mul(other, 1/self)
         return sympify(other) / self
 
     __truediv__ = __div__

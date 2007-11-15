@@ -1,5 +1,5 @@
 
-from ...core.basic import Basic, Composite, sympify
+from ...core.basic import Basic, Composite, sympify, classes
 from ...core.methods import BasicImmutableMeths
 from .basic import BasicSet
 
@@ -63,8 +63,8 @@ class Set(BasicImmutableMeths, BasicSet, Composite, frozenset):
 
     # method to be (re)moved
     def try_supremum(self):
-        r = Basic.Max(*self)
+        r = classes.Max(*self)
     def try_infimum(self):
-        return Basic.Min(*self)
+        return classes.Min(*self)
 
 

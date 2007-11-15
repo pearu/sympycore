@@ -1,7 +1,9 @@
 
-from ..core import Basic, BasicType
+from ..core import Basic, BasicType, classes, objects, sympify
 from ..core.utils import UniversalMethod
 from .methods import ArithmeticMethods
+
+__all__ = ['BasicArithmetic']
 
 class BasicArithmetic(ArithmeticMethods, Basic):
     """ Defines default methods for arithmetic classes.
@@ -18,7 +20,7 @@ class BasicArithmetic(ArithmeticMethods, Basic):
     @UniversalMethod
     def fdiff(obj, index=1):
         assert not isinstance(obj, BasicType),`obj`
-        return Basic.Number(0)
+        return classes.Number(0)
 
     def try_derivative(self, s):
         return None
@@ -29,11 +31,11 @@ class BasicArithmetic(ArithmeticMethods, Basic):
     def split(self, cls=None):
         if cls is None:
             cls = self.__class__
-        if cls is Basic.Add:
+        if cls is classes.Add:
             return (cls, self.iterAdd())
-        if cls is Basic.Mul:
+        if cls is classes.Mul:
             return (cls, self.iterMul())
-        if cls is Basic.Pow:
+        if cls is classes.Pow:
             return (cls, self.iterPow())
         raise TypeError('Expressions can be split only with respect to Add, Mul, Pow classes, got %s' % (cls.__name__))
 
@@ -44,7 +46,7 @@ class BasicArithmetic(ArithmeticMethods, Basic):
         """
         new_symbols = []
         for s in symbols:
-            s = Basic.sympify(s)
+            s = sympify(s)
             if s.is_Integer and new_symbols and s.is_positive:
                 last_s = new_symbols.pop()
                 new_symbols += [last_s] * int(s)
@@ -65,8 +67,8 @@ class BasicArithmetic(ArithmeticMethods, Basic):
             return expr
         for s in unused_symbols:
             if not expr.has(s):
-                return Basic.zero
-        return Basic.Derivative(self, *new_symbols)
+                return objects.zero
+        return classes.Derivative(self, *new_symbols)
 
     def iterAdd(self):
         return iter([self])
@@ -82,8 +84,8 @@ class BasicArithmetic(ArithmeticMethods, Basic):
         def itercall():
             b,e = iterator.next()
             if e.is_one:
-                return Basic.Log(b)
-            return e * Basic.Log(b)
+                return classes.Log(b)
+            return e * classes.Log(b)
         return iter(itercall, False)
 
     def iterTermCoeff(self):
@@ -93,19 +95,19 @@ class BasicArithmetic(ArithmeticMethods, Basic):
         return iter([self.as_base_exponent()])
 
     def match(self, pattern):
-        pattern = Basic.sympify(pattern)
+        pattern = sympify(pattern)
         if isinstance(pattern, bool): return
         return pattern.matches(self, {})
 
     def as_base_exponent(self):
         """ Return (b,e) such that self==b**e.
         """
-        return self, Basic.Integer(1)
+        return self, classes.Integer(1)
 
     def as_term_coeff(self):
         """ Return (t,c) such that self==c*t.
         """
-        return self, Basic.Integer(1)
+        return self, classes.Integer(1)
 
     def try_get_coefficient(self, expr):
         """
@@ -116,7 +118,7 @@ class BasicArithmetic(ArithmeticMethods, Basic):
         """
         expr = sympify(expr)
         if expr.is_Add: return
-        w = Basic.Wild()
+        w = classes.Wild()
         coeff = self.match(w * expr)
         if coeff is not None:
             coeff = coeff[w]

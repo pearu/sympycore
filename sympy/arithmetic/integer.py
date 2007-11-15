@@ -1,5 +1,5 @@
 from ..core.utils import memoizer_immutable_args, singleton
-from ..core import Basic, sympify
+from ..core import Basic, sympify, classes, objects
 from .number import Rational
 
 def integer_nthroot(y, n):
@@ -55,6 +55,7 @@ def makezero(p):
     obj.is_one = False
     obj.p = p
     obj.q = pyint_1
+    objects.zero = obj
     return obj
 
 @singleton
@@ -64,6 +65,7 @@ def makeone(p):
     obj.is_one = True
     obj.p = p
     obj.q = pyint_1
+    objects.one = obj
     return obj
 
 class Integer(Rational, pyint):
@@ -72,7 +74,7 @@ class Integer(Rational, pyint):
     is_zero = False
     is_one = False
 
-    @memoizer_immutable_args('Integer.__new__')
+    #@memoizer_immutable_args('Integer.__new__')
     def __new__(cls, p):
         if p==0: return makezero(p)
         if p==1: return makeone(p)
@@ -95,7 +97,7 @@ class Integer(Rational, pyint):
     def __eq__(self, other):
         if isinstance(other,(int, long)):
             return pyint(self)==other
-        other = Basic.sympify(other)
+        other = sympify(other)
         if other.is_Integer:
             return not pyint.__cmp__(self, other)
         if other.is_Number:
@@ -105,35 +107,35 @@ class Integer(Rational, pyint):
     __hash__ = pyint.__hash__
 
     def __ne__(self, other):
-        other = Basic.sympify(other)
+        other = sympify(other)
         if self is other: return False
         if other.is_Integer:
             return pyint.__cmp__(self, pyint(other))!=0
         return NotImplemented
 
     def __lt__(self, other):
-        other = Basic.sympify(other)
+        other = sympify(other)
         if self is other: return False
         if other.is_Integer:
             return pyint.__cmp__(self, pyint(other))==-1
         return NotImplemented
 
     def __le__(self, other):
-        other = Basic.sympify(other)
+        other = sympify(other)
         if self is other: return True
         if other.is_Integer:
             return pyint.__cmp__(self, pyint(other))<=0
         return NotImplemented
 
     def __gt__(self, other):
-        other = Basic.sympify(other)
+        other = sympify(other)
         if self is other: return False
         if other.is_Integer:
             return pyint.__cmp__(self, pyint(other))==1
         return NotImplemented
 
     def __ge__(self, other):
-        other = Basic.sympify(other)
+        other = sympify(other)
         if self is other: return True
         if other.is_Integer:
             return pyint.__cmp__(self, pyint(other))>=0
@@ -146,7 +148,7 @@ class Integer(Rational, pyint):
     __float__ = pyint.__float__
 
     def evalf(self):
-        return Basic.Float(pyint(self))
+        return classes.Float(pyint(self))
 
     # mathematical properties
 
@@ -243,7 +245,7 @@ class Integer(Rational, pyint):
     def __div__(self, other):
         other = sympify(other)
         if other.is_Integer:
-            return Basic.Fraction(self.p, other.p)
+            return classes.Fraction(self.p, other.p)
         return NotImplemented
 
     def __pow__(self, other):
@@ -253,12 +255,12 @@ class Integer(Rational, pyint):
             return r
         return NotImplemented
 
-    @memoizer_immutable_args('Integer.try_power')
+    #@memoizer_immutable_args('Integer.try_power')
     def try_power(self, other):
         if self.is_zero:
             if other.is_Number:
                 if other.is_negative:
-                    return Basic.inf
+                    return basic.oo
                 if other.is_positive:
                     return self
             if other.is_Infinity or other.is_ComplexInfinity:
@@ -272,27 +274,27 @@ class Integer(Rational, pyint):
             if other.is_one:
                 return self
             if other.is_negative:
-                return Basic.Fraction(1, pyint.__pow__(self, -other.p))
+                return classes.Fraction(1, pyint.__pow__(self, -other.p))
             return Integer(pyint.__pow__(self, other))
         if other.is_Float:
             return self.as_Float ** other.as_Float
         if other.is_Fraction:
             if self==-1:
                 if other.q==2:
-                    return Basic.I ** other.p
+                    return objects.I ** other.p
                 return
             if self.is_negative:
                 return (-1)**other * (-self)**other
             r, exact = integer_nthroot(self.p, other.q)
             if exact:
                 if other.p < 0:
-                    return Basic.Fraction(1, r ** (-other.p))
+                    return classes.Fraction(1, r ** (-other.p))
                 return Integer(r ** other.p)
         if other.is_Infinity or other.is_ComplexInfinity:
             if self.is_one:
                 return self
             if self.is_negative:
-                return Basic.nan
+                return objects.nan
             return other
         if other.is_NaN:
             return other

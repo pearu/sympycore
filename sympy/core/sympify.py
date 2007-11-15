@@ -10,7 +10,7 @@ from compiler.transformer import Transformer
 from compiler.pycodegen import ExpressionCodeGenerator
 from compiler import ast
 
-from .basic import Basic
+from .basic import Basic, classes, objects
 
 __all__ = ['sympify','sympify_types']
 
@@ -21,7 +21,7 @@ float_types = (float) # XXX: Decimal
 complex_types = (complex)
 string_types = (str) # XXX: unicode
 
-def sympify(a, globals=None, locals=None):
+def sympify(a, globals=None, locals=None, debug=False):
     """Converts an arbitrary expression to a type that can be used
        inside sympy. For example, it will convert python int's into
        instance of sympy.Integer, floats into intances of sympy.Float,
@@ -56,9 +56,9 @@ def sympify(a, globals=None, locals=None):
     if isinstance(a, (Basic,bool)):
         return a
     if isinstance(a, int_types):
-        return Basic.Integer(a)
+        return classes.Integer(a)
     if isinstance(a, float_types):
-        return Basic.Float(a)
+        return classes.Float(a)
     if isinstance(a, complex_types):
         real, imag = sympify(a.real), sympify(a.imag)
         ireal, iimag = int(real), int(imag)
@@ -66,7 +66,7 @@ def sympify(a, globals=None, locals=None):
             real = ireal
         if imag==iimag:
             imag = iimag
-        return real + Basic.I * imag
+        return real + objects.I * imag
     if isinstance(a, string_types):
         # initialize globals,locals for sympy_eval call
         if globals is None:
@@ -82,6 +82,8 @@ def sympify(a, globals=None, locals=None):
             # order to reuse local variables.
             locals = {}
     if isinstance(a, string_types):
+        if debug:
+            return sympy_eval(a, globals, locals)
         try:
             return sympy_eval(a, globals, locals)
         except Exception,msg:
@@ -112,8 +114,8 @@ def _is_arithmetic(node):
     elif isinstance(node, ast.CallFunc):
         if isinstance(node.node, ast.Name):
             name = node.node.name
-            if hasattr(Basic, name):
-                return issubclass(getattr(Basic, name), Basic.BasicArithmetic)
+            if hasattr(classes, name):
+                return issubclass(getattr(classes, name), classes.BasicArithmetic)
         elif isinstance(node.node, ast.CallFunc):
             return _is_arithmetic(node.node)
     elif isinstance(node, ast.Const):
@@ -294,7 +296,7 @@ def sympy_eval(a, globals, locals):
     code = ExpressionCodeGenerator(tree).getCode()
     result = eval(code, globals, locals)
     if isinstance(result, Basic):
-        for atom in result.atoms(type=(Basic.BasicSymbol, Basic.BasicFunctionType)):
+        for atom in result.atoms(type=(classes.BasicSymbol, classes.BasicFunctionType)):
             s = str(atom)
             if globals.has_key(s) or locals.has_key(s):
                 continue

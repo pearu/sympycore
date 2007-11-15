@@ -1,5 +1,5 @@
 
-from ...core import Basic
+from ...core import Basic, classes, objects
 from ...core.utils import memoizer_immutable_args, singleton
 from ...logic.sets import Empty
 from ..primetest import isprime
@@ -53,13 +53,13 @@ class RealSet(Field):
                 return True
             return False
     def try_supremum(self):
-        return Basic.oo
+        return objects.oo
     def try_infimum(self):
-        return -Basic.oo
+        return -objects.oo
     def try_positive(self):
-        return Basic.RangeOO(0, Basic.oo, self)
+        return classes.RangeOO(0, objects.oo, self)
     def try_negative(self):
-        return Basic.RangeOO(-Basic.oo, 0, self)
+        return classes.RangeOO(-objects.oo, 0, self)
     def try_subset(self, set):
         if isinstance(set.domain, (RationalSet, IntegerSet, PrimeSet)):
             return True
@@ -67,10 +67,10 @@ class RealSet(Field):
             return False
         if set.is_RealSet:
             return True
-        return Basic.BasicSet.try_subset(self, set)
+        return classes.BasicSet.try_subset(self, set)
 
     def as_range(self):
-        return Basic.RangeOO(-Basic.oo, Basic.oo, self)
+        return classes.RangeOO(-objects.oo, objects.oo, self)
 
 class RationalSet(Field):
     """ Field of rational numbers.
@@ -87,13 +87,13 @@ class RationalSet(Field):
                 return True
             return False
     def try_supremum(self):
-        return Basic.oo
+        return objects.oo
     def try_infimum(self):
-        return -Basic.oo
+        return -objects.oo
     def try_positive(self):
-        return Basic.RangeOO(0, Basic.oo, self)
+        return classes.RangeOO(0, objects.oo, self)
     def try_negative(self):
-        return Basic.RangeOO(-Basic.oo, 0, self)
+        return classes.RangeOO(-objects.oo, 0, self)
     def try_subset(self, set):
         if isinstance(set.domain, (IntegerSet, PrimeSet)):
             return True
@@ -101,10 +101,10 @@ class RationalSet(Field):
             return False
         if set.is_RationalSet:
             return True
-        return Basic.BasicSet.try_subset(self, set)
+        return classes.BasicSet.try_subset(self, set)
 
     def as_range(self):
-        return Basic.RangeOO(-Basic.oo, Basic.oo, self)
+        return classes.RangeOO(-objects.oo, objects.oo, self)
 
 class IntegerSet(ArithmeticSetSymbol):
     """ Field of integers.
@@ -125,13 +125,13 @@ class IntegerSet(ArithmeticSetSymbol):
                 return True
             return False
     def try_supremum(self):
-        return Basic.oo
+        return objects.oo
     def try_infimum(self):
-        return -Basic.oo
+        return -objects.oo
     def try_positive(self):
-        return Basic.RangeOO(0, Basic.oo, self)
+        return classes.RangeOO(0, objects.oo, self)
     def try_negative(self):
-        return Basic.RangeOO(-Basic.oo, 0, self)
+        return classes.RangeOO(-objects.oo, 0, self)
     def try_subset(self, set):
         if isinstance(set.domain, PrimeSet):
             return True
@@ -139,10 +139,10 @@ class IntegerSet(ArithmeticSetSymbol):
             return False
         if set.is_IntegerSet:
             return True
-        return Basic.BasicSet.try_subset(self, set)
+        return classes.BasicSet.try_subset(self, set)
 
     def as_range(self):
-        return Basic.RangeOO(-Basic.oo, Basic.oo, self)
+        return classes.RangeOO(-objects.oo, objects.oo, self)
 
 class PrimeSet(ArithmeticSetSymbol):
     """ Set of positive prime numbers.
@@ -162,14 +162,14 @@ class PrimeSet(ArithmeticSetSymbol):
                 return isprime(other)
             return False
     def try_supremum(self):
-        return Basic.oo
+        return classes.oo
     def try_infimum(self):
-        return Basic.Number(2)
+        return classes.Number(2)
     def try_positive(self):
         return self
     def try_negative(self):
         return Empty
 
     def as_range(self):
-        return Basic.RangeCO(2, Basic.oo, self)
+        return classes.RangeCO(2, objects.oo, self)
 

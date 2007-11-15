@@ -389,7 +389,7 @@ class BaseExpDict(dict):
             self.args_flattened = [obj]
         return obj
 
-    def __imul__(self, a, exp_to_power=True):
+    def __imul__(self, a):
         acls = a.__class__
         if acls is tuple:
             self.inplace_mul(*a)
@@ -408,14 +408,11 @@ class BaseExpDict(dict):
 
         if acls is BaseExpDict or acls is Mul:
             for k,v in a.iterBaseExp():
-                self.inplace_mul(k, v, exp_to_power=exp_to_power)
+                self.inplace_mul(k, v)
             return self
-        elif acls is Pow:
+        elif a.is_Pow:
             p = a.exponent
             a = a.base
-        elif exp_to_power and a.is_Exp:
-            p = a.args[0]
-            a = objects.E
         else:
             p = objects.one
 
@@ -426,7 +423,7 @@ class BaseExpDict(dict):
             self[a] = b + p
         return self
 
-    def inplace_mul(self, a, p, exp_to_power=True):
+    def inplace_mul(self, a, p):
         """
         BaseExpDict({}).update(a,p) -> BaseExpDict({a:p})
         """
@@ -436,14 +433,11 @@ class BaseExpDict(dict):
 
         if (acls is Mul and p.is_Integer) or acls is BaseExpDict:
             for k,v in a.iterBaseExp():
-                self.inplace_mul(k, v*p, exp_to_power=exp_to_power)
+                self.inplace_mul(k, v*p)
             return self
-        elif acls is Pow and p.is_Integer:
+        elif a.is_Pow and p.is_Integer:
             p = a.exponent * p
             a = a.base
-        elif exp_to_power and a.is_Exp:
-            p = a.args[0] * p
-            a = objects.E
         b = self.get(a)
         if b is None:
             self[a] = p
@@ -472,8 +466,8 @@ class BaseExpDict(dict):
                 n = n * a
             else:
                 if not n.is_one:
-                    self.__imul__(n, exp_to_power=False)
-                self.__imul__(a, exp_to_power=False)
+                    self *= n
+                self *= a
                 return self.canonical()
         v = self.get(n,None)
         if v is not None:
@@ -669,13 +663,15 @@ class Pow(Function):
     
     @classmethod
     def canonize(cls, (base, exponent), options):
+        if base.is_EulersNumber:
+            return classes.Exp(exponent)
+        if exponent.is_zero:
+            return objects.one
+        if exponent.is_one:
+            return base
+        if base.is_one:
+            return base
         if options.get('normalized', True):
-            if exponent.is_zero:
-                return objects.one
-            if exponent.is_one:
-                return base
-            if base.is_one:
-                return base
             return base.try_power(exponent)
         return
 

@@ -1,5 +1,4 @@
 from sympy import Symbol, Rational, Add, Sub
-#from sympy.arithmetic.add import MutableAdd, Add, Sub
 
 a = Symbol("a")
 b = Symbol("b")

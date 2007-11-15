@@ -1,5 +1,5 @@
 from ..core.utils import memoizer_immutable_args
-from ..core import Basic, Atom, sympify, objects
+from ..core import Basic, Atom, sympify, objects, classes
 from .methods import NumberMethods
 
 from .basic import BasicArithmetic
@@ -77,7 +77,7 @@ class Number(BasicArithmetic, Atom):
         return
 
     def try_derivative(self, s):
-        return Basic.zero
+        return objects.zero
 
     def __call__(self, *args):
         """ Number as a constant function.
@@ -86,13 +86,13 @@ class Number(BasicArithmetic, Atom):
         return self
 
     def fdiff(self, index=1):
-        return Basic.zero
+        return objects.zero
 
     def as_coeff_term(self):
-        return self, Basic.Integer(1)
+        return self, classes.Integer(1)
 
     def as_term_coeff(self):
-        return Basic.Integer(1), self
+        return classes.Integer(1), self
 
 class Real(Number):
 
@@ -198,7 +198,7 @@ class Rational(Real):
         return self.p*other.q==self.q*other.p
 
     def evalf(self):
-        return Basic.Float(self.p) / Basic.Float(self.q)
+        return classes.Float(self.p) / classes.Float(self.q)
 
     def __int__(self):
         return int(self.p // self.q)
@@ -229,8 +229,6 @@ from .fraction import Fraction
 from .float import Float
 from .interval import Interval
 
-Basic.one = Integer(1)
-Basic.zero = Integer(0)
-
-objects.one = Integer(1)
-objects.zero = Integer(0)
+# create singletons one, zero
+Integer(1)
+Integer(0)

@@ -12,7 +12,7 @@ def test_defined_function():
                 return x
             return
 
-    assert hasattr(Basic,'Func')==True
+    assert hasattr(classes,'Func')==True
     assert Func.is_Func==False
     assert Func.is_Callable==True
     assert Func.is_BasicFunctionType==True
@@ -30,7 +30,7 @@ def test_defined_function():
 def test_symbol_function():
 
     Foo = BasicFunctionType('Foo')
-    assert hasattr(Basic,'Foo')==False
+    assert hasattr(classes,'Foo')==False
     assert Foo.is_Callable==True
     assert Foo.is_BasicFunctionType==True
     assert Foo.is_BasicFunction==False

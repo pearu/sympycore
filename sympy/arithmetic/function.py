@@ -1,7 +1,7 @@
 
 from types import ClassType
 
-from ..core import Basic, Atom, BasicType, BasicWild
+from ..core import Basic, Atom, BasicType, BasicWild, classes, objects
 from ..core.function import (BasicFunctionType, BasicFunction,
                              FunctionSignature, BasicLambda,
                              Callable)
@@ -22,7 +22,7 @@ class Function(BasicArithmetic, BasicFunction):
     def try_derivative(self, s):
         i = 0
         l = []
-        r = Basic.zero
+        r = objects.zero
         args = self.args
         for a in args:
             i += 1
@@ -31,7 +31,7 @@ class Function(BasicArithmetic, BasicFunction):
                 continue
             df = self.func.fdiff(i)
             l.append(df(*args) * da)
-        return Basic.Add(*l)
+        return classes.Add(*l)
 
     @UniversalMethod
     def fdiff(obj, index=1):
@@ -49,7 +49,7 @@ class Function(BasicArithmetic, BasicFunction):
             df = self.func.fdiff(i)(*self.args)
             da = a.fdiff(index)
             l.append(df * da)
-        return Basic.Add(*l)
+        return classes.Add(*l)
 
 
 class Lambda(BasicArithmetic, BasicLambda):

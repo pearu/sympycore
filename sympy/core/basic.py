@@ -8,32 +8,39 @@ __all__ = ['BasicType', 'Basic', 'Atom', 'Composite', 'BasicWild',
            'classes', 'objects']
 
 ordering_of_classes = [
-    'Number','NumberSymbol','ImaginaryUnit','BasicSymbol','Atom',
+    'Number','MathematicalSymbol','BasicSymbol','Atom',
     'BasicFunction','Callable',
     'Composite',
     'Basic',
     ]
 
-class Classes(object):
-    """ Holds all Basic subclasses as attributes.
+class Holder:
+    """ Holds (name, value) pairs via Holder instance attributes.
+    The set of pairs is extendable via setting
+      <Holder instance>.<name> = <value>
     """
-    @singleton
-    def __new__(cls): return object.__new__(cls)
+    def __init__(self, descr):
+        self._descr = descr
+        self._counter = 0
+    def __str__(self):
+        return self._descr % (self.__dict__)
+
+    def __repr__(self):
+        return '%s(%r)' % (self.__class__.__name__, str(self))
+    
     def __setattr__(self, name, obj):
-        setattr(self.__class__, name, obj)
+        if not self.__dict__.has_key(name) and self.__dict__.has_key('_counter'):
+            self._counter += 1
+        self.__dict__[name] = obj
 
-classes = Classes()
+    def iterNameValue(self):
+        for k,v in self.__dict__.iteritems():
+            if k.startswith('_'):
+                continue
+            yield k,v
 
-class Objects(object):
-    """ Holds commonly used instances of Basic classes.
-    """
-    @singleton
-    def __new__(cls):
-        return object.__new__(cls)
-    def __setattr__(self, name, obj):
-        setattr(self.__class__, name, obj)
-
-objects = Objects()
+classes = Holder('Sympy Basic subclass holder (%(_counter)s classes)')
+objects = Holder('Sympy predefined objects holder (%(_counter)s objects)')
 
 class BasicType(type):
     """ Metaclass for Basic classes.
@@ -58,8 +65,8 @@ class BasicType(type):
                 return False
             def is_cls_type(cl):
                 return isinstance(cl, cls)
-            setattr(Basic, cls.__name__, cls)
-            setattr(Classes, cls.__name__, cls)
+            #setattr(Basic, cls.__name__, cls)
+            setattr(classes, cls.__name__, cls)
             setattr(Basic, 'is_' + name,
                     DualProperty(is_cls, is_cls_type))
 
@@ -77,7 +84,7 @@ def _get_class_index(cls):
     clsindex = -len(ordering_of_classes)
     for i in range(len(ordering_of_classes)):
         basename = ordering_of_classes[i]
-        base = getattr(Basic, basename, None)
+        base = getattr(classes, basename, None)
         if base is None:
             base = getattr(types, basename, object)
         if issubclass(cls, base):
@@ -241,7 +248,7 @@ class Basic(object):
         """
         result = set()
         if type is not None and not isinstance(type, (object.__class__, tuple)):
-            type = Basic.sympify(type).__class__
+            type = sympify(type).__class__
         if self.is_Atom:
             if type is None or isinstance(self, type):
                 result.add(self)
@@ -286,7 +293,7 @@ class Basic(object):
             return False
         elif not patterns:
             return True
-        p = Basic.sympify(patterns[0])
+        p = sympify(patterns[0])
         if isinstance(p,Basic) and p.is_Atom and not p.is_BasicWild:
             return p in self.atoms(p.__class__)
         if self.match(p) is not None:
@@ -306,7 +313,7 @@ class Basic(object):
 
         Don't redefine this method, redefine matches(..) method instead.
         """
-        pattern = Basic.sympify(pattern)
+        pattern = sympify(pattern)
         if isinstance(pattern, bool):
             return
         return pattern.matches(self, {})

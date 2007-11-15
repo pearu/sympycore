@@ -276,6 +276,8 @@ def test_mul():
     e = x
     assert e.match(p*x) == {p: 1}
 
+    p = Wild('p', predicate=lambda expr: expr.is_Atom)
+    q = Wild('q', predicate=lambda expr: expr.is_Atom)
     e = Exp(x)
     assert e.match(x**p*Exp(x*q)) == {p: 0, q: 1}
     assert (x*e).match(x**p*Exp(x*q)) == {p: 1, q: 1}

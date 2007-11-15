@@ -4,7 +4,7 @@ Float - using mpmath.lib functionality.
 
 import decimal
 
-from ..core import Basic, sympify, BasicType
+from ..core import Basic, sympify, BasicType, classes, objects
 from .number import Real
 from .mpmath.lib import (fzero,
                          fcmp, fneg_exact, fadd, fsub, fmul, fdiv, fpow,
@@ -154,7 +154,7 @@ class Float(Real, tuple):
         if isinstance(other, (int,long,float)):
             other = Float(other, self.prec)
         else:
-            other = Basic.sympify(other)
+            other = sympify(other)
         if self is other: return False
         if other.is_Rational:
             other = Float(other, self.prec)
@@ -167,7 +167,7 @@ class Float(Real, tuple):
         if isinstance(other, (int,long,float)):
             other = Float(other, self.prec)
         else:
-            other = Basic.sympify(other)
+            other = sympify(other)
         if self is other: return False
         if other.is_Rational:
             other = Float(other, self.prec)
@@ -180,7 +180,7 @@ class Float(Real, tuple):
         if isinstance(other, (int,long,float)):
             other = Float(other, self.prec)
         else:
-            other = Basic.sympify(other)
+            other = sympify(other)
         if self is other: return True
         if other.is_Rational:
             other = Float(other, self.prec)
@@ -193,7 +193,7 @@ class Float(Real, tuple):
         if isinstance(other, (int,long,float)):
             other = Float(other, self.prec)
         else:
-            other = Basic.sympify(other)
+            other = sympify(other)
         if self is other: return False
         if other.is_Rational:
             other = Float(other, self.prec)
@@ -206,7 +206,7 @@ class Float(Real, tuple):
         if isinstance(other, (int,long,float)):
             other = Float(other, self.prec)
         else:
-            other = Basic.sympify(other)
+            other = sympify(other)
         if self is other: return True
         if other.is_Rational:
             other = Float(other, self.prec)
@@ -279,7 +279,7 @@ class Float(Real, tuple):
                 other = Float(other, self.prec)
             if other.is_Float:
                 return other.__add__(self)
-            return Basic.Add(other, self)
+            return classes.Add(other, self)
         return sympify(other) + self
 
     def __rsub__(self, other):
@@ -291,7 +291,7 @@ class Float(Real, tuple):
                 other = Float(other, self.prec)
             if other.is_Float:
                 return other.__sub__(self)
-            return Basic.Add(other, -self)
+            return classes.Add(other, -self)
         return sympify(other) - self
 
     def __rmul__(self, other):
@@ -303,7 +303,7 @@ class Float(Real, tuple):
                 other = Float(other, self.prec)
             if other.is_Float:
                 return other.__mul__(self)
-            return Basic.Mul(other, self)
+            return classes.Mul(other, self)
         return sympify(other) * self
 
     def __rdiv__(self, other):
@@ -315,7 +315,7 @@ class Float(Real, tuple):
                 other = Float(other, self.prec)
             if other.is_Float:
                 return other.__div__(self)
-            return Basic.Mul(other, 1/self)
+            return classes.Mul(other, 1/self)
         return sympify(other) / self
 
     def __rpow__(self, other):
@@ -327,7 +327,7 @@ class Float(Real, tuple):
                 other = Float(other, self.prec)
             if other.is_Float:
                 return other.__pow__(self)
-            return Basic.Pow(other, self)
+            return classes.Pow(other, self)
         return sympify(other) ** self
 
     def evalf(self, precision=None):
@@ -343,7 +343,7 @@ class Float(Real, tuple):
                 precision = self.prec
             rounding = Float._rounding
             return Float(fsqrt(self[:], precision, rounding), precision)
-        return abs(self).evalf_sqrt(precision) * Basic.I
+        return abs(self).evalf_sqrt(precision) * objects.I
 
     def evalf_log(self, precision=None):
         Float = self.__class__
@@ -353,8 +353,8 @@ class Float(Real, tuple):
             rounding = Float._rounding
             return Float(flog(self[:], precision, rounding), precision)
         if self.is_zero:
-            return Basic.nan
-        return abs(self).evalf_log(precision) + Basic.I
+            return objects.nan
+        return abs(self).evalf_log(precision) + objects.I
 
     def evalf_exp(self, precision=None):
         Float = self.__class__
@@ -394,5 +394,5 @@ class Float(Real, tuple):
             if a==1:
                 return a
             if self.is_negative:
-                return Basic.nan
+                return objects.nan
             return other

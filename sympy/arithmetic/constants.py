@@ -1,66 +1,137 @@
 
-from ..core import Atom, Basic, sympify
+from ..core import Atom, Basic, sympify, classes, objects
 from ..core.utils import singleton
-
 from .basic import BasicArithmetic
 
-class NumberSymbol(BasicArithmetic, Atom):
+__all__ = ['MathematicalSymbol', 'EulersNumber', 'Pi', 'GoldenRation',
+           'EulerConstant', 'Feigenbaum1', 'Feigenbaum2',
+           'NaN', 'Infinity', 'ComplexInfinity', 'ImaginaryUnit',
+           'initialize_constants'
+           ]
+
+def initialize_constants():
+    """Creates singletion instances of MathematicalSymbol classes.
+    """
+    EulersNumber()
+    Pi()
+    GoldenRatio()
+    EulerConstant()
+    Feigenbaum1()
+    Feigenbaum2()
+    NaN()
+    Infinity()
+    ComplexInfinity()
+    ImaginaryUnit()
+    
+class MathematicalSymbol(BasicArithmetic, Atom):
+    """Base class to various mathematical symbols and constants
+    for which arithmetic operations are defined.
+    """
 
     @singleton
     def __new__(cls):
-        return object.__new__(cls)
+        obj = object.__new__(cls)
+        setattr(objects, obj.tostr(), obj)
+        return obj
 
     def __eq__(self, other):
-        other = sympify(other)
-        if other is self: return True
+        if sympify(other) is self: return True
         return False
 
-class Exp1(NumberSymbol):
+class EulersNumber(MathematicalSymbol):
+    """Euler's number e=2.71828182845904523536...
+
+    Reference:
+      http://en.wikipedia.org/wiki/E_(mathematical_constant)
+    """
 
     def tostr(self, level=0):
         return 'E'
 
     def evalf(self, precision=None):
-        return Basic.Float(1, precision).evalf_exp()
+        return classes.Float(1, precision).evalf_exp()
 
-    def try_power(self, other):
-        return Basic.Exp(other)
+    def try_power_(self, other):
+        return classes.Exp(other)
 
-class Pi(NumberSymbol):
+class Pi(MathematicalSymbol):
+    """Circular constant pi=3.14159265358979323846...
+
+    Reference:
+      http://en.wikipedia.org/wiki/Pi
+    """
 
     def tostr(self, level=0):
         return "pi"
 
     def evalf(self, precision=None):
-        return Basic.Float.evalf_pi(precision)
+        return classes.Float.evalf_pi(precision)
 
-class GoldenRatio(NumberSymbol):
+class GoldenRatio(MathematicalSymbol):
+    """Golden ratio phi=1.6180339887498948482...
 
-    def tostr(self, level=0):
-        return 'GoldenRatio'
-
-    def evalf(self, precision=None):
-        return (Basic.Float(5).evalf_sqrt(precision)+1)/2
-
-class EulerGamma(NumberSymbol):
+    Reference:
+      http://en.wikipedia.org/wiki/Golden_ratio
+    """
 
     def tostr(self, level=0):
-        return 'EulerGamma'
+        return 'phi'
 
     def evalf(self, precision=None):
-        return Basic.Float.evalf_gamma(precision)
+        return (classes.Float(5).evalf_sqrt(precision)+1)/2
 
-class NaN(NumberSymbol):
+class EulerConstant(MathematicalSymbol):
+    """Euler-Masheroni constant gamma=0.5772156649015328606...
+
+    Reference:
+      http://en.wikipedia.org/wiki/Euler-Mascheroni_constant
+    """
+
+    def tostr(self, level=0):
+        return 'gamma'
+
+    def evalf(self, precision=None):
+        return classes.Float.evalf_gamma(precision)
+
+class Feigenbaum1(MathematicalSymbol):
+    """Feigenbaum's first constant alpha=4.66920160910299067185...
+    
+    Reference:
+      http://en.wikipedia.org/wiki/Feigenbaum_constants
+    """
+    def tostr(self, level=0):
+        return 'alpha'
+
+
+class Feigenbaum2(MathematicalSymbol):
+    """Feigenbaum's second constant delta=2.50290787509589282228...
+    
+    Reference:
+      http://en.wikipedia.org/wiki/Feigenbaum_constants
+    """
+    def tostr(self, level=0):
+        return 'delta'
+
+class NaN(MathematicalSymbol):
+    """Not-a-Number nan.
+    """
 
     def tostr(self, level=0):
         return 'nan'
 
     def try_power(self, other):
         if other.is_zero:
-            return Basic.one
+            return objects.one
         return self
 
-class Infinity(NumberSymbol):
+class Infinity(MathematicalSymbol):
+    """Positive infinity oo.
+
+    Reference:
+      http://en.wikipedia.org/wiki/Infinity
+      http://en.wikipedia.org/wiki/Extended_real_number_line
+      http://en.wikipedia.org/wiki/Real_projective_line
+    """
 
     def tostr(self, level=0):
         return 'oo'
@@ -70,20 +141,25 @@ class Infinity(NumberSymbol):
             return other
         if other.is_Number:
             if other.is_zero:
-                return Basic.one
+                return objects.one
             if other.is_one:
                 return
             if other.is_positive:
                 return self
             if other.is_negative:
-                return Basic.zero
+                return objects.zero
         if other.is_Infinity:
             return self
         if other==-self:
-            return Basic.zero
+            return objects.zero
 
 
-class ComplexInfinity(NumberSymbol):
+class ComplexInfinity(MathematicalSymbol):
+    """Complex infinity zoo.
+
+    Reference:
+      http://en.wikipedia.org/wiki/Riemann_sphere
+    """
 
     def tostr(self, level=0):
         return 'zoo'
@@ -93,17 +169,18 @@ class ComplexInfinity(NumberSymbol):
             return other
         if other.is_Number:
             if other.is_zero:
-                return Basic.one
+                return objects.one
             if other.is_positive:
                 return self
             if other.is_negative:
-                return Basic.zero
+                return objects.zero
 
-class ImaginaryUnit(BasicArithmetic, Atom):
+class ImaginaryUnit(MathematicalSymbol):
+    """Positive imaginary unit I = Sqrt(-1).
 
-    @singleton
-    def __new__(cls):
-        return object.__new__(cls)
+    Reference:
+      http://en.wikipedia.org/wiki/Imaginary_unit
+    """
 
     def tostr(self, level=0):
         return 'I'
@@ -114,10 +191,10 @@ class ImaginaryUnit(BasicArithmetic, Atom):
                 # nothing to evaluate
                 return
             e = other.p % 4
-            if e==0: return Basic.one
-            if e==1: return Basic.I
-            if e==2: return -Basic.one
-            return -Basic.I
+            if e==0: return objects.one
+            if e==1: return objects.I
+            if e==2: return -objects.one
+            return -objects.I
         return
 
     def __eq__(self, other):

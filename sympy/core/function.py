@@ -4,7 +4,7 @@ import sys
 import types
 
 from .utils import DualMethod, DualProperty
-from .basic import Atom, Composite, Basic, BasicType, sympify, sympify_types, BasicWild, Classes
+from .basic import Atom, Composite, Basic, BasicType, sympify, sympify_types, BasicWild, classes
 
 __all__ = ['FunctionSignature',
            'BasicFunctionType', 'BasicFunction',
@@ -97,7 +97,7 @@ class FunctionSignature:
         return '%s(%r, %r)' % (self.__class__.__name__, arg1, arg2)
 
 
-Basic.FunctionSignature = FunctionSignature
+classes.FunctionSignature = FunctionSignature
 
 def new_function_value(cls, args, options):
     if not isinstance(args, tuple):
@@ -279,7 +279,7 @@ class Callable(Basic, BasicType):
         name = func.__name__
         setattr(func, 'is_'+name, True)
         
-        # set Basic.is_Class attribute:
+        # set classes.is_Class attribute:
         def is_cls(self): return False
         setattr(Basic, 'is_' + name, property(is_cls))
 
@@ -287,8 +287,8 @@ class Callable(Basic, BasicType):
         Basic.predefined_objects[name] = func
 
         # set Basic.Class attribute:
-        setattr(Classes, name, func)
-        setattr(Basic, name, func)
+        setattr(classes, name, func)
+        #setattr(Basic, name, func)
 
     def torepr(cls):
         return type.__repr__(cls)
@@ -309,7 +309,7 @@ class Callable(Basic, BasicType):
 
     def atoms(cls, type=None):
         if type is not None and not isinstance(type, (object.__class__, tuple)):
-            type = Basic.sympify(type).__class__
+            type = sympify(type).__class__
         if type is None or isinstance(cls, type):
             return set([cls])
         return set()

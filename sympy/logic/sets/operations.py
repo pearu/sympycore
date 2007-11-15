@@ -1,6 +1,6 @@
 
 
-from ...core import Basic
+from ...core import Basic, classes
 from .function import SetFunction
 from .symbol import Empty, Universal
 
@@ -196,7 +196,7 @@ class Complementary(SetFunction):
         if set==other:
             return False
     def try_infimum(self):
-        return Basic.Min(self.superset)
+        return classes.Min(self.superset)
     def try_supremum(self):
-        return Basic.Max(self.superset)    
+        return classes.Max(self.superset)    
 

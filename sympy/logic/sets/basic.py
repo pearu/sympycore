@@ -1,4 +1,4 @@
-from ...core import Basic, sympify
+from ...core import Basic, sympify, classes
 
 __all__ = ['BasicSet']
 
@@ -18,7 +18,7 @@ class BasicSet(Basic):
     def domain(self):
         """ Return one of the predefined sets that includes self.
         """
-        assert isinstance(self, Basic.SetSymbol),`self`
+        assert isinstance(self, classes.SetSymbol),`self`
         return self
 
     def try_element(self, other):

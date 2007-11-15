@@ -1,16 +1,16 @@
 
 
-from ...core import Basic, BasicType
+from ...core import Basic, BasicType, classes, objects
 from ...core.function import FunctionSignature
 from ...core.utils import UniversalMethod
-from ...arithmetic import Function
+from ...arithmetic import Function, BasicArithmetic
 
 __all__ = ['Min', 'Max', 'Sqrt']
 
 class Max(Function):
     """ Maximum of arguments
     """
-    signature = FunctionSignature([(Basic,)], (Basic,))
+    signature = FunctionSignature([(Basic,)], (BasicArithmetic,))
 
     @classmethod
     def canonize(cls, args):
@@ -26,7 +26,7 @@ class Max(Function):
                 flag = True
             elif a.is_Infinity:
                 return a
-            elif a==-Basic.oo:
+            elif a==-objects.oo:
                 flag = True
             else:
                 n = len(new_args)
@@ -40,7 +40,7 @@ class Max(Function):
         if flag:
             return cls(*new_args)
         if len(new_args)==0:
-            return -Basic.oo
+            return -objects.oo
         if len(new_args)==1:
             arg = list(new_args)[0]
             if not arg.is_BasicSet:
@@ -50,7 +50,7 @@ class Max(Function):
 class Min(Function):
     """ Minimum of arguments
     """
-    signature = FunctionSignature([(Basic,)], (Basic,))
+    signature = FunctionSignature([(Basic,)], (BasicArithmetic,))
 
     @classmethod
     def canonize(cls, args):
@@ -66,7 +66,7 @@ class Min(Function):
                 flag = True
             elif a.is_Infinity:
                 flag = True
-            elif a==-Basic.oo:
+            elif a==-objects.oo:
                 return a
             else:
                 n = len(new_args)
@@ -80,7 +80,7 @@ class Min(Function):
         if flag:
             return cls(*new_args)
         if len(new_args)==0:
-            return Basic.oo
+            return objects.oo
         if len(new_args)==1:
             arg = list(new_args)[0]
             if not arg.is_BasicSet:
