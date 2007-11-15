@@ -168,7 +168,7 @@ class Fraction(Rational):
             return r
         return NotImplemented
 
-    @memoizer_immutable_args('Fraction.try_power')
+    #@memoizer_immutable_args('Fraction.try_power')
     def try_power(self, other):
         if other.is_Integer:
             if other.is_negative:

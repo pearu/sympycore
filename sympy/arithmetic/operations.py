@@ -265,8 +265,8 @@ class Add(ArithmeticFunction):
 
     def tostr(self, level=0):
         p = self.precedence
-        r = ' + '.join([op.tostr(p) for op in self.iterSorted()]) or '0'
-        r = r.replace(' + -',' - ')
+        r = '@+@'.join([op.tostr(p) for op in self.iterSorted()]) or '0'
+        r = r.replace('@+@-',' - ').replace('@+@',' + ')
         if p<=level:
             r = '(%s)' % r
         return r
@@ -516,8 +516,8 @@ class Mul(ArithmeticFunction):
 
     def tostr(self, level=0):
         p = self.precedence
-        r = '*'.join([op.tostr(p) for op in self.iterSorted()]) or '1'
-        r = r.replace('-1*','-')
+        r = '@*@'.join([op.tostr(p) for op in self.iterSorted()]) or '1'
+        r = r.replace('-1@*@','-').replace('@*@','*')
         if p<=level:
             r = '(%s)' % r
         return r
