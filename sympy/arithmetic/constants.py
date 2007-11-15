@@ -34,10 +34,6 @@ class MathematicalSymbol(BasicArithmetic, Atom):
         setattr(objects, obj.tostr(), obj)
         return obj
 
-    def __eq__(self, other):
-        if sympify(other) is self: return True
-        return False
-
 class EulersNumber(MathematicalSymbol):
     """Euler's number e=2.71828182845904523536...
 

@@ -1,6 +1,6 @@
 
 from .utils import memoizer_immutable_args, singleton
-from .basic import Atom, Basic, sympify, BasicWild
+from .basic import Atom, Basic, sympify, BasicWild, sympify_types1
 
 __all__ = ['BasicSymbol', 'BasicDummySymbol','BasicWildSymbol']
 
@@ -22,9 +22,10 @@ class BasicSymbol(Atom, str):
         return self.name
 
     def __eq__(self, other):
-        if isinstance(other, Basic):
-            if other.is_BasicDummySymbol: return False
-            if not isinstance(other, self.__class__): return False
+        if isinstance(other, sympify_types1):
+            other = sympify(other)
+        if not isinstance(other, self.__class__):
+            return False
         return str.__eq__(self, other)
 
     __hash__ = str.__hash__
@@ -81,6 +82,7 @@ class BasicDummySymbol(BasicSymbol):
         return '_' + self.name
 
     def __eq__(self, other):
+        # dymmy symbols are singletons
         return self is other
 
 class BasicWildSymbol(BasicWild, BasicDummySymbol):

@@ -4,7 +4,8 @@ import sys
 import types
 
 from .utils import DualMethod, DualProperty
-from .basic import Atom, Composite, Basic, BasicType, sympify, sympify_types, BasicWild, classes
+from .basic import Atom, Composite, Basic, BasicType, sympify, sympify_types1,\
+     BasicWild, classes
 
 __all__ = ['FunctionSignature',
            'BasicFunctionType', 'BasicFunction',
@@ -120,11 +121,12 @@ class FunctionTemplate(Composite):
 
     signature = FunctionSignature(None, None)
 
-    # when arguments_sorted is True then it is assumed
-    # that the order of arguments is insignificant and
-    # when comparing function instances, arguments must
-    # be sorted first.
-    arguments_sorted = False
+    # When ordered_arguments is True then it is assumed
+    # that the order of arguments is significant and
+    # this will be taken into account when comparing
+    # function instances. Otherwise arguments are compared
+    # as frozenset's.
+    ordered_arguments = True
 
     def __new__(cls, *args, **options):
         args = map(sympify, args)
@@ -164,10 +166,10 @@ class FunctionTemplate(Composite):
     def __hash__(self):
         if self._hash_value is None:
             cls = self.__class__
-            if cls.arguments_sorted:
-                self._hash_value = hash((cls.__name__, self.get_args_frozenset()))
-            else:
+            if cls.ordered_arguments:
                 self._hash_value = hash((cls.__name__, self.args))
+            else:
+                self._hash_value = hash((cls.__name__, self.get_args_frozenset()))
         return self._hash_value
 
     def __iter__(self):
@@ -180,7 +182,7 @@ class FunctionTemplate(Composite):
 
     def get_args_sorted(self):
         if self.args_sorted is None:
-            self.args_sorted = tuple(sorted(self.args, cmp=Basic.static_compare))
+            self.args_sorted = tuple(sorted(self.args, cmp=cmp))
         return self.args_sorted
 
     def iterSorted(self):
@@ -193,14 +195,16 @@ class FunctionTemplate(Composite):
         return self.args[key]
 
     def __eq__(self, other):
+        if isinstance(other, sympify_types1):
+            other = sympify(other)
         if isinstance(other, Basic):
             if not other.is_BasicFunction:
                 return False
             if self.func==other.func:
-                if self.arguments_sorted:
-                    return self.get_args_frozenset()==other.get_args_frozenset()
-                else:
+                if self.func.ordered_arguments:
                     return self.args==other.args
+                else:
+                    return self.get_args_frozenset()==other.get_args_frozenset()
             return False
         if isinstance(other, str):
             return self==sympify(other)
@@ -288,7 +292,6 @@ class Callable(Basic, BasicType):
 
         # set Basic.Class attribute:
         setattr(classes, name, func)
-        #setattr(Basic, name, func)
 
     def torepr(cls):
         return type.__repr__(cls)
@@ -315,14 +318,11 @@ class Callable(Basic, BasicType):
         return set()
 
     def __eq__(self, other):
+        if isinstance(other, sympify_types1):
+            other = sympify(other)
         if isinstance(other, Basic):
             if other.is_Callable:
                 return self.__name__==other.__name__
-            return False
-        if isinstance(other, bool):
-            return False
-        if isinstance(other, sympify_types):
-            return self==sympify(other)
         return False
 
     def __nonzero__(cls):

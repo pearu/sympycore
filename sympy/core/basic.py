@@ -70,13 +70,13 @@ class BasicType(type):
             setattr(Basic, 'is_' + name,
                     DualProperty(is_cls, is_cls_type))
 
-
         if getattr(cls, 'is_BasicDummySymbol', None):
             # _dummy_class attribute is used by the BasicSymbol.as_dummy() method
             if bases[0].__name__=='BasicDummySymbol' or name=='BasicDummySymbol':
                 cls.__bases__[-1]._dummy_class = cls 
 
         return cls
+
 
 @singleton
 def _get_class_index(cls):
@@ -129,80 +129,78 @@ class Basic(object):
     def torepr(self):
         return '<%s instance at %s>' % (self.__class__.__name__, hex(id(self)))
 
-    @staticmethod
-    def static_compare(obj1, obj2):
-        if isinstance(obj1, Basic):
-            return obj1.compare(obj2)
-        if isinstance(obj2, Basic):
-            return -obj2.compare(obj1)
-        return cmp(obj1, obj2)
-
-    @UniversalMethod
-    def compare(obj, other):
-        """
-        Return -1,0,1 if the object is smaller, equal, or greater than other
-        in some sense (not in mathematical sense in most cases).
-        If the object is of different type from other then their classes
-        are ordered according to sorted_classes list.
-        
-        This method is needed only for sorting. We cannot use __cmp__
-        because of the duality of Callable and __lt__ methods can
-        be defined only for a subset of Basic objects.
-
-        Derived classes should define instance_compare method to
-        overwrite this universal compare method. When instance_compare(self, other)
-        is called then other.__class__ is self.__class__.
-        """
-        if obj is other: return 0
-        if isinstance(obj, type):
-            # obj is BasicType instance
-            if isinstance(other, type):
-                if isinstance(other, BasicType):
-                    c = cmp(_get_class_index(obj),_get_class_index(other))
-                    if c: return c
-                    # obj and other are subclasses of the same Basic class
-                    # but not necessarily the same classes.
-                    return cmp(obj.__name__, other.__name__)
-                # use Python defined ordering for builtin types
-                return cmp(obj, other)
-            if isinstance(other, Basic):
-                # instances are smaller than types
-                return 1
-            return cmp(obj, other)
-        if isinstance(other, type):
-            # instances are smaller than types
-            return -1
-        if not isinstance(other, Basic):
-            return cmp(obj, other)
-        c = obj.__class__.compare(other.__class__)
-        if c: return c
-        if isinstance(obj, sympify_types1):
-            # convert Basic object to an instance of builtin type
-            cls = obj.__class__.__base__
-            return cmp(cls(obj), cls(other))
-        if hasattr(obj, 'instance_compare'):
-            return obj.instance_compare(other)
-        if obj.is_Composite:
-            c = cmp(len(obj), len(other))
-            if c: return c
-            for l,r in itertools.izip(obj,other):
-                c = l.compare(r)
-                if c: return c
-            return 0
-        return cmp(obj, other)
-
+    # This implementation of __eq__ method is suitable for singleton instances.
+    # Derived classes should redefine this __eq__ method.
     def __eq__(self, other):
-        # redefine __eq__ and __hash__ in parallel, also compare.
+        # redefinitions of __eq__ method should start with the following two lines:
+        if isinstance(other, sympify_types1):
+            other = sympify(other)
+        #
         return self is other
 
-    def __ne__(self, other):
-        return not self.__eq__(other)
+    # All Basic instances must be immutable.
+    def __hash__(self):
+        # This is generic __hash__ method. Only composite classes that
+        # do not derive from builtin types should redefine the __hash__
+        # method. Caching hash value is recommended.
+        r = getattr(self, '_hashvalue', None)
+        if r is None:
+            hashfunc = self.__class__.__base__.__hash__
+            if hashfunc==self.__class__.__hash__:
+                hashfunc = object.__hash__
+            self._hashvalue = r = hashfunc(self)
+        return r
 
-    __hash__ = object.__hash__
-    
+    # Comparison is only needed for nicer ordering of operants in the string
+    # representation of commutative operations.
+    # Only numeric classes such as Number and MathematicalSymbol may (should)
+    # redefine __lt__ and __le__ methods.
+    def __lt__(self, other):
+        # redefinitions of __lt__ method should start with the following two
+        # lines:
+        if isinstance(other, sympify_types1):
+            other = sympify(other)
+        #
+        if isinstance(other, Basic):
+            # Assuming that self or other is not a numeric class.
+            # If they are numeric classes then compare only their values
+            # (even when they are different types) and skip the following three lines.
+            i1,i2 = _get_class_index(self.__class__), _get_class_index(other.__class__)
+            if i1 != i2:
+                return i1 < i2
+        if self==other:
+            return False
+        return id(self) < id(other)
+
+    def __le__(self, other):
+        # Before redefining __le__ method, read the comments in __lt__ method. 
+        if isinstance(other, sympify_types1):
+            other = sympify(other)
+        #
+        if isinstance(other, Basic):
+            i1,i2 = _get_class_index(self.__class__), _get_class_index(other.__class__)
+            if i1 != i2:
+                return i1 < i2
+        #
+        return id(self) <= id(other)
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __ge__(self, other):
+        return not self < other
+
+    def __gt__(self, other):
+        return not self <= other
+
     def __nonzero__(self):
-        # don't redefine __nonzero__ except for Number types.
+        # don't redefine __nonzero__ except for numeric classes.
         return False
+
+    def __cmp__(self, other):
+        if self==other: return 0
+        if self < other: return -1
+        return 1
 
     def replace(self, old, new):
         """ Replace subexpression old with expression new and return result.
@@ -364,11 +362,18 @@ class Atom(Basic):
     def precedence(self):
         return Basic.Atom_precedence
 
-
 class Composite(Basic):
 
     def torepr(self):
         return '%s(%s)' % (self.__class__.__name__,', '.join(map(repr, self)))
+
+    def instance_compare(self, other):
+        c = cmp(len(self), len(other))
+        if c: return c
+        for l, r in itertools.izip(self, other):
+            c = l.compare(r)
+            if c: return c
+        return 0
 
 class BasicWild(Basic):
     """ Base class for wild symbols and functions.

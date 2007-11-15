@@ -75,6 +75,8 @@ class Fraction(Rational):
                 other = other.as_Fraction
             if other.is_Fraction:
                 return self.p!=other.p or self.q!=other.q
+        if isinstance(other, bool):
+            return True
         return NotImplemented
 
     def __lt__(self, other):

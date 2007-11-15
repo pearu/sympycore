@@ -11,6 +11,8 @@ class Union(SetFunction):
     """
     # signature is initialized in __init__.py
 
+    ordered_arguments = False
+
     @classmethod
     def canonize(cls, sets):
         if len(sets)==0: return Empty
@@ -48,7 +50,6 @@ class Union(SetFunction):
                 return s1.superset
             elif s2.is_Complementary and s2.set==s1:
                 return s2.superset
-        sets.sort(Basic.static_compare)
         return
 
     def try_element(self, other):
@@ -77,6 +78,8 @@ class Intersection(SetFunction):
     """ Intersection of sets.
     """
     # signature is initialized in __init__.py
+
+    ordered_arguments = False
     
     @classmethod
     def canonize(cls, sets):
@@ -115,7 +118,6 @@ class Intersection(SetFunction):
                 return Empty
             if s2.is_Complementary and s2.set==s1:
                 return Empty
-        sets.sort(Basic.static_compare)
         return      
 
     @property

@@ -36,7 +36,7 @@ class ArithmeticFunction(Function):
          and coeff.is_Number == True
     """
 
-    arguments_sorted = True
+    ordered_arguments = False
     signature = FunctionSignature([BasicArithmetic],(BasicArithmetic,))
 
     def __eq__(self, other):
@@ -48,8 +48,15 @@ class ArithmeticFunction(Function):
             return self==sympify(other)
         return False
 
-    def instance_compare(self, other):
-        return dict.__cmp__(self._dict_content, other._dict_content)
+    def __lt__(self, other):
+        if self.__class__ is other.__class__:
+            return self._dict_content < other._dict_content
+        return Basic.__lt__(self, other)
+
+    def __le__(self, other):
+        if self.__class__ is other.__class__:
+            return self._dict_content <= other._dict_content
+        return Basic.__le__(self, other)
 
 class TermCoeffDict(dict):
     """
@@ -69,7 +76,7 @@ class TermCoeffDict(dict):
 
     def __repr__(self):
         l = self.items()
-        l.sort(Basic.static_compare)
+        l.sort(cmp)
         if l:
             l.append('')
         return '%s((%s))' % (self.__class__.__name__, ', '.join(map(str,l)))

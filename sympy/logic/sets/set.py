@@ -1,11 +1,12 @@
 
-from ...core.basic import Basic, Composite, sympify, classes
-from ...core.methods import BasicImmutableMeths
+from ...core.basic import Basic, Composite, sympify, classes, sympify_types1
+from ...core.utils import UniversalMethod
+#from ...core.methods import BasicImmutableMeths
 from .basic import BasicSet
 
 __all__ = ['Set']
 
-class Set(BasicImmutableMeths, BasicSet, Composite, frozenset):
+class Set(BasicSet, Composite, frozenset):
     """ A set object with elements.
     """
 
@@ -13,6 +14,7 @@ class Set(BasicImmutableMeths, BasicSet, Composite, frozenset):
         if not args: return Empty
         args = map(sympify,args)
         obj = frozenset.__new__(cls, args)
+        obj.args_sorted = None
         #set.update(obj, args)
         return obj
 
@@ -20,25 +22,12 @@ class Set(BasicImmutableMeths, BasicSet, Composite, frozenset):
         # avoid calling default set.__init__.
         pass
 
-    def as_list(self):
-        r = list(self)
-        r.sort(Basic.static_compare)
-        return r
-
-    def compare(self, other):
-        if self is other: return 0
-        c = cmp(self.__class__, other.__class__)
-        if c: return c
-        c = cmp(len(self), len(other))
-        if c: return c
-        return cmp(self.as_list(), other.as_list())
-
     def __eq__(self, other):
-        if isinstance(other, self.__class__):
-            return frozenset.__eq__(self, other)
-        if isinstance(self, (Basic,bool)):
+        if isinstance(other, sympify_types1):
+            other = sympify(other)
+        if not isinstance(other, self.__class__):
             return False
-        return self==sympify(other)
+        return frozenset.__eq__(self, other)
 
     @property
     def domain(self):
@@ -59,7 +48,6 @@ class Set(BasicImmutableMeths, BasicSet, Composite, frozenset):
     def try_difference(self, other):
         if other.is_Set:
             return Set(*set(self).difference(other))
-
 
     # method to be (re)moved
     def try_supremum(self):

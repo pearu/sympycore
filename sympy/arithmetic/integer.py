@@ -105,6 +105,8 @@ class Integer(Rational, pyint):
         return pyint.__cmp__(self, other)
 
     def __eq__(self, other):
+        if isinstance(other, bool):
+            return False
         if isinstance(other,(int, long)):
             return pyint(self)==other
         other = sympify(other)
@@ -119,10 +121,13 @@ class Integer(Rational, pyint):
 
     def __ne__(self, other):
         other = sympify(other)
-        if self is other: return False
+        if self is other:
+            return False
         if isinstance(other, Basic):
             if other.is_Integer:
                 return pyint.__cmp__(self, pyint(other))!=0
+        elif isinstance(other, bool):
+            return True
         return NotImplemented
 
     def __lt__(self, other):

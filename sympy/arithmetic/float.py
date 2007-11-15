@@ -5,6 +5,7 @@ Float - using mpmath.lib functionality.
 import decimal
 
 from ..core import Basic, sympify, BasicType, classes, objects
+from ..core.basic import sympify_types1
 from .number import Real
 from .mpmath.lib import (fzero,
                          fcmp, fneg_exact, fadd, fsub, fmul, fdiv, fpow,
@@ -85,6 +86,8 @@ class Float(Real, tuple):
                 obj = tuple.__new__(cls, from_rational(val.p, val.q, _precision, _rounding))
             else:
                 return val.evalf(precision=_precision, rounding=_rounding)
+        elif isinstance(val, bool):
+            pass
         elif isinstance(val, (int, long)):
             obj = tuple.__new__(cls, from_int(val, _precision, _rounding))
         elif isinstance(val, float):
@@ -137,6 +140,9 @@ class Float(Real, tuple):
 
     def __eq__(self, other):
         Float = self.__class__
+        if isinstance(other, bool):
+            # Note that bool is a subclass of int.
+            return False
         if isinstance(other, (int,long,float)):
             other = Float(other, self.prec)
         if isinstance(other, Basic):
@@ -151,6 +157,8 @@ class Float(Real, tuple):
 
     def __ne__(self, other):
         Float = self.__class__
+        if isinstance(other, bool):
+            return True
         if isinstance(other, (int,long,float)):
             other = Float(other, self.prec)
         else:

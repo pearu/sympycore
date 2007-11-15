@@ -15,6 +15,8 @@ class And(Predicate):
     """
     # signature is initialized in __init__.py
 
+    ordered_arguments = False
+
     @classmethod
     def canonize(cls, operants):
         new_operants = set()
@@ -41,7 +43,7 @@ class And(Predicate):
             return new_operants.pop()
         if flag:
             return cls(*new_operants)
-        operants.sort(Basic.static_compare)
+        #operants.sort(Basic.static_compare)
         return        
 
 
@@ -54,6 +56,8 @@ class Or(Predicate):
     a | ~a -> TRUE
     """
     # signature is initialized in __init__.py
+
+    ordered_arguments = False
 
     @classmethod
     def canonize(cls, operants):
@@ -81,7 +85,7 @@ class Or(Predicate):
             return new_operants.pop()
         if flag:
             return cls(*new_operants)
-        operants.sort(Basic.static_compare)
+        #operants.sort(Basic.static_compare)
         return
 
 
@@ -94,6 +98,8 @@ class Xor(Predicate):
     a ^ ~a -> TRUE
     """
     # signature is initialized in __init__.py
+
+    ordered_arguments = True
 
     @classmethod
     def canonize(cls, operants):
@@ -137,7 +143,7 @@ class Xor(Predicate):
                 else:
                     return True
             return cls(*new_operants)
-        operants.sort(Basic.static_compare)
+        #operants.sort(Basic.static_compare)
         return
     
 

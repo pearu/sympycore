@@ -2,7 +2,7 @@
 from sympy import *
 from sympy.core.methods import *
 
-def test_mutable():
+def xtest_mutable():
     a = BasicSymbol('a')
     b = BasicSymbol('b')
     c = BasicSymbol('c')

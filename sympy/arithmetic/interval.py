@@ -64,14 +64,9 @@ class Interval(Number, tuple):
     def __str__(self):
         return '[%s, %s]' % (self.a, self.b)
 
-    def compare(self, other):
-        if self is other: return 0
-        c = cmp(self.__class__, other.__class__)
-        if c: return c
-        return tuple.__cmp__(self, other)
+    instance_compare = tuple.__cmp__
 
-    def __hash__(self):
-        return tuple.__hash__(self)
+    __hash__ = tuple.__hash__
 
     def __eq__(self, other):
         """Two intervals are considered equal if all endpoints are equal"""
