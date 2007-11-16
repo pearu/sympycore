@@ -500,10 +500,17 @@ class BaseExpDict(dict):
             if v is one:
                 l.append(k)
             else:
-                l.append(Pow(k, v, normalized=False))
+                l.append(Pow(k, v, normalized=False))            
         if n is not one:
             l.insert(0, n)
             self[n] = one
+        else:
+            vs = set(self.values())
+            if len(vs)==1:
+                v = vs.pop()
+                if v is not one:
+                    p = Mul(*self.keys())
+                    return Pow(p, v, normalized=False)
         self.coeff = n
         self.args_flattened = l
         return self
