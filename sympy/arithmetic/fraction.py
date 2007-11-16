@@ -127,6 +127,9 @@ class Fraction(Rational):
     def __neg__(self):
         return self.make(-self.p, self.q)
 
+    def __abs__(self):
+        return self.make(abs(self.p), self.q)
+
     def __add__(self, other):
         other = sympify(other)
         if other.is_Integer:

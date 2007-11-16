@@ -5,7 +5,7 @@ import itertools
 from .utils import memoizer_immutable_args, DualProperty, singleton, DualMethod, UniversalMethod
 
 __all__ = ['BasicType', 'Basic', 'Atom', 'Composite', 'BasicWild',
-           'classes', 'objects']
+           'classes', 'objects', 'sort_sequence']
 
 class Holder:
     """ Holds (name, value) pairs via Holder instance attributes.

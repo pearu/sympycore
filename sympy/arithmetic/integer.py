@@ -307,6 +307,31 @@ class Integer(Rational, pyint):
                 if other.p < 0:
                     return classes.Fraction(1, r ** (-other.p))
                 return Integer(r ** other.p)
+            if other.is_negative:
+                p = self.try_power(-other)
+                if p is not None:
+                    return 1/p
+                return p
+            factors = self.as_factors()
+            f1 = 1
+            f2 = 1
+            for b,e in factors:
+                # e = q + r such that q = p/other is integer (p=floor(e*other)) and abs(r)<1. 
+                pn = other * e 
+                p = pn.p // pn.q
+                if p:
+                    r = e - p / other
+                    f1 *= b ** p
+                    f2 *= b ** r
+                else:
+                    f2 *= b ** e
+            if f1==1:
+                return
+            if f2.is_Pow and f1==f2.base:
+                # avoid recursions like:
+                # Sqrt(8) -> 2 * 2 ** (1/2) -> 2 ** (1+1/2) -> 2 ** (3/2) -> 8 ** (1/2) 
+                return
+            return f1 * classes.Pow(f2, other, normalized=False)
         if other.is_Infinity or other.is_ComplexInfinity:
             if self.is_one:
                 return self
@@ -316,7 +341,8 @@ class Integer(Rational, pyint):
         if other.is_NaN:
             return other
 
-    def as_factors(self, expand=False):
+    @singleton
+    def as_factors(self):
         dp = Integer.factor_trial_division(self.p)
         eb = {}
         for (b,e) in dp.items():
