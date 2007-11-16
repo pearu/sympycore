@@ -28,6 +28,9 @@ class BasicSymbol(Atom, str):
             return False
         return str.__eq__(self, other)
 
+    def compare(self, other):
+        return cmp(self.name, other.name)
+
     __hash__ = str.__hash__
 
     def as_dummy(self):
@@ -39,7 +42,10 @@ class BasicSymbol(Atom, str):
         # this will prevent `BasicSymbol('a') + 'b'` -> `'ab'`
         return NotImplemented
     def __radd__(self, other):
-        # note that `'a' + BasicSymbol('b')` still returns `'ab'`
+        # Note that `'a' + BasicSymbol('b')` still returns `'ab'`.
+        # This might be the reason why we should not derive
+        # BasicSymbol from str. Need to measure the performance
+        # of different approaches..
         return NotImplemented
     def __mul__(self, other):
         return NotImplemented

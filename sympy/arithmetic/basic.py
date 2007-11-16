@@ -26,6 +26,9 @@ class BasicArithmetic(ArithmeticMethods, Basic):
         return None
 
     def expand(self, *args, **kwargs):
+        """Expand an expression based on different hints. Currently
+           supported hints are basic, power, complex, trig and func.
+        """
         return self
 
     def split(self, cls=None):

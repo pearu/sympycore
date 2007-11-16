@@ -5,6 +5,7 @@ from .symbol import BasicSymbol, BasicDummySymbol, BasicWildSymbol
 from .function import (BasicFunction, BasicFunctionType, BasicLambda,
                        FunctionSignature,BasicWildFunctionType,
                        Callable)
+from .sorting import sort_sequence
 
 __all__ = ['Basic', 'BasicType',
            'Composite', 'Atom', 'BasicWild',
@@ -13,5 +14,6 @@ __all__ = ['Basic', 'BasicType',
            'BasicFunction', 'BasicFunctionType','BasicWildFunctionType',
            'BasicLambda',
            'FunctionSignature','Callable',
-           'classes', 'objects'
+           'classes', 'objects',
+           'sort_sequence'
            ]

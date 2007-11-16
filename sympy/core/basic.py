@@ -7,13 +7,6 @@ from .utils import memoizer_immutable_args, DualProperty, singleton, DualMethod,
 __all__ = ['BasicType', 'Basic', 'Atom', 'Composite', 'BasicWild',
            'classes', 'objects']
 
-ordering_of_classes = [
-    'Number','MathematicalSymbol','BasicSymbol','Atom',
-    'BasicFunction','Callable',
-    'Composite',
-    'Basic',
-    ]
-
 class Holder:
     """ Holds (name, value) pairs via Holder instance attributes.
     The set of pairs is extendable via setting
@@ -65,7 +58,6 @@ class BasicType(type):
                 return False
             def is_cls_type(cl):
                 return isinstance(cl, cls)
-            #setattr(Basic, cls.__name__, cls)
             setattr(classes, cls.__name__, cls)
             setattr(Basic, 'is_' + name,
                     DualProperty(is_cls, is_cls_type))
@@ -76,25 +68,6 @@ class BasicType(type):
                 cls.__bases__[-1]._dummy_class = cls 
 
         return cls
-
-
-@singleton
-def _get_class_index(cls):
-    clsbase = None
-    clsindex = -len(ordering_of_classes)
-    for i in range(len(ordering_of_classes)):
-        basename = ordering_of_classes[i]
-        base = getattr(classes, basename, None)
-        if base is None:
-            base = getattr(types, basename, object)
-        if issubclass(cls, base):
-            if clsbase is None:
-                clsbase, clsindex = base, i
-            else:
-                if issubclass(base, clsbase):
-                    clsbase,clsindex = base, i #pragma NO COVER
-    return clsindex
-
 
 class Basic(object):
 
@@ -130,13 +103,17 @@ class Basic(object):
         return '<%s instance at %s>' % (self.__class__.__name__, hex(id(self)))
 
     # This implementation of __eq__ method is suitable for singleton instances.
-    # Derived classes should redefine this __eq__ method.
+    # Derived classes should redefine this __eq__ method (and also __hash__ and
+    # compare methods accordingly) when necessary.
     def __eq__(self, other):
         # redefinitions of __eq__ method should start with the following two lines:
         if isinstance(other, sympify_types1):
             other = sympify(other)
         #
         return self is other
+
+    def __ne__(self, other):
+        return not (self == other)
 
     # All Basic instances must be immutable.
     def __hash__(self):
@@ -151,56 +128,20 @@ class Basic(object):
             self._hashvalue = r = hashfunc(self)
         return r
 
-    # Comparison is only needed for nicer ordering of operants in the string
-    # representation of commutative operations.
+    # Comparison is only needed for a nice ordering of operants in the string
+    # representation of commutative operations. The compare method below
+    # is used by the sort_sequence function.
     # Only numeric classes such as Number and MathematicalSymbol may (should)
-    # redefine __lt__ and __le__ methods.
-    def __lt__(self, other):
-        # redefinitions of __lt__ method should start with the following two
-        # lines:
-        if isinstance(other, sympify_types1):
-            other = sympify(other)
-        #
-        if isinstance(other, Basic):
-            # Assuming that self or other is not a numeric class.
-            # If they are numeric classes then compare only their values
-            # (even when they are different types) and skip the following three lines.
-            i1,i2 = _get_class_index(self.__class__), _get_class_index(other.__class__)
-            if i1 != i2:
-                return i1 < i2
-        if self==other:
-            return False
-        return id(self) < id(other)
-
-    def __le__(self, other):
-        # Before redefining __le__ method, read the comments in __lt__ method. 
-        if isinstance(other, sympify_types1):
-            other = sympify(other)
-        #
-        if isinstance(other, Basic):
-            i1,i2 = _get_class_index(self.__class__), _get_class_index(other.__class__)
-            if i1 != i2:
-                return i1 < i2
-        #
-        return id(self) <= id(other)
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __ge__(self, other):
-        return not self < other
-
-    def __gt__(self, other):
-        return not self <= other
+    # define __lt__ and __le__ methods.
+    def compare(self, other):
+        # the sort_sequence function should guarantee the success of
+        # the following assert:
+        assert other.__class__ is self.__class__,`self, other`
+        return cmp(self, other)
 
     def __nonzero__(self):
         # don't redefine __nonzero__ except for numeric classes.
         return False
-
-    def __cmp__(self, other):
-        if self==other: return 0
-        if self < other: return -1
-        return 1
 
     def replace(self, old, new):
         """ Replace subexpression old with expression new and return result.
@@ -215,14 +156,6 @@ class Basic(object):
             r = r.replace(old,new)
             if not isinstance(r, Basic): break
         return r
-
-    # Do we need replace_list??
-    #def replace_list(self, expressions, values):
-    #    r = self
-    #    for e,b in zip(expressions, values):
-    #        r = r.replace(e,b)
-    #        if not isinstance(r, Basic): break
-    #    return r
 
     def atoms(self, type=None):
         """Returns the atoms that form current object.
@@ -250,36 +183,11 @@ class Basic(object):
         if self.is_Atom:
             if type is None or isinstance(self, type):
                 result.add(self)
-        elif isinstance(self, dict):
-            for k,v in self.iteritems():
-                result = result.union(k.atoms(type=type))
-                result = result.union(v.atoms(type=type))
         else:
             for obj in self:
                 result = result.union(obj.atoms(type=type))
         return result
 
-    def visit(self, func, parent=None): # workinprogress
-        """ Visit expression tree.
-        """
-        if self.is_Composite:
-            if isinstance(self, dict):
-                for key, value in self.iteritems():
-                    item = self.__class__((key, value))
-                    for it in (key, value):
-                        if it.is_Composite:
-                            for r in it.visit(func, self):
-                                yield func(it, r)
-                        else:
-                            yield func(item, it)
-            else:
-                for item in self:
-                    if item.is_Composite:
-                        for r in item.visit(func, self):
-                            yield func(item, r)
-                    else:
-                        yield func(self, item)
-        yield func(parent, self)
 
     def has(self, *patterns):
         """ Return True if self has any of the patterns.
@@ -335,25 +243,49 @@ class Basic(object):
         """
         raise NotImplementedError('%s.clone() method' % (self.__class__.__name__)) #pragma NO COVER
 
-    def expand(self, *args, **hints):
-        """Expand an expression based on different hints. Currently
-           supported hints are basic, power, complex, trig and func.
+    def count_ops(self, symbolic=True):
+        """ Compute the number of operations in an expression.
+
+        By default the result will be in a form of a sum of function
+        instances. When symbolic is False then the number of
+        operations is returned where
+        - function call counts for 1 operation,
+        - operations like Mul, Add count for n-1 operations where n is
+          the number of operants,
+        - the number of operations in function arguments and operation
+          operants are recursively added to the count.
         """
-        return self
+        return 0
 
     # XXX: The following methods need a revision:
-    def split(self, op, *args, **kwargs):
-        return [self]
-
     def refine(self, *assumptions):
         if assumptions:
             __assumptions__ = Basic.Assumptions(*assumptions)
         return self.clone()
 
+    def visit(self, func, parent=None): # workinprogress
+        """ Visit expression tree.
+        """
+        if self.is_Composite:
+            if isinstance(self, dict):
+                for key, value in self.iteritems():
+                    item = self.__class__((key, value))
+                    for it in (key, value):
+                        if it.is_Composite:
+                            for r in it.visit(func, self):
+                                yield func(it, r)
+                        else:
+                            yield func(item, it)
+            else:
+                for item in self:
+                    if item.is_Composite:
+                        for r in item.visit(func, self):
+                            yield func(item, r)
+                    else:
+                        yield func(self, item)
+        yield func(parent, self)
 
 class Atom(Basic):
-
-    canonical = evalf = lambda self: self
 
     def torepr(self):
         return '%s()' % (self.__class__.__name__)
@@ -367,13 +299,33 @@ class Composite(Basic):
     def torepr(self):
         return '%s(%s)' % (self.__class__.__name__,', '.join(map(repr, self)))
 
-    def instance_compare(self, other):
-        c = cmp(len(self), len(other))
-        if c: return c
+    def __eq__(self, other):
+        if self.__class__ != other.__class__:
+            return False
+        if len(self)!=len(other):
+            return False
         for l, r in itertools.izip(self, other):
-            c = l.compare(r)
-            if c: return c
-        return 0
+            if not (l==r):
+                return False
+        return True
+
+    def compare(self, other):
+        c = cmp(self.count_ops(symbolic=False), self.count_ops(symbolic=False))
+        if c:
+            return c
+        c = cmp(len(self), len(other))
+        if c:
+            return c
+        return cmp(self, other)
+
+    _hashvalue = None
+
+    def __hash__(self):
+        # the self.__class__.__new__ method should set self._hashvalue = None
+        if self._hashvalue is None:
+            self._hashvalue = hash((self.__class__.__name__,)+tuple(self))
+        return self._hashvalue
+
 
 class BasicWild(Basic):
     """ Base class for wild symbols and functions.
@@ -403,7 +355,8 @@ class BasicWild(Basic):
             repl_dict[pattern] = expr
             return repl_dict
 
-
 from .sympify import sympify, sympify_types
 Basic.sympify = staticmethod(sympify)
 sympify_types1 = sympify_types[1:]
+
+from .sorting import sort_sequence

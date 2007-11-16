@@ -7,6 +7,8 @@ from .utils import DualMethod, DualProperty
 from .basic import Atom, Composite, Basic, BasicType, sympify, sympify_types1,\
      BasicWild, classes
 
+from .sorting import sort_sequence
+
 __all__ = ['FunctionSignature',
            'BasicFunctionType', 'BasicFunction',
            'BasicWildFunctionType',
@@ -172,6 +174,15 @@ class FunctionTemplate(Composite):
                 self._hash_value = hash((cls.__name__, self.get_args_frozenset()))
         return self._hash_value
 
+    def count_ops(self, symbolic=True):
+        if symbolic:
+            counter = self.func
+        else:
+            counter = 1
+        for a in self.args:
+            counter += a.count_ops(symbolic=symbolic)
+        return counter
+
     def __iter__(self):
         return iter(self.args)
 
@@ -182,7 +193,7 @@ class FunctionTemplate(Composite):
 
     def get_args_sorted(self):
         if self.args_sorted is None:
-            self.args_sorted = tuple(sorted(self.args, cmp=cmp))
+            self.args_sorted = tuple(sort_sequence(self.args))
         return self.args_sorted
 
     def iterSorted(self):
@@ -303,13 +314,6 @@ class Callable(Basic, BasicType):
     def precedence(cls):
         return Basic.Atom_precedence
 
-    def __hash__(cls):
-        return hash(cls.__name__)
-
-    # XXX: need revision
-    def split(cls, op, *args, **kwargs):
-        return [cls]
-
     def atoms(cls, type=None):
         if type is not None and not isinstance(type, (object.__class__, tuple)):
             type = sympify(type).__class__
@@ -317,13 +321,19 @@ class Callable(Basic, BasicType):
             return set([cls])
         return set()
 
-    def __eq__(self, other):
+    def __eq__(cls, other):
         if isinstance(other, sympify_types1):
             other = sympify(other)
         if isinstance(other, Basic):
             if other.is_Callable:
-                return self.__name__==other.__name__
+                return cls.__name__==other.__name__
         return False
+
+    def compare(cls, other):
+        return cmp(cls.__name__, other.__name__)
+
+    def __hash__(cls):
+        return hash(cls.__name__)
 
     def __nonzero__(cls):
         return False
@@ -451,7 +461,7 @@ class BasicFunction(FunctionTemplate):
             return new
         func = self.func
         flag = False
-        if func==old:
+        if old.is_BasicFunctionType and new.is_BasicFunctionType and old==func:
             func = new
         if func is not self.func:
             flag = True
@@ -466,10 +476,6 @@ class BasicFunction(FunctionTemplate):
         if flag:
             return func(*args)
         return self
-
-    # XXX: need revision
-    def split(cls, op, *args, **kwargs):
-        return [cls]
 
 
 class BasicLambda(Composite, Callable):
@@ -510,10 +516,35 @@ class BasicLambda(Composite, Callable):
         attrdict['_args'] = args
         attrdict['_expr'] = expr
         attrdict['nofargs'] = len(args)
+        attrdict['_hashvalue'] = None
         func = type.__new__(cls, name, bases, attrdict)
         func.signature = FunctionSignature((Basic,)*len(args), Basic)
         return func
 
+    def __eq__(func, other):
+        if isinstance(other, sympify_types1):
+            other = sympify(other)
+        if isinstance(other, Basic) and other.is_Callable and func.__name__==other.__name__:
+            # other is also a lambda function.
+            if func.nofargs==other.nofargs:
+                return func._expr == other(*func._args)
+        return False
+
+    def compare(func, other):
+        c = cmp(func.nofargs, other.nofargs)
+        if c:
+            return c
+        c = cmp(func._expr.count_ops(symbolic=False),
+                other._expr.count_ops(symbolic=False))
+        if c:
+            return c
+        return cmp(__func.name__, other.__name__)
+
+    def __hash__(func):
+        if func._hashvalue is None:
+            args = [classes.BasicSymbol('__%i_lambda_hash_symbol__') for i in range(func.nofargs)]
+            func._hashvalue = hash(func(*args))
+        return func._hashvalue
 
 class BasicLambdaFunction(FunctionTemplate):
     """ Defines Lambda function properties.
