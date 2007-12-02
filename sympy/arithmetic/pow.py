@@ -25,6 +25,8 @@ class Pow(Function):
     def canonize(cls, (base, exponent), options):
         if base is E:
             return classes.Exp(exponent)
+        if exponent is half:
+            return classes.Sqrt(base)
         if exponent is zero:
             return one
         if exponent is one:
@@ -125,6 +127,16 @@ class Sqrt(Pow):
             return Pow.__new__(cls, b, half)
         assert e is half,`e`
         return Pow.__new__(cls, b, e)
+
+    @classmethod
+    def canonize(cls, (base, exponent), options):
+        if base is E:
+            return classes.Exp(exponent)
+        if base is one:
+            return base
+        if options.get('normalized', True):
+            return base.try_power(exponent)
+        return
 
 
 # ALGORITHMS
