@@ -43,7 +43,6 @@ class And(Predicate):
             return new_operants.pop()
         if flag:
             return cls(*new_operants)
-        #operants.sort(Basic.static_compare)
         return        
 
 
@@ -85,7 +84,6 @@ class Or(Predicate):
             return new_operants.pop()
         if flag:
             return cls(*new_operants)
-        #operants.sort(Basic.static_compare)
         return
 
 
@@ -143,7 +141,6 @@ class Xor(Predicate):
                 else:
                     return True
             return cls(*new_operants)
-        #operants.sort(Basic.static_compare)
         return
     
 

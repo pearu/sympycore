@@ -235,6 +235,31 @@ class Integer(Rational, pyint):
                 factors[n] = 1
         return factors
 
+    @staticmethod
+    def collect_powers(seq_base_exp, exp=1):
+        p = None
+        d = {}
+        for b,e in seq_base_exp:
+            e = e * exp
+            if p is None:
+                p, q = e.p, e.q
+                if p < 0:
+                    sign = -1
+                else:
+                    sign = 1
+            else:
+                if e.p>0 and sign==-1:
+                    sign = 1
+                p = classes.Integer.gcd(abs(e.p), p)
+                q = classes.Integer.gcd(e.q, q)
+        c = classes.Fraction(sign*p, q)
+        if c==1:
+            return seq_base_exp, c
+        r = []
+        for b,e in seq_base_exp:
+            r.append((b, e * exp / c))
+        return r, c
+
     def __pos__(self):
         return self
 
@@ -315,6 +340,8 @@ class Integer(Rational, pyint):
             factors = self.as_factors()
             f1 = 1
             f2 = 1
+            r = Integer.collect_powers(factors, other)
+            print '>>>',self, other, r, factors
             for b,e in factors:
                 # e = q + r such that q = p/other is integer (p=floor(e*other)) and abs(r)<1. 
                 pn = other * e 
@@ -346,9 +373,29 @@ class Integer(Rational, pyint):
         dp = Integer.factor_trial_division(self.p)
         eb = {}
         for (b,e) in dp.items():
-            eb[e] = Integer(b)
+            v = eb.get(e, None)
+            if v is None:
+                eb[e] = Integer(b)
+            else:
+                eb[e] = v * b
         if len(eb)>1 and eb.get(1)==1:
             del eb[1]
-        return [(b,Integer(e)) for (e,b) in eb.items()]
+        return [(b,Integer(e)) for (e,b) in eb.iteritems()]
 
     # __r*__ methods are defined in methods.py
+
+    def normalized_power(self, exp):
+        # exp must be positive rational
+        dp = Integer.factor_trial_division(self.p)
+        eb = {}
+        for (b,e) in dp.items():
+            e = exp * e
+            v = eb.get(e, None)
+            if v is None:
+                eb[e] = Integer(b)
+            else:
+                eb[e] = v * b
+        if len(eb)>1 and eb.get(1)==1:
+            del eb[1]        
+
+        print eb

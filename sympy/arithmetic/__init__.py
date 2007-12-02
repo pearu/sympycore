@@ -15,7 +15,10 @@ from .constants import initialize_constants
 
 initialize_constants() # operations uses oo,nan,etc.
 
-from .operations import Add, Mul, Pow, Sub, Div, Sqrt
+#from .operations import Add, Mul, Sub, Div
+from .add import Add, Sub
+from .mul import Mul, Div
+from .pow import Pow, Sqrt
 from .relational import Equal, Less
 from .sets import (Complexes, Reals, Rationals, Integers, Primes,
                    Evens, Odds,
