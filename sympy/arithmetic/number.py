@@ -232,3 +232,4 @@ from .interval import Interval
 # create singletons one, zero
 Integer(1)
 Integer(0)
+Fraction(1,2)

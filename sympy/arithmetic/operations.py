@@ -343,12 +343,12 @@ class BaseExpDict(dict):
         if len(self)==0:
             return n
         if flag:
-            print n,self
+            #print n,self
             d = self.inverse_dict()
             if len(d) < len(self):
                 self.clear()
                 for v, k in d.iteritems():
-                    print (k,v),k.try_power(v)
+                    #print (k,v),k.try_power(v)
                     self[k] = v
         if len(self)==1:
             k, v = self.items()[0]

@@ -341,7 +341,7 @@ class Integer(Rational, pyint):
             f1 = 1
             f2 = 1
             r = Integer.collect_powers(factors, other)
-            print '>>>',self, other, r, factors
+            #print '>>>',self, other, r, factors
             for b,e in factors:
                 # e = q + r such that q = p/other is integer (p=floor(e*other)) and abs(r)<1. 
                 pn = other * e 
@@ -398,4 +398,4 @@ class Integer(Rational, pyint):
         if len(eb)>1 and eb.get(1)==1:
             del eb[1]        
 
-        print eb
+        #print eb

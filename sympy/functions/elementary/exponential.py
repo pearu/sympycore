@@ -6,16 +6,21 @@ from ...arithmetic import Function, Pow, BasicArithmetic
 
 class Exp(Pow):
 
-    def __new__(cls, arg):
-        return Pow.__new__(cls, objects.E, arg)
+    def __new__(cls, a, b=None):
+        if b is None:
+            return Pow.__new__(cls, objects.E, a)
+        assert a is objects.E,`a`
+        return Pow.__new__(cls, a, b)
 
     @classmethod
     def canonize(cls, (base, arg)):
         if arg.is_NaN or arg.is_Infinity:
             return arg
         if arg.is_Number:
-            if arg.is_zero: return objects.one
-            if arg.is_one: return objects.E
+            if arg.is_zero:
+                return objects.one
+            if arg.is_one:
+                return objects.E
             return
         if arg==objects.moo:
             return objects.zero

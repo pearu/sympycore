@@ -1,4 +1,4 @@
-from ..core.utils import memoizer_immutable_args, memoizer_Fraction
+from ..core.utils import memoizer_immutable_args, memoizer_Fraction, singleton
 from ..core import Basic, sympify, classes, objects
 from .number import Rational
 
@@ -8,6 +8,15 @@ def makefraction(p,q):
     obj.p = p
     obj.q = q
     obj._hashvalue = None
+    return obj
+
+@singleton
+def makehalf(q):
+    obj = object.__new__(Fraction)
+    obj.p = 1
+    obj.q = q
+    obj._hashvalue = None
+    objects.half = obj
     return obj
 
 def makefraction_from_man_exp(man, exp):
@@ -37,6 +46,8 @@ class Fraction(Rational):
             q //= r
         if q==1:
             return classes.Integer(p)
+        if p==1 and q==2:
+            return makehalf(q)
         return makefraction(p,q)
 
     make = staticmethod(makefraction)

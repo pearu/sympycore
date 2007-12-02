@@ -12,6 +12,7 @@ oo = objects.oo
 zoo = objects.zoo
 nan = objects.nan
 E = objects.E
+half = objects.half
 
 class Pow(Function):
     """ Represents an evaluated exponentation operation.
@@ -119,8 +120,12 @@ class Pow(Function):
 
 class Sqrt(Pow):
 
-    def __new__(cls, base):
-        return Pow(base, classes.Fraction(1,2))
+    def __new__(cls, b, e=None):
+        if e is None:
+            return Pow.__new__(cls, b, half)
+        assert e is half,`e`
+        return Pow.__new__(cls, b, e)
+
 
 # ALGORITHMS
 
