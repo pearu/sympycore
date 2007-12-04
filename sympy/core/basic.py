@@ -67,6 +67,13 @@ class BasicType(type):
             if bases[0].__name__=='BasicDummySymbol' or name=='BasicDummySymbol':
                 cls.__bases__[-1]._dummy_class = cls 
 
+        if getattr(cls, 'is_BasicSymbol', None):
+            # _symbol_cls is needed in BasicLambda.__hash__ method
+            if name=='BasicSymbol':
+                Basic._symbol_cls = cls
+            elif bases[-1].__name__=='BasicSymbol' and len(bases)>1:
+                bases[0]._symbol_cls = cls
+
         return cls
 
 class Basic(object):

@@ -13,5 +13,3 @@ class DummyBoolean(BasicDummySymbol, Boolean):
 class WildBoolean(BasicWildSymbol, Boolean):
     """ Wild boolean symbol.
     """
-
-BasicBoolean._symbol_cls = Boolean

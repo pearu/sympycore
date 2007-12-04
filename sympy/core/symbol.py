@@ -103,7 +103,3 @@ class BasicWildSymbol(BasicWild, BasicDummySymbol):
 
     def tostr(self, level=0):
         return self.name + '_'
-
-
-# needed in BasicLambda.__hash__ method
-Basic._symbol_cls = BasicSymbol

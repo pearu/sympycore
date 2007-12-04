@@ -8,7 +8,7 @@ __all__ = ['Symbol', 'Dummy', 'Wild']
 class Symbol(BasicArithmetic, BasicSymbol):
     """ Represents a symbol.
 
-    Symbol('x', dummy=True) returns a unique Symbol instance.
+    Dummy('x') returns a unique Symbol instance.
     """
 
     def __call__(self, *args):
@@ -27,5 +27,3 @@ class Dummy(BasicDummySymbol, Symbol):
 class Wild(BasicWildSymbol, Symbol):
     """ Wild symbol.
     """
-
-BasicArithmetic._symbol_cls = Symbol
