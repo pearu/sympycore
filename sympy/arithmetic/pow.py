@@ -65,15 +65,15 @@ class Pow(Function):
 
     @classmethod
     def fdiff1(cls):
-        e = Dummy('e')
-        b = Dummy('b')
-        return Lambda((b,e),e/b) * Pow
+        e = classes.Dummy('e')
+        b = classes.Dummy('b')
+        return classes.Lambda((b,e),e/b) * Pow
 
     @classmethod
     def fdiff2(cls):
-        e = Dummy('e')
-        b = Dummy('b')
-        return Lambda((b,e),Ln(e)) * Pow
+        e = classes.Dummy('e')
+        b = classes.Dummy('b')
+        return classes.Lambda((b,e),Ln(e)) * Pow
 
     @property
     def base(self):
@@ -217,6 +217,9 @@ class Log(Function):
             return arg
         if arg.is_zero:
             return objects.moo
+        if base.is_EulersNumber:
+            if arg is Exp:
+                return one
         return
 
     @classmethod

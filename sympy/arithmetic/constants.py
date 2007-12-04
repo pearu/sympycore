@@ -40,6 +40,11 @@ class MathematicalSymbol(BasicArithmetic, Atom):
         if other==objects.moo:
             return objects.zero
 
+    def __call__(self, *args):
+        """ Mathematical symbol is a constant function.
+        (s)(x) -> s
+        """
+        return self
 
 class EulersNumber(MathematicalSymbol):
     """Euler's number e=2.71828182845904523536...
