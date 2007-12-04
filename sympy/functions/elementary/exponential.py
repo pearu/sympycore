@@ -5,6 +5,8 @@ from ...core.utils import UniversalMethod
 from ...arithmetic import Function, Pow, BasicArithmetic
 
 class Exp(Pow):
+    """ Exp is a Pow with base E.
+    """
 
     def __new__(cls, a, b=None):
         if b is None:
@@ -49,18 +51,21 @@ class Exp(Pow):
             else:
                 return classes.Mul(*excluded)
 
-    @UniversalMethod
-    def fdiff(obj, index=1):
-        if isinstance(obj, type):
-            if index!=1:
-                raise ValueError('%s takes 1 argument, reguested %sth' % (cls.__name__, index))
-            return obj
-        return obj._fdiff(index)
+    @classmethod
+    def fdiff1(cls):
+        return objects.zero
+
+    @classmethod
+    def fdiff2(cls):
+        return cls
 
     def try_power(self, other):
         return Exp(self.exponent * other)
 
+
 class Log(Function):
+    """ Log represents natural logarithm function.
+    """
 
     signature = FunctionSignature((BasicArithmetic,), (BasicArithmetic,))
 
@@ -93,14 +98,10 @@ class Log(Function):
         #if exponent.is_Number:
         #    return exponent * cls(classes.Abs(base))
 
-    @UniversalMethod
-    def fdiff(obj, index=1):
-        if isinstance(obj, type):
-            if index!=1:
-                raise ValueError('%s takes 1 argument, reguested %sth' % (cls.__name__, index))
-            x = classes.Dummy('x')
-            return classes.Lambda(x,1/x)
-        return obj._fdiff(index)
+    @classmethod
+    def fdiff1(cls):
+        x = classes.Dummy('x')
+        return classes.Lambda(x,1/x)
 
     def matches(pattern, expr, repl_dict={}):
         if expr.is_Log:

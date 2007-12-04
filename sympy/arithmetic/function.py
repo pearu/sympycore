@@ -37,6 +37,14 @@ class Function(BasicArithmetic, BasicFunction):
     @UniversalMethod
     def fdiff(obj, index=1):
         if isinstance(obj, BasicType):
+            nargs = obj.signature.nof_arguments
+            if nargs is not None and not (1<=index<=nargs):
+                raise TypeError('fdiff: invalid index=%r, %s takes %s arguments'\
+                                % (index, obj.__name__, nargs))
+            mth = getattr(obj, 'fdiff%s' % (index), None)
+            if mth is not None:
+                return mth()
+            # XXX: need derivative operator
             return FunctionType('%s_%s' % (obj.__name__, index), Function,
                                 dict(signature=obj.signature), is_global=False)
         return obj._fdiff(index)
