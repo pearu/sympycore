@@ -13,12 +13,12 @@ from .symbol import Symbol, Dummy, Wild
 from .function import Function, Lambda, FunctionType, WildFunctionType
 from .constants import initialize_constants
 
-initialize_constants() # operations uses oo,nan,etc.
+initialize_constants() # operations in add.py,mul.py uses oo,nan,etc.
 
-#from .operations import Add, Mul, Sub, Div
 from .add import Add, Sub
 from .mul import Mul, Div
-from .pow import Pow, Sqrt
+from .pow import Pow, Log, Root, Ln, Exp, Sqrt, Lg, Lb
+
 from .relational import Equal, Less
 from .sets import (Complexes, Reals, Rationals, Integers, Primes,
                    Evens, Odds,
@@ -31,6 +31,7 @@ __all__ = ['BasicArithmetic',
            'Symbol','Dummy','Wild',
            'Function','Lambda','FunctionType','WildFunctionType',
            'Add', 'Mul', 'Pow','Sub','Div','Sqrt',
+           'Root','Exp','Log','Ln','Lg','Lb',
            'Equal','Less',
            'Complexes', 'Reals', 'Rationals', 'Integers', 'Primes',
            'Evens', 'Odds',

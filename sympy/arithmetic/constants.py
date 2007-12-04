@@ -34,6 +34,13 @@ class MathematicalSymbol(BasicArithmetic, Atom):
         setattr(objects, obj.tostr(), obj)
         return obj
 
+    def try_power(self, other):
+        if other.is_NaN or other.is_Infinity:
+            return other
+        if other==objects.moo:
+            return objects.zero
+
+
 class EulersNumber(MathematicalSymbol):
     """Euler's number e=2.71828182845904523536...
 
@@ -47,8 +54,6 @@ class EulersNumber(MathematicalSymbol):
     def evalf(self, precision=None):
         return classes.Float(1, precision).evalf_exp()
 
-    def try_power_(self, other):
-        return classes.Exp(other)
 
 class Pi(MathematicalSymbol):
     """Circular constant pi=3.14159265358979323846...

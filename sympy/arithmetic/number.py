@@ -169,17 +169,18 @@ class Rational(Real):
         q = str(self.q)
         if q.endswith('L'): q = q[:-1]
         if self.q==1:
-            return p
-        r = '%s/%s' % (p, q)
+            r = p
+        else:
+            r = '%s/%s' % (p, q)
         if self.precedence<=level:
             r = '(%s)' % (r)
         return r
 
     @property
     def precedence(self):
-        if self.q==1:
+        if self.q==1 and self.p>0:
             return Basic.Atom_precedence
-        return Basic.Mul_precedence
+        return Basic.Mul_precedence + 1
 
     @property
     def is_positive(self):

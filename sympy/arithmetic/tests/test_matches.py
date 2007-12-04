@@ -161,7 +161,8 @@ def test_arith():
     assert (8*t**3).match(w**3)=={w:2*t}
     assert (8*t**3).match(w**v)=={w:2*t,v:3}
     assert (9*t**3).match(w**v)=={w:9*t**3,v:1}
-    assert Integer(9).match(w**v) in [{w:3,v:2},{w:Exp(2),v:Log(3)}]
+    assert Integer(9).match(w**v) in [{w:3,v:2},{w:Exp(2),v:Log(3)},
+                                      {w:9,v:1},{w:E,v:Log(9)}]
     p = w**v
     d = Fraction(8,27).match(p)
     assert p.replace_dict(Fraction(8,27).match(p))==Fraction(8,27)
