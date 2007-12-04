@@ -91,3 +91,5 @@ Basic.is_empty = None
 
 Empty = EmptySet()
 Universal = UniversalSet()
+
+BasicSet._symbol_cls = SetSymbol

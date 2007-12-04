@@ -28,3 +28,4 @@ class Wild(BasicWildSymbol, Symbol):
     """ Wild symbol.
     """
 
+BasicArithmetic._symbol_cls = Symbol

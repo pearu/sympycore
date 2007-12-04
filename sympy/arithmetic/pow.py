@@ -183,6 +183,9 @@ class Log(Function):
       Pow(b, Log(l, b)) -> l
 
     Log represents the principal part of the logarithm.
+
+    References:
+      http://en.wikipedia.org/wiki/Logarithm
     """
 
     signature = FunctionSignature((BasicArithmetic, BasicArithmetic),
@@ -294,6 +297,9 @@ class Lb(Function):
 
 class Exp(Function):
     """ Exp(x) is Pow(E, x).
+
+    References:
+      http://en.wikipedia.org/wiki/Exponential_function
     """
 
     signature = FunctionSignature((BasicArithmetic,),

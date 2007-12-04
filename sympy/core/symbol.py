@@ -105,3 +105,5 @@ class BasicWildSymbol(BasicWild, BasicDummySymbol):
         return self.name + '_'
 
 
+# needed in BasicLambda.__hash__ method
+Basic._symbol_cls = BasicSymbol

@@ -517,6 +517,7 @@ class BasicLambda(Composite, Callable):
         attrdict['_expr'] = expr
         attrdict['nofargs'] = len(args)
         attrdict['_hashvalue'] = None
+        attrdict['_symbol_cls'] = cls._symbol_cls
         func = type.__new__(cls, name, bases, attrdict)
         func.signature = FunctionSignature((Basic,)*len(args), Basic)
         return func
@@ -542,7 +543,7 @@ class BasicLambda(Composite, Callable):
 
     def __hash__(func):
         if func._hashvalue is None:
-            args = [classes.BasicSymbol('__%i_lambda_hash_symbol__') for i in range(func.nofargs)]
+            args = [func._symbol_cls('__%i_lambda_hash_symbol__') for i in range(func.nofargs)]
             func._hashvalue = hash(func(*args))
         return func._hashvalue
 
