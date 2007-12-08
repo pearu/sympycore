@@ -11,6 +11,8 @@ from .number import (Number, Real, Rational, Float, Fraction, Integer,
                      Interval)
 from .symbol import Symbol, Dummy, Wild
 from .function import Function, Lambda, FunctionType, WildFunctionType
+from .operator import Operator, OperatorType, D
+
 from .constants import initialize_constants
 
 initialize_constants() # operations in add.py,mul.py uses oo,nan,etc.
@@ -30,6 +32,7 @@ __all__ = ['BasicArithmetic',
            'Interval',
            'Symbol','Dummy','Wild',
            'Function','Lambda','FunctionType','WildFunctionType',
+           'Operator','OperatorType','D',
            'Add', 'Mul', 'Pow','Sub','Div','Sqrt',
            'Root','Exp','Log','Ln','Lg','Lb',
            'Equal','Less',

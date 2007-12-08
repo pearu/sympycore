@@ -12,11 +12,17 @@ from .basic import BasicArithmetic
 __all__ = ['FunctionType', 'Function', 'Lambda', 'FunctionSymbol',
            'WildFunctionType', 'ArithmeticFunction']
 
-class FunctionType(BasicArithmetic, BasicFunctionType):
 
+class FunctionType(BasicArithmetic, BasicFunctionType):
+    """ Metaclass for Function class.
+    """
     pass
 
+
 class Function(BasicArithmetic, BasicFunction):
+    """ Base class for functions that can be used in arithmetic operations
+    as operants (both in evaluated and unevaluated form).
+    """
 
     __metaclass__ = FunctionType
 
@@ -44,6 +50,7 @@ class Function(BasicArithmetic, BasicFunction):
             mth = getattr(obj, 'fdiff%s' % (index), None)
             if mth is not None:
                 return mth()
+            
             # XXX: need derivative operator
             return FunctionType('%s_%s' % (obj.__name__, index), Function,
                                 dict(signature=obj.signature), is_global=False)

@@ -24,14 +24,9 @@ class Cos(Function):
             if arg.is_negative: return cls(-arg)
             return
 
-    @UniversalMethod
-    def fdiff(obj, index=1):
-        if isinstance(obj, BasicType):
-            if index!=1:
-                raise ValueError('%s takes 1 argument, reguested %sth' % (cls.__name__, index))
-            return -Sin
-        return obj._fdiff(index)
-
+    @classmethod
+    def fdiff1(cls):
+        return -Sin
 
 class Sin(Function):
     """ sin(x)
@@ -63,13 +58,9 @@ class Sin(Function):
             return -Sin(-arg)
         return
 
-    @UniversalMethod
-    def fdiff(obj, index=1):
-        if isinstance(obj, BasicType):
-            if index!=1:
-                raise ValueError('%s takes 1 argument, reguested %sth' % (obj.__name__, index))
-            return Cos
-        return obj._fdiff(index)
+    @classmethod
+    def fdiff1(cls):
+        return Cos
 
 class Tan(Function):
 
@@ -82,13 +73,9 @@ class Tan(Function):
             if arg.is_zero: return arg
             if arg.is_negative: return -cls(-arg)
 
-    @UniversalMethod
-    def fdiff(obj, index=1):
-        if isinstance(obj, BasicType):
-            if index!=1:
-                raise ValueError('%s takes 1 argument, reguested %sth' % (cls.__name__, index))
-            return obj**2 + 1
-        return obj._fdiff(index)
+    @classmethod
+    def fdiff1(cls):
+        return cls**2 + 1
 
 class Cot(Function):
 
@@ -100,10 +87,6 @@ class Cot(Function):
         if arg.is_Number:
             pass
 
-    @UniversalMethod
-    def fdiff(obj, index=1):
-        if isinstance(obj, BasicType):
-            if index!=1:
-                raise ValueError('%s takes 1 argument, reguested %sth' % (cls.__name__, index))
-            return -1/Sin**2
-        return obj._fdiff(index)
+    @classmethod
+    def fdiff1(cls):
+        return -Sin**(-2)

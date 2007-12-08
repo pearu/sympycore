@@ -302,7 +302,7 @@ class Integer(Rational, pyint):
         if self.is_zero:
             if other.is_Number:
                 if other.is_negative:
-                    return basic.oo
+                    return objects.oo
                 if other.is_positive:
                     return self
             if other.is_Infinity or other.is_ComplexInfinity:

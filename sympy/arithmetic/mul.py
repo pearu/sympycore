@@ -1,8 +1,9 @@
 
 from ..core import Basic, sympify, objects, classes
 from ..core.function import new_function_value
+from ..core.utils import UniversalMethod
 from .basic import BasicArithmetic
-from .function import ArithmeticFunction
+from .function import ArithmeticFunction, Function, FunctionType
 from .operations import BaseExpDict
 
 __all__ = ['Mul', 'Div']
@@ -128,6 +129,35 @@ class Mul(ArithmeticFunction):
                 continue
             factors.append(classes.Mul(*(terms[:i]+[dt]+terms[i+1:])))
         return classes.Add(*factors)
+
+    _fdiff_cache = {}
+    _fdiff_indices = ()
+
+    @UniversalMethod
+    def fdiff(obj, index=1):
+        if isinstance(obj, type):
+            # Mul = lambda x,y,z,..: Mul(x,y,z,..)
+            # Mul_1 -> lambda x,y,z,..: Mul(1,y,z,..)
+            # Mul_1_1 -> 0
+            # Mul_1_2 -> lambda x,y,z,..: Mul(1,1,z,..)
+            if index in obj._fdiff_indices:
+                return objects.zero
+            indices = obj._fdiff_indices + (index,)
+            if indices in Mul._fdiff_cache:
+                return Mul._fdiff_cache[indices]
+            def canonize(cls, args):
+                if index<=len(args):
+                    return Mul(*[args[i] for i in range(len(args)) if i+1 not in indices])
+                return objects.zero
+            f = FunctionType('D%s(Mul)' % (`indices`), Mul,
+                             dict(signature=obj.signature,
+                                  canonize=classmethod(canonize),
+                                  __new__ = Function.__new__,
+                                  _fdiff_indices = indices
+                                  ), is_global=False)
+            Mul._fdiff_cache[indices] = f
+            return f
+        return obj._fdiff(index)
 
     def __mul__(self, other):
         other = sympify(other)

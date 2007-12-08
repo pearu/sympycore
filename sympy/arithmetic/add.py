@@ -1,7 +1,8 @@
 
-from ..core import Basic, sympify, objects, classes
+from ..core import Basic, sympify, objects, classes, BasicType
+from ..core.utils import UniversalMethod
 from .basic import BasicArithmetic
-from .function import ArithmeticFunction
+from .function import ArithmeticFunction, Function, FunctionType
 from .operations import TermCoeffDict
 
 __all__ = ['Add', 'Sub']
@@ -63,6 +64,35 @@ class Add(ArithmeticFunction):
         if hints.get('basic', True):
             return Add(*[item.expand(**hints) for item in self])
         return self
+
+    _fdiff_cache = {}
+    _fdiff_indices = ()
+
+    @UniversalMethod
+    def fdiff(obj, index=1):
+        if isinstance(obj, type):
+            # Add = lambda x,y,z,..: Add(x,y,z,..)
+            # Add_1 -> lambda x,y,z,..: 1
+            # Add_1_1 -> 0
+            # Add_1_2 -> 0
+            if obj._fdiff_indices:
+                return objects.zero
+            indices = obj._fdiff_indices + (index,)
+            if indices in Add._fdiff_cache:
+                return Add._fdiff_cache[indices]
+            def canonize(cls, args):
+                if index <= len(args):
+                    return objects.one
+                return objects.zero
+            f = FunctionType('D%s(Add)' % (`indices`), Add,
+                             dict(signature=obj.signature,
+                                  canonize=classmethod(canonize),
+                                  __new__ = Function.__new__,
+                                  _fdiff_indices = indices
+                                  ), is_global=False)
+            Add._fdiff_cache[indices] = f
+            return f
+        return obj._fdiff(index)
 
     def try_derivative(self, s):
         return Add(*[t.diff(s) * e for (t,e) in self.iterTermCoeff()])
