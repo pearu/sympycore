@@ -88,6 +88,8 @@ def sympify(a, globals=None, locals=None, debug=False):
             return sympy_eval(a, globals, locals)
         except Exception,msg:
             raise ValueError("Failed to evaluate %s: %s" % (`a`,msg))
+    if isinstance(a, tuple):
+        return classes.Tuple(*map(sympify, a))
     if hasattr(a, '__sympy__'):
         return sympify(a.__sympy__())
     raise TypeError("Invalid type %s for sympy: %s" % (`type(a)`,`a`))

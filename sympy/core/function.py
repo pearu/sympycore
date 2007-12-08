@@ -146,7 +146,9 @@ class FunctionTemplate(Composite):
             raise TypeError(errmsg) #pragma NO COVER
         # since args is a list, canonize may change it in-place,
         # e.g. sort it.
-        if cls.canonize.func_code.co_argcount==2:
+        if options.get('is_canonical', False):
+            r = None
+        elif cls.canonize.func_code.co_argcount==2:
             if options:
                 raise NotImplementedError('%s.canonize method does not take'\
                                           ' options, got %r'\
@@ -159,6 +161,7 @@ class FunctionTemplate(Composite):
             if errmsg is not None:
                 raise TypeError(errmsg) #pragma NO COVER
             return r
+        #options['is_canonical'] = True
         return new_function_value(cls, args, options)
 
     @classmethod
@@ -565,3 +568,5 @@ class BasicLambdaFunction(FunctionTemplate):
         for d,a in zip(cls._args, args):
             expr = expr.replace(d,sympify(a))
         return expr
+
+

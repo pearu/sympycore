@@ -5,6 +5,7 @@ import itertools
 from .utils import memoizer_immutable_args, DualProperty, singleton, DualMethod, UniversalMethod
 
 __all__ = ['BasicType', 'Basic', 'Atom', 'Composite', 'BasicWild',
+           'Tuple',
            'classes', 'objects', 'sort_sequence']
 
 class Holder:
@@ -332,6 +333,12 @@ class Composite(Basic):
         if self._hashvalue is None:
             self._hashvalue = hash((self.__class__.__name__,)+tuple(self))
         return self._hashvalue
+
+class Tuple(Composite, tuple):
+    """ Holds a tuple of Basic objects.
+    """
+    def __new__(cls, *args):
+        return tuple.__new__(cls, args)
 
 
 class BasicWild(Basic):
