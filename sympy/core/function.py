@@ -131,6 +131,9 @@ class FunctionTemplate(Composite):
     ordered_arguments = True
 
     def __new__(cls, *args, **options):
+        if options.get('is_canonical', False):
+            r = None
+            return new_function_value(cls, args, options)
         args = map(sympify, args)
         # options can only be used to control the canonize
         # method. options should not contain additional data
@@ -146,9 +149,7 @@ class FunctionTemplate(Composite):
             raise TypeError(errmsg) #pragma NO COVER
         # since args is a list, canonize may change it in-place,
         # e.g. sort it.
-        if options.get('is_canonical', False):
-            r = None
-        elif cls.canonize.func_code.co_argcount==2:
+        if cls.canonize.func_code.co_argcount==2:
             if options:
                 raise NotImplementedError('%s.canonize method does not take'\
                                           ' options, got %r'\
@@ -165,7 +166,7 @@ class FunctionTemplate(Composite):
         return new_function_value(cls, args, options)
 
     @classmethod
-    def canonize(cls, args, **options):
+    def canonize(cls, args, options):
         return
 
     def __hash__(self):
@@ -457,11 +458,7 @@ class BasicFunction(FunctionTemplate):
     """
     __metaclass__ = BasicFunctionType
 
-    def replace(self, old, new):
-        old = sympify(old)
-        new = sympify(new)
-        if self==old:
-            return new
+    def try_replace(self, old, new):
         func = self.func
         flag = False
         if old.is_BasicFunctionType and new.is_BasicFunctionType and old==func:
@@ -478,7 +475,7 @@ class BasicFunction(FunctionTemplate):
             args.append(new_a)
         if flag:
             return func(*args)
-        return self
+        #return self
 
 
 class BasicLambda(Composite, Callable):

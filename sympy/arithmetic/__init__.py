@@ -11,7 +11,7 @@ from .number import (Number, Real, Rational, Float, Fraction, Integer,
                      Interval)
 from .symbol import Symbol, Dummy, Wild
 from .function import Function, Lambda, FunctionType, WildFunctionType
-from .operator import Operator, OperatorType, D
+from .operator import Operator, OperatorType
 
 from .constants import initialize_constants
 
@@ -32,7 +32,7 @@ __all__ = ['BasicArithmetic',
            'Interval',
            'Symbol','Dummy','Wild',
            'Function','Lambda','FunctionType','WildFunctionType',
-           'Operator','OperatorType','D',
+           'Operator','OperatorType',
            'Add', 'Mul', 'Pow','Sub','Div','Sqrt',
            'Root','Exp','Log','Ln','Lg','Lb',
            'Equal','Less',

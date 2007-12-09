@@ -50,7 +50,7 @@ class Function(BasicArithmetic, BasicFunction):
             mth = getattr(obj, 'fdiff%s' % (index), None)
             if mth is not None:
                 return mth()
-            
+            return classes.FDerivative(obj, classes.Tuple(index, 1), is_canonical=True)
             # XXX: need derivative operator
             return FunctionType('%s_%s' % (obj.__name__, index), Function,
                                 dict(signature=obj.signature), is_global=False)

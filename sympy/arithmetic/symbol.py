@@ -20,6 +20,11 @@ class Symbol(BasicArithmetic, BasicSymbol):
             return objects.one
         return objects.zero
 
+    def try_antiderivative(self, s):
+        if self==s:
+            return s**2/2
+        return s * self
+
 class Dummy(BasicDummySymbol, Symbol):
     """ Dummy symbol.
     """

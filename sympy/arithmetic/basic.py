@@ -17,14 +17,6 @@ class BasicArithmetic(ArithmeticMethods, Basic):
         """
         return
 
-    @UniversalMethod
-    def fdiff(obj, index=1):
-        assert not isinstance(obj, BasicType),`obj`
-        return classes.Number(0)
-
-    def try_derivative(self, s):
-        return None
-
     def expand(self, *args, **kwargs):
         """Expand an expression based on different hints. Currently
            supported hints are basic, power, complex, trig and func.
@@ -42,6 +34,23 @@ class BasicArithmetic(ArithmeticMethods, Basic):
             return (cls, self.iterPow())
         raise TypeError('Expressions can be split only with respect to Add, Mul, Pow classes, got %s' % (cls.__name__))
 
+    @UniversalMethod
+    def fdiff(obj, index=1):
+        """ Return derivative function with respect to index-th argument.
+        """
+        assert not isinstance(obj, BasicType),`obj`
+        return classes.Number(0)
+
+    def try_derivative(self, s):
+        if not self.has(s):
+            return objects.zero
+        return None
+
+    def try_antiderivative(self, s):
+        if not self.has(s):
+            return self * s
+        return None
+
     def diff(self, *symbols):
         """ Return derivative with respect to symbols. If symbols contains
         positive integer then differentation is repeated as many times as
@@ -58,20 +67,10 @@ class BasicArithmetic(ArithmeticMethods, Basic):
             else:
                 raise TypeError(".diff() argument must be Symbol|Integer instance (got %s)"\
                                 % (s.__class__.__name__))
-        expr = self
-        unused_symbols = []
-        for s in new_symbols:
-            obj = expr.try_derivative(s)
-            if obj is not None:
-                expr = obj
-            else:
-                unused_symbols.append(s)
-        if not unused_symbols:
-            return expr
-        for s in unused_symbols:
-            if not expr.has(s):
-                return objects.zero
         return classes.Derivative(self, *new_symbols)
+
+    def integrate(self, *symbols):
+        return classes.Integral(self, *symbols)
 
     def iterAdd(self):
         return iter([self])

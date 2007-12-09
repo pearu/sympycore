@@ -79,6 +79,9 @@ class Number(BasicArithmetic, Atom):
     def try_derivative(self, s):
         return objects.zero
 
+    def try_antiderivative(self, s):
+        return self * s
+
     def __call__(self, *args):
         """ Number as a constant function.
         (n)(x) -> n

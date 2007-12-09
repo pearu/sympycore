@@ -151,11 +151,17 @@ class Basic(object):
         # don't redefine __nonzero__ except for numeric classes.
         return False
 
+    def try_replace(self, old, new):
+        return
+
     def replace(self, old, new):
         """ Replace subexpression old with expression new and return result.
         """
-        if self==sympify(old):
-            return sympify(new)
+        if self==old:
+            return new
+        obj = self.try_replace(sympify(old), sympify(new))
+        if obj is not None:
+            return obj
         return self
 
     def replace_dict(self, old_new_dict):
@@ -334,11 +340,29 @@ class Composite(Basic):
             self._hashvalue = hash((self.__class__.__name__,)+tuple(self))
         return self._hashvalue
 
+    def try_replace(self, old, new):
+        """ Replace subexpression old with expression new and return result.
+        """
+        if self==old:
+            return new
+        flag = True
+        l = []
+        for item in self:
+            new_item = item.replace(old, new)
+            if flag and new_item == item:
+                new_item = item
+            else:
+                flag = False
+            l.append(new_item)
+        if flag:
+            return self
+        return self.__class__(*l)
+
 class Tuple(Composite, tuple):
     """ Holds a tuple of Basic objects.
     """
     def __new__(cls, *args):
-        return tuple.__new__(cls, args)
+        return tuple.__new__(cls, map(sympify, args))
 
 
 class BasicWild(Basic):

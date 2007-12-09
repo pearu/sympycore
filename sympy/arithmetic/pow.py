@@ -120,6 +120,13 @@ class Pow(Function):
             dt = b**e * (dexp * classes.Log(b) + dbase * e/b)
         return dt
 
+    def try_antiderivative(self, s):
+        b, e = self.args
+        if b==s and not e.has(s):
+            return s**(e+1)/(e+1)
+        if e==s and not b.has(s):
+            return self/Log(b,E)
+
     def try_power(self, other):
         if other.is_Number:
             if other.is_Integer:

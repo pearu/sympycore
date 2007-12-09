@@ -97,6 +97,22 @@ class Add(ArithmeticFunction):
     def try_derivative(self, s):
         return Add(*[t.diff(s) * e for (t,e) in self.iterTermCoeff()])
 
+
+    def try_antiderivative(self, s):
+        l1, l2 = [], []
+        for t in self:
+            a = t.try_antiderivative(s)
+            if a is None:
+                l1.append(t)
+            else:
+                l2.append(a)
+        if not l2:
+            return
+        if not l1:
+            return Add(*l2)
+        return Add(*l2) + classes.Integral(Add(*l1),classes.Tuple(s,1),
+                                           is_canonical=True)
+    
     def __mul__(self, other):
         other = sympify(other)
         if other.is_Number:

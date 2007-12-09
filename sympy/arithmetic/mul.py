@@ -130,6 +130,21 @@ class Mul(ArithmeticFunction):
             factors.append(classes.Mul(*(terms[:i]+[dt]+terms[i+1:])))
         return classes.Add(*factors)
 
+    def try_antiderivative(self, s):
+        l1 = []
+        l2 = []
+        for t in self:
+            if t.has(s):
+                l1.append(t)
+            else:
+                l2.append(t)
+        if not l1:
+            return self * s
+        if len(l1)==1:
+            t = l1[0].try_antiderivative(s)
+            if t is not None:
+                return Mul(*(l2+[t]))
+    
     _fdiff_cache = {}
     _fdiff_indices = ()
 
@@ -173,7 +188,10 @@ class Mul(ArithmeticFunction):
                 l = [other] + td.args_flattened
             else:
                 coeff = other * td.coeff
-                l = [coeff] + td.args_flattened[1:]
+                if coeff is one:
+                    l = td.args_flattened[1:]
+                else:
+                    l = [coeff] + td.args_flattened[1:]
                 del d[td.coeff]
             d[coeff] = one
             d.coeff = coeff

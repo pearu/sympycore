@@ -40,6 +40,12 @@ class MathematicalSymbol(BasicArithmetic, Atom):
         if other==objects.moo:
             return objects.zero
 
+    def try_derivative(self, v):
+        return objects.zero
+
+    def try_antiderivative(self, s):
+        return self * s
+
     def __call__(self, *args):
         """ Mathematical symbol is a constant function.
         (s)(x) -> s
