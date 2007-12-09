@@ -8,7 +8,7 @@ __all__ = ['FD', 'D', 'FDerivative', 'Derivative',
 class At(Function):
     """ At operator.
 
-    At(f(x_), x_, x) -> f(x) when possible.
+    At(f(x_), (x_, x)) -> f(x) when possible.
     At(f(x_, y_), (x_, x), (y_, y)) -> f(x, y) when possible.
     """
     @classmethod
@@ -183,6 +183,17 @@ class Derivative(Function):
             return
         return Derivative(e, *l, **(opts or {}))
 
+    def try_derivative(self, s):
+        return Derivative(*(self[:] + (s,)))
+
+    def try_antiderivative(self, s):
+        i = 0
+        for t in self[1:]:
+            i += 1
+            if len(t)==2 and t[0]==s:
+                return Derivative(*(self[:] + ((s,-1),)))
+        return
+
 class FDerivative(Function):
     """ Derivative function.
     """
@@ -198,7 +209,6 @@ class FDerivative(Function):
         rest = [classes.Tuple(dargs[r[0]-1], r[1]) for r in self[1:]]
         return At(Derivative(expr, *rest, **dict(is_canonical=True)),
                   *[classes.Tuple(d, a) for (d, a) in zip(dargs, args)])
-                  #**dict(is_canonical=True))
 
 class Integral(Function):
 
@@ -211,3 +221,14 @@ class Integral(Function):
     def try_replace(self, old, new):
         #XXX
         return
+
+    def try_derivative(self, s):
+        i = 0
+        for t in self[1:]:
+            i += 1
+            if len(t)==2 and t[0]==s:
+                return Integral(*(self[:] + ((s,-1),)))
+        return
+    
+    def try_antiderivative(self, s):
+        return Integral(*(self[:] + (s,)))

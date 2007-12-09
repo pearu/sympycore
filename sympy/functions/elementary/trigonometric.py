@@ -28,6 +28,10 @@ class Cos(Function):
     def fdiff1(cls):
         return -Sin
 
+    def try_antiderivative(self, s):
+        if self[0]==s:
+            return Sin(s)
+
 class Sin(Function):
     """ sin(x)
     """
@@ -61,6 +65,10 @@ class Sin(Function):
     @classmethod
     def fdiff1(cls):
         return Cos
+
+    def try_antiderivative(self, s):
+        if self[0]==s:
+            return -Cos(s)
 
 class Tan(Function):
 
