@@ -164,6 +164,8 @@ class Basic(object):
             return obj
         return self
 
+    subs = replace
+
     def replace_dict(self, old_new_dict):
         r = self
         for old,new in old_new_dict.items():

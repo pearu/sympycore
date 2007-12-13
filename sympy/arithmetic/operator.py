@@ -27,14 +27,14 @@ class Operator(BasicArithmetic, BasicFunction):
 
       Operator(x, (x, 3)) -> Operator((x,4))
 
-    The above behavior is appropiate for derivative and integral
+    The above behavior is appropiate for differential and integral
     operators:
 
       FD(1, 2, (1, 3)) -> FD((1,4),(2,1))  - 5-th order partial
         differentation operator 4 times with respect to first
         argument and 1 time with respect to the second argument.
         
-      D(x, y, (x, 3)) - FD((x,4), (y,1)) - 5-th order partial
+      D(x, y, (x, 3)) - D((x,4), (y,1)) - 5-th order partial
         differentation operator 4 times with respect x
         and 1 time with respect to y.
 
@@ -65,6 +65,12 @@ class Operator(BasicArithmetic, BasicFunction):
 
     @staticmethod
     def compose_arg_tuples(r1, r2=None):
+        """ Method used to parse Operator arguments.
+
+        The method mth=Operator.compose_arg_tuples is called
+        in the following situations:
+        Operator(x) -> Operator(z) where z=(x,)+mth(())
+        """
         if r2 is None:
             return (r1,)
         return r1 + (r2,)
