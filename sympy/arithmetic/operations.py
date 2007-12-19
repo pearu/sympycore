@@ -66,15 +66,15 @@ class TermCoeffDict(dict):
             return self
         
         # Flatten sum
-        if acls is TermCoeffDict or a.is_Add:
+        if acls is TermCoeffDict or isinstance(a, classes.Add):
             for k,v in a.iterTermCoeff():
                 self.inplace_add(k, v)
             return self
 
-        if a.is_Mul:
+        if isinstance(a, classes.Mul):
             # Mul(2,x) -> Add({x:2})
             a, p = a.as_term_coeff()
-        elif a.is_Number:
+        elif isinstance(a, classes.Number):
             # Add(3) -> Add({1:3})
             p = a
             a = one
@@ -98,16 +98,16 @@ class TermCoeffDict(dict):
         """
         acls = a.__class__
         # Flatten sum
-        if acls is TermCoeffDict or a.is_Add:
+        if acls is TermCoeffDict or isinstance(a, classes.Add):
             for k,v in a.iterTermCoeff():
                 self.inplace_add(k, v*p)
             return
 
         # Add(3) -> Add({1:3})
-        if a.is_Mul:
+        if isinstance(a, classes.Mul):
             a, c = a.as_term_coeff()
             p = c * p
-        elif a.is_Number:
+        elif isinstance(a, classes.Number):
             p = a * p
             a = one
 
@@ -165,13 +165,13 @@ class TermCoeffDict(dict):
         acls = a.__class__
         if acls is tuple:
             return self.inplace_mul(*a)
-        if a.is_Number:
+        if isinstance(a, classes.Number):
             for k,v in self.items():
                 self[k] = v*a
             return self
         items = self.items()
         self.clear()
-        if acls is TermCoeffDict or a.is_Add:
+        if acls is TermCoeffDict or isinstance(a, classes.Add):
             for k,v in a.iterTermCoeff():
                 for k1,v1 in items:
                     self.inplace_add(k*k1,v*v1)
@@ -186,7 +186,7 @@ class TermCoeffDict(dict):
         return self
 
     def inplace_mul(self, a, p):
-        if a.is_Number:
+        if isinstance(a, classes.Number):
             p1 = a*p
             for k,v in self.items():
                 self[k] = v*p1
@@ -194,7 +194,7 @@ class TermCoeffDict(dict):
         items = self.items()
         self.clear()
         acls = a.__class__
-        if acls is TermCoeffDict or a.is_Add:
+        if acls is TermCoeffDict or isinstance(a, classes.Add):
             for k,v in a.iterTermCoeff():
                 p1 = v*p
                 for k1,v1 in items:
@@ -264,11 +264,11 @@ class BaseExpDict(dict):
             # ie it is a coefficient.
             return self
 
-        if acls is BaseExpDict or a.is_Mul:
+        if acls is BaseExpDict or isinstance(a, classes.Mul):
             for k,v in a.iterBaseExp():
                 self.inplace_mul(k, v)
             return self
-        elif a.is_Pow:
+        elif isinstance(a, classes.Pow):
             p = a.exponent
             a = a.base
         else:
@@ -288,11 +288,11 @@ class BaseExpDict(dict):
         a = sympify(a)
         acls = a.__class__
 
-        if (a.is_Mul and p.is_Integer) or acls is BaseExpDict:
+        if (isinstance(a, classes.Mul) and isinstance(p, classes.Integer)) or acls is BaseExpDict:
             for k,v in a.iterBaseExp():
                 self.inplace_mul(k, v*p)
             return self
-        elif a.is_Pow and p.is_Integer:
+        elif isinstance(a, classes.Pow) and isinstance(p, classes.Integer):
             p = a.exponent * p
             a = a.base
         b = self.get(a)
@@ -309,15 +309,15 @@ class BaseExpDict(dict):
             if v is zero:
                 del self[k]
                 continue
-            if v is one and not k.is_Number:
+            if v is one and not isinstance(k, classes.Number):
                 flag = False
                 continue
-            flag = flag and k.is_Number and v.is_Number and k.is_positive
+            flag = flag and isinstance(k, classes.Number) and isinstance(v, classes.Number) and k.is_positive
             a = k.try_power(v)
             if a is None:
                 continue
             del self[k]
-            if a.is_Number:
+            if isinstance(a, classes.Number):
                 n = n * a
             else:
                 if not n is one:
@@ -354,7 +354,7 @@ class BaseExpDict(dict):
             k, v = self.items()[0]
             if n is one:
                 return classes.Pow(k, v, normalized=False)
-            if v is one and k.is_Add:
+            if v is one and isinstance(k, classes.Add):
                 return k * n
         l = []
         for k, v in self.iterBaseExp():
@@ -421,11 +421,11 @@ class _IntegerMonomial(BaseExpDict):
             for k,v in a.iterBaseExp():
                 self.inplace_mul(k, v*p)
             return self
-        elif a.is_Pow:
+        elif isinstance(a, classes.Pow):
             p = a.exponent * p
             a = a.base
 
-        if a.is_Integer:
+        if isinstance(a, classes.Integer):
             factors = classes.Integer.factor_trial_division(a.p)
             factors.pop(1, None)
             if not factors:
@@ -437,12 +437,12 @@ class _IntegerMonomial(BaseExpDict):
             k, v = factors.popitem()
             a = classes.Integer(k)
             p = v * p
-        elif a.is_Fraction:
+        elif isinstance(a, classes.Fraction):
             self.inplace_mul(a.p, p)
             self.inplace_mul(a.q, -p)
             return self
         else:
-            assert a.is_Rational,`a,p`
+            assert isinstance(a, classes.Rational),`a,p`
 
         b = self.get(a)
         if b is None:

@@ -53,7 +53,7 @@ def test_isinstance():
     assert c.has(a,f)==False
 
     w = BasicWild()
-    w2 = BasicWildSymbol(predicate=lambda expr: not expr.is_Atom)
+    w2 = BasicWildSymbol(predicate=lambda expr: not isinstance(expr, classes.Atom))
     w3 = BasicWildSymbol(predicate=lambda expr: isinstance(expr,int))
     assert c.has(c)==True
     assert c.has(w)==True

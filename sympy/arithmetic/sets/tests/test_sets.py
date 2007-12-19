@@ -11,7 +11,7 @@ def test_integers():
     assert Element(45,Z)==True
     assert Element(-450,Z)==True
     assert Element(n,Z)==False
-    assert Element(x,Z).is_Element==True
+    assert isinstance(Element(x,Z), classes.Element)==True
 
 def test_positive_integers():
     P = +Integers
@@ -23,7 +23,7 @@ def test_positive_integers():
     assert Element(-1,P)==False
     assert Element(-5,P)==False
     assert Element(n,P)==False
-    assert Element(x,P).is_Element
+    assert isinstance(Element(x,P), classes.Element)
 
 def test_negative_integers():
     N = -Integers
@@ -35,7 +35,7 @@ def test_negative_integers():
     assert Element(-1,N)==True
     assert Element(-5,N)==True
     assert Element(n,N)==False
-    assert Element(x,N).is_Element
+    assert isinstance(Element(x,N), classes.Element)
 
 def test_shifted_positive_integers():
     P = +Integers + 3
@@ -49,7 +49,7 @@ def test_shifted_positive_integers():
     assert Element(-1,P)==False
     assert Element(-5,P)==False
     assert Element(n,P)==False
-    assert Element(x,P).is_Element
+    assert isinstance(Element(x,P), classes.Element)
 
     P = +Integers - 3
     assert Element(1,P)==True
@@ -59,7 +59,7 @@ def test_shifted_positive_integers():
     assert Element(-2,P)==True
     assert Element(-3,P)==False
     assert Element(n,P)==False
-    assert Element(x,P).is_Element
+    assert isinstance(Element(x,P), classes.Element)
 
 def test_shifted_negative_integers():
     N = -Integers + 3
@@ -70,7 +70,7 @@ def test_shifted_negative_integers():
     assert Element(30,N)==False
     assert Element(-5,N)==True
     assert Element(n,N)==False
-    assert Element(x,N).is_Element
+    assert isinstance(Element(x,N), classes.Element)
 
     N = -Integers - 3
     assert Element(1,N)==False
@@ -80,7 +80,7 @@ def test_shifted_negative_integers():
     assert Element(-3,N)==False
     assert Element(-4,N)==True
     assert Element(n,N)==False
-    assert Element(x,N).is_Element
+    assert isinstance(Element(x,N), classes.Element)
 
 def test_range_of_integers():
     R = +(-Integers +3) # (0,3) in Z <=> {1,2}
@@ -113,7 +113,7 @@ def test_evens():
     assert Element(2,E)==True
     assert Element(3,E)==False
     assert Element(n,E)==False
-    assert Element(x,E).is_Element
+    assert isinstance(Element(x,E), classes.Element)
 
 def test_odds():
     O = Odds
@@ -127,7 +127,7 @@ def test_odds():
     assert Element(2,O)==False
     assert Element(3,O)==True
     assert Element(n,O)==False
-    assert Element(x,O).is_Element
+    assert isinstance(Element(x,O), classes.Element)
 
 def test_positive_evens():
     E = +Evens
@@ -142,7 +142,7 @@ def test_positive_evens():
     assert Element(4,E)==True
     assert Element(5,E)==False
     assert Element(n,E)==False
-    assert Element(x,E).is_Element
+    assert isinstance(Element(x,E), classes.Element)
 
 def test_negative_odds():
     O = Negative(Odds)
@@ -156,7 +156,7 @@ def test_negative_odds():
     assert Element(2,O)==False
     assert Element(3,O)==False
     assert Element(n,O)==False
-    assert Element(x,O).is_Element
+    assert isinstance(Element(x,O), classes.Element)
 
 def test_primes():
     P = Primes
@@ -170,7 +170,7 @@ def test_primes():
     assert Element(4,P)==False
     assert [i for i in range(15) if Element(i,P)]==[2,3,5,7,11,13]
     assert Element(n,P)==False
-    assert Element(x,P).is_Element
+    assert isinstance(Element(x,P), classes.Element)
 
     assert -P==Empty
     assert +P==P

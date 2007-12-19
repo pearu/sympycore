@@ -54,13 +54,13 @@ class Set(BasicSet, Composite, frozenset):
         return frozenset.__contains__(self, other)
 
     def try_union(self, other):
-        if other.is_Set:
+        if isinstance(other, classes.Set):
             return Set(*set(self).union(other))
     def try_intersection(self, other):
-        if other.is_Set:
+        if isinstance(other, classes.Set):
             return Set(*set(self).intersection(other))
     def try_difference(self, other):
-        if other.is_Set:
+        if isinstance(other, classes.Set):
             return Set(*set(self).difference(other))
 
     # method to be (re)moved

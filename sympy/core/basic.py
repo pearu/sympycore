@@ -40,40 +40,20 @@ class BasicType(type):
     """ Metaclass for Basic classes.
     """
     def __new__(typ, name, bases, attrdict):
-        # set obj.is_Class attributes such that
-        #   isinstance(obj, Class)==obj.is_Class
-        # holds:
-        attrdict['is_'+name] = True
-
         # create Class:
         cls = type.__new__(typ, name, bases, attrdict)
 
-        # set Basic.Class attributes:
-        if name!='Basic':
-            def is_cls(self):
-                # Uncommenting the following statement makes <expr>.is_<Class>
-                # to be 3x faster. However, there is almost no change in the
-                # timing of unittests. So, we don't use it as it just increases
-                # memory consumption.
-                #setattr(self, 'is_'+name, False)
-                return False
-            def is_cls_type(cl):
-                return isinstance(cl, cls)
-            setattr(classes, cls.__name__, cls)
-            setattr(Basic, 'is_' + name,
-                    DualProperty(is_cls, is_cls_type))
+        setattr(classes, cls.__name__, cls)
 
-        if getattr(cls, 'is_BasicDummySymbol', None):
-            # _dummy_class attribute is used by the BasicSymbol.as_dummy() method
-            if bases[0].__name__=='BasicDummySymbol' or name=='BasicDummySymbol':
-                cls.__bases__[-1]._dummy_class = cls 
+        # _dummy_class attribute is used by the BasicSymbol.as_dummy() method
+        if bases[0].__name__=='BasicDummySymbol' or name=='BasicDummySymbol':
+            cls.__bases__[-1]._dummy_class = cls 
 
-        if getattr(cls, 'is_BasicSymbol', None):
-            # _symbol_cls is needed in BasicLambda.__hash__ method
-            if name=='BasicSymbol':
-                Basic._symbol_cls = cls
-            elif bases[-1].__name__=='BasicSymbol' and len(bases)>1:
-                bases[0]._symbol_cls = cls
+        # _symbol_cls is needed in BasicLambda.__hash__ method
+        if name=='BasicSymbol':
+            Basic._symbol_cls = cls
+        elif bases[-1].__name__=='BasicSymbol' and len(bases)>1:
+            bases[0]._symbol_cls = cls
 
         return cls
 
@@ -196,7 +176,7 @@ class Basic(object):
         result = set()
         if type is not None and not isinstance(type, (object.__class__, tuple)):
             type = sympify(type).__class__
-        if self.is_Atom:
+        if isinstance(self, classes.Atom):
             if type is None or isinstance(self, type):
                 result.add(self)
         else:
@@ -216,7 +196,7 @@ class Basic(object):
         elif not patterns:
             return True
         p = sympify(patterns[0])
-        if isinstance(p,Basic) and p.is_Atom and not p.is_BasicWild:
+        if isinstance(p,Basic) and isinstance(p, classes.Atom) and not isinstance(p, classes.BasicWild):
             return p in self.atoms(p.__class__)
         if self.match(p) is not None:
             return True
@@ -282,19 +262,19 @@ class Basic(object):
     def visit(self, func, parent=None): # workinprogress
         """ Visit expression tree.
         """
-        if self.is_Composite:
+        if isinstance(self, classes.Composite):
             if isinstance(self, dict):
                 for key, value in self.iteritems():
                     item = self.__class__((key, value))
                     for it in (key, value):
-                        if it.is_Composite:
+                        if isinstance(it, classes.Composite):
                             for r in it.visit(func, self):
                                 yield func(it, r)
                         else:
                             yield func(item, it)
             else:
                 for item in self:
-                    if item.is_Composite:
+                    if isinstance(item, classes.Composite):
                         for r in item.visit(func, self):
                             yield func(item, r)
                     else:
@@ -374,7 +354,7 @@ class BasicWild(Basic):
     predicate = lambda self, expr: True
 
     def matches(pattern, expr, repl_dict={}, evaluate=False):
-        if expr.is_BasicWild:
+        if isinstance(expr, classes.BasicWild):
             # wilds do not match other wilds
             return
         if isinstance(pattern, type):

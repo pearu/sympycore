@@ -53,7 +53,7 @@ class Mul(ArithmeticFunction):
 
     def iterBaseExp(self, full=False):
         coeff = self._dict_content
-        if not full or (coeff is one or not coeff.is_Rational):
+        if not full or (coeff is one or not isinstance(coeff, classes.Rational)):
             return self._dict_content.iterBaseExp()
 
     def expand(self, **hints):
@@ -63,9 +63,9 @@ class Mul(ArithmeticFunction):
             b = Mul(*it)
             a = a.expand(**hints)
             b = b.expand(**hints)
-            if a.is_Add:
+            if isinstance(a, classes.Add):
                 return (a._dict_content * b).as_Basic()
-            elif b.is_Add:
+            elif isinstance(b, classes.Add):
                 return (b._dict_content * a).as_Basic()
             return Mul(a, b)
         return self
@@ -94,7 +94,7 @@ class Mul(ArithmeticFunction):
             return self, one
         p = None
         for b,e in self.iterBaseExp():
-            if not e.is_Rational:
+            if not isinstance(e, classes.Rational):
                 p = None
                 break
             if p is None:
@@ -117,7 +117,7 @@ class Mul(ArithmeticFunction):
 
     def try_power(self, other):
         t, c = self.as_term_coeff()
-        if not c is one and other.is_Rational:
+        if not c is one and isinstance(other, classes.Rational):
             return c**other * t**other
 
     def try_derivative(self, s):
@@ -127,7 +127,7 @@ class Mul(ArithmeticFunction):
             dt = terms[i].diff(s)
             if dt is zero:
                 continue
-            factors.append(classes.Mul(*(terms[:i]+[dt]+terms[i+1:])))
+            factors.append(Mul(*(terms[:i]+[dt]+terms[i+1:])))
         return classes.Add(*factors)
 
     def try_antiderivative(self, s):
@@ -176,7 +176,7 @@ class Mul(ArithmeticFunction):
 
     def __mul__(self, other):
         other = sympify(other)
-        if other.is_Number:
+        if isinstance(other, classes.Number):
             if other is one:
                 return self
             # here we shall skip d.canonical()
@@ -199,7 +199,7 @@ class Mul(ArithmeticFunction):
             obj = new_function_value(Mul, l, {})
             obj._dict_content = d
             return obj
-        return classes.Mul(self, other)
+        return Mul(self, other)
 
     def matches(pattern, expr, repl_dict={}):
         wild_classes = (classes.Wild, classes.WildFunctionType)

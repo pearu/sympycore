@@ -40,16 +40,16 @@ def sympify(a, globals=None, locals=None, debug=False):
 
        >>> from sympy import *
 
-       >>> sympify(2).is_Integer
+       >>> isinstance(sympify(2), classes.Integer)
        True
-       >>> sympify(2).is_Real
+       >>> isinstance(sympify(2), classes.Real)
        True
 
-       >>> sympify(2.0).is_Real
+       >>> isinstance(sympify(2.0), classes.Real)
        True
-       >>> sympify("2.0").is_Real
+       >>> sympify("2.0"isinstance(), classes.Real)
        True
-       >>> sympify("2e-45").is_Real
+       >>> sympify("2e-45"isinstance(), classes.Real)
        True
        
     """
@@ -123,7 +123,7 @@ def _is_arithmetic(node):
     elif isinstance(node, ast.Const):
         value = node.value
         if isinstance(value, Basic):
-            return value.is_BasicArithmetic
+            return isinstance(value, classes.BasicArithmetic)
         elif isinstance(value, (int, long, float, complex)):
             return True
     

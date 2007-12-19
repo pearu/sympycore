@@ -15,9 +15,9 @@ E = objects.E
 half = objects.half
 
 def _is_negative(x):
-    if x.is_Number:
+    if isinstance(x, classes.Number):
         return x.is_negative
-    if x.is_Mul:
+    if isinstance(x, classes.Mul):
         return _is_negative(x[0])
 
 class Pow(Function):
@@ -39,7 +39,7 @@ class Pow(Function):
             return base
         if not options.get('normalized', True):
             return
-        if exponent.is_Log and base==exponent.base:
+        if isinstance(exponent, classes.Log) and base==exponent.base:
             return exponent.logarithm
 
         excluded = []
@@ -49,7 +49,7 @@ class Pow(Function):
             cs = []
             b = None
             for f in it:
-                if f.is_Log and f.base==base:
+                if isinstance(f, classes.Log) and f.base==base:
                     excluded.append(f.args[0] ** classes.Mul(*(cs+list(it))))
                     break
                 cs.append(f)
@@ -100,12 +100,12 @@ class Pow(Function):
         if hints.get('basic', True):
             b = self.base.expand(**hints)
             e = self.exponent.expand(**hints)
-            if b.is_Add and e.is_Integer and e>0:
+            if isinstance(b, classes.Add) and isinstance(e, classes.Integer) and e>0:
                 return expand_integer_power_miller(b, e)
-            if b.is_Mul and e.is_Integer:
+            if isinstance(b, classes.Mul) and isinstance(e, classes.Integer):
                 return classes.Mul(*[Pow(b, e*n) for (b,n) in b.iterBaseExp()])
-            if e.is_Add:
-                # XXX: b.is_Mul
+            if isinstance(e, classes.Add):
+                # XXX: isinstance(b, classes.Mul)
                 return classes.Mul(*[Pow(b, item) for item in e])
             return Pow(b, e)
         return self
@@ -128,10 +128,10 @@ class Pow(Function):
             return self/Log(b,E)
 
     def try_power(self, other):
-        if other.is_Number:
-            if other.is_Integer:
+        if isinstance(other, classes.Number):
+            if isinstance(other, classes.Integer):
                 return Pow(self.base, self.exponent * other)
-            if self.exponent.is_Number and self.base.is_Number:
+            if isinstance(self.exponent, classes.Number) and isinstance(self.base, classes.Number):
                 if self.base.is_positive:
                     return Pow(self.base, self.exponent * other)
 
@@ -146,12 +146,12 @@ class Pow(Function):
         if not pattern.atoms(type=wild_classes):
             return Basic.matches(pattern, expr, repl_dict)
         pb, pe = pattern.args
-        if expr.is_Number:
+        if isinstance(expr, classes.Number):
             r = (pe * classes.Log(pb)).matches(classes.Log(expr), repl_dict)
             return r
         b, e = expr.as_base_exponent()
         p1 = e/pe
-        if p1.is_Integer:
+        if isinstance(p1, classes.Integer):
             return pb.matches(b**p1, repl_dict)
         d = pb.matches(b, repl_dict)
         if d is not None:
@@ -220,11 +220,11 @@ class Log(Function):
             return cls(arg, -base) / (one + pi * I * cls(E, -base))
         if _is_negative(arg):
             return objects.pi * objects.I * cls(E, base) + cls(-arg, base)
-        if arg.is_NaN or arg.is_Infinity:
+        if isinstance(arg, classes.NaN) or isinstance(arg, classes.Infinity):
             return arg
         if arg.is_zero:
             return objects.moo
-        if base.is_EulersNumber:
+        if isinstance(base, classes.EulersNumber):
             if arg is Exp:
                 return one
         return
@@ -242,20 +242,20 @@ class Log(Function):
         return classes.Lambda((x,b),-Log(x,b)*Log(E,b)/b)
 
     def matches(pattern, expr, repl_dict={}):
-        if expr.is_Log:
+        if isinstance(expr, classes.Log):
             d = pattern.base.matches(expr.base, repl_dict)
             if d is not None:
                 return pattern.logarithm.matches(expr.logarithm, d)
             d = pattern.logarithm.matches(expr.logarithm, repl_dict)
             return pattern.base.matches(expr.base, d)
-        if expr.is_Add and len(expr)==1:
+        if isinstance(expr, classes.Add) and len(expr)==1:
             # Log(p, base).matches(4*Log(x, base)) -> p.matches(x**4)
             term, coeff = expr.items()[0]
-            if term.is_Log and term.base==pattern.base and coeff.is_Integer:
+            if isinstance(term, classes.Log) and term.base==pattern.base and isinstance(coeff, classes.Integer):
                 return pattern.args[0].matches(term.args[0]**coeff, repl_dict)
-        if expr.is_Number:
+        if isinstance(expr, classes.Number):
             return pattern.args[0].matches(Pow(pattern.base, expr), repl_dict)
-        if pattern.args[0].is_Wild:
+        if isinstance(pattern.args[0], classes.Wild):
             return pattern.args[0].matches(Pow(pattern.base, expr), repl_dict)
 
 

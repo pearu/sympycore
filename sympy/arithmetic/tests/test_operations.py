@@ -7,7 +7,7 @@ def test_Add():
     z = Symbol('z')
     assert Add()==0
     assert Add(x)==x
-    assert Add(x,y).is_Add==True
+    assert isinstance(Add(x,y), classes.Add)==True
 
     assert Add(Add(x,y),z)==Add(x,y,z)
 

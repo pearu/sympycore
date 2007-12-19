@@ -35,7 +35,7 @@ class MathematicalSymbol(BasicArithmetic, Atom):
         return obj
 
     def try_power(self, other):
-        if other.is_NaN or other.is_Infinity:
+        if isinstance(other, NaN) or isinstance(other, Infinity):
             return other
         if other==objects.moo:
             return objects.zero
@@ -149,9 +149,9 @@ class Infinity(MathematicalSymbol):
         return 'oo'
 
     def try_power(self, other):
-        if other.is_NaN:
+        if isinstance(other, NaN):
             return other
-        if other.is_Number:
+        if isinstance(other, classes.Number):
             if other.is_zero:
                 return objects.one
             if other.is_one:
@@ -160,7 +160,7 @@ class Infinity(MathematicalSymbol):
                 return self
             if other.is_negative:
                 return objects.zero
-        if other.is_Infinity:
+        if isinstance(other, Infinity):
             return self
         if other==-self:
             return objects.zero
@@ -177,9 +177,9 @@ class ComplexInfinity(MathematicalSymbol):
         return 'zoo'
 
     def try_power(self, other):
-        if other.is_NaN:
+        if isinstance(other, NaN):
             return other
-        if other.is_Number:
+        if isinstance(other, classes.Number):
             if other.is_zero:
                 return objects.one
             if other.is_positive:
@@ -198,7 +198,7 @@ class ImaginaryUnit(MathematicalSymbol):
         return 'I'
 
     def try_power(self, other):
-        if other.is_Integer:
+        if isinstance(other, classes.Integer):
             if other.is_one:
                 # nothing to evaluate
                 return

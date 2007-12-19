@@ -12,7 +12,7 @@ def test_And():
     assert And(False,True)==False
     assert And(False,False)==False
 
-    assert And(x,y).is_And==True
+    assert isinstance(And(x,y), classes.And)==True
     assert And(x,x)==x
     assert And(x,False)==False
     assert And(x,True)==x
@@ -35,7 +35,7 @@ def test_Or():
     assert Or(False,True)==True
     assert Or(False,False)==False
 
-    assert Or(x,y).is_Or==True
+    assert isinstance(Or(x,y), classes.Or)==True
     assert Or(x,False)==x
     assert Or(x,True)==True
     assert Or(x,Or(x,y))==Or(x,y)
@@ -58,7 +58,7 @@ def test_Xor():
     assert Xor(False,True)==True
     assert Xor(False,False)==False
 
-    assert Xor(x,y).is_Xor==True
+    assert isinstance(Xor(x,y), classes.Xor)==True
     assert Xor(x,False)==x
     assert Xor(x,True)==Not(x)
     assert Xor(x,Xor(x,y))==y
@@ -73,7 +73,7 @@ def test_Not():
     x = Boolean('x')
     assert Not(False)==True
     assert Not(True)==False
-    assert Not(x).is_Not==True
+    assert isinstance(Not(x), classes.Not)==True
     assert Not(Not(x))==x
 
 def test_Implies():

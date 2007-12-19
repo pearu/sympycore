@@ -72,9 +72,9 @@ class Interval(Number, tuple):
         """Two intervals are considered equal if all endpoints are equal"""
         other = sympify(other)
         if self is other: return True
-        if other.is_Real:
+        if isinstance(other, classes.Real):
             other = other.as_Interval
-        if other.is_Interval:
+        if isinstance(other, Interval):
             return tuple.__eq__(self, other)
         return NotImplemented
 
@@ -82,9 +82,9 @@ class Interval(Number, tuple):
         """Two intervals are considered equal if all endpoints are equal"""
         other = sympify(other)
         if self is other: return False
-        if other.is_Real:
+        if isinstance(other, classes.Real):
             other = other.as_Interval
-        if other.is_Interval:
+        if isinstance(other, Interval):
             return tuple.__ne__(self, other)
         return NotImplemented
 
@@ -99,9 +99,9 @@ class Interval(Number, tuple):
 
     def __add__(l, r):
         r = sympify(r)
-        if r.is_Real:
+        if isinstance(r, classes.Real):
             r = r.as_Interval
-        if r.is_Interval:
+        if isinstance(r, Interval):
             rounding.begin()
             rounding.down()
             a = l.a + r.a
@@ -113,18 +113,18 @@ class Interval(Number, tuple):
 
     def __radd__(self, other):
         if isinstance(other, Basic):
-            if other.is_Real:
+            if isinstance(other, classes.Real):
                 other = other.as_Interval
-            if other.is_Interval:
+            if isinstance(other, Interval):
                 return other + self
             return classes.Add(other, self)
         return sympify(other) + self
 
     def __sub__(l, r):
         r = sympify(r)
-        if r.is_Real:
+        if isinstance(r, classes.Real):
             r = r.as_Interval
-        if r.is_Interval:
+        if isinstance(r, Interval):
             r = -r
             rounding.begin()
             rounding.down()
@@ -137,18 +137,18 @@ class Interval(Number, tuple):
 
     def __rsub__(self, other):
         if isinstance(other, Basic):
-            if other.is_Real:
+            if isinstance(other, classes.Real):
                 other = other.as_Interval
-            if other.is_Interval:
+            if isinstance(other, Interval):
                 return other - self
             return classes.Add(other, -self)
         return sympify(other) - self
 
     def __mul__(l, r):
         r = sympify(r)
-        if r.is_Real:
+        if isinstance(r, classes.Real):
             r = r.as_Interval
-        if r.is_Interval:
+        if isinstance(r, Interval):
             rounding.begin()
             rounding.down()
             xd, yd, zd, wd = l.a*r.a, l.a*r.b, l.b*r.a, l.b*r.b
@@ -162,18 +162,18 @@ class Interval(Number, tuple):
 
     def __rmul__(self, other):
         if isinstance(other, Basic):
-            if other.is_Real:
+            if isinstance(other, classes.Real):
                 other = other.as_Interval
-            if other.is_Interval:
+            if isinstance(other, Interval):
                 return other * self
             return classes.Mul(other, self)
         return sympify(other) * self
 
     def __div__(l, r):
         r = sympify(r)
-        if r.is_Real:
+        if isinstance(r, classes.Real):
             r = r.as_Interval
-        if r.is_Interval:
+        if isinstance(r, Interval):
             if 0 in r:
                 raise ZeroDivisionError, "cannot divide by interval containing 0"
             rounding.begin()
@@ -189,9 +189,9 @@ class Interval(Number, tuple):
 
     def __rdiv__(self, other):
         if isinstance(other, Basic):
-            if other.is_Real:
+            if isinstance(other, classes.Real):
                 other = other.as_Interval
-            if other.is_Interval:
+            if isinstance(other, Interval):
                 return other / self
             return classes.Mul(other, 1/self)
         return sympify(other) / self

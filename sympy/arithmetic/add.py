@@ -114,7 +114,7 @@ class Add(ArithmeticFunction):
 
     def __mul__(self, other):
         other = sympify(other)
-        if other.is_Number:
+        if isinstance(other, classes.Number):
             return (self._dict_content * other).as_Basic()
         return classes.Mul(self, other)
 
@@ -137,7 +137,7 @@ class Add(ArithmeticFunction):
         for i in xrange(len(patitems)):
             pt,pc = patitems[i]
             rpat = TermCoeffDict(patitems[:i]+patitems[i+1:]).as_Basic()
-            if expr.is_Add:
+            if isinstance(expr, Add):
                 items1, items2 = [], []
                 for item in expr.iterTermCoeff():
                     if item[1]==pc:
@@ -166,7 +166,7 @@ class Add(ArithmeticFunction):
     def as_term_coeff(self):
         p = None
         for t,c in self.iterTermCoeff():
-            if not c.is_Rational:
+            if not isinstance(c, classes.Rational):
                 p = None
                 break
             if p is None:

@@ -30,7 +30,7 @@ class CalculusOperator(BasicArithmetic):
             else:
                 sym = sympify(p)
                 opts = ()
-            assert sym.is_Symbol, 'parameter must be a symbol'
+            assert isinstance(sym, classes.Symbol), 'parameter must be a symbol'
             params[i] = (sym,) + opts
         if options.get('evaluate', True):
             res = expr
@@ -124,9 +124,9 @@ def integrate_basic(a, x):
     if a is x:
         return (x**2)/2
     a = a.expand()
-    if a.is_Add:
+    if isinstance(a, classes.Add):
         return classes.Add(*[integrate_basic(t, x) for t in a])
-    if a.is_Mul:
+    if isinstance(a, classes.Mul):
         c = classes.Integer(1)
         ppart = None
         for b in a:
@@ -137,7 +137,7 @@ def integrate_basic(a, x):
             else:
                 ppart = integrate_basic(b, x)
         return c * ppart
-    if a.is_Pow:
+    if isinstance(a, classes.Pow):
         b, e = a
         if e.has(x):
             raise ValueError

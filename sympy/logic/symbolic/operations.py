@@ -1,5 +1,5 @@
 
-from ...core import Basic
+from ...core import Basic, classes
 from .function import Predicate
 
 __all__ = ['And', 'Or', 'Xor', 'Implies', 'Equiv']
@@ -35,7 +35,7 @@ class And(Predicate):
                 if n==len(new_operants):
                     flag = True
         for o in new_operants:
-            if o.is_Not and o.args[0] in new_operants:
+            if isinstance(o, classes.Not) and o.args[0] in new_operants:
                 return False
         if not new_operants:
             return True
@@ -76,7 +76,7 @@ class Or(Predicate):
                 if n==len(new_operants):
                     flag = True
         for o in new_operants:
-            if o.is_Not and o.args[0] in new_operants:
+            if isinstance(o, classes.Not) and o.args[0] in new_operants:
                 return True
         if not new_operants:
             return False
@@ -115,7 +115,7 @@ class Xor(Predicate):
             if isinstance(o, bool):
                 flag = True
                 if o: truth_index += 1
-            elif o.is_Xor:
+            elif isinstance(o, classes.Xor):
                 flag = True
                 new_operants.extend(o.args)
             else:
@@ -151,7 +151,7 @@ class Not(Predicate):
     def canonize(cls, (arg,)):
         if isinstance(arg, bool):
             return not arg
-        if arg.is_Not:
+        if isinstance(arg, classes.Not):
             return arg[0]
 
 

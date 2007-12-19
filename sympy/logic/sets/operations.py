@@ -20,7 +20,7 @@ class Union(SetFunction):
         new_sets = set()
         flag = False
         for s in sets:
-            if s.is_Union:
+            if isinstance(s, Union):
                 new_sets = new_sets.union(s.args)
                 flag = True
             elif s.is_empty:
@@ -46,9 +46,9 @@ class Union(SetFunction):
             return cls(*new_sets)
         if len(sets)==2:
             s1,s2 = list(sets)
-            if s1.is_Complementary and s1.set==s2:
+            if isinstance(s1, Complementary) and s1.set==s2:
                 return s1.superset
-            elif s2.is_Complementary and s2.set==s1:
+            elif isinstance(s2, Complementary) and s2.set==s1:
                 return s2.superset
         return
 
@@ -88,7 +88,7 @@ class Intersection(SetFunction):
         new_sets = set()
         flag = False
         for s in sets:
-            if s.is_Intersection:
+            if isinstance(s, Intersection):
                 new_sets = new_sets.union(s.args)
                 flag = True
             elif s.is_empty:
@@ -114,9 +114,9 @@ class Intersection(SetFunction):
             return cls(*new_sets)
         if len(sets)==2:
             s1,s2 = list(sets)
-            if s1.is_Complementary and s1.set==s2:
+            if isinstance(s1, Complementary) and s1.set==s2:
                 return Empty
-            if s2.is_Complementary and s2.set==s1:
+            if isinstance(s2, Complementary) and s2.set==s1:
                 return Empty
         return      
 
@@ -170,7 +170,7 @@ class Complementary(SetFunction):
     def canonize(cls, (set, superset)):
         if set==superset:
             return Empty
-        if superset.is_Field and set.superset!=superset:
+        if isinstance(superset, classes.Field) and set.superset!=superset:
             return Union(Complementary(set, set.superset), Complementary(set.superset, superset))
         return set.try_complementary(superset)
     def try_complementary(self, superset):

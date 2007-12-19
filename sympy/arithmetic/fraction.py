@@ -23,7 +23,7 @@ def makefraction_from_man_exp(man, exp):
     if exp > 0:
         return classes.Integer(man * 2 ** exp)
     obj = Fraction(man, 2** -exp)
-    if obj.is_Fraction: return obj
+    if isinstance(obj, Fraction): return obj
     return obj.as_Fraction
 
 
@@ -66,11 +66,11 @@ class Fraction(Rational):
         if isinstance(other, Basic):
             if self is other:
                 return True
-            if other.is_Integer:
+            if isinstance(other, classes.Integer):
                 other = other.as_Fraction
-            if other.is_Fraction:
+            if isinstance(other, Fraction):
                 return self.p==other.p and self.q==other.q
-            if other.is_Number:
+            if isinstance(other, classes.Number):
                 return NotImplemented
             return False
         if isinstance(other, bool):
@@ -82,9 +82,9 @@ class Fraction(Rational):
         if isinstance(other, Basic):
             if self is other:
                 return False
-            if other.is_Integer:
+            if isinstance(other, classes.Integer):
                 other = other.as_Fraction
-            if other.is_Fraction:
+            if isinstance(other, Fraction):
                 return self.p!=other.p or self.q!=other.q
         if isinstance(other, bool):
             return True
@@ -94,9 +94,9 @@ class Fraction(Rational):
         other = sympify(other)
         if self is other: return False
         if isinstance(other, Basic):
-            if other.is_Integer:
+            if isinstance(other, classes.Integer):
                 other = other.as_Fraction
-            if other.is_Fraction:
+            if isinstance(other, Fraction):
                 return self.p * other.q < self.q * other.p
         return NotImplemented
 
@@ -104,9 +104,9 @@ class Fraction(Rational):
         other = sympify(other)
         if self is other: return True
         if isinstance(other, Basic):
-            if other.is_Integer:
+            if isinstance(other, classes.Integer):
                 other = other.as_Fraction
-            if other.is_Fraction:
+            if isinstance(other, Fraction):
                 return self.p * other.q <= self.q * other.p
         return NotImplemented
 
@@ -116,9 +116,9 @@ class Fraction(Rational):
         other = sympify(other)
         if self is other: return False
         if isinstance(other, Basic):
-            if other.is_Integer:
+            if isinstance(other, classes.Integer):
                 other = other.as_Fraction
-            if other.is_Fraction:
+            if isinstance(other, Fraction):
                 return self.p * other.q > self.q * other.p
         return NotImplemented
 
@@ -126,9 +126,9 @@ class Fraction(Rational):
         other = sympify(other)
         if self is other: return True
         if isinstance(other, Basic):
-            if other.is_Integer:
+            if isinstance(other, classes.Integer):
                 other = other.as_Fraction
-            if other.is_Fraction:
+            if isinstance(other, Fraction):
                 return self.p * other.q >= self.q * other.p
         return NotImplemented
 
@@ -143,37 +143,37 @@ class Fraction(Rational):
 
     def __add__(self, other):
         other = sympify(other)
-        if other.is_Integer:
+        if isinstance(other, classes.Integer):
             return Fraction(self.p + self.q * other.p,
                             self.q)
-        if other.is_Fraction:
+        if isinstance(other, Fraction):
             return Fraction(self.p * other.q + self.q * other.p,
                             self.q * other.q)
         return NotImplemented
 
     def __sub__(self, other):
         other = sympify(other)
-        if other.is_Integer:
+        if isinstance(other, classes.Integer):
             return Fraction(self.p - self.q * other.p,
                             self.q)
-        if other.is_Fraction:
+        if isinstance(other, Fraction):
             return Fraction(self.p * other.q - self.q * other.p,
                             self.q * other.q)
         return NotImplemented
 
     def __mul__(self, other):
         other = sympify(other)
-        if other.is_Integer:
+        if isinstance(other, classes.Integer):
             return Fraction(self.p * other.p, self.q)
-        if other.is_Fraction:
+        if isinstance(other, Fraction):
             return Fraction(self.p * other.p, self.q * other.q)
         return NotImplemented
 
     def __div__(self, other):
         other = sympify(other)
-        if other.is_Integer:
+        if isinstance(other, classes.Integer):
             return Fraction(self.p, self.q * other.p)
-        if other.is_Fraction:
+        if isinstance(other, Fraction):
             return Fraction(self.p * other.q, self.q * other.p)
         return NotImplemented
 
@@ -186,17 +186,17 @@ class Fraction(Rational):
 
     #@memoizer_immutable_args('Fraction.try_power')
     def try_power(self, other):
-        if other.is_Integer:
+        if isinstance(other, classes.Integer):
             if other.is_negative:
                 p = -other.p
                 return Fraction.make(self.q ** p, self.p ** p)
             p = other.p
             return Fraction.make(self.p ** p, self.q ** p)
-        if other.is_Fraction:
+        if isinstance(other, Fraction):
             return self.p ** other * self.q ** -other
-        if other.is_Float:
+        if isinstance(other, classes.Float):
             return self.as_Float ** other
-        if other.is_Infinity or other.is_ComplexInfinity:
+        if isinstance(other, classes.Infinity) or isinstance(other, classes.ComplexInfinity):
             if -1 < self < 1:
                 return objects.zero
             if self==1:
@@ -204,17 +204,17 @@ class Fraction(Rational):
             if self > 1:
                 return other
             return objects.nan
-        if other.is_NaN:
+        if isinstance(other, classes.NaN):
             if self==0:
                 return self
             return other
 
     def __radd__(self, other):
         if isinstance(other, Basic):
-            if other.is_Integer:
+            if isinstance(other, classes.Integer):
                 return Fraction(self.p + self.q * other.p,
                                 self.q)
-            if other.is_Fraction:
+            if isinstance(other, Fraction):
                 return Fraction(self.p * other.q + self.q * other.p,
                                 self.q * other.q)
             return classes.Add(other, self)
@@ -222,10 +222,10 @@ class Fraction(Rational):
 
     def __rsub__(self, other):
         if isinstance(other, Basic):
-            if other.is_Integer:
+            if isinstance(other, classes.Integer):
                 return Fraction(-self.p + self.q * other.p,
                                 self.q)
-            if other.is_Fraction:
+            if isinstance(other, Fraction):
                 return Fraction(-self.p * other.q + self.q * other.p,
                                 self.q * other.q)
             return classes.Add(other, -self)
@@ -233,18 +233,18 @@ class Fraction(Rational):
 
     def __rmul__(self, other):
         if isinstance(other, Basic):
-            if other.is_Integer:
+            if isinstance(other, classes.Integer):
                 return Fraction(self.p * other.p, self.q)
-            if other.is_Fraction:
+            if isinstance(other, Fraction):
                 return Fraction(self.p * other.p, self.q * other.q)
             return classes.Mul(other, self)
         return sympify(other) * self
 
     def __rdiv__(self, other):
         if isinstance(other, Basic):
-            if other.is_Integer:
+            if isinstance(other, classes.Integer):
                 return Fraction(self.q * other.p, self.p)
-            if other.is_Fraction:
+            if isinstance(other, Fraction):
                 return Fraction(self.q * other.p, self.p * other.q)
             return classes.Mul(other, 1/self)
         return sympify(other) / self

@@ -1,4 +1,5 @@
 
+from ...core import classes
 from ..symbolic import Predicate
 
 class Element(Predicate):
@@ -21,6 +22,6 @@ class Subset(Predicate):
     def canonize(cls, (obj, set)):
         if obj.domain==set:
             return True
-        if obj.is_EmptySet:
+        if isinstance(obj, classes.EmptySet):
             return True
         return set.try_subset(obj)

@@ -16,9 +16,9 @@ class Exp(Pow):
 
     @classmethod
     def canonize(cls, (base, arg)):
-        if arg.is_NaN or arg.is_Infinity:
+        if isinstance(arg, classes.NaN) or isinstance(arg, classes.Infinity):
             return arg
-        if arg.is_Number:
+        if isinstance(arg, classes.Number):
             if arg.is_zero:
                 return objects.one
             if arg.is_one:
@@ -26,10 +26,10 @@ class Exp(Pow):
             return
         if arg==objects.moo:
             return objects.zero
-        if arg.is_Log:
+        if isinstance(arg, classes.Log):
             return arg.args[0]
         t, c = arg.as_term_coeff()
-        if t.is_Log:
+        if isinstance(t, classes.Log):
             return t.args[0] ** c
 
         excluded = []
@@ -39,7 +39,7 @@ class Exp(Pow):
             cs = []
             b = None
             for f in it:
-                if f.is_Log:
+                if isinstance(f, classes.Log):
                     excluded.append(f.args[0] ** classes.Mul(*(cs+list(it))))
                     break
                 cs.append(f)
@@ -71,31 +71,31 @@ class Log(Function):
 
     @classmethod
     def canonize(cls, (arg,), options):
-        if arg.is_NaN or arg.is_Infinity: return arg
-        if arg.is_Number:
+        if isinstance(arg, classes.NaN) or isinstance(arg, classes.Infinity): return arg
+        if isinstance(arg, classes.Number):
             if arg.is_one: return objects.zero
             if arg.is_negative:
                 return objects.pi * objects.I + cls(-arg)
             if arg.is_zero:
                 return -objects.oo
-            if arg.is_Integer:
+            if isinstance(arg, classes.Integer):
                 factors = arg.as_factors()
                 if len(factors)==1:
                     b, e = factors[0]
                     if e!=1:
                         return e * cls(b)
-            if arg.is_Fraction:
+            if isinstance(arg, classes.Fraction):
                 return cls(arg.p) - cls(arg.q)
             return
-        if arg.is_EulersNumber:
+        if isinstance(arg, classes.EulersNumber):
             return objects.one
-        if arg.is_ImaginaryUnit:
+        if isinstance(arg, classes.ImaginaryUnit):
             return objects.I * objects.pi / 2
         if arg in [-objects.oo,-objects.E,-objects.pi,-objects.I]:
             # XXX: need more generic test
             return objects.pi * objects.I + cls(-arg)
         #base, exponent = arg.as_base_exponent()
-        #if exponent.is_Number:
+        #if isinstance(exponent, classes.Number):
         #    return exponent * cls(classes.Abs(base))
 
     @classmethod
@@ -104,14 +104,14 @@ class Log(Function):
         return classes.Lambda(x,1/x)
 
     def matches(pattern, expr, repl_dict={}):
-        if expr.is_Log:
+        if isinstance(expr, classes.Log):
             return pattern.args[0].matches(expr.args[0], repl_dict)
-        if expr.is_Add and len(expr)==1:
+        if isinstance(expr, classes.Add) and len(expr)==1:
             # Log(p).matches(4*Log(x)) -> p.matches(x**4)
             term, coeff = expr.items()[0]
-            if term.is_Log and coeff.is_Integer:
+            if isinstance(term, classes.Log) and isinstance(coeff, classes.Integer):
                 return pattern.args[0].matches(term.args[0]**coeff, repl_dict)
-        if expr.is_Number:
+        if isinstance(expr, classes.Number):
             return pattern.args[0].matches(Exp(expr), repl_dict)
-        if pattern.args[0].is_Wild:
+        if isinstance(pattern.args[0], classes.Wild):
             return pattern.args[0].matches(Exp(expr), repl_dict)

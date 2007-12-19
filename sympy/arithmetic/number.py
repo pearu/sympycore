@@ -41,27 +41,27 @@ class Number(BasicArithmetic, Atom):
 
     @property
     def as_Interval(self):
-        if self.is_Interval: return self
+        if isinstance(self, Interval): return self
         return Interval.make(self, self)
 
     @property
     def as_Float(self):
-        if self.is_Float: return self
-        if self.is_Interval: return self.mid.as_Float
-        if self.is_Rational: return Float.make_from_fraction(self.p, self.q)
+        if isinstance(self, Float): return self
+        if isinstance(self, Interval): return self.mid.as_Float
+        if isinstance(self, Rational): return Float.make_from_fraction(self.p, self.q)
         raise NotImplementedError(`self`)
 
     @property
     def as_Fraction(self):
-        if self.is_Fraction: return self
-        if self.is_Integer: return Fraction.make(self.p, self.q)
-        if self.is_Float: return Fraction.make_from_man_exp(self.man, self.exp)
-        if self.is_Interval: return self.mid.as_Fraction
+        if isinstance(self, Fraction): return self
+        if isinstance(self, Integer): return Fraction.make(self.p, self.q)
+        if isinstance(self, Float): return Fraction.make_from_man_exp(self.man, self.exp)
+        if isinstance(self, Interval): return self.mid.as_Fraction
         raise NotImplementedError(`self`)
 
     @property
     def as_Integer(self):
-        if self.is_Integer: return self
+        if isinstance(self, Integer): return self
         raise NotImplementedError(`self`)
 
     @memoizer_immutable_args('Number.try_power')
@@ -69,7 +69,7 @@ class Number(BasicArithmetic, Atom):
         r = self.__pow__(other)
         if r is not NotImplemented:
             return r
-        if other.is_Number:
+        if isinstance(other, classes.Number):
             s = eval('self.as_%s' % (other.__class__.__name__))
             r = s.__pow__(other)
             if r is not NotImplemented:
@@ -92,10 +92,10 @@ class Number(BasicArithmetic, Atom):
         return objects.zero
 
     def as_coeff_term(self):
-        return self, classes.Integer(1)
+        return self, Integer(1)
 
     def as_term_coeff(self):
-        return classes.Integer(1), self
+        return Integer(1), self
 
 class Real(Number):
 
@@ -202,7 +202,7 @@ class Rational(Real):
         return self.p*other.q==self.q*other.p
 
     def evalf(self):
-        return classes.Float(self.p) / classes.Float(self.q)
+        return Float(self.p) / Float(self.q)
 
     def __int__(self):
         return int(self.p // self.q)

@@ -49,12 +49,12 @@ class FD(Operator):
     compose_arg_tuples = staticmethod(derivative_compose_arg_tuples)
 
     def __call__(self, expr):
-        if expr.is_FD:
+        if isinstance(expr, classes.FD):
             return FD(*(self[:] + expr[:]))
         f = expr
         unevaluated = []
         for index, n in self:
-            if index.is_Integer and n.is_Integer:
+            if isinstance(index, classes.Integer) and isinstance(n, classes.Integer):
                 assert n>=0,`index,n`
                 for i in range(n):
                     f = f.fdiff(index)
@@ -74,13 +74,13 @@ class D(Operator):
     compose_arg_tuples = staticmethod(derivative_compose_arg_tuples)
 
     def __call__(self, expr):
-        if expr.is_D:
+        if isinstance(expr, classes.D):
             return D(*(self[:] + expr[:]))
         f = expr
         unevaluated = []
         for t in self:
             v, n = t
-            if n.is_Integer:
+            if isinstance(n, classes.Integer):
                 assert n>=0,`v,n`
                 i = n
                 while i:
@@ -116,7 +116,7 @@ class AD(Operator):
         raise ValueError(`r1,r2`) # XXX: need meaningful error message
     
     def __call__(self, expr):
-        if expr.is_AD:
+        if isinstance(expr, classes.AD):
             return AD(*(self[:] + expr[:]))
         f = expr
         unevaluated = []
@@ -125,7 +125,7 @@ class AD(Operator):
             r = t[1:]
             if len(r)==1:
                 n = r[0]
-                if n.is_Integer:
+                if isinstance(n, classes.Integer):
                     assert n>=0,`n`
                     i = n
                     while i:
@@ -160,13 +160,13 @@ class Derivative(Function):
 
     def try_replace(self, old, new):
         opts = None
-        if old.is_Symbol:
+        if isinstance(old, classes.Symbol):
             i = 0
             flag = False
             for r in self[1:]:
                 i += 1
                 if old==r[0]:
-                    if not new.is_Symbol:
+                    if not isinstance(new, classes.Symbol):
                         return
                     l = self[1:i]+(classes.Tuple(new, r[1]),)+self[i+1:]
                     e = self[0].replace(old, new)
@@ -175,7 +175,7 @@ class Derivative(Function):
                     flag = True
             if flag:
                 return
-            if new.is_Symbol:
+            if isinstance(new, classes.Symbol):
                 opts = dict(is_canonical=True)
         e = self[0].replace(old, new)
         l = [r.replace(old, new) for r in self[1:]]

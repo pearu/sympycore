@@ -18,9 +18,9 @@ class ComplexSet(Field):
     def __new__(cls):
         return str.__new__(cls, 'Complexes')
     def try_element(self, other):
-        if other.is_Number:
+        if isinstance(other, classes.Number):
             return True
-        if other.is_ImaginaryUnit:
+        if isinstance(other, classes.ImaginaryUnit):
             return True
     @property
     def superset(self): return Universal
@@ -31,9 +31,9 @@ class ComplexSet(Field):
     def try_subset(self, set):
         if isinstance(set.domain, (RealSet, RationalSet, IntegerSet, PrimeSet)):
             return True
-        if set.domain.is_UniversalSet:
+        if isinstance(set.domain, classes.UniversalSet):
             return False
-        if set.is_ComplexSet:
+        if isinstance(set, classes.ComplexSet):
             return True
 
 class RealSet(Field):
@@ -48,8 +48,8 @@ class RealSet(Field):
     def superset(self):
         return Complexes 
     def try_element(self, other):
-        if other.is_Number:
-            if other.is_Real:
+        if isinstance(other, classes.Number):
+            if isinstance(other, classes.Real):
                 return True
             return False
     def try_supremum(self):
@@ -65,7 +65,7 @@ class RealSet(Field):
             return True
         if isinstance(set.domain, ComplexSet):
             return False
-        if set.is_RealSet:
+        if isinstance(set, classes.RealSet):
             return True
         return classes.BasicSet.try_subset(self, set)
 
@@ -82,8 +82,8 @@ class RationalSet(Field):
     def superset(self):
         return Reals
     def try_element(self, other):
-        if other.is_Number:
-            if other.is_Rational:
+        if isinstance(other, classes.Number):
+            if isinstance(other, classes.Rational):
                 return True
             return False
     def try_supremum(self):
@@ -99,7 +99,7 @@ class RationalSet(Field):
             return True
         if isinstance(set.domain, (ComplexSet, RealSet)):
             return False
-        if set.is_RationalSet:
+        if isinstance(set, classes.RationalSet):
             return True
         return classes.BasicSet.try_subset(self, set)
 
@@ -120,8 +120,8 @@ class IntegerSet(ArithmeticSetSymbol):
     def domain(self):
         return self
     def try_element(self, other):
-        if other.is_Number:
-            if other.is_Integer:
+        if isinstance(other, classes.Number):
+            if isinstance(other, classes.Integer):
                 return True
             return False
     def try_supremum(self):
@@ -137,7 +137,7 @@ class IntegerSet(ArithmeticSetSymbol):
             return True
         if isinstance(set.domain, (ComplexSet, RealSet, RationalSet)):
             return False
-        if set.is_IntegerSet:
+        if isinstance(set, classes.IntegerSet):
             return True
         return classes.BasicSet.try_subset(self, set)
 
@@ -157,8 +157,8 @@ class PrimeSet(ArithmeticSetSymbol):
     def domain(self):
         return Integers
     def try_element(self, other):
-        if other.is_Number:
-            if other.is_Integer and other.is_positive:
+        if isinstance(other, classes.Number):
+            if isinstance(other, classes.Integer) and other.is_positive:
                 return isprime(other)
             return False
     def try_supremum(self):

@@ -101,7 +101,7 @@ class ArithmeticFunction(Function):
        * .args_frozenset - use .get_args_frozenset() for initializing
        * BaseExpDict instances have additional attribute .coeff such
          that <BaseExpDict instance>[coeff] == 1
-         and coeff.is_Number == True
+         and isinstance(coeff, classes.Number) == True
     """
 
     ordered_arguments = False

@@ -25,10 +25,10 @@ def AsSet(obj, Basic=Basic):
     if isinstance(obj, set_classes):
         return obj
     if isinstance(obj, Basic):
-        if obj.is_BasicSymbol:
+        if isinstance(obj, classes.BasicSymbol):
             # XXX: check for dummy, wild
             return classes.SetSymbol(str(obj))
-        if obj.is_BasicFunctionType:
+        if isinstance(obj, classes.BasicFunctionType):
             # XXX: check for dummy, wild function
             return classes.SetFunctionType(str(obj))
     return obj

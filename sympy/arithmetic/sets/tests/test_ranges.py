@@ -90,7 +90,7 @@ def test_union_range():
     assert Union(r1,r2)==RangeOO(0,15,Integers)
 
     r3 = RangeOO(10,15,Integers)
-    assert Union(r1,r3).is_Union
+    assert isinstance(Union(r1,r3), classes.Union)
     assert Union(r1,Shifted(r3,-1))==RangeOO(0,14,Integers)
     r3 = RangeCO(10,15,Integers)
     assert Union(r1,r3)==RangeOO(0,15,Integers)
@@ -98,7 +98,7 @@ def test_union_range():
     r4 = RangeOO(2,7,Integers)
     assert Union(r1,r4)==r1
 
-    assert Union(Positive(Integers),Negative(Integers)).is_Union
+    assert isinstance(Union(Positive(Integers),Negative(Integers)), classes.Union)
     assert Union(Positive(Integers),Negative(Integers)+1)==Integers.as_range()
     assert Union(Positive(Integers)-1,Negative(Integers))==Integers.as_range()
     assert Union(Positive(Integers)+3,RangeOO(0,4,Integers))==Positive(Integers)
@@ -132,8 +132,8 @@ def test_union_real_ranges():
     assert Union(OO(1,4),OO(2,3))==OO(1,4)
     assert Union(OO(1,4),OO(2,4))==OO(1,4)
     assert Union(OO(1,4),OO(2,6))==OO(1,6)
-    assert Union(OO(1,4),OO(4,6)).is_Union
-    assert Union(OO(1,4),OO(5,6)).is_Union
+    assert isinstance(Union(OO(1,4),OO(4,6)), classes.Union)
+    assert isinstance(Union(OO(1,4),OO(5,6)), classes.Union)
 
     assert Union(OO(1,4),CO(1,4))==CO(1,4)
     assert Union(OO(1,4),CO(1,6))==CO(1,6)
@@ -141,15 +141,15 @@ def test_union_real_ranges():
     assert Union(OO(1,4),CO(2,4))==OO(1,4)
     assert Union(OO(1,4),CO(2,6))==OO(1,6)
     assert Union(OO(1,4),CO(4,6))==OO(1,6)
-    assert Union(OO(1,4),CO(5,6)).is_Union
+    assert isinstance(Union(OO(1,4),CO(5,6)), classes.Union)
 
     assert Union(OO(1,4),OC(1,4))==OC(1,4)
     assert Union(OO(1,4),OC(1,6))==OC(1,6)
     assert Union(OO(1,4),OC(2,3))==OO(1,4)
     assert Union(OO(1,4),OC(2,4))==OC(1,4)
     assert Union(OO(1,4),OC(2,6))==OC(1,6)
-    assert Union(OO(1,4),OC(4,6)).is_Union
-    assert Union(OO(1,4),OC(5,6)).is_Union
+    assert isinstance(Union(OO(1,4),OC(4,6)), classes.Union)
+    assert isinstance(Union(OO(1,4),OC(5,6)), classes.Union)
 
     assert Union(OO(1,4),CC(1,4))==CC(1,4)
     assert Union(OO(1,4),CC(1,6))==CC(1,6)
@@ -157,7 +157,7 @@ def test_union_real_ranges():
     assert Union(OO(1,4),CC(2,4))==OC(1,4)
     assert Union(OO(1,4),CC(2,6))==OC(1,6)
     assert Union(OO(1,4),CC(4,6))==OC(1,6)
-    assert Union(OO(1,4),CC(5,6)).is_Union
+    assert isinstance(Union(OO(1,4),CC(5,6)), classes.Union)
 
     assert Union(CO(1,4),CO(1,4))==CO(1,4)
     assert Union(CO(1,4),CO(1,6))==CO(1,6)
@@ -165,15 +165,15 @@ def test_union_real_ranges():
     assert Union(CO(1,4),CO(2,4))==CO(1,4)
     assert Union(CO(1,4),CO(2,6))==CO(1,6)
     assert Union(CO(1,4),CO(4,6))==CO(1,6)
-    assert Union(CO(1,4),CO(5,6)).is_Union
+    assert isinstance(Union(CO(1,4),CO(5,6)), classes.Union)
 
     assert Union(CO(1,4),OC(1,4))==CC(1,4)
     assert Union(CO(1,4),OC(1,6))==CC(1,6)
     assert Union(CO(1,4),OC(2,3))==CO(1,4)
     assert Union(CO(1,4),OC(2,4))==CC(1,4)
     assert Union(CO(1,4),OC(2,6))==CC(1,6)
-    assert Union(CO(1,4),OC(4,6)).is_Union
-    assert Union(CO(1,4),OC(5,6)).is_Union
+    assert isinstance(Union(CO(1,4),OC(4,6)), classes.Union)
+    assert isinstance(Union(CO(1,4),OC(5,6)), classes.Union)
 
     assert Union(CO(1,4),CC(1,4))==CC(1,4)
     assert Union(CO(1,4),CC(1,6))==CC(1,6)
@@ -181,7 +181,7 @@ def test_union_real_ranges():
     assert Union(CO(1,4),CC(2,4))==CC(1,4)
     assert Union(CO(1,4),CC(2,6))==CC(1,6)
     assert Union(CO(1,4),CC(4,6))==CC(1,6)
-    assert Union(CO(1,4),CC(5,6)).is_Union
+    assert isinstance(Union(CO(1,4),CC(5,6)), classes.Union)
 
     assert Union(OC(1,4),OC(1,4))==OC(1,4)
     assert Union(OC(1,4),OC(1,6))==OC(1,6)
@@ -189,7 +189,7 @@ def test_union_real_ranges():
     assert Union(OC(1,4),OC(2,4))==OC(1,4)
     assert Union(OC(1,4),OC(2,6))==OC(1,6)
     assert Union(OC(1,4),OC(4,6))==OC(1,6)
-    assert Union(OC(1,4),OC(5,6)).is_Union
+    assert isinstance(Union(OC(1,4),OC(5,6)), classes.Union)
 
     assert Union(OC(1,4),CC(1,4))==CC(1,4)
     assert Union(OC(1,4),CC(1,6))==CC(1,6)
@@ -197,7 +197,7 @@ def test_union_real_ranges():
     assert Union(OC(1,4),CC(2,4))==OC(1,4)
     assert Union(OC(1,4),CC(2,6))==OC(1,6)
     assert Union(OC(1,4),CC(4,6))==OC(1,6)
-    assert Union(OC(1,4),CC(5,6)).is_Union
+    assert isinstance(Union(OC(1,4),CC(5,6)), classes.Union)
 
     assert Union(CC(1,4),CC(1,4))==CC(1,4)
     assert Union(CC(1,4),CC(1,6))==CC(1,6)
@@ -205,7 +205,7 @@ def test_union_real_ranges():
     assert Union(CC(1,4),CC(2,4))==CC(1,4)
     assert Union(CC(1,4),CC(2,6))==CC(1,6)
     assert Union(CC(1,4),CC(4,6))==CC(1,6)
-    assert Union(CC(1,4),CC(5,6)).is_Union
+    assert isinstance(Union(CC(1,4),CC(5,6)), classes.Union)
 
 def test_union_symbolic_ranges():
     OO = Range

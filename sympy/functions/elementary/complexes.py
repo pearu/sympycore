@@ -10,9 +10,9 @@ class Abs(Function):
 
     @classmethod
     def canonize(cls, (arg,)):
-        if arg.is_Number:
+        if isinstance(arg, classes.Number):
             return abs(arg)
-        if arg.is_NaN or arg.is_Infinity or arg.is_positive:
+        if isinstance(arg, classes.NaN) or isinstance(arg, classes.Infinity) or arg.is_positive:
             return arg
         term, coeff = arg.as_term_coeff()
         if not coeff.is_one:
@@ -30,7 +30,7 @@ class Arg(Function):
 
     @classmethod
     def canonize(cls, (arg,)):
-        if arg.is_Number:
+        if isinstance(arg, classes.Number):
             if arg < 0:
                 return objects.pi
             return objects.zero
@@ -42,7 +42,7 @@ class Re(Function):
 
     @classmethod
     def canonize(cls, (arg,)):
-        if arg.is_Number:
+        if isinstance(arg, classes.Number):
             return arg
         return
 
@@ -52,6 +52,6 @@ class Im(Function):
 
     @classmethod
     def canonize(cls, (arg,)):
-        if arg.is_Number:
+        if isinstance(arg, classes.Number):
             return objects.zero
         return

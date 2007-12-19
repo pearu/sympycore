@@ -17,14 +17,14 @@ class Max(Function):
         new_args = set([])
         flag = False
         for a in args:
-            if a.is_BasicSet:
+            if isinstance(a, classes.BasicSet):
                 o = a.try_supremum()
                 if o is not None:
                     a = o
-            if a.is_Max:
+            if isinstance(a, classes.Max):
                 new_args.union(a.args)
                 flag = True
-            elif a.is_Infinity:
+            elif isinstance(a, classes.Infinity):
                 return a
             elif a==-objects.oo:
                 flag = True
@@ -33,17 +33,17 @@ class Max(Function):
                 new_args.add(a)
                 if n==len(new_args):
                     flag = True
-        numbers = [a for a in new_args if a.is_Number]
+        numbers = [a for a in new_args if isinstance(a, classes.Number)]
         if len(numbers)>1:
             flag = True
-            new_args = set([a for a in new_args if not a.is_Number]).union([max(*numbers)])
+            new_args = set([a for a in new_args if not isinstance(a, classes.Number)]).union([max(*numbers)])
         if flag:
             return cls(*new_args)
         if len(new_args)==0:
             return -objects.oo
         if len(new_args)==1:
             arg = list(new_args)[0]
-            if not arg.is_BasicSet:
+            if not isinstance(arg, classes.BasicSet):
                 return arg
 
 
@@ -57,14 +57,14 @@ class Min(Function):
         new_args = set([])
         flag = False
         for a in args:
-            if a.is_BasicSet:
+            if isinstance(a, classes.BasicSet):
                 o = a.try_infimum()
                 if o is not None:
                     a = o
-            if a.is_Max:
+            if isinstance(a, classes.Max):
                 new_args.union(a.args)
                 flag = True
-            elif a.is_Infinity:
+            elif isinstance(a, classes.Infinity):
                 flag = True
             elif a==-objects.oo:
                 return a
@@ -73,15 +73,15 @@ class Min(Function):
                 new_args.add(a)
                 if n==len(new_args):
                     flag = True
-        numbers = [a for a in new_args if a.is_Number]
+        numbers = [a for a in new_args if isinstance(a, classes.Number)]
         if len(numbers)>1:
             flag = True
-            new_args = set([a for a in new_args if not a.is_Number]).union([min(*numbers)])
+            new_args = set([a for a in new_args if not isinstance(a, classes.Number)]).union([min(*numbers)])
         if flag:
             return cls(*new_args)
         if len(new_args)==0:
             return objects.oo
         if len(new_args)==1:
             arg = list(new_args)[0]
-            if not arg.is_BasicSet:
+            if not isinstance(arg, classes.BasicSet):
                 return arg

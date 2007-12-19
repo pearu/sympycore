@@ -1,5 +1,5 @@
 
-from ..core import Basic, objects
+from ..core import Basic, objects, classes
 from ..core.assume_utils import is_equal
 
 __all__ = ['is_less', 'is_less_equal', 'is_greater', 'is_greater_equal']
@@ -9,12 +9,12 @@ def is_less(lhs, rhs, assumptions=None):
     For non-numeric operants assumptions model will be used.
     If the result is undefined, return None.
     """
-    if lhs.is_Number and rhs.is_Number:
+    if isinstance(lhs, classes.Number) and isinstance(rhs, classes.Number):
         return lhs < rhs
     d = rhs - lhs
-    if d.is_Number:
+    if isinstance(d, classes.Number):
         return d.is_positive
-    if d.is_Infinity: return True
+    if isinstance(d, classes.Infinity): return True
     if d==objects.moo: return False
     #print lhs, rhs
     #XXX: implement assumptions model

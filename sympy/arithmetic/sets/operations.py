@@ -90,7 +90,7 @@ class Shifted(ArithmeticSetFunction):
     @classmethod
     def canonize(cls, (set, shift)):
         if shift==0: return set
-        if set.is_EmptySet: return set
+        if isinstance(set, classes.EmptySet): return set
         return set.try_shifted(shift)
 
     def try_shifted(self, shift):
@@ -122,9 +122,9 @@ class Divisible(ArithmeticSetFunction):
     @classmethod
     def canonize(cls, (set, divisor)):
         if divisor==1: return set
-        if set.is_RealSet and divisor.is_Real:
+        if isinstance(set, classes.RealSet) and isinstance(divisor, classes.Real):
             return set
-        if set.is_RationalSet and divisor.is_Rational:
+        if isinstance(set, classes.RationalSet) and isinstance(divisor, classes.Rational):
             return set
         return
 
@@ -140,7 +140,7 @@ class Divisible(ArithmeticSetFunction):
         set = self.args[0]
         if set==other:
             return True
-        if other.is_Complementary and other.set==self:
+        if isinstance(other, classes.Complementary) and other.set==self:
             return False
     def try_infimum(self):
         set,divisor = self.args

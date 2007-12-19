@@ -13,34 +13,34 @@ def test_defined_function():
             return
 
     assert hasattr(classes,'Func')==True
-    assert Func.is_Func==False
-    assert Func.is_Callable==True
-    assert Func.is_BasicFunctionType==True
+    assert isinstance(Func, classes.Func)==False
+    assert isinstance(Func, classes.Callable)==True
+    assert isinstance(Func, classes.BasicFunctionType)==True
 
     x = BasicSymbol('x')
     y = BasicSymbol('y')
 
     f = Func(x,y)
-    assert f.is_Func==True
-    assert f.is_Callable==False
+    assert isinstance(f, classes.Func)==True
+    assert isinstance(f, classes.Callable)==False
     f = Func(x,x)
-    assert f.is_Func==False
-    assert f.is_BasicSymbol==True
+    assert isinstance(f, classes.Func)==False
+    assert isinstance(f, classes.BasicSymbol)==True
 
 def test_symbol_function():
 
     Foo = BasicFunctionType('Foo')
     assert hasattr(classes,'Foo')==False
-    assert Foo.is_Callable==True
-    assert Foo.is_BasicFunctionType==True
-    assert Foo.is_BasicFunction==False
+    assert isinstance(Foo, classes.Callable)==True
+    assert isinstance(Foo, classes.BasicFunctionType)==True
+    assert isinstance(Foo, classes.BasicFunction)==False
     
     x = BasicSymbol('x')
     y = BasicSymbol('y')
     f = Foo(x, y)
 
-    assert f.is_Callable==False
-    assert f.is_BasicFunction==True
+    assert isinstance(f, classes.Callable)==False
+    assert isinstance(f, classes.BasicFunction)==True
 
 def test_defined_symbol_function():
 
@@ -177,7 +177,7 @@ def test_basic_function():
 
     x = BasicSymbol('x')
     assert BasicLambda((x,),F(x))==F
-    assert BasicLambda((x,),F(x,x)).is_BasicLambda
+    assert isinstance(BasicLambda((x,),F(x,x)), classes.BasicLambda)
 
     assert bool(f)==False
     assert bool(F)==False

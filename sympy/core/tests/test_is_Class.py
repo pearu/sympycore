@@ -8,97 +8,97 @@ def test_simple():
     a = 2+s
     m = a * s
 
-    assert s.is_Symbol==True
-    assert s.is_Basic==True
-    assert s.is_Atom==True
-    assert s.is_Integer==False
-    assert s.is_Number==False
-    assert s.is_Add==False
-    assert s.is_Mul==False
+    assert isinstance(s, classes.Symbol)==True
+    assert isinstance(s, classes.Basic)==True
+    assert isinstance(s, classes.Atom)==True
+    assert isinstance(s, classes.Integer)==False
+    assert isinstance(s, classes.Number)==False
+    assert isinstance(s, classes.Add)==False
+    assert isinstance(s, classes.Mul)==False
 
-    assert i.is_Atom==True
-    assert i.is_Integer==True
-    assert i.is_Basic==True
-    assert i.is_Number==True
-    assert i.is_Rational==True
-    assert i.is_Symbol==False
-    assert i.is_Add==False
-    assert i.is_Mul==False
-    assert i.is_Fraction==False
+    assert isinstance(i, classes.Atom)==True
+    assert isinstance(i, classes.Integer)==True
+    assert isinstance(i, classes.Basic)==True
+    assert isinstance(i, classes.Number)==True
+    assert isinstance(i, classes.Rational)==True
+    assert isinstance(i, classes.Symbol)==False
+    assert isinstance(i, classes.Add)==False
+    assert isinstance(i, classes.Mul)==False
+    assert isinstance(i, classes.Fraction)==False
 
-    assert f.is_Fraction==True
-    assert f.is_Basic==True
-    assert f.is_Number==True
-    assert f.is_Rational==True
-    assert f.is_Atom==True
-    assert f.is_Integer==False
-    assert f.is_Symbol==False
-    assert f.is_Add==False
-    assert f.is_Mul==False
+    assert isinstance(f, classes.Fraction)==True
+    assert isinstance(f, classes.Basic)==True
+    assert isinstance(f, classes.Number)==True
+    assert isinstance(f, classes.Rational)==True
+    assert isinstance(f, classes.Atom)==True
+    assert isinstance(f, classes.Integer)==False
+    assert isinstance(f, classes.Symbol)==False
+    assert isinstance(f, classes.Add)==False
+    assert isinstance(f, classes.Mul)==False
 
-    assert a.is_Add==True
-    assert a.is_Basic==True
-    assert a.is_Integer==False
-    assert a.is_Number==False
-    assert a.is_Rational==False
-    assert a.is_Symbol==False
-    assert a.is_Mul==False
+    assert isinstance(a, classes.Add)==True
+    assert isinstance(a, classes.Basic)==True
+    assert isinstance(a, classes.Integer)==False
+    assert isinstance(a, classes.Number)==False
+    assert isinstance(a, classes.Rational)==False
+    assert isinstance(a, classes.Symbol)==False
+    assert isinstance(a, classes.Mul)==False
 
-    assert m.is_Mul==True
-    assert m.is_Basic==True
-    assert m.is_Integer==False
-    assert m.is_Number==False
-    assert m.is_Rational==False
-    assert m.is_Symbol==False
-    assert m.is_Add==False
-    assert m.is_BasicFunction==True
-    assert m.is_BasicFunctionType==False
-    assert m.is_Sin==False
+    assert isinstance(m, classes.Mul)==True
+    assert isinstance(m, classes.Basic)==True
+    assert isinstance(m, classes.Integer)==False
+    assert isinstance(m, classes.Number)==False
+    assert isinstance(m, classes.Rational)==False
+    assert isinstance(m, classes.Symbol)==False
+    assert isinstance(m, classes.Add)==False
+    assert isinstance(m, classes.BasicFunction)==True
+    assert isinstance(m, classes.BasicFunctionType)==False
+    assert isinstance(m, classes.Sin)==False
 
 def test_Sin_applied():
     s = Sin(2)
-    assert s.is_Sin==True
-    assert s.is_BasicFunction==True
-    assert s.is_Basic==True
-    assert s.is_BasicFunctionType==False
-    assert s.is_Atom==False
-    assert s.is_Cos==False
-    assert s.is_Symbol==False
-    assert s.is_Number==False
-    #assert s.is_UndefinedFunction==False
+    assert isinstance(s, classes.Sin)==True
+    assert isinstance(s, classes.BasicFunction)==True
+    assert isinstance(s, classes.Basic)==True
+    assert isinstance(s, classes.BasicFunctionType)==False
+    assert isinstance(s, classes.Atom)==False
+    assert isinstance(s, classes.Cos)==False
+    assert isinstance(s, classes.Symbol)==False
+    assert isinstance(s, classes.Number)==False
+    #assert isinstance(s, classes.UndefinedFunction)==False
 
 def test_Sin_unapplied():
-    assert Sin.is_Basic==True
-    assert Sin.is_Atom==True,`Sin.is_Atom`
-    assert Sin.is_BasicFunctionType==True, `Sin.is_BasicFunctionType`
-    assert Sin.is_Add==False,`Sin.is_Add`
-    assert Sin.is_Symbol==False
-    assert Sin.is_BasicFunction==False
-    assert Sin.is_Sin==False
-    assert Sin.is_Cos==False
-    #assert Sin.is_UndefinedFunction==False
+    assert isinstance(Sin, classes.Basic)==True
+    assert isinstance(Sin, classes.Atom)==True,`isinstance(Sin, classes.Atom)`
+    assert isinstance(Sin, classes.BasicFunctionType)==True, `isinstance(Sin, classes.BasicFunctionType)`
+    assert isinstance(Sin, classes.Add)==False,`isinstance(Sin, classes.Add)`
+    assert isinstance(Sin, classes.Symbol)==False
+    assert isinstance(Sin, classes.BasicFunction)==False
+    assert isinstance(Sin, classes.Sin)==False
+    assert isinstance(Sin, classes.Cos)==False
+    #assert isinstance(Sin, classes.UndefinedFunction)==False
 
 def test_undefined_unapplied():
     f = FunctionType('f')
-    assert f.is_Basic==True
-    assert f.is_Atom==True,`f.is_Atom`
-    assert f.is_BasicFunctionType==True, `f.is_BasicFunctionType`
-    assert f.is_Add==False,`f.is_Add`
-    assert f.is_Symbol==False
-    assert f.is_BasicFunction==False
-    assert f.is_Cos==False
-    #assert f.is_UndefinedFunction==False
+    assert isinstance(f, classes.Basic)==True
+    assert isinstance(f, classes.Atom)==True,`isinstance(f, classes.Atom)`
+    assert isinstance(f, classes.BasicFunctionType)==True, `isinstance(f, classes.BasicFunctionType)`
+    assert isinstance(f, classes.Add)==False,`isinstance(f, classes.Add)`
+    assert isinstance(f, classes.Symbol)==False
+    assert isinstance(f, classes.BasicFunction)==False
+    assert isinstance(f, classes.Cos)==False
+    #assert isinstance(f, classes.UndefinedFunction)==False
 
 def test_undefined_applied():
     f = FunctionType('f')
     x = Symbol('x')
     g=f(x)
-    assert g.is_Basic==True
-    assert g.is_BasicFunction==True,`g.is_BasicFunction`
-    assert g.is_BasicFunctionType==False
-    assert g.is_Basic==True
-    assert g.is_Add==False
-    assert g.is_Symbol==False
-    assert g.is_BasicFunction==True
-    assert g.is_Cos==False
-    #assert g.is_UndefinedFunction==True
+    assert isinstance(g, classes.Basic)==True
+    assert isinstance(g, classes.BasicFunction)==True,`isinstance(g, classes.BasicFunction)`
+    assert isinstance(g, classes.BasicFunctionType)==False
+    assert isinstance(g, classes.Basic)==True
+    assert isinstance(g, classes.Add)==False
+    assert isinstance(g, classes.Symbol)==False
+    assert isinstance(g, classes.BasicFunction)==True
+    assert isinstance(g, classes.Cos)==False
+    #assert isinstance(g, classes.UndefinedFunction)==True

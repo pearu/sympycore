@@ -127,7 +127,7 @@ class FunctionTemplate(Composite):
         if isinstance(other, sympify_types1):
             other = sympify(other)
         if isinstance(other, Basic):
-            if not other.is_BasicFunction:
+            if not isinstance(other, classes.BasicFunction):
                 return False
             if self.func==other.func:
                 if self.func.ordered_arguments:
@@ -168,7 +168,7 @@ class FunctionTemplate(Composite):
     def matches(pattern, expr, repl_dict={}, evaluate=False):
         d = Basic.matches(pattern, expr, repl_dict)
         if d is not None: return d
-        if not expr.is_FunctionTemplate: return
+        if not isinstance(expr, classes.FunctionTemplate): return
         if len(pattern.args)!=len(expr.args): return
 
         fd = pattern.func.matches(expr.func, repl_dict)
@@ -210,14 +210,6 @@ class Callable(Basic, BasicType):
 
     def _update_Basic(func):
         name = func.__name__
-        setattr(func, 'is_'+name, True)
-        
-        # set classes.is_Class attribute:
-        def is_cls(self): return False
-        setattr(Basic, 'is_' + name, property(is_cls))
-
-        # predefined objest is used by parser
-        Basic.predefined_objects[name] = func
 
         # set Basic.Class attribute:
         setattr(classes, name, func)
@@ -243,7 +235,7 @@ class Callable(Basic, BasicType):
         if isinstance(other, sympify_types1):
             other = sympify(other)
         if isinstance(other, Basic):
-            if other.is_Callable:
+            if isinstance(other, classes.Callable):
                 return cls.__name__==other.__name__
         return False
 
@@ -326,7 +318,7 @@ class BasicWildFunctionType(BasicWild, BasicFunctionType):
             name = 'WF'
         func = BasicFunctionType.__new__(typ, name, bases, attrdict, is_global)
         if predicate is None:
-            predicate = lambda expr: expr.is_BasicFunctionType
+            predicate = lambda expr: isinstance(expr, classes.BasicFunctionType)
         func.predicate = staticmethod(predicate)
         return func
 
@@ -345,7 +337,7 @@ class BasicFunction(FunctionTemplate):
     def try_replace(self, old, new):
         func = self.func
         flag = False
-        if old.is_BasicFunctionType and new.is_BasicFunctionType and old==func:
+        if isinstance(old, classes.BasicFunctionType) and isinstance(new, classes.BasicFunctionType) and old==func:
             func = new
         if func is not self.func:
             flag = True
@@ -380,7 +372,7 @@ class BasicLambda(Composite, Callable):
         else:
             arguments = map(sympify, arguments)
         expr = sympify(expression)
-        if expr.is_BasicFunction and tuple(arguments)==expr.args:
+        if isinstance(expr, classes.BasicFunction) and tuple(arguments)==expr.args:
             return expr.__class__
         args = []
         # The bound variables must be changed to dummy symbols; otherwise
@@ -409,7 +401,7 @@ class BasicLambda(Composite, Callable):
     def __eq__(func, other):
         if isinstance(other, sympify_types1):
             other = sympify(other)
-        if isinstance(other, Basic) and other.is_Callable and func.__name__==other.__name__:
+        if isinstance(other, Basic) and isinstance(other, classes.Callable) and func.__name__==other.__name__:
             # other is also a lambda function.
             if func.nofargs==other.nofargs:
                 return func._expr == other(*func._args)

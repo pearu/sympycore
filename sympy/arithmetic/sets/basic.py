@@ -39,14 +39,14 @@ class ArithmeticBasicSet(BasicSet):
     @property
     def is_unbounded_left(self):
         m = classes.Min(self)
-        if m.is_Number: return False
+        if isinstance(m, classes.Number): return False
         if m==-classes.oo: return True
         return
 
     @property
     def is_unbounded_right(self):
         m = classes.Max(self)
-        if m.is_Number: return False
+        if isinstance(m, classes.Number): return False
         if m==objects.oo: return True
         return
 

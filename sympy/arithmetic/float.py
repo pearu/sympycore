@@ -43,9 +43,9 @@ def make_arithmetic_mth(mthname, fmth):
             other = Float(other, self.prec)
         else:
             other = sympify(other)
-        if other.is_Rational:
+        if isinstance(other, classes.Rational):
             other = Float(other, self.prec)
-        if other.is_Float:
+        if isinstance(other, Float):
             precision = Float.coerce_precisions(mthname, self, other)
             rounding = Float._rounding
             return Float(fmth(self, other, precision, rounding), precision)
@@ -75,14 +75,14 @@ class Float(Real, tuple):
         obj = None
         
         if isinstance(val, Basic):
-            if val.is_Float:
+            if isinstance(val, Float):
                 if val.prec == _precision:
                     obj = val
                 else:
                     obj = tuple.__new__(cls, normalize(val[0], val[1], _precision, _rounding))
-            elif val.is_Integer:
+            elif isinstance(val, classes.Integer):
                 obj = tuple.__new__(cls, from_int(val.p, _precision, _rounding))
-            elif val.is_Fraction:
+            elif isinstance(val, classes.Fraction):
                 obj = tuple.__new__(cls, from_rational(val.p, val.q, _precision, _rounding))
             else:
                 return val.evalf(precision=_precision, rounding=_rounding)
@@ -146,11 +146,11 @@ class Float(Real, tuple):
         if isinstance(other, (int,long,float)):
             other = Float(other, self.prec)
         if isinstance(other, Basic):
-            if other.is_Rational:
+            if isinstance(other, classes.Rational):
                 other = Float(other, self.prec)
-            if other.is_Float:
+            if isinstance(other, Float):
                 return tuple.__eq__(self, other) and self.prec==other.prec
-            if other.is_Number:
+            if isinstance(other, classes.Number):
                 return NotImplemented
             return False
         return self == sympify(other)
@@ -164,9 +164,9 @@ class Float(Real, tuple):
         else:
             other = sympify(other)
         if self is other: return False
-        if other.is_Rational:
+        if isinstance(other, classes.Rational):
             other = Float(other, self.prec)
-        if other.is_Float:
+        if isinstance(other, Float):
             return tuple.__ne__(self, other) or self.prec!=other.prec
         return NotImplemented
 
@@ -177,9 +177,9 @@ class Float(Real, tuple):
         else:
             other = sympify(other)
         if self is other: return False
-        if other.is_Rational:
+        if isinstance(other, classes.Rational):
             other = Float(other, self.prec)
-        if other.is_Float:
+        if isinstance(other, Float):
             return fcmp(self, other) < 0
         return NotImplemented
 
@@ -190,9 +190,9 @@ class Float(Real, tuple):
         else:
             other = sympify(other)
         if self is other: return True
-        if other.is_Rational:
+        if isinstance(other, classes.Rational):
             other = Float(other, self.prec)
-        if other.is_Float:
+        if isinstance(other, Float):
             return fcmp(self, other) <= 0
         return NotImplemented
 
@@ -203,9 +203,9 @@ class Float(Real, tuple):
         else:
             other = sympify(other)
         if self is other: return False
-        if other.is_Rational:
+        if isinstance(other, classes.Rational):
             other = Float(other, self.prec)
-        if other.is_Float:
+        if isinstance(other, Float):
             return fcmp(self, other) > 0
         return NotImplemented
 
@@ -216,9 +216,9 @@ class Float(Real, tuple):
         else:
             other = sympify(other)
         if self is other: return True
-        if other.is_Rational:
+        if isinstance(other, classes.Rational):
             other = Float(other, self.prec)
-        if other.is_Float:
+        if isinstance(other, Float):
             return fcmp(self, other) >= 0
         return NotImplemented
 
@@ -262,14 +262,14 @@ class Float(Real, tuple):
             return Float(fpow(self, other, precision, rounding), precision)
         else:
             other = sympify(other)
-        if other.is_Rational:
+        if isinstance(other, classes.Rational):
             if other.is_half:
                 if self.is_nonnegative:
                     precision = self.prec
                     rounding = Float._rounding
                     return Float(fsqrt(self, precision, rounding), precision)
             other = Float(other, self.prec)
-        if other.is_Float:
+        if isinstance(other, Float):
             precision = Float.coerce_precisions('__pow__', self, other)
             rounding = Float._rounding
             if other.exp >=0:
@@ -283,9 +283,9 @@ class Float(Real, tuple):
         if isinstance(other, (int,long,float)):
             other = Float(other, self.prec)
         if isinstance(other, Basic):
-            if other.is_Rational:
+            if isinstance(other, classes.Rational):
                 other = Float(other, self.prec)
-            if other.is_Float:
+            if isinstance(other, Float):
                 return other.__add__(self)
             return classes.Add(other, self)
         return sympify(other) + self
@@ -295,9 +295,9 @@ class Float(Real, tuple):
         if isinstance(other, (int,long,float)):
             other = Float(other, self.prec)
         if isinstance(other, Basic):
-            if other.is_Rational:
+            if isinstance(other, classes.Rational):
                 other = Float(other, self.prec)
-            if other.is_Float:
+            if isinstance(other, Float):
                 return other.__sub__(self)
             return classes.Add(other, -self)
         return sympify(other) - self
@@ -307,9 +307,9 @@ class Float(Real, tuple):
         if isinstance(other, (int,long,float)):
             other = Float(other, self.prec)
         if isinstance(other, Basic):
-            if other.is_Rational:
+            if isinstance(other, classes.Rational):
                 other = Float(other, self.prec)
-            if other.is_Float:
+            if isinstance(other, Float):
                 return other.__mul__(self)
             return classes.Mul(other, self)
         return sympify(other) * self
@@ -319,9 +319,9 @@ class Float(Real, tuple):
         if isinstance(other, (int,long,float)):
             other = Float(other, self.prec)
         if isinstance(other, Basic):
-            if other.is_Rational:
+            if isinstance(other, classes.Rational):
                 other = Float(other, self.prec)
-            if other.is_Float:
+            if isinstance(other, Float):
                 return other.__div__(self)
             return classes.Mul(other, 1/self)
         return sympify(other) / self
@@ -331,9 +331,9 @@ class Float(Real, tuple):
         if isinstance(other, (int,long,float)):
             other = Float(other, self.prec)
         if isinstance(other, Basic):
-            if other.is_Rational:
+            if isinstance(other, classes.Rational):
                 other = Float(other, self.prec)
-            if other.is_Float:
+            if isinstance(other, Float):
                 return other.__pow__(self)
             return classes.Pow(other, self)
         return sympify(other) ** self
@@ -395,7 +395,7 @@ class Float(Real, tuple):
         return Float(fgamma(precision, rounding), precision)
 
     def try_power(self, other):
-        if other.is_Infinity:
+        if isinstance(other, classes.Infinity):
             a = abs(self)
             if a < 1:
                 return Float(0, self.prec)

@@ -125,7 +125,7 @@ class BasicBoolean(Basic):
         if isinstance(self, type):
             s.add(self)
         for obj in self:
-            if obj.is_Predicate:
+            if isinstance(obj, classes.Predicate):
                 s = s.union(obj.conditions(type=type))
         return s
     def minimize(self):

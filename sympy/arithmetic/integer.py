@@ -111,9 +111,9 @@ class Integer(Rational, pyint):
             return pyint(self)==other
         other = sympify(other)
         if isinstance(other, Basic):
-            if other.is_Integer:
+            if isinstance(other, Integer):
                 return not pyint.__cmp__(self, other)
-            if other.is_Number:
+            if isinstance(other, classes.Number):
                 return NotImplemented
         return False
 
@@ -124,7 +124,7 @@ class Integer(Rational, pyint):
         if self is other:
             return False
         if isinstance(other, Basic):
-            if other.is_Integer:
+            if isinstance(other, Integer):
                 return pyint.__cmp__(self, pyint(other))!=0
         elif isinstance(other, bool):
             return True
@@ -133,28 +133,28 @@ class Integer(Rational, pyint):
     def __lt__(self, other):
         other = sympify(other)
         if self is other: return False
-        if other.is_Integer:
+        if isinstance(other, Integer):
             return pyint.__cmp__(self, pyint(other))==-1
         return NotImplemented
 
     def __le__(self, other):
         other = sympify(other)
         if self is other: return True
-        if other.is_Integer:
+        if isinstance(other, Integer):
             return pyint.__cmp__(self, pyint(other))<=0
         return NotImplemented
 
     def __gt__(self, other):
         other = sympify(other)
         if self is other: return False
-        if other.is_Integer:
+        if isinstance(other, Integer):
             return pyint.__cmp__(self, pyint(other))==1
         return NotImplemented
 
     def __ge__(self, other):
         other = sympify(other)
         if self is other: return True
-        if other.is_Integer:
+        if isinstance(other, Integer):
             return pyint.__cmp__(self, pyint(other))>=0
         return NotImplemented
 
@@ -250,8 +250,8 @@ class Integer(Rational, pyint):
             else:
                 if e.p>0 and sign==-1:
                     sign = 1
-                p = classes.Integer.gcd(abs(e.p), p)
-                q = classes.Integer.gcd(e.q, q)
+                p = Integer.gcd(abs(e.p), p)
+                q = Integer.gcd(e.q, q)
         c = classes.Fraction(sign*p, q)
         if c==1:
             return seq_base_exp, c
@@ -268,25 +268,25 @@ class Integer(Rational, pyint):
 
     def __add__(self, other):
         other = sympify(other)
-        if other.is_Integer:
+        if isinstance(other, Integer):
             return Integer(pyint.__add__(self, other))
         return NotImplemented
 
     def __sub__(self, other):
         other = sympify(other)
-        if other.is_Integer:
+        if isinstance(other, Integer):
             return Integer(pyint.__sub__(self, other))
         return NotImplemented
 
     def __mul__(self, other):
         other = sympify(other)
-        if other.is_Integer:
+        if isinstance(other, Integer):
             return Integer(pyint.__mul__(self, other))
         return NotImplemented
 
     def __div__(self, other):
         other = sympify(other)
-        if other.is_Integer:
+        if isinstance(other, Integer):
             return classes.Fraction(self.p, other.p)
         return NotImplemented
 
@@ -300,27 +300,27 @@ class Integer(Rational, pyint):
     #@memoizer_immutable_args('Integer.try_power')
     def try_power(self, other):
         if self.is_zero:
-            if other.is_Number:
+            if isinstance(other, classes.Number):
                 if other.is_negative:
                     return objects.oo
                 if other.is_positive:
                     return self
-            if other.is_Infinity or other.is_ComplexInfinity:
+            if isinstance(other, classes.Infinity) or isinstance(other, classes.ComplexInfinity):
                 return self
-            if other.is_NaN:
+            if isinstance(other, classes.NaN):
                 return other
             return
         if self.is_one:
             return self
-        if other.is_Integer:
+        if isinstance(other, Integer):
             if other.is_one:
                 return self
             if other.is_negative:
                 return classes.Fraction(1, pyint.__pow__(self, -other.p))
             return Integer(pyint.__pow__(self, other))
-        if other.is_Float:
+        if isinstance(other, classes.Float):
             return self.as_Float ** other.as_Float
-        if other.is_Fraction:
+        if isinstance(other, classes.Fraction):
             if self==-1:
                 if other.q==2:
                     return objects.I ** other.p
@@ -354,18 +354,18 @@ class Integer(Rational, pyint):
                     f2 *= b ** e
             if f1==1:
                 return
-            if f2.is_Pow and f1==f2.base:
+            if isinstance(f2, classes.Pow) and f1==f2.base:
                 # avoid recursions like:
                 # Sqrt(8) -> 2 * 2 ** (1/2) -> 2 ** (1+1/2) -> 2 ** (3/2) -> 8 ** (1/2) 
                 return
             return f1 * classes.Pow(f2, other, normalized=False)
-        if other.is_Infinity or other.is_ComplexInfinity:
+        if isinstance(other, classes.Infinity) or isinstance(other, classes.ComplexInfinity):
             if self.is_one:
                 return self
             if self.is_negative:
                 return objects.nan
             return other
-        if other.is_NaN:
+        if isinstance(other, classes.NaN):
             return other
 
     @singleton

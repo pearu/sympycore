@@ -49,7 +49,7 @@ class Operator(BasicArithmetic, BasicFunction):
             # assuming that the order of applying operators
             # with respect to different variables is insignificant:
             for a in args:
-                if a.is_Tuple:
+                if isinstance(a, classes.Tuple):
                     i = a[0]
                     r = a[1:]
                 else:

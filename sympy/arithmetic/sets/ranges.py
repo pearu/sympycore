@@ -45,7 +45,7 @@ class BasicRange(ArithmeticSetFunction):
                 return
             return Empty
         if lt(a, b):
-            if set.is_BasicRange:
+            if isinstance(set, classes.BasicRange):
                 sa, sb, superset = set.args
                 new_a, new_b = a, b
                 n = cls.__name__
@@ -109,7 +109,7 @@ class BasicRange(ArithmeticSetFunction):
             r = es(other, superset)
             if isinstance(r,bool):
                 return r
-            if superset.domain.is_RealSet:
+            if isinstance(superset.domain, classes.RealSet):
                 # Element(x,Range(x-1,x+1,Reals)) -> True
                 return True
             # Element(x,Range(x-1,x+1,Integers)) -> None
@@ -117,76 +117,76 @@ class BasicRange(ArithmeticSetFunction):
     def try_shifted(self, shift):
         return self.__class__(self.a+shift, self.b+shift, self.superset)
     def try_intersection(self, other):
-        if not other.is_BasicRange:
+        if not isinstance(other, BasicRange):
             return
         r = self.__class__(self.a, self.b, other)
-        if r.is_BasicRange and r.superset==other:
+        if isinstance(r, BasicRange) and r.superset==other:
             return
         return r
     def try_subset(self, other):
-        if other.is_BasicRange:
+        if isinstance(other, BasicRange):
             r = ss(other.domain, self.domain)
             if not isinstance(r, bool):
                 return
             if not r: return False
             a,b,s1 = other.args
             c,d,s2 = self.args
-            if self.is_RangeOO:
-                if other.is_RangeOO:
+            if isinstance(self, RangeOO):
+                if isinstance(other, RangeOO):
                     # (a,b) is subset of (c,d)
                     cf = (le,le,le,le,lt,lt)
-                elif other.is_RangeOC:
+                elif isinstance(other, RangeOC):
                     # (a,b] is subset of (c,d)
                     cf = (le,lt,le,le,lt,le)
-                elif other.is_RangeCO:
+                elif isinstance(other, RangeCO):
                     # [a,b) is subset of (c,d)
                     cf = (lt,le,le,le,le,lt)
-                elif other.is_RangeCC:
+                elif isinstance(other, RangeCC):
                     # [a,b] is subset of (c,d)
                     cf = (lt,lt,le,le,le,le)
                 else:
                     return
-            elif self.is_RangeOC:
-                if other.is_RangeOO:
+            elif isinstance(self, RangeOC):
+                if isinstance(other, RangeOO):
                     # (a,b) is subset of (c,d]
                     cf = (le,le,le,lt,lt,lt)
-                elif other.is_RangeOC:
+                elif isinstance(other, RangeOC):
                     # (a,b] is subset of (c,d]
                     cf = (le,le,le,lt,lt,lt)
-                elif other.is_RangeCO:
+                elif isinstance(other, RangeCO):
                     # [a,b) is subset of (c,d]
                     cf = (lt,le,le,lt,le,lt)
-                elif other.is_RangeCC:
+                elif isinstance(other, RangeCC):
                     # [a,b] is subset of (c,d]
                     cf = (lt,le,le,lt,le,lt)
                 else:                
                     return
-            elif self.is_RangeCO:
-                if other.is_RangeOO:
+            elif isinstance(self, RangeCO):
+                if isinstance(other, RangeOO):
                     # (a,b) is subset of [c,d)
                     cf = (le,le,le,le,lt,lt)
-                elif other.is_RangeOC:
+                elif isinstance(other, RangeOC):
                     # (a,b] is subset of [c,d)
                     cf = (le,lt,lt,le,lt,le)
-                elif other.is_RangeCO:
+                elif isinstance(other, RangeCO):
                     # [a,b) is subset of [c,d)
                     cf = (le,le,lt,le,lt,lt)
-                elif other.is_RangeCC:
+                elif isinstance(other, RangeCC):
                     # [a,b] is subset of [c,d)
                     cf = (le,lt,lt,le,lt,le)
                 else:
                     return
-            elif self.is_RangeCC:
-                if other.is_RangeOO:
+            elif isinstance(self, RangeCC):
+                if isinstance(other, RangeOO):
                     # (a,b) is subset of [c,d]
                     cf = (le,le,le,le,lt,lt)
-                elif other.is_RangeOC:
+                elif isinstance(other, RangeOC):
                     # (a,b] is subset of [c,d]
                     cf = (le,le,lt,lt,lt,lt)
-                elif other.is_RangeCO:
+                elif isinstance(other, RangeCO):
                     # [a,b) is subset of [c,d]
                     cf = (le,le,lt,lt,lt,lt)
-                elif other.is_RangeCC:
+                elif isinstance(other, RangeCC):
                     # [a,b] is subset of [c,d]
                     cf = (le,le,lt,lt,lt,lt)
                 else:
@@ -203,11 +203,11 @@ class RangeOO(BasicRange):
     """ An open range (a,b) of a set S."""
 
     def try_supremum(self):
-        if self.domain.is_IntegerSet:
+        if isinstance(self.domain, classes.IntegerSet):
             return self.b-1
         return self.b
     def try_infimum(self):
-        if self.domain.is_IntegerSet:
+        if isinstance(self.domain, classes.IntegerSet):
             return self.a+1
         return self.a
     def try_positive(self):
@@ -215,7 +215,7 @@ class RangeOO(BasicRange):
     def try_negative(self):
         return self.__class__(self.a, 0, self.superset)
     def try_union(self, other):
-        if not other.is_BasicRange:
+        if not isinstance(other, BasicRange):
             return
         a,b,d1 = self[:]
         c,d,d2 = other[:]
@@ -223,30 +223,30 @@ class RangeOO(BasicRange):
             return
         superset = d1
         if eq(b, c):
-            if other.is_RangeOO or other.is_RangeOC:
+            if isinstance(other, RangeOO) or isinstance(other, RangeOC):
                 # (a,b) U (b,d), (a,b) U (b,d]
                 return
-            if other.is_RangeCO:
+            if isinstance(other, RangeCO):
                 # (a,b) U [b,d)
                 return RangeOO(a, d, superset)
-            if other.is_RangeCC:
+            if isinstance(other, RangeCC):
                 # (a,b) U [b,d]
                 return RangeOC(a, d, superset)
         if le(a, c):
             # code below assumes a<=c for simplicity
-            if other.is_RangeOO:
+            if isinstance(other, RangeOO):
                 # (a,b) U (c,d)
                 if lt(c, b):
                     if le(d, b): return self
                     if lt(b, d): return RangeOO(a, d, superset)
                 return
-            if other.is_RangeOC:
+            if isinstance(other, RangeOC):
                 # (a,b) U (c,d]
                 if lt(c, b):
                     if lt(d, b): return self
                     if le(b, d): return RangeOC(a, d, superset)
                 return
-            if other.is_RangeCO:
+            if isinstance(other, RangeCO):
                 # (a,b) U [c,d)
                 if eq(a, c):
                     if le(b, d): return other
@@ -256,7 +256,7 @@ class RangeOO(BasicRange):
                     if le(d, b): return self
                     if lt(b, d): return RangeOO(a, d, superset)
                 return
-            if other.is_RangeCC:
+            if isinstance(other, RangeCC):
                 # (a,b) U [c,d]
                 if eq(a,c):
                     if le(b, d): return other
@@ -268,7 +268,7 @@ class RangeOO(BasicRange):
                     return
             return
     def try_difference(self, other):
-        if not other.is_BasicRange:
+        if not isinstance(other, BasicRange):
             return
         a,b,d1 = self[:]
         c,d,d2 = other[:]
@@ -283,24 +283,24 @@ class RangeOO(BasicRange):
             if le(b,d): return Empty
             if lt(d,b):
                 # (a=c,d<b)
-                if other.is_RangeOO or other.is_RangeCO:
+                if isinstance(other, RangeOO) or isinstance(other, RangeCO):
                     return RangeCO(d,b,superset)
                 return RangeOO(d,b,superset)
         if lt(a,c):
             if le(b,d):
                 # (a<c,b<=d)
-                if other.is_RangeOO or other.is_RangeOC:
+                if isinstance(other, RangeOO) or isinstance(other, RangeOC):
                     return RangeOC(a,c,superset)
                 return RangeOO(a,c,superset)
             if lt(d,b):
                 # (a<c,d<b)
-                if other.is_RangeOO:
+                if isinstance(other, RangeOO):
                     return Union(RangeOC(a,c,superset), RangeCO(d,b,superset))
-                if other.is_RangeOC:
+                if isinstance(other, RangeOC):
                     return Union(RangeOC(a,c,superset), RangeOO(d,b,superset))
-                if other.is_RangeCO:
+                if isinstance(other, RangeCO):
                     return Union(RangeOO(a,c,superset), RangeCO(d,b,superset))
-                if other.is_RangeCC:
+                if isinstance(other, RangeCC):
                     return Union(RangeOO(a,c,superset), RangeOO(d,b,superset))
         if lt(c,a):
             # (c,a,d,b), (c,a,b,d)
@@ -309,7 +309,7 @@ class RangeOO(BasicRange):
                 return Empty
             if lt(d,b):
                 # (c<a,d<b)
-                if other.is_RangeOO or other.is_RangeCO:
+                if isinstance(other, RangeOO) or isinstance(other, RangeCO):
                     return RangeCO(d,b,superset)
                 return RangeOO(d,b,superset)
     def try_complementary(self, superset):
@@ -324,7 +324,7 @@ class RangeOC(BasicRange):
     def try_supremum(self):
         return self.b
     def try_infimum(self):
-        if self.domain.is_IntegerSet:
+        if isinstance(self.domain, classes.IntegerSet):
             return self.a+1
         return self.a
     def try_positive(self):
@@ -332,7 +332,7 @@ class RangeOC(BasicRange):
     def try_negative(self):
         return RangeOO(self.a, 0, self.superset)
     def try_union(self, other):
-        if not other.is_BasicRange:
+        if not isinstance(other, BasicRange):
             return
         a,b,d1 = self[:]
         c,d,d2 = other[:]
@@ -340,27 +340,27 @@ class RangeOC(BasicRange):
             return
         superset = d1
         if eq(b, c):
-            if other.is_RangeOO or other.is_RangeCO:
+            if isinstance(other, RangeOO) or isinstance(other, RangeCO):
                 # (a,b] U (b,d), (a,b] U [b,d)
                 return RangeOO(a, d, superset)
-            if other.is_RangeOC or other.is_RangeCC:
+            if isinstance(other, RangeOC) or isinstance(other, RangeCC):
                 # (a,b] U (b,d], (a,b] U [b,d]
                 return RangeOC(a, d, superset)
         if le(a, c):
             # code below assumes a<=c for simplicity
-            if other.is_RangeOO:
+            if isinstance(other, RangeOO):
                 # (a,b] U (c,d)
                 if lt(c, b):
                     if le(d, b): return self
                     if lt(b, d): return RangeOO(a, d, superset)
                 return
-            if other.is_RangeOC:
+            if isinstance(other, RangeOC):
                 # (a,b] U (c,d]
                 if le(c, b):
                     if le(d, b): return self
                     if lt(b, d): return RangeOC(a, d, superset)
                 return
-            if other.is_RangeCO:
+            if isinstance(other, RangeCO):
                 # (a,b] U [c,d)
                 if eq(a, c):
                     if lt(b, d): return other
@@ -370,7 +370,7 @@ class RangeOC(BasicRange):
                     if le(d, b): return self
                     if lt(b, d): return RangeOO(a, d, superset)
                 return
-            if other.is_RangeCC:
+            if isinstance(other, RangeCC):
                 # (a,b] U [c,d]
                 if eq(a,c):
                     if le(b, d): return other
@@ -382,7 +382,7 @@ class RangeOC(BasicRange):
                     return
             return
     def try_difference(self, other):
-        if not other.is_BasicRange:
+        if not isinstance(other, BasicRange):
             return
         a,b,d1 = self[:]
         c,d,d2 = other[:]
@@ -397,46 +397,46 @@ class RangeOC(BasicRange):
             return RangeOO(a,b,superset)
         if eq(a, c):
             if eq(b,d):
-                if other.is_RangeOO or other.is_RangeCO:
+                if isinstance(other, RangeOO) or isinstance(other, RangeCO):
                     return Set(b)
                 return Empty
             if lt(b,d): return Empty
             if lt(d,b):
                 # (a=c,d<b)
-                if other.is_RangeOO or other.is_RangeCO:
+                if isinstance(other, RangeOO) or isinstance(other, RangeCO):
                     return RangeCC(d,b,superset)
                 return RangeOC(d,b,superset)
         if lt(a,c):
             if eq(b,d):
-                if other.is_RangeOO:
+                if isinstance(other, RangeOO):
                     return Union(RangeOC(a,c,superset),Set(b))
-                if other.is_RangeCO:
+                if isinstance(other, RangeCO):
                     return Union(RangeOO(a,c,superset),Set(b))
-                if other.is_RangeOC:
+                if isinstance(other, RangeOC):
                     return RangeOC(a,c,superset)
-                if other.is_RangeCC:
+                if isinstance(other, RangeCC):
                     return RangeOO(a,c,superset)
                 return
             if lt(b,d):
                 # (a<c,b<=d)
-                if other.is_RangeOO or other.is_RangeOC:
+                if isinstance(other, RangeOO) or isinstance(other, RangeOC):
                     return RangeOC(a,c,superset)
                 return RangeOO(a,c,superset)
             if lt(d,b):
                 # (a<c,d<b)
-                if other.is_RangeOO:
+                if isinstance(other, RangeOO):
                     return Union(RangeOC(a,c,superset), RangeCC(d,b,superset))
-                if other.is_RangeOC:
+                if isinstance(other, RangeOC):
                     return Union(RangeOC(a,c,superset), RangeOC(d,b,superset))
-                if other.is_RangeCO:
+                if isinstance(other, RangeCO):
                     return Union(RangeOO(a,c,superset), RangeCC(d,b,superset))
-                if other.is_RangeCC:
+                if isinstance(other, RangeCC):
                     return Union(RangeOO(a,c,superset), RangeOC(d,b,superset))
         if lt(c,a):
             # (c,a,d,b), (c,a,b,d)
             if eq(b,d):
                 # (c<a,b=d)
-                if other.is_RangeOO or other.is_RangeCO:
+                if isinstance(other, RangeOO) or isinstance(other, RangeCO):
                     return Set(b)
                 return Empty
             if lt(b,d):
@@ -444,7 +444,7 @@ class RangeOC(BasicRange):
                 return Empty
             if lt(d,b):
                 # (c<a,d<b)
-                if other.is_RangeOO or other.is_RangeCO:
+                if isinstance(other, RangeOO) or isinstance(other, RangeCO):
                     return RangeCC(d,b,superset)
                 return RangeOC(d,b,superset)
     def try_complementary(self, superset):
@@ -457,7 +457,7 @@ class RangeCO(BasicRange):
     """ An semi-open range [a,b) of a set S."""
 
     def try_supremum(self):
-        if self.domain.is_IntegerSet:
+        if isinstance(self.domain, classes.IntegerSet):
             return self.b-1
         return self.b
     def try_infimum(self):
@@ -467,7 +467,7 @@ class RangeCO(BasicRange):
     def try_negative(self):
         return self.__class__(self.a, 0, self.superset)
     def try_union(self, other):
-        if not other.is_BasicRange:
+        if not isinstance(other, BasicRange):
             return
         a,b,d1 = self[:]
         c,d,d2 = other[:]
@@ -475,36 +475,36 @@ class RangeCO(BasicRange):
             return
         superset = d1
         if eq(b, c):
-            if other.is_RangeOO or other.is_RangeOC:
+            if isinstance(other, RangeOO) or isinstance(other, RangeOC):
                 # [a,b) U (b,d), [a,b) U (b,d]
                 return
-            if other.is_RangeCO:
+            if isinstance(other, RangeCO):
                 # [a,b) U [b,d)
                 return RangeCO(a, d, superset)
-            if other.is_RangeCC:
+            if isinstance(other, RangeCC):
                 # [a,b) U [b,d]
                 return RangeCC(a, d, superset)
         if le(a, c):
             # code below assumes a<=c for simplicity
-            if other.is_RangeOO:
+            if isinstance(other, RangeOO):
                 # [a,b) U (c,d)
                 if lt(c, b):
                     if le(d, b): return self
                     if lt(b, d): return RangeCO(a, d, superset)
                 return
-            if other.is_RangeOC:
+            if isinstance(other, RangeOC):
                 # [a,b) U (c,d]
                 if lt(c, b):
                     if lt(d, b): return self
                     if le(b, d): return RangeCC(a, d, superset)
                 return
-            if other.is_RangeCO:
+            if isinstance(other, RangeCO):
                 # [a,b) U [c,d)
                 if le(c, b):
                     if le(d, b): return self
                     if lt(b, d): return RangeCO(a, d, superset)
                 return
-            if other.is_RangeCC:
+            if isinstance(other, RangeCC):
                 # [a,b) U [c,d]
                 if le(c, b):
                     if lt(d, b): return self
@@ -512,7 +512,7 @@ class RangeCO(BasicRange):
                     return
             return
     def try_difference(self, other):
-        if not other.is_BasicRange:
+        if not isinstance(other, BasicRange):
             return
         a,b,d1 = self[:]
         c,d,d2 = other[:]
@@ -521,9 +521,9 @@ class RangeCO(BasicRange):
         superset = d1
         # [a,b) \ (c,d)
         if eq(d,a):
-            if other.is_RangeOO or other.is_RangeCO:
+            if isinstance(other, RangeOO) or isinstance(other, RangeCO):
                 return RangeCO(a,b,superset)
-            if other.is_RangeOC or other.is_RangeCC:
+            if isinstance(other, RangeOC) or isinstance(other, RangeCC):
                 return RangeOO(a,b,superset)
             return
         if le(b,c) or lt(d,a):
@@ -531,38 +531,38 @@ class RangeCO(BasicRange):
             return self
         if eq(a, c):
             if eq(b,d):
-                if other.is_RangeOO or other.is_RangeOC:
+                if isinstance(other, RangeOO) or isinstance(other, RangeOC):
                     return Set(a)
                 return Empty
             if lt(b,d):
-                if other.is_RangeOO or other.is_RangeOC:
+                if isinstance(other, RangeOO) or isinstance(other, RangeOC):
                     return Set(a)
                 return Empty
             if lt(d,b):
                 # (a=c,d<b)
-                if other.is_RangeOO:
+                if isinstance(other, RangeOO):
                     return Union(Set(a),RangeCO(d,b,superset))
-                if other.is_RangeOC:
+                if isinstance(other, RangeOC):
                     return Union(Set(a),RangeOO(d,b,superset))
-                if other.is_RangeCO:
+                if isinstance(other, RangeCO):
                     return RangeCO(d,b,superset)
-                if other.is_RangeCC:
+                if isinstance(other, RangeCC):
                     return RangeOO(d,b,superset)
         if lt(a,c):
             if le(b,d):
                 # (a<c,b<=d)
-                if other.is_RangeOO or other.is_RangeOC:
+                if isinstance(other, RangeOO) or isinstance(other, RangeOC):
                     return RangeCC(a,c,superset)
                 return RangeCO(a,c,superset)
             if lt(d,b):
                 # (a<c,d<b)
-                if other.is_RangeOO:
+                if isinstance(other, RangeOO):
                     return Union(RangeCC(a,c,superset), RangeCO(d,b,superset))
-                if other.is_RangeOC:
+                if isinstance(other, RangeOC):
                     return Union(RangeCC(a,c,superset), RangeOO(d,b,superset))
-                if other.is_RangeCO:
+                if isinstance(other, RangeCO):
                     return Union(RangeCO(a,c,superset), RangeCO(d,b,superset))
-                if other.is_RangeCC:
+                if isinstance(other, RangeCC):
                     return Union(RangeCO(a,c,superset), RangeOO(d,b,superset))
         if lt(c,a):
             # (c,a,d,b), (c,a,b,d)
@@ -571,9 +571,9 @@ class RangeCO(BasicRange):
                 return Empty
             if lt(d,b):
                 # (c<a,d<b)
-                if other.is_RangeOO or other.is_RangeCO:
+                if isinstance(other, RangeOO) or isinstance(other, RangeCO):
                     return RangeCO(d,b,superset)
-                if other.is_RangeOC or other.is_RangeCC:
+                if isinstance(other, RangeOC) or isinstance(other, RangeCC):
                     return RangeOO(d,b,superset)
                 return
     def try_complementary(self, superset):
@@ -594,7 +594,7 @@ class RangeCC(BasicRange):
     def try_negative(self):
         return RangeCO(self.a, 0, self.superset)
     def try_union(self, other):
-        if not other.is_BasicRange:
+        if not isinstance(other, BasicRange):
             return
         a,b,d1 = self[:]
         c,d,d2 = other[:]
@@ -602,33 +602,33 @@ class RangeCC(BasicRange):
             return
         superset = d1
         if eq(b, c):
-            if other.is_RangeOO or other.is_RangeCO:
+            if isinstance(other, RangeOO) or isinstance(other, RangeCO):
                 # [a,b] U (b,d), [a,b] U [b,d)
                 return RangeCO(a, d, superset)
-            if other.is_RangeCC or other.is_RangeOC:
+            if isinstance(other, RangeCC) or isinstance(other, RangeOC):
                 # [a,b] U [b,d], [a,b] U (b,d]
                 return RangeCC(a, d, superset)
         if le(a, c):
             # code below assumes a<=c for simplicity
-            if other.is_RangeOO:
+            if isinstance(other, RangeOO):
                 # [a,b] U (c,d)
                 if le(c, b):
                     if le(d, b): return self
                     if lt(b, d): return RangeCO(a, d, superset)
                 return
-            if other.is_RangeOC:
+            if isinstance(other, RangeOC):
                 # [a,b] U (c,d]
                 if le(c, b):
                     if le(d, b): return self
                     if lt(b, d): return RangeCC(a, d, superset)
                 return
-            if other.is_RangeCO:
+            if isinstance(other, RangeCO):
                 # [a,b] U [c,d)
                 if le(c, b):
                     if le(d, b): return self
                     if lt(b, d): return RangeCO(a, d, superset)
                 return
-            if other.is_RangeCC:
+            if isinstance(other, RangeCC):
                 # [a,b] U [c,d]
                 if le(c, b):
                     if le(d, b): return self
@@ -636,7 +636,7 @@ class RangeCC(BasicRange):
                     return
             return
     def try_difference(self, other):
-        if not other.is_BasicRange:
+        if not isinstance(other, BasicRange):
             return
         a,b,d1 = self[:]
         c,d,d2 = other[:]
@@ -645,15 +645,15 @@ class RangeCC(BasicRange):
         superset = d1
         # [a,b] \ (c,d)
         if eq(d,a):
-            if other.is_RangeOO or other.is_RangeCO:
+            if isinstance(other, RangeOO) or isinstance(other, RangeCO):
                 return RangeCC(a,b,superset)
-            if other.is_RangeOC or other.is_RangeCC:
+            if isinstance(other, RangeOC) or isinstance(other, RangeCC):
                 return RangeOC(a,b,superset)
             return
         if eq(b,c):
-            if other.is_RangeOO or other.is_RangeOC:
+            if isinstance(other, RangeOO) or isinstance(other, RangeOC):
                 return self
-            if other.is_RangeCO or other.is_RangeCC:
+            if isinstance(other, RangeCO) or isinstance(other, RangeCC):
                 return RangeCO(a,b,superset)
             return
         if lt(b,c) or lt(d,a):
@@ -661,59 +661,59 @@ class RangeCC(BasicRange):
             return self
         if eq(a, c):
             if eq(b,d):
-                if other.is_RangeOO:
+                if isinstance(other, RangeOO):
                     return Set(a,b)
-                if other.is_RangeOC:
+                if isinstance(other, RangeOC):
                     return Set(a)
-                if other.is_RangeCO:
+                if isinstance(other, RangeCO):
                     return Set(b)
-                if other.is_RangeCC:
+                if isinstance(other, RangeCC):
                     return Empty
                 return
             if lt(b,d):
-                if other.is_RangeOO or other.is_RangeOC:
+                if isinstance(other, RangeOO) or isinstance(other, RangeOC):
                     return Set(a)
                 return Empty
             if lt(d,b):
                 # (a=c,d<b)
-                if other.is_RangeOO:
+                if isinstance(other, RangeOO):
                     return Union(Set(a),RangeCC(d,b,superset))
-                if other.is_RangeOC:
+                if isinstance(other, RangeOC):
                     return Union(Set(a),RangeOC(d,b,superset))
-                if other.is_RangeCO:
+                if isinstance(other, RangeCO):
                     return RangeCC(d,b,superset)
-                if other.is_RangeCC:
+                if isinstance(other, RangeCC):
                     return RangeOC(d,b,superset)
         if lt(a,c):
             if eq(b,d):
-                if other.is_RangeOO:
+                if isinstance(other, RangeOO):
                     return Union(RangeCC(a,c,superset),Set(b))
-                if other.is_RangeOC:
+                if isinstance(other, RangeOC):
                     return RangeCC(a,c,superset)
-                if other.is_RangeCO:
+                if isinstance(other, RangeCO):
                     return Union(RangeCO(a,c,superset),Set(b))
-                if other.is_RangeCC:
+                if isinstance(other, RangeCC):
                     return RangeCO(a,c,superset)
                 return
             if lt(b,d):
                 # (a<c,b<d)
-                if other.is_RangeOO or other.is_RangeOC:
+                if isinstance(other, RangeOO) or isinstance(other, RangeOC):
                     return RangeCC(a,c,superset)
                 return RangeCO(a,c,superset)
             if lt(d,b):
                 # (a<c,d<b)
-                if other.is_RangeOO:
+                if isinstance(other, RangeOO):
                     return Union(RangeCC(a,c,superset), RangeCC(d,b,superset))
-                if other.is_RangeOC:
+                if isinstance(other, RangeOC):
                     return Union(RangeCC(a,c,superset), RangeOC(d,b,superset))
-                if other.is_RangeCO:
+                if isinstance(other, RangeCO):
                     return Union(RangeCO(a,c,superset), RangeCC(d,b,superset))
-                if other.is_RangeCC:
+                if isinstance(other, RangeCC):
                     return Union(RangeCO(a,c,superset), RangeOC(d,b,superset))
         if lt(c,a):
             # (c,a,d,b), (c,a,b,d)
             if eq(b,d):
-                if other.is_RangeOO or other.is_RangeCO:
+                if isinstance(other, RangeOO) or isinstance(other, RangeCO):
                     return Set(b)
                 return Empty
             if lt(b,d):
@@ -721,9 +721,9 @@ class RangeCC(BasicRange):
                 return Empty
             if lt(d,b):
                 # (c<a,d<b)
-                if other.is_RangeOO or other.is_RangeCO:
+                if isinstance(other, RangeOO) or isinstance(other, RangeCO):
                     return RangeCC(d,b,superset)
-                if other.is_RangeOC or other.is_RangeCC:
+                if isinstance(other, RangeOC) or isinstance(other, RangeCC):
                     return RangeOC(d,b,superset)
                 return
     def try_complementary(self, superset):

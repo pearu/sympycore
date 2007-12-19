@@ -33,7 +33,7 @@ class BasicSet(Basic):
         """
         if other==self:
             return True
-        if other.is_Set:
+        if isinstance(other, classes.Set):
             flag = False
             for e in other:
                 r = es(e, self)

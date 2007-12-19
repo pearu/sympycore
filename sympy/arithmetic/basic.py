@@ -59,10 +59,10 @@ class BasicArithmetic(ArithmeticMethods, Basic):
         new_symbols = []
         for s in symbols:
             s = sympify(s)
-            if s.is_Integer and new_symbols and s.is_positive:
+            if isinstance(s, classes.Integer) and new_symbols and s.is_positive:
                 last_s = new_symbols.pop()
                 new_symbols += [last_s] * int(s)
-            elif s.is_Symbol:
+            elif isinstance(s, classes.Symbol):
                 new_symbols.append(s)
             else:
                 raise TypeError(".diff() argument must be Symbol|Integer instance (got %s)"\
@@ -119,7 +119,7 @@ class BasicArithmetic(ArithmeticMethods, Basic):
         is not possible it will return None.
         """
         expr = sympify(expr)
-        if expr.is_Add: return
+        if isinstance(expr, classes.Add): return
         w = classes.Wild()
         coeff = self.match(w * expr)
         if coeff is not None:

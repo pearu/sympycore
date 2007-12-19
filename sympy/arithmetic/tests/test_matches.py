@@ -169,8 +169,8 @@ def test_arith():
     assert (s**2*t**3).match(w**3*v**2)=={w:t,v:s}
     assert (s**3*t**2).match(w**3*v**2)=={w:s,v:t}
 
-    v = Wild('v',predicate=lambda expr: expr.is_Atom)
-    w = Wild('v',predicate=lambda expr: expr.is_Atom)
+    v = Wild('v',predicate=lambda expr: isinstance(expr, classes.Atom))
+    w = Wild('v',predicate=lambda expr: isinstance(expr, classes.Atom))
 
     assert (4*s).match(w*s)=={w:4}
     assert (4*s+t).match(w*s+v)=={w:4,v:t}
@@ -215,8 +215,8 @@ def test_add():
 
     e = 4*x+5
     assert e.match(3*x+p) == {p: x+5}
-    p = Wild('p',predicate = lambda expr: expr.is_Atom)
-    q = Wild('q',predicate = lambda expr: expr.is_Atom)
+    p = Wild('p',predicate = lambda expr: isinstance(expr, classes.Atom))
+    q = Wild('q',predicate = lambda expr: isinstance(expr, classes.Atom))
     assert e.match(4*x+p) == {p: 5}
     assert e.match(p*x+5) == {p: 4}
     assert e.match(p*x+q) == {p: 4, q: 5}
@@ -236,9 +236,9 @@ def test_power():
     assert e.match(p**p) == {p: x+y}
     assert e.match(p**q) == {p: x+y, q: x+y}
 
-    p = Wild('p',predicate = lambda expr: expr.is_Atom)
-    p1 = Wild('p1',predicate = lambda expr: expr.is_Atom and not expr.is_one)
-    q = Wild('q',predicate = lambda expr: expr.is_Atom)
+    p = Wild('p',predicate = lambda expr: isinstance(expr, classes.Atom))
+    p1 = Wild('p1',predicate = lambda expr: isinstance(expr, classes.Atom) and not expr.is_one)
+    q = Wild('q',predicate = lambda expr: isinstance(expr, classes.Atom))
 
     e = 3/(4*x+5)
     assert e.match(3/(p*x+q)) == {p: 4, q: 5}
@@ -252,7 +252,7 @@ def test_power():
     e = 1/(x+1)
     assert e.match(p/(q*x+r)) == {p: 1, q: 1, r: 1}
 
-    r = Wild('r',predicate = lambda expr: expr.is_Atom)
+    r = Wild('r',predicate = lambda expr: isinstance(expr, classes.Atom))
     e = (2*x)**2
     assert e.match(p*q**r) == {p: 4, q: x, r: 2}
 
@@ -277,8 +277,8 @@ def test_mul():
     e = x
     assert e.match(p*x) == {p: 1}
 
-    p = Wild('p', predicate=lambda expr: expr.is_Atom)
-    q = Wild('q', predicate=lambda expr: expr.is_Atom)
+    p = Wild('p', predicate=lambda expr: isinstance(expr, classes.Atom))
+    q = Wild('q', predicate=lambda expr: isinstance(expr, classes.Atom))
     e = Exp(x)
     assert e.match(x**p*Exp(x*q)) == {p: 0, q: 1}
     assert (x*e).match(x**p*Exp(x*q)) == {p: 1, q: 1}
@@ -414,7 +414,7 @@ def test_behavior1():
     x = Symbol('x')
     p = Wild('p')
     e = 3*x**2
-    a = Wild('a', predicate = lambda expr: expr.is_Atom and expr not in [x])
+    a = Wild('a', predicate = lambda expr: isinstance(expr, classes.Atom) and expr not in [x])
     assert e.match(a*x) == None
     assert e.match(p*x) == {p: 3*x}
 
@@ -427,7 +427,7 @@ def test_behavior2():
 
     e = 3*x + 3 + 6/x
     a = Wild('a',
-             predicate = lambda expr: expr.is_Atom and expr!=x)
+             predicate = lambda expr: isinstance(expr, classes.Atom) and expr!=x)
     assert e.expand().match(a*x**2 + a*x + 2*a) == None
     expr = e.expand()
     pat = p*x**2 + p*x + 2*p
@@ -437,10 +437,10 @@ def test_behavior2():
 
 def test_match_polynomial():
     x = Symbol('x')
-    a = Wild('a', predicate = lambda expr: expr.is_Atom and expr!=x)
-    b = Wild('b', predicate = lambda expr: expr.is_Atom and expr!=x)
-    c = Wild('c', predicate = lambda expr: expr.is_Atom and expr!=x)
-    d = Wild('d', predicate = lambda expr: expr.is_Atom and expr!=x)
+    a = Wild('a', predicate = lambda expr: isinstance(expr, classes.Atom) and expr!=x)
+    b = Wild('b', predicate = lambda expr: isinstance(expr, classes.Atom) and expr!=x)
+    c = Wild('c', predicate = lambda expr: isinstance(expr, classes.Atom) and expr!=x)
+    d = Wild('d', predicate = lambda expr: isinstance(expr, classes.Atom) and expr!=x)
 
     eq = 4*x**3 + 3*x**2 + 2*x + 1
     pattern = a*x**3 + b*x**2 + c*x + d
@@ -449,8 +449,8 @@ def test_match_polynomial():
 
 def test_exclude():
     x,y,a = map(Symbol, 'xya')
-    p = Wild('p', predicate = lambda expr: expr.is_Atom and expr not in [1,x])
-    q = Wild('q', predicate = lambda expr: expr.is_Atom and expr!=x)
+    p = Wild('p', predicate = lambda expr: isinstance(expr, classes.Atom) and expr not in [1,x])
+    q = Wild('q', predicate = lambda expr: isinstance(expr, classes.Atom) and expr!=x)
     r = Wild('r', predicate = lambda expr: not expr.has(y))
 
     e = 3*x**2 + y*x + a
@@ -479,7 +479,7 @@ def test_coeff_search():
     w = Wild('w')
     def foo(expr):
         t,c = expr.as_term_coeff()
-        return c.is_one and not t.is_Mul and t.has(x)
+        return c.is_one and not isinstance(t, classes.Mul) and t.has(x)
     wx = Wild(predicate=foo)
 
     assert (w*wx).matches(x)=={wx:x, w:1}
