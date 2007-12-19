@@ -1,6 +1,6 @@
 
 from sympy import *
-from sympy.core.methods import *
+#from sympy.core.methods import *
 
 def xtest_mutable():
     a = BasicSymbol('a')

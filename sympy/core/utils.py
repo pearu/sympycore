@@ -1,9 +1,10 @@
 
+import os
 import sys
 
 __all__ = ['UniversalMethod','DualMethod','DualProperty',
            'singleton','memoizer_immutable_args','clear_cache',
-           'get_object_by_name'
+           'get_object_by_name', 'get_class_statement'
            ]
 
 all_caches = {}
@@ -35,6 +36,35 @@ def get_object_by_name(name, default=None):
         frames.append(frame)
         frame = frame.f_back
     return default
+
+def get_class_statement(frame = None):
+    """ Return a Python class definition line or None at frame lineno.
+    This function must be called inside a __new__ method.
+    """
+    if frame is None:
+        frame = sys._getframe(2)
+    d = frame.f_locals
+    if d.has_key('__file__'):
+        fn = d['__file__']
+    else:
+        fn = frame.f_code.co_filename
+    lno = frame.f_lineno
+    if fn.endswith('.pyc') or fn.endswith('.pyo'):
+        fn = fn[:-1]
+    if os.path.isfile(fn):
+        f = open(fn,'r')
+        i = lno
+        line = None
+        while i:
+            i -= 1
+            line = f.readline()
+        f.close()
+        if line.lstrip().startswith('class '):
+            return line
+        if frame.f_back is not None:
+            return get_class_statement(frame.f_back)
+    else:
+        print >> sys.stderr,'Warning: cannot locate file:',fn #pragma NO COVER
 
 
 class Decorator(object):

@@ -3,104 +3,18 @@ import os
 import sys
 import types
 
-from .utils import DualMethod, DualProperty
+from .utils import DualMethod, DualProperty, get_class_statement
 from .basic import Atom, Composite, Basic, BasicType, sympify, sympify_types1,\
      BasicWild, classes
 
 from .sorting import sort_sequence
+from .signature import FunctionSignature
 
-__all__ = ['FunctionSignature',
+__all__ = [
            'BasicFunctionType', 'BasicFunction',
            'BasicWildFunctionType',
            'BasicLambda', 'Callable']
 
-class FunctionSignature:
-    """
-    Function signature defines valid function arguments
-    and its expected return values.
-
-    Examples:
-
-    A function with undefined number of arguments and return values:
-    >>> f = Function('f', FunctionSignature(None, None))
-
-    A function with undefined number of arguments and one return value:
-    >>> f = Function('f', FunctionSignature(None, (Basic,)))
-
-    A function with 2 arguments and a pair in as a return value,
-    the second argument must be Python integer:
-    >>> f = Function('f', FunctionSignature((Basic, int), (Basic, Basic)))
-
-    A function with one argument and one return value, the argument
-    must be float or int instance:
-    >>> f = Function('f', FunctionSignature(((float, int), ), (Basic,)))
-
-    A function with undefined number of Basic type arguments and return values:
-    >>> f = Function('f', FunctionSignature([Basic], None))
-    """
-
-    def __init__(self, argument_classes = (Basic,), value_classes = (Basic,)):
-        self.argument_classes, self.nof_arguments = self._normalize(argument_classes, 1)
-        self.value_classes, self.nof_values = self._normalize(value_classes, 2)
-
-    @staticmethod
-    def _normalize(classes, i):
-        if isinstance(classes, type):
-            classes = (classes,)
-        nof_classes = None
-        if classes is not None:
-            if isinstance(classes, tuple):
-                nof_classes = len(classes)
-            elif isinstance(classes, list):
-                classes = tuple(classes)
-            else:
-                raise TypeError('FunctionSignature: wrong argument[%s] type %s, expected NoneType|tuple|list|type' % (i, type(classes).__name__))
-        return classes, nof_classes
-
-    @staticmethod
-    def _validate(funcname, values, intentname, value_classes, nof_values):
-        if nof_values is not None:
-            if nof_values!=len(values):
-                return ('function %s: wrong number of %ss, expected %s, got %s'\
-                        % (funcname, intentname, nof_values, len(values)))
-            i = 0
-            for a,cls in zip(values, value_classes):
-                i += 1
-                if not isinstance(a, cls):
-                    if isinstance(cls, tuple):
-                        clsinfo = '|'.join([c.__name__ for c in cls])
-                    else:
-                        clsinfo = cls.__name__
-                    return ('function %s: wrong %s[%s] type %r, expected %r'\
-                            % (funcname, intentname, i, type(a).__name__, clsinfo))
-        elif value_classes is not None:
-            i = 0
-            for a in values:
-                i += 1
-                if not isinstance(a, value_classes):
-                    clsinfo = '|'.join([c.__name__ for c in value_classes])
-                    return ('function %s: wrong %s[%s] type %r, expected %r'\
-                            % (funcname, intentname, i, type(a).__name__, clsinfo))
-
-    def validate(self, funcname, args):
-        return self._validate(funcname, args, 'argument', self.argument_classes, self.nof_arguments)
-
-    def validate_return(self, funcname, results):
-        return self._validate(funcname, results, 'return', self.value_classes, self.nof_values)
-
-    def __repr__(self):
-        if self.nof_arguments is None and self.argument_classes is not None:
-            arg1 = [self.argument_classes]
-        else:
-            arg1 = self.argument_classes
-        if self.nof_values is None and self.value_classes is not None:
-            arg2 = [self.value_classes]
-        else:
-            arg2 = self.value_classes
-        return '%s(%r, %r)' % (self.__class__.__name__, arg1, arg2)
-
-
-classes.FunctionSignature = FunctionSignature
 
 def new_function_value(cls, args, options):
     if not isinstance(args, tuple):
@@ -343,36 +257,6 @@ class Callable(Basic, BasicType):
         return False
 
 
-def _get_class_statement(frame = None):
-    """ Return a Python class definition line or None at frame lineno.
-    This function must be called inside a __new__ function.
-    """
-    if frame is None:
-        frame = sys._getframe(2)
-    d = frame.f_locals
-    if d.has_key('__file__'):
-        fn = d['__file__']
-    else:
-        fn = frame.f_code.co_filename
-    lno = frame.f_lineno
-    if fn.endswith('.pyc') or fn.endswith('.pyo'):
-        fn = fn[:-1]
-    if os.path.isfile(fn):
-        f = open(fn,'r')
-        i = lno
-        line = None
-        while i:
-            i -= 1
-            line = f.readline()
-        f.close()
-        if line.lstrip().startswith('class '):
-            return line
-        if frame.f_back is not None:
-            return _get_class_statement(frame.f_back)
-    else:
-        print >> sys.stderr,'Warning: cannot locate file:',fn #pragma NO COVER
-
-
 class BasicFunctionType(Atom, Callable):
     """ Base class for defined symbolic function.
 
@@ -408,7 +292,7 @@ class BasicFunctionType(Atom, Callable):
             if isinstance(bases, tuple) and isinstance(attrdict, dict):
                 # The following statement reads python module that
                 # defines class `name`:
-                line = _get_class_statement()
+                line = get_class_statement()
                 if line is not None:
                     if line.replace(' ','').startswith('class'+name+'('):
                         is_global = True

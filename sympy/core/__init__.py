@@ -5,8 +5,9 @@ from .basic import (Basic, Composite, Atom, sympify, BasicType,
                     BasicWild, classes, objects)
 from .symbol import BasicSymbol, BasicDummySymbol, BasicWildSymbol
 from .function import (BasicFunction, BasicFunctionType, BasicLambda,
-                       FunctionSignature,BasicWildFunctionType,
+                       BasicWildFunctionType,
                        Callable)
+from .signature import FunctionSignature
 from .sorting import sort_sequence
 
 __all__ = ['Basic', 'BasicType',
