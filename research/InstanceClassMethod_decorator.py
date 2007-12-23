@@ -471,6 +471,8 @@ class BasicParametricFunction(BasicFunction):
 
 ######### User defined classes
 
+class Sin(BasicFunction):
+    pass
 
 class Hermite(BasicParametricFunction):
 
