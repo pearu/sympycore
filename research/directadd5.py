@@ -1,33 +1,72 @@
-RATIONAL = 'Q'
+NUMBER = 'N'
 SYMBOLIC = 'S'
 TERMS = '+'
 FACTORS = '*'
 
+class rational(tuple):
+
+    def __new__(cls, p, q, tnew=tuple.__new__):
+        x, y = p, q
+        while y:
+            x, y = y, x % y
+        if x != 1:
+            p //= x
+            q //= x
+        if q == 1:
+            return p
+        return tnew(cls, (p, q))
+
+    def __str__(self):
+        return "%i/%i" % self
+
+    __repr__ = __str__
+
+    # not needed when __new__ normalizes to ints
+    # __nonzero__
+    # __eq__
+    # __hash__
+
+    def __add__(self, other):
+        p, q = self
+        if isinstance(other, int):
+            r, s = other, 1
+        else:
+            r, s = other
+        return rational(p*s + q*r, q*s)
+
+    __radd__ = __add__
+
+    def __mul__(self, other):
+        p, q = self
+        if isinstance(other, int):
+            r, s = other, 1
+        else:
+            r, s = other
+        return rational(p*r, q*s)
+
+    __rmul__ = __mul__
+
+
+
 def make_int(n):
-    return (RATIONAL, n, 1)
+    return (NUMBER, n)
 
 def make_rational(p, q):
-    x, y = p, q
-    while y:
-        x, y = y, x % y
-    if x != 1:
-        p //= x
-        q //= x
-    return (RATIONAL, p, q)
+    return (NUMBER, rational(p, q))
 
 zero = make_int(0)
 one = make_int(1)
 two = make_int(2)
-half = make_rational(1,2)
+half = make_rational(1, 2)
 
 def make_symbol(name):
     return (SYMBOLIC, name)
 
 def convert_terms(x):
-    if x[0] is RATIONAL:
-        return (TERMS, [(one, x[1:])])
+    if x[0] is NUMBER:
+        return (TERMS, [(one, x[1])])
     else:
-        return (TERMS, [(x, (1, 1))])
+        return (TERMS, [(x, 1)])
 
 def add_default(a, b):
     if a[0] is not TERMS: a = convert_terms(a)
@@ -36,71 +75,51 @@ def add_default(a, b):
 
 def add_terms_terms(a, b):
     c = dict(a[1])
-    # Add dicts
-    for e, (r, s) in b[1]:
+    for e, x in b[1]:
         if e in c:
-            p, q = c[e]
-            c[e] = (p*s + q*r, q*s)
+            c[e] += x
+            if not c[e]:
+                del c[e]
         else:
-            c[e] = (r, s)
-    # Normalize
-    for e, (p, q) in c.items():
-        if not p:
-            del c[e]
-            continue
-        x, y = p, q
-        while y:
-            x, y = y, x % y
-        if x != 1:
-            c[e] = (p//x, q//x)
+            c[e] = x
     if not c:
         return zero
     citems = c.items()
     if len(citems) == 1:
         w = citems[0]
-        if w[1] == (1, 1):
+        if w[1] == 1:
             return w[0]
-    return (TERMS, frozenset(c.items()))
+    return (TERMS, frozenset(citems))
 
 def add_symbolic_symbolic(a, b):
     if a == b:
-        return (TERMS, frozenset([(a, (2, 1))]))
-    return (TERMS, frozenset([(a, (1, 1)), (b, (1, 1))]))
+        return (TERMS, frozenset([(a, 2)]))
+    return (TERMS, frozenset([(a, 1), (b, 1)]))
 
 def add_rational_rational(a, b):
-    _, p, q = a
-    _, r, s = b
-    return make_rational(p*s + q*r, q*s)
+    return (NUMBER, a[1]+b[1])
 
 addition = {
-    (TERMS, TERMS) : add_terms_terms,
+    (TERMS, TERMS)       : add_terms_terms,
     (SYMBOLIC, SYMBOLIC) : add_symbolic_symbolic,
-    (RATIONAL, RATIONAL) : add_rational_rational
+    (NUMBER, NUMBER) : add_rational_rational
 }
 
 
 def mul_default(a, b):
-    if a[0] is not FACTORS: a = (FACTORS, [(a, (1, 1))])
-    if b[0] is not FACTORS: b = (FACTORS, [(b, (1, 1))])
+    if a[0] is not FACTORS: a = (FACTORS, [(a, 1)])
+    if b[0] is not FACTORS: b = (FACTORS, [(b, 1)])
     return mul_factors_factors(a, b)
 
 def mul_factors_factors(a, b):
     c = dict(a[1])
-    for e, (r, s) in b[1]:
+    for e, x in b[1]:
         if e in c:
-            p, q = c[e]
-            c[e] = (p*s + q*r, q*s)
+            c[e] += x
+            if not c[e]:
+                del c[e]
         else:
-            c[e] = (r, s)
-    for e, (p, q) in c.items():
-        if not p:
-            del c[e]
-            continue
-        x, y = p, q
-        while y:
-            x, y = y, x % y
-        if x != 1:
-            c[e] = (p//x, q//x)
+            c[e] = x
     if not c:
         return one
     return (FACTORS, frozenset(c.items()))
@@ -108,7 +127,7 @@ def mul_factors_factors(a, b):
 def mul_rational_symbolic(a, b):
     if a == zero: return zero
     if a == one: return b
-    return (TERMS, frozenset([(b, a[1:])]))
+    return (TERMS, frozenset([(b, a[1])]))
 
 def mul_symbolic_rational(a, b):
     return mul_rational_symbolic(b, a)
@@ -116,36 +135,36 @@ def mul_symbolic_rational(a, b):
 def mul_rational_terms(a, b):
     if a == zero: return zero
     if a == one: return b
-    p, q = a[1:]
-    return (TERMS, frozenset([(e, (p*r, q*s)) for e, (r, s) in b[1]]))
+    p = a[1]
+    return (TERMS, frozenset([(e, p*x) for e, x in b[1]]))
 
 def mul_terms_rational(a, b):
     return mul_rational_terms(b, a)
 
 def mul_rational_rational(a, b):
-    _, p, q = a
-    _, r, s = b
-    return make_rational(p*r, q*s)
+    return (NUMBER, a[1]*b[1])
 
 multiplication = {
-    (RATIONAL, SYMBOLIC) : mul_rational_symbolic,
-    (SYMBOLIC, RATIONAL) : mul_symbolic_rational,
-    (RATIONAL, TERMS)    : mul_rational_terms,
-    (TERMS, RATIONAL)    : mul_terms_rational,
+    (NUMBER, SYMBOLIC) : mul_rational_symbolic,
+    (SYMBOLIC, NUMBER) : mul_symbolic_rational,
+    (NUMBER, TERMS)    : mul_rational_terms,
+    (TERMS, NUMBER)    : mul_terms_rational,
     (FACTORS, FACTORS)   : mul_factors_factors,
-    (RATIONAL, RATIONAL) : mul_rational_rational
+    (NUMBER, NUMBER) : mul_rational_rational
 }
 
 def show(x):
+    if isinstance(x, int):
+        return str(x)
     h = x[0]
-    if h is RATIONAL:
-        return '%i/%i' % (x[1:])
+    if h is NUMBER:
+        return str(x[1])
     if h is SYMBOLIC:
         return x[1]
     if h is TERMS:
-        return ' + '.join((("(%i/%i)" % b)+"*"+show(a)) for (a, b) in x[1])
+        return ' + '.join((show(b)+"*"+show(a)) for (a, b) in x[1])
     if h is FACTORS:
-        return ' * '.join(("(%s)**(%i/%i)" % (show(a), b[0], b[1])) for (a, b) in x[1])
+        return ' * '.join(("(%s)**(%i/%i)" % (show(a), show(b))) for (a, b) in x[1])
     return str(x)
 
 class Expr:
@@ -153,8 +172,9 @@ class Expr:
     def __init__(self, value=None, _s=None):
         if _s:
             self._s = _s
-        elif isinstance(value, (int, long)):
-            self._s = make_int(value)
+            return
+        if isinstance(value, int):
+            self._s = (NUMBER, value)
         elif isinstance(value, str):
             self._s = make_symbol(value)
 
@@ -183,15 +203,9 @@ def Rational(p, q):
     return Expr(_s=make_rational(p, q))
 
 
-#x = Expr('x')
-#y = Expr('y')
-#z = Expr('z')
-#A = x*Rational(2,3) + y*Rational(2,3) + Rational(17,6)
-#B = x*Rational(-1,2) + y*1 + z*Rational(3,2) + 1
-#A + B
-
+# use time() instead on unix
 from time import clock
-import psyco
+
 import sympy
 
 def time1():
@@ -206,14 +220,14 @@ def time1():
     t1 = clock()
     n = 100
     while n:
-        #3*(a*x+b*y+c*z)
+        3*(a*x+b*y+c*z)
         #A + B
         #x + y
         #a + b
-        a * b
+        #a * b
         n -= 1
     t2 = clock()
-    return (t2-t1) / 100
+    return 100 / (t2-t1)
 
 def time2():
     x = sympy.Symbol('x')
@@ -227,22 +241,29 @@ def time2():
     t1 = clock()
     n = 100
     while n:
-        #3*(a*x+b*y+c*z)
+        3*(a*x+b*y+c*z)
         #A + B
         #x + y
         #a + b
-        a * b
+        #a * b
         n -= 1
     t2 = clock()
-    return (t2-t1) / 100
+    return 100 / (t2-t1)
 
 def timing():
     t1 = time1()
     t2 = time2()
-    return t1, t2, t2/t1
+    return t1, t2, t1/t2
 
+print "without psyco"
+print timing()
+print timing()
 print timing()
 
-"""
-from directadd5 import *
-"""
+import psyco
+psyco.full()
+
+print "with psyco"
+print timing()
+print timing()
+print timing()
