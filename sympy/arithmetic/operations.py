@@ -136,6 +136,7 @@ class TermCoeffDict(dict):
             if v==0:
                 return nan
             self.pop(one, None)
+            
         #elif self.has_key(moo):
         #    if self.has_key(oo):
         #        return nan
@@ -148,9 +149,11 @@ class TermCoeffDict(dict):
                 l.append(k)
             elif k is one:
                 l.append(v)
-            else:
+            elif k is oo:
                 l.append(k * v)
-                continue
+            elif isinstance(k, classes.Mul):
+                l.append(k * v)
+            else:
                 obj = new_function_value(classes.Mul, [k, v], {})
                 c = BaseExpDict({k:one,v:one})
                 c.coeff = v
