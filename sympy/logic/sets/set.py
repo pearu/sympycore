@@ -1,6 +1,5 @@
 
 from ...core.basic import Basic, Composite, sympify, classes, sympify_types1
-from ...core.utils import UniversalMethod
 from .basic import BasicSet
 
 __all__ = ['Set']

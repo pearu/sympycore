@@ -146,8 +146,20 @@ class TermCoeffDict(dict):
                 del self[k]
             elif v is one:
                 l.append(k)
+            elif k is one:
+                l.append(v)
             else:
                 l.append(k * v)
+                continue
+                obj = new_function_value(classes.Mul, [k, v], {})
+                c = BaseExpDict({k:one,v:one})
+                c.coeff = v
+                if k is one:
+                    c.args_flattened = [k]
+                else:
+                    c.args_flattened = [v, k]
+                obj._dict_content = c
+                l.append(obj)
         if len(l)==0:
             return zero
         if len(l)==1:

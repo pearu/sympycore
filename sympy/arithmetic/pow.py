@@ -1,6 +1,6 @@
 
 import itertools
-from ..core import Basic, sympify, objects, classes
+from ..core import Basic, sympify, objects, classes, instancemethod
 from .basic import BasicArithmetic
 from .function import Function, FunctionSignature
 
@@ -87,6 +87,7 @@ class Pow(Function):
     def precedence(self):
         return Basic.Pow_precedence
 
+    @instancemethod(Function.tostr)
     def tostr(self, level=0):
         p = self.precedence
         b = self.base.tostr(p)
@@ -127,6 +128,7 @@ class Pow(Function):
         if e==s and not b.has(s):
             return self/Log(b,E)
 
+    @instancemethod(Function.try_power)
     def try_power(self, other):
         if isinstance(other, classes.Number):
             if isinstance(other, classes.Integer):
@@ -141,6 +143,7 @@ class Pow(Function):
     def as_base_exponent(self):
         return self.base, self.exponent
 
+    @instancemethod(Function.matches)
     def matches(pattern, expr, repl_dict={}):
         wild_classes = (classes.Wild, classes.WildFunctionType)
         if not pattern.atoms(type=wild_classes):
@@ -241,6 +244,7 @@ class Log(Function):
         b = classes.Dummy('b')
         return classes.Lambda((x,b),-Log(x,b)*Log(E,b)/b)
 
+    @instancemethod(Function.matches)
     def matches(pattern, expr, repl_dict={}):
         if isinstance(expr, classes.Log):
             d = pattern.base.matches(expr.base, repl_dict)

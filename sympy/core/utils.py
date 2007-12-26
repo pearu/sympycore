@@ -1,13 +1,65 @@
 
 import os
 import sys
+import new
+import types
 
-__all__ = ['UniversalMethod','DualMethod','DualProperty',
+__all__ = ['instancemethod', 'InstanceClassMethod',
            'singleton','memoizer_immutable_args','clear_cache',
-           'get_object_by_name', 'get_class_statement'
+           'get_object_by_name', 'get_class_statement',
+           'get_class_attributes',
+           'get_class_methods',
+           'get_class_properties',
            ]
 
 all_caches = {}
+
+def get_class_attributes(cls):
+    d = {}
+    if issubclass(cls, type):
+        mro = cls.__mro__
+    else:
+        mro = cls.mro()
+    for c in mro:
+        if c.__module__ == '__builtin__':
+            continue
+        for k,v in c.__dict__.items():
+            if k in d:
+                continue
+            d[k] = v
+    return d
+
+def get_class_methods(cls):
+    d = {}
+    if issubclass(cls, type):
+        mro = cls.__mro__
+    else:
+        mro = cls.mro()
+    for c in mro:
+        if c.__module__ == '__builtin__':
+            continue
+        for k,v in c.__dict__.items():
+            if k in d:
+                continue
+            if isinstance(v, types.FunctionType):
+                d[k] = v
+    return d
+
+def get_class_properties(cls):
+    d = {}
+    if issubclass(cls, type):
+        mro = cls.__mro__
+    else:
+        mro = cls.mro()
+    for c in mro:
+        if c.__module__ == '__builtin__':
+            continue
+        for k,v in c.__dict__.items():
+            if k in d:
+                continue
+            if isinstance(v, property):
+                d[k] = v
+    return d
 
 def get_object_by_name(name, default=None):
     """ Return object that is a value of a variable with name
@@ -70,167 +122,160 @@ def get_class_statement(frame = None):
 class Decorator(object):
     pass
 
-class UniversalMethod(Decorator):
-    ''' universalmethod decorator
+def instancemethod(clsmth):
+    """ Apply InstanceClassMethod decorator to instance method.
+    instancemethod takes an argument that must be a classmethod.
 
-class AType(type):
-    pass
+    Usage examples:
 
-class A(object):    
-    __metaclass__ = AType
-    @UniversalMethod
-    def foo(self_or_cls):
-        return 'A.foo(%r)' % (self_or_cls)
+      class MyFunc(BasicFunction):
 
-A.foo() -> "A.foo(<class \'__main__.A\'>)"
-A().foo() -> "A.foo(<__main__.A object at 0xfdb3d0>)"
-    '''
+          # MyFunc defines foo both as class and instance method
+          @classmethod
+          def foo(cls):
+              ...
 
+          @instancemethod(foo)
+          def foo(self):
+              ...
 
-    def __new__(cls, func):
-        obj = object.__new__(cls)        
-        obj.func = func
-        obj.method_name = func.__name__
-        obj.class_wrapper_name = '%s(%s) class method wrapper' \
-                                 % (cls.__name__, func.__name__)
-        obj.instance_wrapper_name = '%s(%s) instance method wrapper' \
-                                        % (cls.__name__, func.__name__)
-        return obj
-        
-    def __get__(self, obj, typ=None):
-        if obj is None:
-            def class_wrapper(*args, **kw):
-                return self.func(typ, *args, **kw)
-            class_wrapper.__name__ = self.class_wrapper_name
-            class_wrapper._universalmethod = self
-            return class_wrapper
-        else:
-            def instance_wrapper(*args, **kw):
-                return self.func(obj, *args, **kw)
-            instance_wrapper.__name__ = self.instance_wrapper_name
-            instance_wrapper._universalmethod = self
-            return instance_wrapper    
+          # MyFunc redefines instance method bar that is initially defined in BasicFunction:
+          @instancemethod(BasicFunction.bar)
+          def bar(self):
+              ...
 
+          # MyFunc redefines class method fun that is initially defined in BasicFunction:
+          @classmethod
+          def fun(self):
+              ...
+          fun = instancemethod(fun)(BasicFunction.fun)
 
-class DualMethod(Decorator):
-    """dualmethod decorator.
-    
-    Enable calling a method as a class method or as an instance method
-    provided that both metaclass and class define methods with the
-    same name.
-
-    Consider the following example:
-
-    class AType(type):
-        def foo(cls):
-            print 'In AType.foo()'
-
-    class A(object):
-        __metaclass__ = AType
-        def foo(self):
-            print 'In A.foo()'
-
-    The objective is to be able to call foo method both as
-    `A.foo()` and `A().foo()`. Using the example above,
-    a TypeError is raised when calling `A.foo()`:
-
-    >>> A().foo()
-    In A.foo()
-    >>> A.foo()
-    ...
-    <type 'exceptions.TypeError'>: unbound method foo() must be called with A instance as first argument (got nothing instead)
-
-    This issue can be overcome by adding DualMethod decorator to
-    A.foo method definition:
-
-    class A(object):
-        __metaclass__ = AType
-        @DualMethod
-        def foo(self):
-            print 'In A.foo()'
-
-    And now the example works as expected:
-
-    >>> A().foo()
-    In A.foo()
-    >>> A.foo()
-    In AType.foo()
-
+    As a result, MyFunc.foo() will call the method `foo` defined first
+    and MyFunc().foo() will call the method `foo` defined second.
     """
-    # got the idea from http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/523033
-    
-    def __new__(cls, func, clsname=None, funcname=None):
-        if isinstance(func, cls):
-            return func
-        obj = object.__new__(cls)
-        obj.func = func
-        if funcname is None:
-            funcname = func.__name__
-        obj.funcname = funcname
-        if clsname is None:
-            obj.class_wrapper_name = '%s(%s) class method wrapper' \
-                                     % (cls.__name__, funcname)
-            obj.instance_wrapper_name = '%s(%s) instance method wrapper' \
-                                        % (cls.__name__, funcname)
-        else:
-            obj.class_wrapper_name = '%s(%s.%s) class method wrapper' \
-                                     % (cls.__name__, clsname, funcname)
-            obj.instance_wrapper_name = '%s(%s.%s) instance method wrapper' \
-                                        % (cls.__name__, clsname, funcname)
-        return obj
-        
-    def __get__(self, obj, typ=None):
-        if obj is None:
-            funcname = self.funcname
-            def class_wrapper(*args, **kw):
-                if hasattr(self.func, 'im_self') and self.func.im_self is not None:
-                    return self.func(*args, **kw)
-                mth = getattr(typ.__class__, self.funcname)
-                return mth(typ, *args, **kw)
-            class_wrapper.__name__ = self.class_wrapper_name
-            return class_wrapper
-        else:
-            def instance_wrapper(*args, **kw):
-                return self.func(obj, *args, **kw)
-            instance_wrapper.__name__ = self.instance_wrapper_name
-            return instance_wrapper
+    if isinstance(clsmth, types.FunctionType):
+        clsmth = classmethod(clsmth)
+    elif isinstance(clsmth, types.MethodType):
+        return instancemethod(clsmth.im_func)
+    assert isinstance(clsmth, classmethod),`type(clsmth)`
+    def wrap(func):
+        if isinstance(func, types.MethodType):
+            return wrap(func.im_func)
+        elif isinstance(func, InstanceClassMethod):
+            return wrap(func.method)
+        elif isinstance(func, type):
+            n = clsmth.__get__(None, func).im_func.__name__
+            for cls in func.mro():
+                if n in cls.__dict__:
+                    func = cls.__dict__[n]
+                    return wrap(func)
+        assert isinstance(func, types.FunctionType),`type(func)`
+        return InstanceClassMethod(func, clsmth)
+    return wrap
 
-class DualProperty(Decorator):
-    """ dualproperty decorator.
+
+# method names that will ignored in applying InstanceClassMethod decorator:
+special_methods = ('__new__', '__init__', '__hash__')
+
+
+class InstanceClassMethod(object):
+    """ Decorator that allows to use the same method name for class
+    and instance methods.
+    
+    When calling a method via class object then metaclass method
+    or the classmethod of a base class with the same name will be used.
+
+    Example
+    -------
+
+      The example below demonstrates four different ways of providing
+      a method as a classmethod when called using class object or
+      as an instance method when called using class instance:
+      
+      * foo  - metaclass method will be used as a classmethod
+      * bar  - classmethod is defined in a parent class, instance method
+               in a given class
+      * car  - classmethod is defined in the same class with instance method
+      * fun  - classmethod is defined in a given class and instance
+               method in a parent class
 
 class AType(type):
-    @property
     def foo(cls):
-        return 'AType.foo'
-    # or foo = 'AType.foo'
+        return cls
 
 class A(object):
     __metaclass__ = AType
-    @DualProperty
+
+    # metaclass method will be used as class method:
+    @InstanceClassMethod
     def foo(self):
-        return 'A.foo'
+        return self
+    
+    @classmethod
+    def bar(cls):
+        return cls
 
-A.foo -> 'AType.foo'
-A().foo -> 'A.foo'
+    def fun(self):
+        return self
 
-See also DualMethod.
+class B(A):
+
+    # classmethod is defined in a parent class:
+    def bar(self):
+        return self
+    bar = InstanceClassMethod(bar, A.__dict__['bar'])
+
+    # classmethod and instance methods are defined in the same class:
+    @classmethod
+    def _car(cls):
+        return cls
+    
+    def car(self):
+        return self
+
+    # option 1:
+    car = InstanceClassMethod(car, _car)
+    # option 2:
+    car._classmethod = _car
+    car = InstanceClassMethod(car)
+
+    # instance method is defined in a parent class:
+    @classmethod
+    def fun(cls):
+        return cls
+    fun = InstanceClassMethod(A.__dict__['fun'], fun)
+
+>>> A.foo()
+<class '__main__.A'>
+>>> A().foo()
+<__main__.A object at 0xdc3a50>
+>>> B.foo()
+<class '__main__.B'>
+>>> B().foo()
+<__main__.B object at 0xede310>
+
+    See also:
+      InstanceClassProperty decorator
     """
-    def __new__(cls, func, type_callback=None):
+
+    def __new__(cls, method, clsmethod):
+        assert isinstance(method, types.FunctionType),`type(method)`
+        assert isinstance(clsmethod, classmethod),`type(clsmethod)`
         obj = object.__new__(cls)
-        obj.func = func
-        obj.attr_name = func.__name__
-        obj.type_callback = type_callback
+        obj.method = method
+        obj.clsmethod = clsmethod
+        obj.name = method.__name__
         return obj
-        
-    def __get__(self, obj, typ=None):
+
+    def __get__(self, obj, owner):
         if obj is None:
-            # called when metaclass or type object does not have the property
-            # but attribute.
-            if self.type_callback is not None:
-                return self.type_callback(typ)
-            return getattr(typ.__class__, self.attr_name)
-        else:
-            return self.func(obj)
+            return self.clsmethod.__get__(obj, owner)
+        return new.instancemethod(self.method, obj, owner)
+
+    def __repr__(self):
+        return '%s(%r, %r)' % (self.__class__.__name__,
+                               self.method, self.clsmethod)
+
 
 def memoizer_immutable_args(name):
     def make_memoized(func):

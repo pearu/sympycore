@@ -1,7 +1,6 @@
 
 from ...core import Basic, BasicType, classes, objects
 from ...core.function import FunctionSignature
-from ...core.utils import UniversalMethod
 from ...arithmetic import Function, BasicArithmetic
 
 

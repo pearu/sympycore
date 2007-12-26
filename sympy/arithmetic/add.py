@@ -1,6 +1,5 @@
 
-from ..core import Basic, sympify, objects, classes, BasicType
-from ..core.utils import UniversalMethod
+from ..core import Basic, sympify, objects, classes, BasicType, instancemethod
 from .basic import BasicArithmetic
 from .function import ArithmeticFunction, Function, FunctionType
 from .operations import TermCoeffDict
@@ -46,6 +45,7 @@ class Add(ArithmeticFunction):
     def precedence(self):
         return Basic.Add_precedence
 
+    @instancemethod(ArithmeticFunction.tostr)
     def tostr(self, level=0):
         p = self.precedence
         r = '@+@'.join([op.tostr(p) for op in self.iterSorted()]) or '0'
@@ -68,7 +68,7 @@ class Add(ArithmeticFunction):
     _fdiff_cache = {}
     _fdiff_indices = ()
 
-    @UniversalMethod
+    @classmethod
     def fdiff(obj, index=1):
         if isinstance(obj, type):
             # Add = lambda x,y,z,..: Add(x,y,z,..)
@@ -94,6 +94,8 @@ class Add(ArithmeticFunction):
             return f
         return obj._fdiff(index)
 
+    fdiff = instancemethod(fdiff)(ArithmeticFunction)
+
     def try_derivative(self, s):
         return Add(*[t.diff(s) * e for (t,e) in self.iterTermCoeff()])
 
@@ -118,6 +120,7 @@ class Add(ArithmeticFunction):
             return (self._dict_content * other).as_Basic()
         return classes.Mul(self, other)
 
+    @instancemethod(ArithmeticFunction.matches)
     def matches(pattern, expr, repl_dict={}):
         wild_classes = (classes.Wild, classes.WildFunctionType)
         if not pattern.atoms(type=wild_classes):
@@ -186,7 +189,7 @@ class Add(ArithmeticFunction):
                 return TermCoeffDict([(t,v*c) for (t,v) in self.iterTermCoeff()]).as_Basic(),1/c
         return self, one
 
-class Sub(BasicArithmetic):
+class Sub(Function):
     """
     Sub() <=> 0
     Sub(x) <=> -x

@@ -22,5 +22,5 @@ def profile_expr(expr):
     stats = hotshot.stats.load("/tmp/stones.prof")
     stats.strip_dirs()
     stats.sort_stats('time','calls','time')
-    stats.print_stats(20)
+    stats.print_stats(40)
     return stats

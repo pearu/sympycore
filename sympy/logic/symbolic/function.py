@@ -1,6 +1,6 @@
 
 from ...core import Basic
-from ...core.function import BasicFunction, BasicFunctionType
+from ...core.function import BasicFunction, BasicFunctionType, instancemethod
 from .basic import BasicBoolean
 
 __all__ = ['PredicateType', 'Predicate']
@@ -17,6 +17,7 @@ class Predicate(BasicBoolean, BasicFunction):
     
     # Predicate.signature is initialized in __init__.py
 
+    @instancemethod(BasicFunction.tostr)
     def tostr(self, level=0):
         return '%s(%s)' % (self.__class__.__name__,
                            ', '.join([c.tostr(self.precedence) for c in self]))

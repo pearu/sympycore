@@ -2,7 +2,7 @@
 import types
 import itertools
 
-from .utils import memoizer_immutable_args, DualProperty, singleton, DualMethod, UniversalMethod
+from .utils import memoizer_immutable_args, singleton
 
 __all__ = ['BasicType', 'Basic', 'Atom', 'Composite', 'BasicWild',
            'Tuple',
@@ -369,11 +369,13 @@ class BasicWild(Basic):
         if v is not None:
             if v==expr: return repl_dict
             return
+
         # wild matches if pattern.predicate(expr) returns True
         if pattern.predicate(expr):
             repl_dict = repl_dict.copy()
             repl_dict[pattern] = expr
             return repl_dict
+
 
 from .sympify import sympify, sympify_types
 Basic.sympify = staticmethod(sympify)

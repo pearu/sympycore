@@ -58,7 +58,7 @@ def test_get_object_by_name():
     assert foo()==(7,7)
     assert get_object_by_name('_c',8)==8
 
-def test_UniversalMethod():
+def _test_UniversalMethod():
     class AType(type):
         pass
     class A(object):    
@@ -97,7 +97,7 @@ def test_UniversalMethod():
     assert C.foo()=='classobj'
     assert C().foo()=='instance'
 
-def test_DualMethod():
+def _test_DualMethod():
     class AType(type):
         def foo(cls):
             return 'AType.foo'
@@ -133,7 +133,7 @@ def test_DualMethod():
     else:
         assert 0,'Expected AttributeError'
 
-def test_DualProperty():
+def _test_DualProperty():
     class AType(type):
         @property
         def foo(cls):
@@ -175,3 +175,41 @@ def test_DualProperty():
 
     assert C.foo=='CType.foo'
     assert C().foo=='C.foo'
+
+def test_get_class_attributes():
+    class AType(type):
+        def tmth(cls):
+            return 'AType.tmth'
+        
+    class A(object):
+        __metaclass__ = AType
+        def mth(self):
+            return 'A().mth'
+        def mthA(self):
+            return 'A().mthA'
+
+    class B(A):
+        def mthB(self):
+            return 'B().mthB'
+        def mth(self):
+            return 'B().mth'
+
+    print get_class_methods(A)
+    print get_class_methods(B)
+    print get_class_methods(AType)
+
+    from sympy import Basic, BasicType
+
+    class AAType(Basic, BasicType):
+        def MM(self):
+            return 'AAType.MM'
+    
+    class AA(Basic):
+
+        __metaclass__ = AAType
+
+        def mm(self):
+            return 'AA().mm'
+
+    
+    print get_class_methods(AAType).keys()

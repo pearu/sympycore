@@ -1,10 +1,10 @@
 
-from ...core import Basic
+from ...core import Basic, classes
 from ...core.utils import memoizer_immutable_args
 
 __all__ = ['BasicBoolean']
 
-class BasicBoolean(Basic):
+class BasicBoolean:
 
     def is_subset_of(self, other):
         """ Returns True if from other follows self.
@@ -151,3 +151,4 @@ class BasicBoolean(Basic):
             l.append(And(*p))
         return Or(*l)
 
+classes.BasicBoolean = BasicBoolean

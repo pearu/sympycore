@@ -1,7 +1,7 @@
 from ..core import Basic, BasicType, classes, objects, sympify
 from ..core.function import (BasicFunctionType, BasicFunction,
                              FunctionSignature, BasicLambda,
-                             Callable)
+                             )
 from .basic import BasicArithmetic
 
 __all__ = ['OperatorType', 'Operator']

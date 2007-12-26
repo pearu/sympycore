@@ -14,7 +14,6 @@ def test_defined_function():
 
     assert hasattr(classes,'Func')==True
     assert isinstance(Func, classes.Func)==False
-    assert isinstance(Func, classes.Callable)==True
     assert isinstance(Func, classes.BasicFunctionType)==True
 
     x = BasicSymbol('x')
@@ -22,7 +21,7 @@ def test_defined_function():
 
     f = Func(x,y)
     assert isinstance(f, classes.Func)==True
-    assert isinstance(f, classes.Callable)==False
+    assert isinstance(f, classes.BasicFunctionType)==False
     f = Func(x,x)
     assert isinstance(f, classes.Func)==False
     assert isinstance(f, classes.BasicSymbol)==True
@@ -31,7 +30,6 @@ def test_symbol_function():
 
     Foo = BasicFunctionType('Foo')
     assert hasattr(classes,'Foo')==False
-    assert isinstance(Foo, classes.Callable)==True
     assert isinstance(Foo, classes.BasicFunctionType)==True
     assert isinstance(Foo, classes.BasicFunction)==False
     
@@ -39,7 +37,7 @@ def test_symbol_function():
     y = BasicSymbol('y')
     f = Foo(x, y)
 
-    assert isinstance(f, classes.Callable)==False
+    assert isinstance(f, classes.BasicFunctionType)==False
     assert isinstance(f, classes.BasicFunction)==True
 
 def test_defined_symbol_function():
@@ -161,10 +159,10 @@ def test_basic_function():
     assert f.replace(f3,h)==f
     assert f.replace(f2,h)==h
 
-    assert BasicFunction.torepr()=='BasicFunction'
+    assert BasicFunction.torepr()=="<class 'sympy.core.function.BasicFunction'>"
     assert BasicFunction.tostr()=='BasicFunction'
 
-    assert F.torepr()=='F'
+    assert F.torepr()=="<class 'test_function.F'>"
     assert F.tostr()=='F'
 
     assert f.tostr()=='BasicFunction(1, 2)'
@@ -177,7 +175,7 @@ def test_basic_function():
 
     x = BasicSymbol('x')
     assert BasicLambda((x,),F(x))==F
-    assert isinstance(BasicLambda((x,),F(x,x)), classes.BasicLambda)
+    assert issubclass(BasicLambda((x,),F(x,x)), classes.BasicLambda)==True
 
     assert bool(f)==False
     assert bool(F)==False
@@ -190,12 +188,35 @@ def test_basic_function():
 
     k = F(F)
     assert k.tostr()=='F(F)'
-    assert k.torepr()=='F(F)'
+    assert k.torepr()=="F(<class 'test_function.F'>)"
     assert k(x)==F(F(x))
     assert k(x).tostr()=='F(F(x))'
 
     assert F.atoms()==set([F])
-    assert F.atoms(type=Callable)==set([F])
+    assert F.atoms(type=BasicFunctionType)==set([F])
     assert F.atoms(type=Basic)==set([F])
     assert F.atoms(type=BasicFunction)==set([])
     assert k.atoms()==set([F])
+
+
+def test_instancemethod():
+    import types
+    d = {}
+    for n,cls in classes.iterNameValue():
+        if issubclass(cls, BasicFunction):
+            for k,v in cls.__dict__.iteritems():
+                if v.__class__.__name__.startswith('InstanceClassMethod'):
+                    try:
+                        d[k].append(n)
+                    except KeyError:
+                        d[k] = [n]
+                elif isinstance(v, classmethod):
+                    pass
+                    #print k,type(v)
+    for n,cls in classes.iterNameValue():
+        if issubclass(cls, BasicFunction):
+            for k,v in cls.__dict__.iteritems():
+                if isinstance(v, (types.FunctionType, classmethod)):
+                    if k in d:
+                        print
+                        print '%s.%s needs instancemethod wrapper as is used in %s' % (n,k, ', '.join(d[k]))

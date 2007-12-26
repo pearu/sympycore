@@ -6,9 +6,11 @@ from .basic import (Basic, Composite, Atom, sympify, BasicType,
 from .symbol import BasicSymbol, BasicDummySymbol, BasicWildSymbol
 from .function import (BasicFunction, BasicFunctionType, BasicLambda,
                        BasicWildFunctionType,
-                       Callable)
+                       BasicParametricFunction, BasicOperator,
+                       )
 from .signature import FunctionSignature
 from .sorting import sort_sequence
+from .utils import instancemethod, InstanceClassMethod
 
 __all__ = ['Basic', 'BasicType',
            'Composite', 'Atom', 'BasicWild',
@@ -16,8 +18,10 @@ __all__ = ['Basic', 'BasicType',
            'BasicSymbol', 'BasicDummySymbol', 'BasicWildSymbol',
            'sympify',
            'BasicFunction', 'BasicFunctionType','BasicWildFunctionType',
+           'BasicParametricFunction', 'BasicOperator',
            'BasicLambda',
-           'FunctionSignature','Callable',
+           'FunctionSignature',
            'classes', 'objects',
-           'sort_sequence'
+           'sort_sequence',
+           'instancemethod',# 'InstanceClassMethod',
            ]

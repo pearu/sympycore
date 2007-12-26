@@ -1,7 +1,6 @@
 
-from ..core import Basic, sympify, objects, classes
+from ..core import Basic, sympify, objects, classes, instancemethod
 from ..core.function import new_function_value
-from ..core.utils import UniversalMethod
 from .basic import BasicArithmetic
 from .function import ArithmeticFunction, Function, FunctionType
 from .operations import BaseExpDict
@@ -43,6 +42,7 @@ class Mul(ArithmeticFunction):
             return c
         return cmp(self._dict_content, other._dict_content)
 
+    @instancemethod(ArithmeticFunction.tostr)
     def tostr(self, level=0):
         p = self.precedence
         r = '@*@'.join([op.tostr(p) for op in self.iterSorted()]) or '1'
@@ -114,7 +114,7 @@ class Mul(ArithmeticFunction):
                 return BaseExpDict([(b,e*c) for (b,e) in self.iterBaseExp()]).as_Basic(),1/c
         return self, one
 
-
+    @instancemethod(ArithmeticFunction.try_power)
     def try_power(self, other):
         t, c = self.as_term_coeff()
         if not c is one and isinstance(other, classes.Rational):
@@ -148,7 +148,7 @@ class Mul(ArithmeticFunction):
     _fdiff_cache = {}
     _fdiff_indices = ()
 
-    @UniversalMethod
+    @classmethod
     def fdiff(obj, index=1):
         if isinstance(obj, type):
             # Mul = lambda x,y,z,..: Mul(x,y,z,..)
@@ -173,6 +173,8 @@ class Mul(ArithmeticFunction):
             Mul._fdiff_cache[indices] = f
             return f
         return obj._fdiff(index)
+
+    fdiff = instancemethod(fdiff)(ArithmeticFunction)
 
     def __mul__(self, other):
         other = sympify(other)
@@ -201,6 +203,7 @@ class Mul(ArithmeticFunction):
             return obj
         return Mul(self, other)
 
+    @instancemethod(ArithmeticFunction.matches)
     def matches(pattern, expr, repl_dict={}):
         wild_classes = (classes.Wild, classes.WildFunctionType)
         if not pattern.atoms(type=wild_classes):
@@ -220,7 +223,7 @@ class Mul(ArithmeticFunction):
         log_expr = classes.Add(*expr.iterLogMul())
         return log_pattern.matches(log_expr, repl_dict)
 
-class Div(BasicArithmetic):
+class Div(Function):
     """
     Div() <=> 1
     Div(x) <=> 1/x

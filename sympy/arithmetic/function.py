@@ -1,11 +1,9 @@
 
-from types import ClassType
-
 from ..core import Basic, Atom, BasicType, BasicWild, classes, objects
-from ..core.function import (BasicFunctionType, BasicFunction,
-                             FunctionSignature, BasicLambda,
-                             Callable)
-from ..core.utils import UniversalMethod
+from ..core import (BasicFunctionType, BasicFunction,
+                    FunctionSignature, BasicLambda,
+                    instancemethod
+                    )
 from .methods import ArithmeticMethods
 from .basic import BasicArithmetic
 
@@ -26,6 +24,8 @@ class Function(BasicArithmetic, BasicFunction):
 
     __metaclass__ = FunctionType
 
+    try_power = instancemethod(BasicArithmetic.try_power)(BasicArithmetic.try_power)
+
     def try_derivative(self, s):
         i = 0
         l = []
@@ -40,20 +40,19 @@ class Function(BasicArithmetic, BasicFunction):
             l.append(df(*args) * da)
         return classes.Add(*l)
 
-    @UniversalMethod
+    @classmethod
     def fdiff(obj, index=1):
-        if isinstance(obj, BasicType):
-            nargs = obj.signature.nof_arguments
-            if nargs is not None and not (1<=index<=nargs):
-                raise TypeError('fdiff: invalid index=%r, %s takes %s arguments'\
-                                % (index, obj.__name__, nargs))
-            mth = getattr(obj, 'fdiff%s' % (index), None)
-            if mth is not None:
-                return mth()
-            return classes.FDerivative(obj, classes.Tuple(index, 1), is_canonical=True)
-            # XXX: need derivative operator
-            return FunctionType('%s_%s' % (obj.__name__, index), Function,
-                                dict(signature=obj.signature), is_global=False)
+        nargs = obj.signature.nof_arguments
+        if nargs is not None and not (1<=index<=nargs):
+            raise TypeError('fdiff: invalid index=%r, %s takes %s arguments'\
+                            % (index, obj.__name__, nargs))
+        mth = getattr(obj, 'fdiff%s' % (index), None)
+        if mth is not None:
+            return mth()
+        return classes.FDerivative(obj, classes.Tuple(index, 1), is_canonical=True)
+
+    @instancemethod(fdiff)
+    def fdiff(obj, index=1):
         return obj._fdiff(index)
 
     def _fdiff(self, index=1):
@@ -74,9 +73,10 @@ class Lambda(BasicArithmetic, BasicLambda):
 
 class WildFunctionType(BasicWild, FunctionType):
     # Todo: derive WildFunctionType from DummyFunctionType.
-    def __new__(typ, name=None, bases=None, attrdict=None, is_global=None, predicate=None):
+    def __new__(typ, name=None, bases=(), attrdict={}, is_global=None, predicate=None):
         if name is None:
             name = 'WF'
+        attrdict['matches'] = instancemethod(BasicWild.matches)(BasicFunction.__dict__['matches'])
         func = FunctionType.__new__(typ, name, bases, attrdict, is_global)
         if predicate is not None:
             func.predicate = staticmethod(predicate)
@@ -108,6 +108,7 @@ class ArithmeticFunction(Function):
     
     signature = FunctionSignature([BasicArithmetic],(BasicArithmetic,))
 
+    @instancemethod(Function.__eq__)
     def __eq__(self, other):
         if self.__class__ is other.__class__:
             return dict.__eq__(self._dict_content, other._dict_content)
@@ -117,6 +118,7 @@ class ArithmeticFunction(Function):
             return self==sympify(other)
         return False
 
+    @instancemethod(Function.count_ops)
     def count_ops(self, symbolic=True):
         n = len(self.args)
         if symbolic:

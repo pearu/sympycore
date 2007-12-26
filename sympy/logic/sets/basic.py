@@ -4,7 +4,7 @@ __all__ = ['BasicSet']
 
 from .assume_utils import is_element_of_set as es
 
-class BasicSet(Basic):
+class BasicSet:
     """ Defines generic methods for set classes.
     """
 
@@ -76,3 +76,4 @@ class BasicSet(Basic):
         return
     def try_divisible(self, divisor):
         return
+classes.BasicSet = BasicSet

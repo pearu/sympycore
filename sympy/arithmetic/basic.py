@@ -1,11 +1,10 @@
 
-from ..core import Basic, BasicType, classes, objects, sympify
-from ..core.utils import UniversalMethod
+from ..core import Basic, BasicType, classes, objects, sympify, instancemethod
 from .methods import ArithmeticMethods
 
 __all__ = ['BasicArithmetic']
 
-class BasicArithmetic(ArithmeticMethods, Basic):
+class BasicArithmetic(ArithmeticMethods):
     """ Defines default methods for arithmetic classes.
     """
 
@@ -34,7 +33,6 @@ class BasicArithmetic(ArithmeticMethods, Basic):
             return (cls, self.iterPow())
         raise TypeError('Expressions can be split only with respect to Add, Mul, Pow classes, got %s' % (cls.__name__))
 
-    @UniversalMethod
     def fdiff(obj, index=1):
         """ Return derivative function with respect to index-th argument.
         """
@@ -96,11 +94,6 @@ class BasicArithmetic(ArithmeticMethods, Basic):
     def iterBaseExp(self):
         return iter([self.as_base_exponent()])
 
-    def match(self, pattern):
-        pattern = sympify(pattern)
-        if isinstance(pattern, bool): return
-        return pattern.matches(self, {})
-
     def as_base_exponent(self):
         """ Return (b,e) such that self==b**e.
         """
@@ -131,3 +124,5 @@ class BasicArithmetic(ArithmeticMethods, Basic):
         """
         t,c = self.as_term_coeff()
         return c,t
+
+classes.BasicArithmetic = BasicArithmetic
