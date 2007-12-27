@@ -3,6 +3,7 @@ import types
 import itertools
 
 from .utils import memoizer_immutable_args, singleton
+from .sexpr import SYMBOLIC, ARITHMETIC
 
 __all__ = ['BasicType', 'Basic', 'Atom', 'Composite', 'BasicWild',
            'Tuple',
@@ -280,6 +281,14 @@ class Basic(object):
                     else:
                         yield func(self, item)
         yield func(parent, self)
+
+    def as_sexpr(self, context=ARITHMETIC):
+        """ Return expression as a tuple representing S-expression
+        for a given context:
+          sexpr.ARITHMETIC, sexpr.LOGICAL_SYMBOLIC, sexpr.LOGICAL_SET
+        """
+        return (SYMBOLIC, self)
+
 
 class Atom(Basic):
 

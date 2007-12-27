@@ -1,5 +1,5 @@
 
-from ..core import Basic, sympify, objects, classes, BasicType, instancemethod
+from ..core import Basic, sympify, objects, classes, BasicType, instancemethod, sexpr
 from .basic import BasicArithmetic
 from .function import ArithmeticFunction, Function, FunctionType
 from .operations import TermCoeffDict
@@ -188,6 +188,12 @@ class Add(ArithmeticFunction):
             if not c is one:
                 return TermCoeffDict([(t,v*c) for (t,v) in self.iterTermCoeff()]).as_Basic(),1/c
         return self, one
+
+    def as_sexpr(self, context=sexpr.ARITHMETIC):
+        if context==sexpr.ARITHMETIC:
+            r = [(t.as_sexpr(context), c.as_sexpr(context)) for t,c in self.iterTermCoeff()]
+            return (sexpr.TERMS,) + tuple(r)
+        return Basic.as_sexpr(self, context=None)
 
 class Sub(Function):
     """

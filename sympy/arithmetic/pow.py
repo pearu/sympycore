@@ -1,6 +1,6 @@
 
 import itertools
-from ..core import Basic, sympify, objects, classes, instancemethod
+from ..core import Basic, sympify, objects, classes, instancemethod, sexpr
 from .basic import BasicArithmetic
 from .function import Function, FunctionSignature
 
@@ -168,6 +168,11 @@ class Pow(Function):
                 return d
         return
 
+    def as_sexpr(self, context=sexpr.ARITHMETIC):
+        if context==sexpr.ARITHMETIC:
+            r = [t.as_sexpr(context) for t in self.args]
+            return (sexpr.POW,) + tuple(r)
+        return Basic.as_sexpr(self, context=None)
 
 class Root(Function):
     """ Root(b,e) is the inverse of Pow with respect to the first argument:

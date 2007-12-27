@@ -1,5 +1,5 @@
 from ..core.utils import memoizer_immutable_args
-from ..core import Basic, Atom, sympify, objects, classes
+from ..core import Basic, Atom, sympify, objects, classes, sexpr
 from .methods import NumberMethods
 
 from .basic import BasicArithmetic
@@ -63,6 +63,18 @@ class Number(BasicArithmetic, Atom):
     def as_Integer(self):
         if isinstance(self, Integer): return self
         raise NotImplementedError(`self`)
+
+    def as_sexpr(self, context=sexpr.ARITHMETIC):
+        if context==sexpr.ARITHMETIC:
+            return (sexpr.NUMBER, self)
+        return Basic.as_sexpr(self, context=None)
+        #if isinstance(self, Fraction):
+        #    return (sexpr.FRACTION, self.p, self.q)
+        #if isinstance(self, Integer):
+        #    return (sexpr.INTEGER, self.p)
+        #if isinstance(self, Float):
+        #    return (sexpr.FLOAT, self)
+        #raise NotImplementedError(`self`)
 
     @memoizer_immutable_args('Number.try_power')
     def try_power(self, other):
@@ -227,7 +239,7 @@ class Rational(Real):
 
     def as_terms(self, expand=False):
         return [(Integer(1), self)]
-        
+
 from .integer import Integer
 from .fraction import Fraction
 from .float import Float

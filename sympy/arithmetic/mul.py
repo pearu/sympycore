@@ -1,5 +1,5 @@
 
-from ..core import Basic, sympify, objects, classes, instancemethod
+from ..core import Basic, sympify, objects, classes, instancemethod, sexpr
 from ..core.function import new_function_value
 from .basic import BasicArithmetic
 from .function import ArithmeticFunction, Function, FunctionType
@@ -80,7 +80,8 @@ class Mul(ArithmeticFunction):
             return self, c
         d = BaseExpDict(())
         for k,v in self.iterBaseExp():
-            if k==c: continue
+            if k==c:
+                continue
             d[k] = v
         return d.as_Basic(), c
 
@@ -222,6 +223,12 @@ class Mul(ArithmeticFunction):
         log_pattern = classes.Add(*pattern.iterLogMul())
         log_expr = classes.Add(*expr.iterLogMul())
         return log_pattern.matches(log_expr, repl_dict)
+
+    def as_sexpr(self, context=sexpr.ARITHMETIC):
+        if context==sexpr.ARITHMETIC:
+            r = [t.as_sexpr(context) for t in self.args]
+            return (sexpr.FACTORS,) + tuple(r)
+        return Basic.as_sexpr(self, context=None)
 
 class Div(Function):
     """
