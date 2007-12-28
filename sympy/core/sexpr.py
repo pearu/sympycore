@@ -19,15 +19,15 @@ LOGICAL_SYMBOLIC = 'symbolic'
 LOGICAL_SET = 'set'
 
 # s-expr car symbols
-NUMBER = 'N'
+NUMBER = intern('N')
 # a number object that supports arithmetic operations with Python integers,
 # the code uses operations +, *, and ** with integer exponent.
-SYMBOLIC = 'S'
+SYMBOLIC = intern('S')
 # any immutable object that supports __eq__ with other such objects
-TERMS = '+'
+TERMS = intern('+')
 # terms (stored in a frozenset) are in the form (term, coeff)
 # where coeff is number, a numeric term is in the form (1, number)
-FACTORS = '*'
+FACTORS = intern('*')
 # factors (stored in a frozenset) are in the form (base, exp)
 # where exp is integer and base is non-numeric (factors with
 # numeric part is expressed as (TERMS, (<non-numberic> factor,1),(one, <numeric>)))

@@ -204,7 +204,11 @@ def Rational(p, q):
 
 
 # use time() instead on unix
-from time import clock
+import sys
+if sys.platform=='win32':
+    from time import clock
+else:
+    from time import time as clock
 
 import sympy
 
@@ -218,7 +222,7 @@ def time1():
     A = a*x + b*y + c*z
     B = b*x + c*y + a*z
     t1 = clock()
-    n = 100
+    n = 1000
     while n:
         3*(a*x+b*y+c*z)
         #A + B
@@ -239,7 +243,7 @@ def time2():
     A = a*x + b*y + c*z
     B = b*x + c*y + a*z
     t1 = clock()
-    n = 100
+    n = 1000
     while n:
         3*(a*x+b*y+c*z)
         #A + B
@@ -250,9 +254,31 @@ def time2():
     t2 = clock()
     return 100 / (t2-t1)
 
+def time3():
+    x = sympy.Symbol('x').as_sexpr()
+    y = sympy.Symbol('y').as_sexpr()
+    z = sympy.Symbol('z').as_sexpr()
+    a = sympy.Rational(1,2).as_sexpr()
+    b = sympy.Rational(3,4).as_sexpr()
+    c = sympy.Rational(5,6).as_sexpr()
+    tre = sympy.Integer(3).as_sexpr()
+    from sympy.arithmetic.sexpr import add, mul
+    t1 = clock()
+    n = 1000
+    while n:
+        mul(add(mul(a,x),add(mul(b,y),mul(c,z))),tre)
+        #3*(a*x+b*y+c*z)
+        #A + B
+        #x + y
+        #a + b
+        #a * b
+        n -= 1
+    t2 = clock()
+    return 100 / (t2-t1)
+
 def timing():
     t1 = time1()
-    t2 = time2()
+    t2 = time3()
     return t1, t2, t1/t2
 
 print "without psyco"
@@ -260,10 +286,14 @@ print timing()
 print timing()
 print timing()
 
-import psyco
-psyco.full()
+try:
+    import psyco
+except ImportError:
+    psyco = None
+if psyco is not None:
+    psyco.full()
 
-print "with psyco"
-print timing()
-print timing()
-print timing()
+    print "with psyco"
+    print timing()
+    print timing()
+    print timing()

@@ -65,11 +65,32 @@ def add_inplace_dict_terms(d, rhs, p):
                 d[t] = c 
     return
 
+# having special function with p=1 gives 50% speedup.
+def add_inplace_dict_terms1(d, rhs):
+    for t,c in rhs[1]:
+        b = d.get(t)
+        if b is None:
+            d[t] = c
+        else:
+            c = b + c
+            if c==0:
+                # XXX: check that t does not contain oo or nan
+                del d[t]
+            else:
+                d[t] = c 
+    return
+
 def add_inplace_dict_number(d, rhs, p):
     return add_inplace_dict_terms(d, (TERMS, [(one, rhs[1])]), p)
 
+def add_inplace_dict_number1(d, rhs):
+    return add_inplace_dict_terms1(d, (TERMS, [(one, rhs[1])]))
+
 def add_inplace_dict_nonterms(d, rhs, p):
     return add_inplace_dict_terms(d, (TERMS, [(rhs, 1)]), p)
+
+def add_inplace_dict_nonterms1(d, rhs):
+    return add_inplace_dict_terms1(d, (TERMS, [(rhs, 1)]))
 
 def mul_inplace_dict_factors(d, rhs, p):
     for t,c in rhs[1]:
@@ -78,6 +99,20 @@ def mul_inplace_dict_factors(d, rhs, p):
             d[t] = c * p
         else:
             c = b + c * p
+            if c==0:
+                # XXX: check that t does not contain nan
+                del d[t]
+            else:
+                d[t] = c
+    return
+
+def mul_inplace_dict_factors1(d, rhs):
+    for t,c in rhs[1]:
+        b = d.get(t)
+        if b is None:
+            d[t] = c
+        else:
+            c = b + c
             if c==0:
                 # XXX: check that t does not contain nan
                 del d[t]
@@ -105,16 +140,14 @@ def factors_dict_to_expr(d):
 
 def add_terms_terms(lhs, rhs):
     d = dict(lhs[1])
-    add_inplace_dict_terms(d, rhs, 1) # XXX: optimize 1
+    add_inplace_dict_terms1(d, rhs)
     return terms_dict_to_expr(d)
 
 def add_terms_number(lhs, rhs):
-    # XXX: optimize
     return add_terms_terms(lhs, (TERMS, [(one, rhs[1])]))
 
 def add_terms_nonterms(lhs, rhs):
-    # XXX: optimize
-    return add_terms_terms(lhs, (TERMS, ((rhs, 1),)))
+    return add_terms_terms(lhs, (TERMS, [(rhs, 1)]))
 
 def add_nonterms_nonterms(lhs, rhs):
     t1 = lhs[1]
@@ -133,39 +166,51 @@ def add(lhs, rhs):
     """ Add two s-expressions.
     """
     s1, s2 = lhs[0], rhs[0]
-    if s1==s2==NUMBER: #XXX: optimize
-        return add_number_number(lhs, rhs)
-    if s1==s2==TERMS:
-        return add_terms_terms(lhs, rhs)
-    if s1==TERMS:
-        if s2==NUMBER:
-            return add_terms_number(lhs, rhs)
-        return add_terms_nonterms(lhs, rhs)
-    if s2==TERMS:
-        if s1==NUMBER:
+    if s1 is NUMBER:
+        if s1 is s2:
+            return add_number_number(lhs, rhs)
+        if s2 is TERMS:
             return add_terms_number(rhs, lhs)
-        return add_terms_nonterms(rhs, lhs)
-    if s1==NUMBER:
         return add_nonterms_number(rhs, lhs)
-    if s2==NUMBER:
+    if s2 is NUMBER:
+        if s1 is TERMS:
+            return add_terms_number(lhs, rhs)
         return add_nonterms_number(lhs, rhs)
+    if s1 is TERMS:
+        if s1 is s2:
+            return add_terms_terms(lhs, rhs)
+        return add_terms_nonterms(lhs, rhs)
+    if s2 is TERMS:
+        return add_terms_nonterms(rhs, lhs)
     return add_nonterms_nonterms(lhs, rhs)
 
 def add_inplace_dict(d, rhs, p):
     """ Add s-expression multiplied with p to dictionary d.
     """
     s = rhs[0]
-    if s==TERMS:
+    if s is TERMS:
         add_inplace_dict_terms(d, rhs, p)
-    elif s==NUMBER:
+    elif s is NUMBER:
         add_inplace_dict_number(d, rhs, p)
     else:
         add_inplace_dict_nonterms(d, rhs, p)
     return
 
+def add_inplace_dict1(d, rhs):
+    """ Add s-expression multiplied with p to dictionary d.
+    """
+    s = rhs[0]
+    if s is TERMS:
+        add_inplace_dict_terms1(d, rhs)
+    elif s is NUMBER:
+        add_inplace_dict_number1(d, rhs)
+    else:
+        add_inplace_dict_nonterms1(d, rhs)
+    return
+
 def mul_factors_factors(lhs, rhs):
     d = dict(lhs[1])
-    mul_inplace_dict_factors(d, rhs, 1)
+    mul_inplace_dict_factors1(d, rhs)
     return factors_dict_to_expr(d)
 
 def mul_number_number(lhs, rhs):
@@ -188,11 +233,11 @@ def mul_nonfactors_nonfactors(lhs, rhs):
     return (FACTORS, frozenset([(lhs, 1), (rhs, 1)]))
 
 def mul_terms_terms(lhs, rhs):
-    if not (len(lhs[1])==len(rhs[1])==1):
-        return mul_nonfactors_nonfactors(lhs, rhs)
-    t1,c1 = list(lhs[1])[0]
-    t2,c2 = list(rhs[1])[0]
-    return mul(mul(t1, t2),(NUMBER, c1*c2))
+    if len(lhs[1])==1 and len(rhs[1])==1:
+        t1,c1 = list(lhs[1])[0]
+        t2,c2 = list(rhs[1])[0]
+        return mul(mul(t1, t2),(NUMBER, c1*c2))
+    return mul_nonfactors_nonfactors(lhs, rhs)
 
 def mul_terms_number(lhs, rhs):
     d = dict()
@@ -215,36 +260,36 @@ def mul(lhs, rhs):
     """ Multiply two s-expressions.
     """
     s1, s2 = lhs[0], rhs[0]
-    if s1==FACTORS:
-        if s2==FACTORS:
+    if s1 is FACTORS:
+        if s2 is FACTORS:
             return mul_factors_factors(lhs, rhs)
-        elif s2==TERMS:
+        elif s2 is TERMS:
             return mul_terms_factors(rhs, lhs)
-        elif s2==NUMBER:
+        elif s2 is NUMBER:
             return mul_factors_number(lhs, rhs)
         return mul_factors_nonfactors(lhs, rhs)
-    elif s1==TERMS:
-        if s2==FACTORS:
+    elif s1 is TERMS:
+        if s2 is FACTORS:
             return mul_terms_factors(lhs, rhs)
-        elif s2==TERMS:
+        elif s2 is TERMS:
             return mul_terms_terms(lhs, rhs)
-        elif s2==NUMBER:
+        elif s2 is NUMBER:
             return mul_terms_number(lhs, rhs)
         return mul_terms_nonfactors(lhs, rhs)
-    elif s1==NUMBER:
-        if s2==FACTORS:
+    elif s1 is NUMBER:
+        if s2 is FACTORS:
             return mul_factors_number(rhs, lhs)
-        elif s2==TERMS:
+        elif s2 is TERMS:
             return mul_terms_number(rhs, lhs)
-        elif s2==NUMBER:
+        elif s2 is NUMBER:
             return mul_number_number(lhs, rhs)
         return mul_nonfactors_number(rhs, lhs)
     else:
-        if s2==FACTORS:
+        if s2 is FACTORS:
             return mul_factors_nonfactors(rhs, lhs)
-        elif s2==TERMS:
+        elif s2 is TERMS:
             return mul_terms_nonfactors(rhs, lhs)
-        elif s2==NUMBER:
+        elif s2 is NUMBER:
             return mul_nonfactors_number(lhs, rhs)
     return mul_nonfactors_nonfactors(lhs, rhs)
 
@@ -257,13 +302,13 @@ def power(base, exp):
     elif exp==0:
         return one
     s = base[0]
-    if s==NUMBER:
+    if s is NUMBER:
         return (NUMBER, base[1] ** exp)
-    if s==TERMS:
+    if s is TERMS:
         if len(base[1])==1 and exp!=1:
             t,c = list(base[1])[0]
             return mul(power(t, exp), (NUMBER,c ** exp))
-    if s==FACTORS:
+    if s is FACTORS:
         d = dict()
         mul_inplace_dict_factors(d, base, exp)
         return factors_dict_to_expr(d)
@@ -286,11 +331,11 @@ def expand_mul(lhs, rhs):
     """ Multiply s-expressions with expand.
     """
     s1, s2 = lhs[0], rhs[0]
-    if s1==s2==TERMS:
-        return expand_mul_terms_terms(lhs, rhs)
-    if s1==TERMS:
+    if s1 is TERMS:
+        if s1 is s2:
+            return expand_mul_terms_terms(lhs, rhs)
         return expand_mul_terms_nonterms(lhs, rhs)
-    if s2==TERMS:
+    if s2 is TERMS:
         return expand_mul_terms_nonterms(rhs, lhs)
     return mul(lhs, rhs)
 
@@ -339,9 +384,9 @@ def expand_power(expr, p):
         for i in xrange(1, min(n+1,k+1)):
             nn = (m+1)*i-k
             if nn:
-                add_inplace_dict(r1, expand_mul(l[k-i], p0[i]), Fraction(nn,k)) # XXX: optimize expand_mul, it should not be needed
+                add_inplace_dict(r1, expand_mul(l[k-i], p0[i]), Fraction(nn,k))
         f = terms_dict_to_expr(r1)
-        add_inplace_dict(r, f, 1)
+        add_inplace_dict1(r, f)
         l.append(f)
     return terms_dict_to_expr(r)
 
@@ -349,9 +394,9 @@ def expand(expr):
     """ Expand s-expression.
     """
     s = expr[0]
-    if s==TERMS:
+    if s is TERMS:
         return expand_terms(expr)
-    if s==FACTORS:
+    if s is FACTORS:
         return expand_factors(expr)
     return expr
 
