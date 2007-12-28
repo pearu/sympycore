@@ -187,50 +187,29 @@ def mul_nonfactors_nonfactors(lhs, rhs):
         return (FACTORS, frozenset([(lhs, 2)]))
     return (FACTORS, frozenset([(lhs, 1), (rhs, 1)]))
 
-def expand_mul_terms_terms(lhs, rhs):
-    # lhs, rhs must be expanded
-    d = dict()
-    for t1,c1 in lhs[1]:
-        for t2,c2 in rhs[1]:
-            add_inplace_dict(d, mul(t1,t2), c1*c2)
-    return terms_dict_to_expr(d)
-
-def expand_mul_terms_nonterms(lhs, rhs):
-    # lhs, rhs must be expanded
-    d = dict()
-    for t,c in lhs[1]:
-        add_inplace_dict(d, mul(t, rhs), c)
-    return terms_dict_to_expr(d)
-
-def expand_mul(lhs, rhs):
-    # lhs, rhs must be expanded
-    s1, s2 = lhs[0], rhs[0]
-    if s1==s2==TERMS:
-        return expand_mul_terms_terms(lhs, rhs)
-    if s1==TERMS:
-        return expand_mul_terms_nonterms(lhs, rhs)
-    if s2==TERMS:
-        return expand_mul_terms_nonterms(rhs, lhs)
-    return mul(lhs, rhs)
-
-def mul_terms_terms(rhs, lhs):
-    if not (len(rhs[1])==len(lhs[1])==1):
+def mul_terms_terms(lhs, rhs):
+    if not (len(lhs[1])==len(rhs[1])==1):
         return mul_nonfactors_nonfactors(lhs, rhs)
-    t1,c1 = list(rhs[1])[0]
-    t2,c2 = list(lhs[1])[0]
+    t1,c1 = list(lhs[1])[0]
+    t2,c2 = list(rhs[1])[0]
     return mul(mul(t1, t2),(NUMBER, c1*c2))
 
-def mul_terms_number(rhs, lhs):
-    if not (len(rhs[1])==1):
-        return mul_nonfactors_number(lhs, rhs)
-    t,c = list(rhs[1])[0]
-    return mul(t,(NUMBER, c*lhs[1]))
+def mul_terms_number(lhs, rhs):
+    d = dict()
+    add_inplace_dict_terms(d, lhs, rhs[1])
+    return terms_dict_to_expr(d)
 
-def mul_terms_factors(rhs, lhs):
-    if not (len(rhs[1])==1):
-        return mul_factors_nonfactors(lhs, rhs)
-    t,c = list(rhs[1])[0]
-    return mul(mul(t,lhs), (NUMBER, c))
+def mul_terms_factors(lhs, rhs):
+    if not (len(lhs[1])==1):
+        return mul_factors_nonfactors(rhs, lhs)
+    t,c = list(lhs[1])[0]
+    return mul(mul(t,rhs), (NUMBER, c))
+
+def mul_terms_nonfactors(lhs, rhs):
+    if not (len(lhs[1])==1):
+        return mul_nonfactors_nonfactors(rhs, lhs)
+    t,c = list(lhs[1])[0]
+    return mul(mul(t,rhs), (NUMBER, c))
 
 def mul(lhs, rhs):
     """ Multiply two s-expressions.
@@ -251,6 +230,7 @@ def mul(lhs, rhs):
             return mul_terms_terms(lhs, rhs)
         elif s2==NUMBER:
             return mul_terms_number(lhs, rhs)
+        return mul_terms_nonfactors(lhs, rhs)
     elif s1==NUMBER:
         if s2==FACTORS:
             return mul_factors_number(rhs, lhs)
@@ -262,6 +242,8 @@ def mul(lhs, rhs):
     else:
         if s2==FACTORS:
             return mul_factors_nonfactors(rhs, lhs)
+        elif s2==TERMS:
+            return mul_terms_nonfactors(rhs, lhs)
         elif s2==NUMBER:
             return mul_nonfactors_number(lhs, rhs)
     return mul_nonfactors_nonfactors(lhs, rhs)
@@ -287,6 +269,31 @@ def power(base, exp):
         return factors_dict_to_expr(d)
     return (FACTORS, frozenset([(base, exp)]))
 
+def expand_mul_terms_terms(lhs, rhs):
+    d = dict()
+    for t1,c1 in lhs[1]:
+        for t2,c2 in rhs[1]:
+            add_inplace_dict(d, mul(t1,t2), c1*c2)
+    return terms_dict_to_expr(d)
+
+def expand_mul_terms_nonterms(lhs, rhs):
+    d = dict()
+    for t,c in lhs[1]:
+        add_inplace_dict(d, mul(t, rhs), c)
+    return terms_dict_to_expr(d)
+
+def expand_mul(lhs, rhs):
+    """ Multiply s-expressions with expand.
+    """
+    s1, s2 = lhs[0], rhs[0]
+    if s1==s2==TERMS:
+        return expand_mul_terms_terms(lhs, rhs)
+    if s1==TERMS:
+        return expand_mul_terms_nonterms(lhs, rhs)
+    if s2==TERMS:
+        return expand_mul_terms_nonterms(rhs, lhs)
+    return mul(lhs, rhs)
+
 def expand_terms(expr):
     d = dict()
     for t,c in expr[1]:
@@ -306,8 +313,6 @@ def expand_factors(expr):
 def expand_power(expr, p):
     if p==1:
         return expr
-    elif p==0:
-        return one
     elif p<0 or expr[0]!=TERMS:
         return power(expr, p)
     ## Consider polynomial

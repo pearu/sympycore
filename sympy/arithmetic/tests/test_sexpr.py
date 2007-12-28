@@ -73,6 +73,17 @@ def test_mul():
     assert tostr(xy2)=='2*x**1 * y**1'
 
     assert mul(power(x,2),power(x,-1))==x
+    assert tostr(mul(add(x,y), x))=='(1*x + 1*y)**1 * x**1'
+    assert mul(add(x,y), x)==mul(x,add(x,y))
+    assert tostr(mul(add(x,y), add(x,y)))=='(1*x + 1*y)**2'
+    assert tostr(mul(add(x,y), n))=='3*x + 3*y'
+    assert mul(add(x,y), n)==mul(n,add(x,y))
+    assert tostr(mul(add(x,y), add(x,n)))=='(1*x + 1*y)**1 * (1*x + 3*1)**1'
+    assert tostr(mul(add(x,y), power(x,2)))=='(1*x + 1*y)**1 * x**2'
+    assert mul(add(x,y), power(x,2))==mul(power(x,2),add(x,y))
+    assert tostr(mul(mul(n,x), x))=='3*x**2'
+    assert tostr(mul(mul(n,x), mul(t,y)))=='6*x**1 * y**1'
+    assert tostr(mul(mul(n,x), power(x,3)))=='3*x**4'
 
 def test_power():
     x = (SYMBOLIC, 'x')
@@ -86,6 +97,9 @@ def test_power():
     assert power(r, 2)==(NUMBER, Fraction(4,9))
     assert power(r, -2)==(NUMBER, Fraction(9,4))
     assert power(add(x,x), 2)==mul(power((NUMBER,2),2),power(x,2))
+    assert power(add(x,y), 1)==add(x,y)
+    assert power(add(x,y), 0)==one
+    assert power(zero, 0)==one
 
 def test_expand_mul():
     x = (SYMBOLIC, 'x')
@@ -115,12 +129,16 @@ def test_expand_mul():
           '2*x + 2*y'
     assert tostr(expand_mul(add(x,y),power(x,-1)))==\
           '1*1 + 1*x**-1 * y**1'
-
+    assert tostr(power(mul(x,add(x,y)),-2))=='(1*x + 1*y)**-2 * x**-2'
+    assert tostr(power(add(t,mul(x,add(x,y))),-2))=='(1*(1*x + 1*y)**1 * x**1 + 2*1)**-2'
+    
 def test_expand():
     x = (SYMBOLIC, 'x')
     y = (SYMBOLIC, 'y')
     z = (SYMBOLIC, 'z')
+    t = (NUMBER, 2)
     assert tostr(expand(mul(add(x,y),z)))==\
            '1*x**1 * z**1 + 1*y**1 * z**1'
     assert tostr(expand(power(add(x,y),2)))==\
            '1*x**2 + 1*y**2 + 2*x**1 * y**1'
+    assert tostr(expand(power(add(t,mul(x,add(x,y))),-2)))=='(1*x**1 * y**1 + 1*x**2 + 2*1)**-2'
