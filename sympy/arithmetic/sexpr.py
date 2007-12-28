@@ -20,24 +20,26 @@ Efficency and easy translation to C code has been kept in mind while writting
 the code below.
 """
 
-__all__ = ['add', 'mul', 'pow', 'expand', 'tostr']
+__all__ = ['add', 'mul', 'power', 'expand', 'tostr']
 
+from ..core import classes
 from ..core.sexpr import NUMBER, SYMBOLIC, TERMS, FACTORS
 
 # output functions:
-def parenthesis_in_mul(t):
-    if t[0]==TERMS:
-        return True
-    if t[0]==NUMBER:
-        return t[1] < 0 or t[1].__class__.__name__ == 'Fraction'
-    return False
 
 def tostr(expr, apply_parenthesis = False):
+    """ Return s-expr as a readable string.
+    Terms and factors are sorted lexicographically.
+    """
     s = expr[0]
     if s==TERMS:
-        r = ' + '.join(['%s*%s' % (c, tostr(t)) for t,c in expr[1]])
+        l = ['%s*%s' % (c, tostr(t)) for t,c in expr[1]]
+        l.sort()
+        r = ' + '.join(l)
     elif s==FACTORS:
-        r = ' * '.join(['%s**%i' % (tostr(t, parenthesis_in_mul(t)), c) for t,c in expr[1]])
+        l = ['%s**%i' % (tostr(t, t[0]==TERMS), c) for t,c in expr[1]]
+        l.sort()
+        r = ' * '.join(l)
     else:
         r = str(expr[1])
     if apply_parenthesis:
@@ -87,19 +89,19 @@ def terms_dict_to_expr(d):
     if not d:
         return zero
     if len(d)==1:
-        t, c = d.items()
+        t, c = d.items()[0]
         if c==1:
             return t
-    return (TERMS, frozenset(d.items()))
+    return (TERMS, frozenset(d.iteritems()))
 
 def factors_dict_to_expr(d):
     if not d:
         return one
     if len(d)==1:
-        t, c = d.items()
+        t, c = d.items()[0]
         if c==1:
             return t
-    return (FACTORS, frozenset(d.items()))
+    return (FACTORS, frozenset(d.iteritems()))
 
 def add_terms_terms(lhs, rhs):
     d = dict(lhs[1])
@@ -131,7 +133,7 @@ def add(lhs, rhs):
     """ Add two s-expressions.
     """
     s1, s2 = lhs[0], rhs[0]
-    if s1==s2==NUMBER:
+    if s1==s2==NUMBER: #XXX: optimize
         return add_number_number(lhs, rhs)
     if s1==s2==TERMS:
         return add_terms_terms(lhs, rhs)
@@ -170,13 +172,13 @@ def mul_number_number(lhs, rhs):
     return (NUMBER, lhs[1] * rhs[1])
 
 def mul_factors_number(lhs, rhs):
-    return (TERMS, frozenset([(lhs, 1), (one, rhs[1])]))
+    return (TERMS, frozenset([(lhs, rhs[1])]))
 
 def mul_factors_nonfactors(lhs, rhs):
     return mul_factors_factors(lhs, (FACTORS, [(rhs, 1)]))
 
 def mul_nonfactors_number(lhs, rhs):
-    return (TERMS, frozenset([(lhs, 1), (one, rhs[1])]))
+    return (TERMS, frozenset([(lhs, rhs[1])]))
 
 def mul_nonfactors_nonfactors(lhs, rhs):
     t1 = lhs[1]
@@ -190,9 +192,7 @@ def expand_mul_terms_terms(lhs, rhs):
     d = dict()
     for t1,c1 in lhs[1]:
         for t2,c2 in rhs[1]:
-            t = mul(t1,t2)
-            c = c1 * c2
-            add_inplace_dict_terms(d, t, c)
+            add_inplace_dict(d, mul(t1,t2), c1*c2)
     return terms_dict_to_expr(d)
 
 def expand_mul_terms_nonterms(lhs, rhs):
@@ -213,47 +213,79 @@ def expand_mul(lhs, rhs):
         return expand_mul_terms_nonterms(rhs, lhs)
     return mul(lhs, rhs)
 
+def mul_terms_terms(rhs, lhs):
+    if not (len(rhs[1])==len(lhs[1])==1):
+        return mul_nonfactors_nonfactors(lhs, rhs)
+    t1,c1 = list(rhs[1])[0]
+    t2,c2 = list(lhs[1])[0]
+    return mul(mul(t1, t2),(NUMBER, c1*c2))
+
+def mul_terms_number(rhs, lhs):
+    if not (len(rhs[1])==1):
+        return mul_nonfactors_number(lhs, rhs)
+    t,c = list(rhs[1])[0]
+    return mul(t,(NUMBER, c*lhs[1]))
+
+def mul_terms_factors(rhs, lhs):
+    if not (len(rhs[1])==1):
+        return mul_factors_nonfactors(lhs, rhs)
+    t,c = list(rhs[1])[0]
+    return mul(mul(t,lhs), (NUMBER, c))
+
 def mul(lhs, rhs):
     """ Multiply two s-expressions.
     """
     s1, s2 = lhs[0], rhs[0]
-    if s1==s2==FACTORS:
-        return mul_factors_factors(lhs, rhs)
-    if s1==s2==NUMBER:
-        return mul_number_number(lhs, rhs)
     if s1==FACTORS:
-        if s2==NUMBER:
+        if s2==FACTORS:
+            return mul_factors_factors(lhs, rhs)
+        elif s2==TERMS:
+            return mul_terms_factors(rhs, lhs)
+        elif s2==NUMBER:
             return mul_factors_number(lhs, rhs)
         return mul_factors_nonfactors(lhs, rhs)
-    if s2==FACTORS:
-        if s1==NUMBER:
+    elif s1==TERMS:
+        if s2==FACTORS:
+            return mul_terms_factors(lhs, rhs)
+        elif s2==TERMS:
+            return mul_terms_terms(lhs, rhs)
+        elif s2==NUMBER:
+            return mul_terms_number(lhs, rhs)
+    elif s1==NUMBER:
+        if s2==FACTORS:
             return mul_factors_number(rhs, lhs)
-        return mul_factors_nonfactors(rhs, lhs)
-    if s2==NUMBER:
-        return mul_nonfactors_number(lhs, rhs)
-    if s1==NUMBER:
+        elif s2==TERMS:
+            return mul_terms_number(rhs, lhs)
+        elif s2==NUMBER:
+            return mul_number_number(lhs, rhs)
         return mul_nonfactors_number(rhs, lhs)
+    else:
+        if s2==FACTORS:
+            return mul_factors_nonfactors(rhs, lhs)
+        elif s2==NUMBER:
+            return mul_nonfactors_number(lhs, rhs)
     return mul_nonfactors_nonfactors(lhs, rhs)
 
 def power(base, exp):
     """ Find a power of an s-expression over integer exponent.
     """
     assert isinstance(exp, int),`type(exp)`
+    if exp==1:
+        return base
+    elif exp==0:
+        return one
     s = base[0]
     if s==NUMBER:
         return (NUMBER, base[1] ** exp)
     if s==TERMS:
-        if len(base[1])==1:
+        if len(base[1])==1 and exp!=1:
             t,c = list(base[1])[0]
             return mul(power(t, exp), (NUMBER,c ** exp))
     if s==FACTORS:
         d = dict()
-        mul_inplace_dict_factors(d, rhs, exp)
+        mul_inplace_dict_factors(d, base, exp)
         return factors_dict_to_expr(d)
     return (FACTORS, frozenset([(base, exp)]))
-
-def expand_nonterms(expr):
-    return expr
 
 def expand_terms(expr):
     d = dict()
@@ -261,25 +293,61 @@ def expand_terms(expr):
         add_inplace_dict(d, expand(t), c)
     return terms_dict_to_expr(d)
 
-
 def expand_factors(expr):
-    s = list(expr[1])
-    if len(s)==1:
-        t, c = s[0]
-        t = expand(t)
-        if t[0]==TERMS and c>1:
-            return expand_add_power(t, c)
-        return (FACTORS, frozenset(((t, c),)))
-    if len(s)==2:
-        return expand_mul(expand(s[0]), expand(s[1]))
-    lhs = expand(s[0])
-    rhs = expand((FACTORS,frozenset(s[1:])))
-    return expand_mul(lhs, rhs)
+    r = None
+    for t,c in expr[1]:
+        e = expand_power(expand(t), c)
+        if r is None:
+            r = e
+        else:
+            r = expand_mul(r, e)
+    return r
+
+def expand_power(expr, p):
+    if p==1:
+        return expr
+    elif p==0:
+        return one
+    elif p<0 or expr[0]!=TERMS:
+        return power(expr, p)
+    ## Consider polynomial
+    ##   P(x) = sum_{i=0}^n p_i x^k
+    ## and its m-th exponent
+    ##   P(x)^m = sum_{k=0}^{m n} a(m,k) x^k
+    ## The coefficients a(m,k) can be computed using the
+    ## J.C.P. Miller Pure Recurrence [see D.E.Knuth,
+    ## Seminumerical Algorithms, The art of Computer
+    ## Programming v.2, Addison Wesley, Reading, 1981;]:
+    ##  a(m,k) = 1/(k p_0) sum_{i=1}^n p_i ((m+1)i-k) a(m,k-i),
+    ## where a(m,0) = p_0^m.
+    Fraction = classes.Fraction
+    m = int(p)
+    tc = list(expr[1])
+    n = len(tc)-1
+    t0,c0 = tc[0]
+    p0 = [mul(mul(t, power(t0,-1)),(NUMBER, c/c0)) for t,c in tc]
+    r = dict()
+    add_inplace_dict(r, power(t0,m), c0**m)
+    l = [terms_dict_to_expr(r)]
+    for k in xrange(1, m * n + 1):
+        r1 = dict()
+        for i in xrange(1, min(n+1,k+1)):
+            nn = (m+1)*i-k
+            if nn:
+                add_inplace_dict(r1, expand_mul(l[k-i], p0[i]), Fraction(nn,k)) # XXX: optimize expand_mul, it should not be needed
+        f = terms_dict_to_expr(r1)
+        add_inplace_dict(r, f, 1)
+        l.append(f)
+    return terms_dict_to_expr(r)
 
 def expand(expr):
+    """ Expand s-expression.
+    """
     s = expr[0]
     if s==TERMS:
         return expand_terms(expr)
     if s==FACTORS:
         return expand_factors(expr)
     return expr
+
+
