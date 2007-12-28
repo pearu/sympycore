@@ -7,6 +7,8 @@ function for s-expressions. The following functions are defined:
   power(base, intexp)
   expand(expr)
   tostr(expr)
+  add_sequence(seq)
+  mul_sequence(seq)
 
 with s-expression arguments (except intexp that must be Python integer)
 and return values. The following s-expressions are supported:
@@ -22,9 +24,13 @@ Python integers, <terms> and <bases> must be s-expressions.
 
 Efficency and easy translation to C code has been kept in mind while writting
 the code below.
+
+This code is based on the research of Fredrik Johansson
+(see research/directadd5.py) and is implemented by Pearu Peterson.
 """
 
-__all__ = ['add', 'mul', 'power', 'expand', 'tostr']
+__all__ = ['add', 'mul', 'power', 'expand', 'tostr',
+           'add_sequence', 'mul_sequence']
 
 from ..core import classes
 from ..core.sexpr import NUMBER, SYMBOLIC, TERMS, FACTORS
@@ -428,4 +434,35 @@ def expand(expr):
         return expand_factors(expr)
     return expr
 
+def add_sequence(seq):
+    """ Add a sequence of s-expressions.
+    """
+    d = dict()
+    for expr in seq:
+        add_inplace_dict1(d, expr)
+    return terms_dict_to_expr(d)
+
+def mul_sequence(seq):
+    """ Multiply a sequence of s-expressions.
+    """
+    d = dict()
+    coeff = 1
+    for expr in seq:
+        s = expr[0]
+        if s is FACTORS:
+            mul_inplace_dict_factors1(d, expr)
+        elif s is NUMBER:
+            coeff = coeff * expr[1]
+        elif s is TERMS:
+            if len(expr[1])==1:
+                t,c = list(expr[1])[0]
+                coeff = coeff * c
+                mul_inplace_dict_base_exp(d, t, 1)
+            else:
+                mul_inplace_dict_base_exp(d, expr, 1)
+        else:
+            mul_inplace_dict_base_exp(d, expr, 1)
+    if coeff==1:
+        return factors_dict_to_expr(d)
+    return mul(factors_dict_to_expr(d), (NUMBER, coeff))
 

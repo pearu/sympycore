@@ -62,7 +62,7 @@ def test_mul():
     assert mul(x,mul(x,y))==(FACTORS,frozenset([(x,2),(y,1)]))
     assert mul(mul(x,y),x)==(FACTORS,frozenset([(x,2),(y,1)]))
     assert mul(mul(x,y),mul(x,y))==(FACTORS,
-                                                      frozenset([(x,2),(y,2)]))
+                                    frozenset([(x,2),(y,2)]))
     assert mul(x, power(x,-1))==one
     assert mul(n,mul(x,y))==\
            (TERMS,frozenset([(mul(x,y),n[1])]))
@@ -145,3 +145,24 @@ def test_expand():
     assert tostr(expand(power(add(x,y),2)))==\
            '1*x**2 + 1*y**2 + 2*x**1 * y**1'
     assert tostr(expand(power(add(t,mul(x,add(x,y))),-2)))=='(1*x**1 * y**1 + 1*x**2 + 2*1)**-2'
+    assert tostr(expand(mul(add(x,y), add(x,mul(y,(NUMBER,-1))))))=='-1*y**2 + 1*x**2'
+
+def test_sequence():
+    x = (SYMBOLIC, 'x')
+    y = (SYMBOLIC, 'y')
+    t = (NUMBER, 2)
+    nt = (NUMBER, -2)
+    assert add_sequence([])==zero
+    assert add_sequence([x])==x
+    assert add_sequence([x,y])==add(x,y)
+    assert add_sequence([x,add(mul(t,x),y)])==add(x,add(mul(t,x),y))
+    assert add_sequence([add(mul(t,x),y),add(mul(nt,x),y)])==mul(t,y)
+    
+    assert mul_sequence([])==one
+    assert mul_sequence([x])==x
+    assert mul_sequence([x,y])==mul(x,y)
+    assert mul_sequence([x,add(t,x)])==mul(x,add(t,x))
+    assert mul_sequence([x,t])==mul(x,t)
+    assert mul_sequence([x,mul(y,x)])==mul(power(x,2),y)
+    assert mul_sequence([x,mul(t,x)])==mul(power(x,2),t)
+    assert mul_sequence([x,mul(t,y)])==mul(mul(x,y),t)
