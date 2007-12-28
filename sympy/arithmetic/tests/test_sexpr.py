@@ -35,6 +35,7 @@ def test_add():
     x = (SYMBOLIC, 'x')
     y = (SYMBOLIC, 'y')
     n = (NUMBER, -1)
+    t = (NUMBER, 2)
     assert add(x,y)==(TERMS,frozenset([(x,1),(y,1)]))
     assert add(x,x)==(TERMS,frozenset([(x,2)]))
     assert add(x,add(x,y))==(TERMS,frozenset([(x,2),(y,1)]))
@@ -48,6 +49,8 @@ def test_add():
     assert add(x,n)==(TERMS,frozenset([(x,1),(one,-1)]))
     assert add(n,x)==add(x,n)
     assert add(add(n,x),one)==x
+    assert add(add(n,x),mul(n,x))==n
+    assert tostr(add(add(n,x),add(t,mul(n,y))))=='-1*y + 1*1 + 1*x'
 
 def test_mul():
     x = (SYMBOLIC, 'x')
