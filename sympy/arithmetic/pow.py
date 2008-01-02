@@ -1,8 +1,11 @@
 
 import itertools
 from ..core import Basic, sympify, objects, classes, instancemethod, sexpr
+from ..core.function import new_function_value
 from .basic import BasicArithmetic
 from .function import Function, FunctionSignature
+from ..core.sexpr import LOGFUNC
+from .sexpr import FACTORS, s_toBasic, s_power, s_expand, s_mul_sequence, s_add_sequence, s_mul, TERMS
 
 __all__ = ['Pow', 'Log', 'Root', 'Sqrt', 'Exp', 'Ln', 'Lg', 'Lb']
 
@@ -15,10 +18,11 @@ E = objects.E
 half = objects.half
 
 def _is_negative(x):
-    if isinstance(x, classes.Number):
+    if isinstance(x, (classes.Number, classes.MathematicalSymbol)):
         return x.is_negative
     if isinstance(x, classes.Mul):
-        return _is_negative(x[0])
+        term, coeff = x.as_term_intcoeff()
+        return _is_negative(coeff)
 
 class Pow(Function):
     """ Represents an evaluated exponentation operation.
@@ -28,9 +32,40 @@ class Pow(Function):
 
     signature = FunctionSignature((BasicArithmetic, BasicArithmetic),
                                   (BasicArithmetic,))
-    
+
+    def __new__(cls, base, exponent, **options):
+        if 'sexpr' in options:
+            # XXX: rename sexpr to arithmetic_sexpr as there will be logical_symbol_expr, logical_set_expr
+            # Pow is called in canonical form: Pow(<base>, <exp>, sexpr=<sexpr>)
+            # exponent may be Python int:
+            return new_function_value(cls, (base, exponent), options)
+        base, exponent = sympify(base), sympify(exponent)
+        obj = cls.canonize((base, exponent), options)
+        if obj is not None:
+            return obj
+        return new_function_value(cls, (base, exponent), options)
+
     @classmethod
     def canonize(cls, (base, exponent), options):
+        """ Canonize exponentiation operation.
+        
+        The following rules are applied:
+
+          anything ** 0 -> 1
+          anything ** 1 -> anything
+          1 ** anything -> 1
+
+          E ** Log(anything, E) -> anything
+          (x * y) ** integer -> x**integer * y**integer
+          (number * x) ** (number) -> number**number * x **number
+          
+          E**(y + number*Log(x, E)) -> E**y * x**number
+
+        The following rules are applied by the as_sexpr method:
+          x ** (integer + integer * y) -> (x**(1 + y)) ** integer
+          x ** (integer * y) -> (x**y) ** integer
+
+        """
         if exponent is zero:
             return one
         if exponent is one:
@@ -41,27 +76,57 @@ class Pow(Function):
             return
         if isinstance(exponent, classes.Log) and base==exponent.base:
             return exponent.logarithm
+        if isinstance(base, classes.Mul) or base is objects.I:
+            if isinstance(exponent, classes.Integer):
+                return s_toBasic(s_power(base.as_sexpr(), exponent))
+            if isinstance(exponent, classes.Number):
+                term, coeff = base.as_term_coeff()
+                if coeff is not one:
+                    return term ** exponent * coeff ** exponent
 
-        excluded = []
-        included = []
-        for a in exponent.iterAdd():
-            it = a.iterMul()
-            cs = []
-            b = None
-            for f in it:
-                if isinstance(f, classes.Log) and f.base==base:
-                    excluded.append(f.args[0] ** classes.Mul(*(cs+list(it))))
-                    break
-                cs.append(f)
-            else:
-                included.append(a)
-        if excluded:
-            if included:
-                return classes.Mul(*(excluded+[cls(classes.Add(*included))]))
-            else:
-                return classes.Mul(*excluded)
+        s_exp = exponent.as_sexpr()
+        if s_exp[0] is TERMS:
+            # handle b ** (y + r*Log(x, b)) -> b**y * x**r, where r is Number
+            exp_log_list = []
+            rest = []
+            for t, c in s_exp[1]:
+                if t[0] is LOGFUNC and t[1].base==base:
+                    exp_log_list.append((t[1].logarithm, c))
+                else:
+                    rest.append((t,c))
+            if exp_log_list:
+                a = s_add_sequence(rest)
+                b = Pow(base, s_toBasic(a)).as_sexpr()
+                c = s_toBasic(s_mul_sequence([b]+[Pow(t,c).as_sexpr() for t,c in exp_log_list]))
+                return c
 
-        return base.try_power(exponent)
+        term, coeff = exponent.as_term_coeff()
+        if coeff is not one:
+            if isinstance(coeff, classes.Integer):
+                # x ** (2*y) -> (x**y) ** 2
+                new_base = base ** term
+                return s_toBasic(s_power(new_base.as_sexpr(), coeff))
+
+            t, c = coeff.as_term_intcoeff()
+            if c is not one:
+                # x ** (2/3*y) -> (x**(1/3*y)) ** 2
+                new_base = base ** (t * term)
+                return s_toBasic(s_power(new_base.as_sexpr(), c))
+            
+        if options.get('try_pow', True):
+            # to prevent recursion, __pow__ should call Pow with try_pow=False 
+            return base ** exponent
+        return
+
+    @instancemethod(Function.as_sexpr)
+    def as_sexpr(self, context=sexpr.ARITHMETIC):
+        if context==sexpr.ARITHMETIC:
+            expr = self.options.get('sexpr')
+            if expr is not None:
+                return expr
+            self.options['sexpr'] = expr = Basic.as_sexpr(self, context=None)
+            return expr
+        return Basic.as_sexpr(self, context=None)
 
     @classmethod
     def fdiff1(cls):
@@ -90,8 +155,9 @@ class Pow(Function):
     @instancemethod(Function.tostr)
     def tostr(self, level=0):
         p = self.precedence
-        b = self.base.tostr(p)
-        e = self.exponent.tostr(p)
+        base, exp = self.as_base_exponent()
+        b = base.tostr(p)
+        e = exp.tostr(p)
         r = '%s**%s' % (b, e)
         if p<=level:
             r = '(%s)' % r
@@ -99,16 +165,7 @@ class Pow(Function):
     
     def expand(self, **hints):
         if hints.get('basic', True):
-            b = self.base.expand(**hints)
-            e = self.exponent.expand(**hints)
-            if isinstance(b, classes.Add) and isinstance(e, classes.Integer) and e>0:
-                return expand_integer_power_miller(b, e)
-            if isinstance(b, classes.Mul) and isinstance(e, classes.Integer):
-                return classes.Mul(*[Pow(b, e*n) for (b,n) in b.iterBaseExp()])
-            if isinstance(e, classes.Add):
-                # XXX: isinstance(b, classes.Mul)
-                return classes.Mul(*[Pow(b, item) for item in e])
-            return Pow(b, e)
+            return s_toBasic(s_expand(self.as_sexpr()))
         return self
 
     def try_derivative(self, s):
@@ -141,7 +198,15 @@ class Pow(Function):
         return itertools.chain(self.base.iterPow(), iter([self.exponent]))
 
     def as_base_exponent(self):
-        return self.base, self.exponent
+        base, exp = self.base, self.exponent
+        if isinstance(base, Pow):
+            if isinstance(exp, classes.Integer):
+                exp = base.exponent * exp
+                base = base.base
+            elif isinstance(base.exponent, Integer):
+                exp = base.exponent * exp
+                base = base.base
+        return base, exp
 
     @instancemethod(Function.matches)
     def matches(pattern, expr, repl_dict={}):
@@ -167,12 +232,6 @@ class Pow(Function):
             if d is not None:
                 return d
         return
-
-    def as_sexpr(self, context=sexpr.ARITHMETIC):
-        if context==sexpr.ARITHMETIC:
-            r = [t.as_sexpr(context) for t in self.args]
-            return (sexpr.POW,) + tuple(r)
-        return Basic.as_sexpr(self, context=None)
 
 class Root(Function):
     """ Root(b,e) is the inverse of Pow with respect to the first argument:
@@ -209,6 +268,14 @@ class Log(Function):
     def __new__(cls, arg, base=E):
         # abs(base) must be non-zero and non-one
         return Function.__new__(cls, arg, base)
+
+    @instancemethod(Function.as_sexpr)
+    def as_sexpr(self, context=sexpr.ARITHMETIC):
+        if context==sexpr.ARITHMETIC:
+            if 'sexpr' in self.options:
+                return self.options['sexpr']
+            return (LOGFUNC, self)
+        return Basic.as_sexpr(self, context=None)
 
     @property
     def logarithm(self):

@@ -240,6 +240,14 @@ class Rational(Real):
     def as_terms(self, expand=False):
         return [(Integer(1), self)]
 
+    def as_term_intcoeff(self):
+        if isinstance(self, Integer):
+            return (Integer(1), self)
+        if self.p==1:
+            return (self, Integer(1))
+        return (Fraction(1,self.q), Integer(self.p))
+
+
 from .integer import Integer
 from .fraction import Fraction
 from .float import Float

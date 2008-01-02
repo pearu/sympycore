@@ -10,12 +10,12 @@ from .basic import BasicArithmetic
 from .number import (Number, Real, Rational, Float, Fraction, Integer,
                      Interval)
 from .symbol import Symbol, Dummy, Wild
-from .function import Function, Lambda, FunctionType, WildFunctionType
-from .operator import Operator, OperatorType
 
 from .constants import initialize_constants
+initialize_constants() # add.py, mul.py, sexpr.py use oo,nan,etc.
 
-initialize_constants() # operations in add.py,mul.py uses oo,nan,etc.
+from .function import Function, Lambda, FunctionType, WildFunctionType
+from .operator import Operator, OperatorType
 
 from .add import Add, Sub
 from .mul import Mul, Div
@@ -42,4 +42,4 @@ __all__ = ['BasicArithmetic',
            'Range', 'RangeOO', 'RangeOC', 'RangeCO', 'RangeCC',
            ]
 
-objects.moo = -objects.oo
+#objects.moo = -objects.oo

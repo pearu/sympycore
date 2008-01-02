@@ -7,6 +7,9 @@ from ..core import (BasicFunctionType, BasicFunction,
 from .methods import ArithmeticMethods
 from .basic import BasicArithmetic
 
+from ..core import sexpr
+from .sexpr import s_toBasic, s_expand
+
 __all__ = ['FunctionType', 'Function', 'Lambda', 'FunctionSymbol',
            'WildFunctionType', 'ArithmeticFunction']
 
@@ -82,8 +85,38 @@ class WildFunctionType(BasicWild, FunctionType):
             func.predicate = staticmethod(predicate)
         return func
 
-
 class ArithmeticFunction(Function):
+    ordered_arguments = False
+
+    @instancemethod(Function.count_ops)
+    def count_ops(self, symbolic=True):
+        n = len(self.args)
+        if symbolic:
+            counter = (n-1) * self.func
+        else:
+            counter = n-1
+        for a in self.args:
+            counter += a.count_ops(symbolic=symbolic)
+        return counter    
+
+    #XXX: __hash__, __iter__, as_sexpr, etc.
+
+    @instancemethod(Function.__eq__)
+    def __eq__(self, other):
+        if self.__class__ is other.__class__:
+            return self.as_sexpr()[:2]==other.as_sexpr()[:2]
+        if isinstance(other, Basic):
+            return False
+        if isinstance(other, str):
+            return self==sympify(other)
+        return False
+
+    def expand(self, **hints):
+        if hints.get('basic', True):
+            return s_toBasic(s_expand(self.as_sexpr()))
+        return self
+
+class _old_ArithmeticFunction(Function):
     """ Base class for Add and Mul classes.
     
     Important notes:

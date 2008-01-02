@@ -104,6 +104,13 @@ class BasicArithmetic(ArithmeticMethods):
         """
         return self, classes.Integer(1)
 
+    def as_term_intcoeff(self):
+        """ Return (t,c) such that self==c*t and where c is integer.
+        """
+        term, coeff = self.as_term_coeff()
+        t, c = coeff.as_term_intcoeff()
+        return (term * t), c
+
     def try_get_coefficient(self, expr):
         """
         Extracts symbolic coefficient at the given expression. In

@@ -246,11 +246,10 @@ class Fraction(Rational):
                 return Fraction(self.q * other.p, self.p)
             if isinstance(other, Fraction):
                 return Fraction(self.q * other.p, self.p * other.q)
-            return classes.Mul(other, 1/self)
+            return classes.Mul(other, objects.one/self)
         return sympify(other) / self
 
     def __rpow__(self, other):
         if isinstance(other, Basic):
-            return classes.Pow(other, self)
+            return classes.Pow(other, self, try_pow=False)
         return sympify(other) ** self
-

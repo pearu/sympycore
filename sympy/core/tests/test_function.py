@@ -203,6 +203,8 @@ def test_instancemethod():
     import types
     d = {}
     for n,cls in classes.iterNameValue():
+        if not isinstance(cls, type):
+            continue
         if issubclass(cls, BasicFunction):
             for k,v in cls.__dict__.iteritems():
                 if v.__class__.__name__.startswith('InstanceClassMethod'):
@@ -214,6 +216,8 @@ def test_instancemethod():
                     pass
                     #print k,type(v)
     for n,cls in classes.iterNameValue():
+        if not isinstance(cls, type):
+            continue
         if issubclass(cls, BasicFunction):
             for k,v in cls.__dict__.iteritems():
                 if isinstance(v, (types.FunctionType, classmethod)):

@@ -337,6 +337,8 @@ class Integer(Rational, pyint):
                 if p is not None:
                     return 1/p
                 return p
+            if abs(self)>10000:
+                return
             factors = self.as_factors()
             f1 = 1
             f2 = 1

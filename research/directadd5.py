@@ -262,11 +262,11 @@ def time3():
     b = sympy.Rational(3,4).as_sexpr()
     c = sympy.Rational(5,6).as_sexpr()
     tre = sympy.Integer(3).as_sexpr()
-    from sympy.arithmetic.sexpr import add, mul
+    from sympy.arithmetic.sexpr import s_add, s_mul
     t1 = clock()
     n = 1000
     while n:
-        mul(add(mul(a,x),add(mul(b,y),mul(c,z))),tre)
+        s_mul(s_add(s_mul(a,x),s_add(s_mul(b,y),s_mul(c,z))),tre)
         #3*(a*x+b*y+c*z)
         #A + B
         #x + y

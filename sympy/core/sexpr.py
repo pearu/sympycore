@@ -10,7 +10,8 @@ TODO:
 """
 
 __all__ = ['ARITHMETIC', 'LOGICAL_SYMBOLIC', 'LOGICAL_SET',
-           'NUMBER','SYMBOLIC', 'TERMS', 'FACTORS'
+           'NUMBER','SYMBOLIC', 'TERMS', 'FACTORS',
+           'NANINF', 'IMAGUNIT'
            ]
 
 # context words:
@@ -18,7 +19,9 @@ ARITHMETIC = 'arithmetic'
 LOGICAL_SYMBOLIC = 'symbolic'
 LOGICAL_SET = 'set'
 
+
 # s-expr car symbols
+# keep them as one char strings (so that in C one can use `case` statement)
 NUMBER = intern('N')
 # a number object that supports arithmetic operations with Python integers,
 # the code uses operations +, *, and ** with integer exponent.
@@ -31,3 +34,8 @@ FACTORS = intern('*')
 # factors (stored in a frozenset) are in the form (base, exp)
 # where exp is integer and base is non-numeric (factors with
 # numeric part is expressed as (TERMS, (<non-numberic> factor,1),(one, <numeric>)))
+
+NANINF = intern('@')
+IMAGUNIT = intern('I')
+
+LOGFUNC = intern('L')

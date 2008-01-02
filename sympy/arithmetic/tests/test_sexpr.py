@@ -3,166 +3,272 @@
 from sympy import *
 from sympy.core.sexpr import *
 from sympy.arithmetic.sexpr import *
-from sympy.arithmetic.sexpr import expand_mul, one, zero
+from sympy.arithmetic.sexpr import expand_mul, s_one, s_zero
 
-def test_tostr():
+def test_s_tostr():
     x = (SYMBOLIC, 'x')
     y = (SYMBOLIC, 'y')
     n = (NUMBER, 3)
     r = (NUMBER, Fraction(2,3))
     q = (NUMBER, Fraction(-5,6))
-    assert tostr(x)=='x'
-    assert tostr(n)=='3'
-    assert tostr(r)=='2/3'
-    assert tostr(q)=='-5/6'
-    assert tostr(add(x,x))=='2*x'
-    assert tostr(add(x,y))=='1*x + 1*y'
-    assert tostr(add(x,r))=='1*x + 2/3*1'
-    assert tostr(add(r,r))=='4/3'
-    assert tostr(add(x,q))=='-5/6*1 + 1*x'
-    assert tostr(mul(x,x))=='x**2'
-    assert tostr(mul(x,y))=='x**1 * y**1'
-    assert tostr(mul(x,n))=='3*x'
-    assert tostr(mul(x,r))=='2/3*x'
-    assert tostr(mul(x,q))=='-5/6*x'
-    assert tostr(mul(r,r))=='4/9'
-    assert tostr(power(x,2))=='x**2'
-    assert tostr(power(add(x,y),2))=='(1*x + 1*y)**2'
-    assert tostr(power(mul(x,y),2))=='x**2 * y**2'
-    assert tostr(power(q,2))=='25/36'
+    assert s_tostr(x)=='x'
+    assert s_tostr(n)=='3'
+    assert s_tostr(r)=='2/3'
+    assert s_tostr(q)=='-5/6'
+    assert s_tostr(s_add(x,x))=='2*x'
+    assert s_tostr(s_add(x,y))=='1*x + 1*y'
+    assert s_tostr(s_add(x,r))=='1*x + 2/3*1'
+    assert s_tostr(s_add(r,r))=='4/3'
+    assert s_tostr(s_add(x,q))=='-5/6*1 + 1*x'
+    assert s_tostr(s_mul(x,x))=='x**2'
+    assert s_tostr(s_mul(x,y))=='x**1 * y**1'
+    assert s_tostr(s_mul(x,n))=='3*x'
+    assert s_tostr(s_mul(x,r))=='2/3*x'
+    assert s_tostr(s_mul(x,q))=='-5/6*x'
+    assert s_tostr(s_mul(r,r))=='4/9'
+    assert s_tostr(s_power(x,2))=='x**2'
+    assert s_tostr(s_power(s_add(x,y),2))=='(1*x + 1*y)**2'
+    assert s_tostr(s_power(s_mul(x,y),2))=='x**2 * y**2'
+    assert s_tostr(s_power(q,2))=='25/36'
 
-def test_add():
+def test_s_add():
     x = (SYMBOLIC, 'x')
     y = (SYMBOLIC, 'y')
-    n = (NUMBER, -1)
-    t = (NUMBER, 2)
-    assert add(x,y)==(TERMS,frozenset([(x,1),(y,1)]))
-    assert add(x,x)==(TERMS,frozenset([(x,2)]))
-    assert add(x,add(x,y))==(TERMS,frozenset([(x,2),(y,1)]))
-    assert add(add(x,y),x)==add(x,add(x,y))
-    assert add(add(x,y),add(x,y))==\
-           (TERMS,frozenset([(x,2),(y,2)]))
-    assert add(x,mul(n,x))==zero
-    assert add(n,add(x,y))==\
-           (TERMS, frozenset([(x,1),(y,1),(one,-1)]))
-    assert add(add(x,y), n)==add(n,add(x,y))
-    assert add(x,n)==(TERMS,frozenset([(x,1),(one,-1)]))
-    assert add(n,x)==add(x,n)
-    assert add(add(n,x),one)==x
-    assert add(add(n,x),mul(n,x))==n
-    assert tostr(add(add(n,x),add(t,mul(n,y))))=='-1*y + 1*1 + 1*x'
+    n = (NUMBER, -one)
+    t = (NUMBER, sympify(2))
+    assert s_add(x,s_zero)==x
+    assert s_add(x,y)==(TERMS,frozenset([(x,one),(y,one)]), zero)
+    assert s_add(x,x)==(TERMS,frozenset([(x,2)]), zero)
+    assert s_add(x,s_add(x,y))==(TERMS,frozenset([(x,2),(y,one)]), zero)
+    assert s_add(s_add(x,y),x)==s_add(x,s_add(x,y))
+    assert s_add(s_add(x,y),s_add(x,y))==\
+           (TERMS,frozenset([(x,2),(y,2)]),zero)
+    assert s_add(x,s_mul(n,x))==s_zero
+    assert s_add(n,s_add(x,y))==\
+           (TERMS, frozenset([(x,one),(y,one),(s_one,-one)]), -one)
+    assert s_add(s_add(x,y), n)==s_add(n,s_add(x,y))
+    assert s_add(x,n)==(TERMS,frozenset([(x,one),(s_one,-one)]), -one)
+    assert s_add(n,x)==s_add(x,n)
+    assert s_add(s_add(n,x),s_one)==x
+    assert s_add(s_add(n,x),s_mul(n,x))==n
+    assert s_tostr(s_add(s_add(n,x),s_add(t,s_mul(n,y))))=='-1*y + 1*1 + 1*x'
 
-def test_mul():
+def test_s_mul():
     x = (SYMBOLIC, 'x')
     y = (SYMBOLIC, 'y')
     z = (SYMBOLIC, 'z')
     n = (NUMBER, 3)
-    assert mul(x,y)==(FACTORS,frozenset([(x,1),(y,1)]))
-    assert mul(x,x)==(FACTORS,frozenset([(x,2)]))
-    assert mul(x,mul(x,y))==(FACTORS,frozenset([(x,2),(y,1)]))
-    assert mul(mul(x,y),x)==(FACTORS,frozenset([(x,2),(y,1)]))
-    assert mul(mul(x,y),mul(x,y))==(FACTORS,
-                                    frozenset([(x,2),(y,2)]))
-    assert mul(x, power(x,-1))==one
-    assert mul(n,mul(x,y))==\
-           (TERMS,frozenset([(mul(x,y),n[1])]))
-    assert mul(n,mul(x,y))==mul(mul(x,y),n)
-    assert mul(mul(x,z),mul(x,y))==\
-           (FACTORS,frozenset([(x,2),(y,1),(z,1)]))
+    assert s_mul(x,s_zero)==s_zero
+    assert s_mul(s_zero,x)==s_zero
+    assert s_mul(x,s_one)==x
+    assert s_mul(s_one,x)==x
+    assert s_mul(x,y)==(FACTORS,frozenset([(x,one),(y,one)]),one)
+    assert s_mul(x,x)==(FACTORS,frozenset([(x,2)]),one)
+    assert s_mul(x,s_mul(x,y))==(FACTORS,frozenset([(x,2),(y,one)]),one)
+    assert s_mul(s_mul(x,y),x)==(FACTORS,frozenset([(x,2),(y,one)]),one)
+    assert s_mul(s_mul(x,y),s_mul(x,y))==(FACTORS,
+                                    frozenset([(x,2),(y,2)]),one)
+    assert s_mul(x, s_power(x,-one))==s_one
+    assert s_mul(n,s_mul(x,y))==\
+           (TERMS,frozenset([(s_mul(x,y),n[1])]), zero)
+    assert s_mul(n,s_mul(x,y))==s_mul(s_mul(x,y),n)
+    assert s_mul(s_mul(x,z),s_mul(x,y))==\
+           (FACTORS,frozenset([(x,2),(y,one),(z,one)]), one)
     t = (NUMBER, 2)
-    xy = mul(x,y)
-    xy2 = mul(xy,t)
-    assert xy2==(TERMS, frozenset([(xy,2)]))
-    assert tostr(xy2)=='2*x**1 * y**1'
+    xy = s_mul(x,y)
+    xy2 = s_mul(xy,t)
+    assert xy2==(TERMS, frozenset([(xy,2)]), zero)
+    assert s_tostr(xy2)=='2*x**1 * y**1'
 
-    assert mul(power(x,2),power(x,-1))==x
-    assert tostr(mul(add(x,y), x))=='(1*x + 1*y)**1 * x**1'
-    assert mul(add(x,y), x)==mul(x,add(x,y))
-    assert tostr(mul(add(x,y), add(x,y)))=='(1*x + 1*y)**2'
-    assert tostr(mul(add(x,y), n))=='3*x + 3*y'
-    assert mul(add(x,y), n)==mul(n,add(x,y))
-    assert tostr(mul(add(x,y), add(x,n)))=='(1*x + 1*y)**1 * (1*x + 3*1)**1'
-    assert tostr(mul(add(x,y), power(x,2)))=='(1*x + 1*y)**1 * x**2'
-    assert mul(add(x,y), power(x,2))==mul(power(x,2),add(x,y))
-    assert tostr(mul(mul(n,x), x))=='3*x**2'
-    assert tostr(mul(mul(n,x), mul(t,y)))=='6*x**1 * y**1'
-    assert tostr(mul(mul(n,x), power(x,3)))=='3*x**4'
+    assert s_mul(s_power(x,2),s_power(x,-one))==x
+    assert s_tostr(s_mul(s_add(x,y), x))=='(1*x + 1*y)**1 * x**1'
+    assert s_mul(s_add(x,y), x)==s_mul(x,s_add(x,y))
+    assert s_tostr(s_mul(s_add(x,y), s_add(x,y)))=='(1*x + 1*y)**2'
+    assert s_tostr(s_mul(s_add(x,y), n))=='3*x + 3*y'
+    assert s_mul(s_add(x,y), n)==s_mul(n,s_add(x,y))
+    assert s_tostr(s_mul(s_add(x,y), s_add(x,n)))=='(1*x + 1*y)**1 * (1*x + 3*1)**1'
+    assert s_tostr(s_mul(s_add(x,y), s_power(x,2)))=='(1*x + 1*y)**1 * x**2'
+    assert s_mul(s_add(x,y), s_power(x,2))==s_mul(s_power(x,2),s_add(x,y))
+    assert s_tostr(s_mul(s_mul(n,x), x))=='3*x**2'
+    assert s_tostr(s_mul(s_mul(n,x), s_mul(t,y)))=='6*x**1 * y**1'
+    assert s_tostr(s_mul(s_mul(n,x), s_power(x,3)))=='3*x**4'
 
-def test_power():
+def test_s_power():
     x = (SYMBOLIC, 'x')
     y = (SYMBOLIC, 'y')
     n = (NUMBER, Integer(3))
     r = (NUMBER, Fraction(2,3))
-    assert power(x, 2)==(FACTORS,frozenset([(x,2)]))
-    assert power(x, -1)==(FACTORS,frozenset([(x,-1)]))
-    assert power(n, 2)==(NUMBER, 9)
-    assert power(n, -2)==(NUMBER, Fraction(1,9))
-    assert power(r, 2)==(NUMBER, Fraction(4,9))
-    assert power(r, -2)==(NUMBER, Fraction(9,4))
-    assert power(add(x,x), 2)==mul(power((NUMBER,2),2),power(x,2))
-    assert power(add(x,y), 1)==add(x,y)
-    assert power(add(x,y), 0)==one
-    assert power(zero, 0)==one
+    assert s_power(x, 2)==(FACTORS,frozenset([(x,2)]), one)
+    assert s_power(x, -one)==(FACTORS,frozenset([(x,-one)]), one)
+    assert s_power(n, 2)==(NUMBER, 9)
+    assert s_power(n, -2)==(NUMBER, Fraction(1,9))
+    assert s_power(r, 2)==(NUMBER, Fraction(4,9))
+    assert s_power(r, -2)==(NUMBER, Fraction(9,4))
+    assert s_power(s_add(x,x), 2)==s_mul(s_power((NUMBER,2),2),s_power(x,2))
+    assert s_power(s_add(x,y), one)==s_add(x,y)
+    assert s_power(s_add(x,y), zero)==s_one
+    assert s_power(s_zero, zero)==s_one
+    assert s_power(s_mul(x,n),2)==s_mul(s_power(x,2),s_power(n,2))
+    print s_tostr(s_power(s_mul(x,(NUMBER,-one)),2))
+    assert s_power(s_mul(x,(NUMBER,-one)),2)==s_power(x,2)
 
 def test_expand_mul():
     x = (SYMBOLIC, 'x')
     y = (SYMBOLIC, 'y')
     t = (NUMBER, 2)
-    x2 = mul(x,x)
-    y2 = mul(y,y)
+    x2 = s_mul(x,x)
+    y2 = s_mul(y,y)
 
-    xy = mul(x,y)
-    xy2 = mul(t,xy)
-    assert expand_mul(add(x,y),x)==add(x2, xy)
-    assert expand_mul(y,add(x,y))==add(y2, xy)
-    assert expand_mul(add(x,y),add(x,y))==\
-           add(xy2, add(x2, y2))
+    xy = s_mul(x,y)
+    xy2 = s_mul(t,xy)
+    assert expand_mul(s_add(x,y),x)==s_add(x2, xy)
+    assert expand_mul(y,s_add(x,y))==s_add(y2, xy)
+    assert expand_mul(s_add(x,y),s_add(x,y))==\
+           s_add(xy2, s_add(x2, y2))
     assert expand_mul(x,y)==xy
 
-    assert expand_mul(add(x,y),mul(y,x))==\
-           add(mul(y2,x), mul(x2,y))
-    assert expand_mul(add(x,y),mul(y,x))==\
-           expand_mul(mul(x,y),add(y,x))
+    assert expand_mul(s_add(x,y),s_mul(y,x))==\
+           s_add(s_mul(y2,x), s_mul(x2,y))
+    assert expand_mul(s_add(x,y),s_mul(y,x))==\
+           expand_mul(s_mul(x,y),s_add(y,x))
 
-    assert expand_mul(add(x,mul(y,x)),y)==\
-           add(xy,mul(xy,y))
-    assert tostr(expand_mul(add(x,y),add(x,t)))==\
+    assert expand_mul(s_add(x,s_mul(y,x)),y)==\
+           s_add(xy,s_mul(xy,y))
+    assert s_tostr(expand_mul(s_add(x,y),s_add(x,t)))==\
           '1*x**1 * y**1 + 1*x**2 + 2*x + 2*y'
-    assert tostr(expand_mul(add(x,y),t))==\
+    assert s_tostr(expand_mul(s_add(x,y),t))==\
           '2*x + 2*y'
-    assert tostr(expand_mul(add(x,y),power(x,-1)))==\
+    assert s_tostr(expand_mul(s_add(x,y),s_power(x,-one)))==\
           '1*1 + 1*x**-1 * y**1'
-    assert tostr(power(mul(x,add(x,y)),-2))=='(1*x + 1*y)**-2 * x**-2'
-    assert tostr(power(add(t,mul(x,add(x,y))),-2))=='(1*(1*x + 1*y)**1 * x**1 + 2*1)**-2'
+    assert s_tostr(s_power(s_mul(x,s_add(x,y)),-2))=='(1*x + 1*y)**-2 * x**-2'
+    assert s_tostr(s_power(s_add(t,s_mul(x,s_add(x,y))),-2))=='(1*(1*x + 1*y)**1 * x**1 + 2*1)**-2'
     
-def test_expand():
+def test_s_expand():
     x = (SYMBOLIC, 'x')
     y = (SYMBOLIC, 'y')
     z = (SYMBOLIC, 'z')
     t = (NUMBER, 2)
-    assert tostr(expand(mul(add(x,y),z)))==\
+    assert s_tostr(s_expand(s_mul(s_add(x,y),z)))==\
            '1*x**1 * z**1 + 1*y**1 * z**1'
-    assert tostr(expand(power(add(x,y),2)))==\
+    assert s_tostr(s_expand(s_power(s_add(x,y),2)))==\
            '1*x**2 + 1*y**2 + 2*x**1 * y**1'
-    assert tostr(expand(power(add(t,mul(x,add(x,y))),-2)))=='(1*x**1 * y**1 + 1*x**2 + 2*1)**-2'
-    assert tostr(expand(mul(add(x,y), add(x,mul(y,(NUMBER,-1))))))=='-1*y**2 + 1*x**2'
+    assert s_tostr(s_expand(s_power(s_add(t,s_mul(x,s_add(x,y))),-2)))=='(1*x**1 * y**1 + 1*x**2 + 2*1)**-2'
+    assert s_tostr(s_expand(s_mul(s_add(x,y), s_add(x,s_mul(y,(NUMBER,-one))))))=='-1*y**2 + 1*x**2'
 
 def test_sequence():
     x = (SYMBOLIC, 'x')
     y = (SYMBOLIC, 'y')
-    t = (NUMBER, 2)
-    nt = (NUMBER, -2)
-    assert add_sequence([])==zero
-    assert add_sequence([x])==x
-    assert add_sequence([x,y])==add(x,y)
-    assert add_sequence([x,add(mul(t,x),y)])==add(x,add(mul(t,x),y))
-    assert add_sequence([add(mul(t,x),y),add(mul(nt,x),y)])==mul(t,y)
+    t = (NUMBER, sympify(2))
+    nt = (NUMBER, -sympify(2))
+    assert s_add_sequence([])==s_zero
+    assert s_add_sequence([x])==x
+    assert s_add_sequence([x,s_zero])==x
+    assert s_add_sequence([x,y])==s_add(x,y)
+    assert s_add_sequence([x,s_add(s_mul(t,x),y)])==s_add(x,s_add(s_mul(t,x),y))
+    assert s_add_sequence([s_add(s_mul(t,x),y),s_add(s_mul(nt,x),y)])==s_mul(t,y)
     
-    assert mul_sequence([])==one
-    assert mul_sequence([x])==x
-    assert mul_sequence([x,y])==mul(x,y)
-    assert mul_sequence([x,add(t,x)])==mul(x,add(t,x))
-    assert mul_sequence([x,t])==mul(x,t)
-    assert mul_sequence([x,mul(y,x)])==mul(power(x,2),y)
-    assert mul_sequence([x,mul(t,x)])==mul(power(x,2),t)
-    assert mul_sequence([x,mul(t,y)])==mul(mul(x,y),t)
+    assert s_mul_sequence([])==s_one
+    assert s_mul_sequence([x])==x
+    assert s_mul_sequence([x,s_one])==x
+    assert s_mul_sequence([x,s_zero])==s_zero
+    assert s_mul_sequence([x,y])==s_mul(x,y)
+    assert s_mul_sequence([x,s_add(t,x)])==s_mul(x,s_add(t,x))
+    assert s_mul_sequence([x,t])==s_mul(x,t)
+    assert s_mul_sequence([x,s_mul(y,x)])==s_mul(s_power(x,2),y)
+    assert s_mul_sequence([x,s_mul(t,x)])==s_mul(s_power(x,2),t)
+    assert s_mul_sequence([x,s_mul(t,y)])==s_mul(s_mul(x,y),t)
+
+def test_naninf():
+    x = (SYMBOLIC, 'x')
+    y = (SYMBOLIC, 'y')
+    t = (NUMBER, sympify(2))
+    f = (NUMBER, sympify(-4))
+    s_inf = oo.as_sexpr()
+    s_nan = nan.as_sexpr()
+    s_minf = moo.as_sexpr()
+
+    assert s_add(t,s_inf)==s_inf
+    assert s_add(t,s_minf)==s_minf
+    assert s_add(t,s_nan)==s_nan
+    assert s_add(s_inf,t)==s_inf
+    assert s_add(s_minf,t)==s_minf
+    assert s_add(s_nan,t)==s_nan
+
+    assert s_add(s_minf, s_minf)==s_minf
+    assert s_add(s_minf, s_inf)==s_nan
+    assert s_add(s_inf, s_minf)==s_nan
+    assert s_add(s_inf, s_inf)==s_inf
+
+    assert s_add(s_inf, s_nan)==s_nan
+    assert s_add(s_nan, s_nan)==s_nan
+    assert s_add(s_minf, s_nan)==s_nan
+    assert s_add(s_nan, s_inf)==s_nan
+    assert s_add(s_nan, s_minf)==s_nan
+
+    assert s_mul(t,s_inf)==s_inf
+    assert s_mul(s_inf,t)==s_inf
+    assert s_mul(t,s_minf)==s_minf
+    assert s_mul(s_minf,t)==s_minf
+    assert s_mul(s_nan,t)==s_nan
+
+    assert s_mul(f,s_inf)==s_minf
+    assert s_mul(s_inf,f)==s_minf
+    assert s_mul(f,s_minf)==s_inf
+    assert s_mul(s_minf,f)==s_inf
+    assert s_mul(s_nan,f)==s_nan
+    assert s_mul(f,s_nan)==s_nan
+
+    assert s_mul(s_zero,s_inf)==s_nan
+    assert s_mul(s_zero,s_minf)==s_nan
+    assert s_mul(s_zero,s_nan)==s_nan
+    assert s_mul(s_nan,s_zero)==s_nan
+    assert s_mul(s_inf,s_zero)==s_nan
+    assert s_mul(s_minf,s_zero)==s_nan
+
+    assert s_mul(s_minf,s_minf)==s_inf
+    assert s_mul(s_inf, s_minf)==s_minf
+    assert s_mul(s_minf,s_inf)==s_minf
+    assert s_mul(s_inf,s_inf)==s_inf
+    
+    assert s_add_sequence([t,s_inf])==s_inf
+    assert s_add_sequence([t,s_minf])==s_minf
+    assert s_add_sequence([t,s_nan])==s_nan
+    assert s_add_sequence([s_inf,t])==s_inf
+    assert s_add_sequence([s_minf,t])==s_minf
+    assert s_add_sequence([s_nan,t])==s_nan
+
+    assert s_add_sequence([s_minf, s_minf])==s_minf
+    assert s_add_sequence([s_minf, s_inf])==s_nan
+    assert s_add_sequence([s_inf, s_minf])==s_nan
+    assert s_add_sequence([s_inf, s_inf])==s_inf
+
+    assert s_add_sequence([s_inf, s_nan])==s_nan
+    assert s_add_sequence([s_nan, s_nan])==s_nan
+    assert s_add_sequence([s_minf, s_nan])==s_nan
+    assert s_add_sequence([s_nan, s_inf])==s_nan
+    assert s_add_sequence([s_nan, s_minf])==s_nan
+
+    assert s_mul_sequence([t,s_inf])==s_inf
+    assert s_mul_sequence([s_inf,t])==s_inf
+    assert s_mul_sequence([t,s_minf])==s_minf
+    assert s_mul_sequence([s_minf,t])==s_minf
+    assert s_mul_sequence([s_nan,t])==s_nan
+
+    assert s_mul_sequence([f,s_inf])==s_minf
+    assert s_mul_sequence([s_inf,f])==s_minf
+    assert s_mul_sequence([f,s_minf])==s_inf
+    assert s_mul_sequence([s_minf,f])==s_inf
+    assert s_mul_sequence([s_nan,f])==s_nan
+    assert s_mul_sequence([f,s_nan])==s_nan
+
+    assert s_mul_sequence([s_zero,s_inf])==s_nan
+    assert s_mul_sequence([s_zero,s_minf])==s_nan
+    assert s_mul_sequence([s_zero,s_nan])==s_nan
+    assert s_mul_sequence([s_nan,s_zero])==s_nan
+    assert s_mul_sequence([s_inf,s_zero])==s_nan
+    assert s_mul_sequence([s_minf,s_zero])==s_nan
+
+    assert s_mul_sequence([s_minf,s_minf])==s_inf
+    assert s_mul_sequence([s_inf, s_minf])==s_minf
+    assert s_mul_sequence([s_minf,s_inf])==s_minf
+    assert s_mul_sequence([s_inf,s_inf])==s_inf

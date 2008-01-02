@@ -13,7 +13,7 @@ def test_Add():
 
     e = Add(x,y,z)
 
-def test_TermCoeffDict():
+def _test_TermCoeffDict():
     from sympy.arithmetic.operations import TermCoeffDict
     x = Symbol('x')
     y = Symbol('y')

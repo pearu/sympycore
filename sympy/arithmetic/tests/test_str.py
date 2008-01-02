@@ -28,7 +28,8 @@ def test_poly_str():
     assert s in ["x - y - z - w",'x - z - y - w',
         "x - y - z - w","-w - y - z + x","x - w - y - z",
         "-w + x - y - z","-z - w - y + x","-y + x - w - z",
-        '-y + x - z - w','x - w - z - y','x - y - w - z'
+        '-y + x - z - w','x - w - z - y','x - y - w - z',
+                 'x - z - w - y',
         ],`s`
 
     s = str(x-y-z-w)

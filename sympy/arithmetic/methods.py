@@ -29,19 +29,28 @@ class ArithmeticMethods:
         return classes.Mul(-objects.one, self)
 
     def __add__(self, other):
+        # XXX: need to return NotImplemented if sympify cannot handle other, see issue 41
         return classes.Add(self, other)
 
     def __sub__(self, other):
-        return classes.Add(self, (-sympify(other)))
+        # XXX: need to return NotImplemented if sympify cannot handle other, see issue 41
+        return self + (-sympify(other))
 
     def __mul__(self, other):
+        # XXX: need to return NotImplemented if sympify cannot handle other, see issue 41
         return classes.Mul(self, other)
 
     def __div__(self, other):
-        return classes.Mul(self, (sympify(other) ** (-objects.one)))
+        # XXX: need to return NotImplemented if sympify cannot handle other, see issue 41
+        return self * sympify(other) ** (-objects.one)
 
     def __pow__(self, other):
-        return classes.Pow(self, other)
+        if isinstance(other, Basic):
+            if isinstance(other, type(self)):
+                return classes.Pow(self, other, try_pow=False)
+            # let __rpow__ to compute the result or call Pow.
+            return NotImplemented
+        return self ** sympify(other)
 
     def __radd__(self, other):
         if isinstance(other, Basic):
@@ -65,7 +74,7 @@ class ArithmeticMethods:
 
     def __rpow__(self, other):
         if isinstance(other, Basic):
-            return classes.Pow(other, self)
+            return classes.Pow(other, self, try_pow=False)
         return sympify(other) ** self
 
 class NumberMethods(ArithmeticMethods):

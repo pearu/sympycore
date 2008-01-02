@@ -120,10 +120,10 @@ def new_function(cls, args, options):
 def new_function_value(cls, args, options):
     """ Create a BasicFunction instance.
     """
-    if not isinstance(args, tuple):
-        args = tuple(args)
     obj = object.__new__(cls)
-    obj.args = args
+    if isinstance(args, (tuple, list)):
+        assert int not in map(type, args),`args` # XXX: remove me..
+    obj._args = args
     obj.options = options
     obj.func = cls
     obj.args_sorted = None    # use get_args_sorted() to initialize
@@ -249,10 +249,15 @@ class BasicFunction(Composite):
     def canonize(cls, args):
         return
 
-    
+    @property
+    def args(self):
+        # args is property method because self._args may be an iterator object
+        args = self._args
+        if not isinstance(args, tuple):
+            self._args = args = tuple(args)
+        return args
 
     # Iterator methods:
-
     def __iter__(self):
         return iter(self.args)
 
@@ -335,7 +340,7 @@ class BasicFunction(Composite):
     def tostr(self, level=0):
         p = self.precedence
         r = '%s(%s)' % (self.func.tostr(),
-                        ', '.join([a.tostr() for a in self.args]))
+                        ', '.join([str(a) for a in self.args]))
         if p<=level:
             return '(%s)' % (r)
         return r
@@ -435,6 +440,8 @@ class BasicFunction(Composite):
         (f(g1,g2))(x) -> f(g1(x), g2(x))
         """
         return self.func(*[a(*args) for a in self.args])
+
+    as_sexpr = instancemethod(Basic.as_sexpr)(Basic.as_sexpr)
 
 class BasicOperator(BasicFunction):
 
