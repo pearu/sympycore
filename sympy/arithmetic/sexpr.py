@@ -512,7 +512,7 @@ def expand_power(expr, p):
     t0,c0 = tc[0]
     p0 = [s_mul(s_mul(t, s_power(t0,-one)),(NUMBER, c/c0)) for t,c in tc]
     r = dict()
-    add_inplace_dict(r, s_power(t0,m), c0**m)
+    add_inplace_dict(r, s_power(t0,p), c0**m)
     l = [terms_dict_to_expr(r)]
     for k in xrange(1, m * n + 1):
         r1 = dict()
