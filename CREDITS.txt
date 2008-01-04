@@ -2,7 +2,7 @@ Introduction
 ------------
 
 This file collects the notes for credits, acknowledgments, and used
-third-party software of the Sympy Core project.
+third-party software of the Sympy Core project in chronological order.
 
 Credits
 -------
@@ -23,6 +23,14 @@ Credits
   sympy-sandbox branch of the SymPy project SVN repository. The branch
   as well as subsequent development of the sympycore package is
   carried out by Pearu Peterson during the year 2007.
+
+* Sympy Core uses the proof-of-concept by Kirill Smelkov
+
+    http://code.google.com/p/sympy/issues/detail?id=440
+
+  (see comment #10) for using Python AST structures to parse strings
+  and create symbolic expressions from them. The idea with added
+  features was implemented in sympycore by Pearu.
 
 * Sympy Core uses the idea of Fredrik Johansson's research to carry
   out arithmetic operations using s-expression like structures. See
