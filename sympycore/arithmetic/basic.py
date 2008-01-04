@@ -10,6 +10,13 @@ class BasicArithmetic(ArithmeticMethods):
     """
 
     def __array__(self, dtype=None):
+        """ Return an 1-d array object containing expression
+        as an element.
+
+        To create an array of expressions, use empty and explicitely
+        fill it with the expressions. See
+          http://code.google.com/p/sympy/issues/detail?id=537
+        """
         import numpy
         obj = numpy.empty(1,dtype=object)
         obj[0] = self

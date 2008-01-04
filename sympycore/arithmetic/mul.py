@@ -109,7 +109,7 @@ class Mul(ArithmeticFunction):
         expr = self.as_sexpr()
         if expr[0] is FACTORS:
             for t,c in expr[1]:
-                yield s_toBasic(t), c
+                yield s_toBasic(t), sympify(c)
         elif expr[0] is TERMS:
             assert len(expr[1])==1,`expr`
             t, c = list(expr[1])[0]

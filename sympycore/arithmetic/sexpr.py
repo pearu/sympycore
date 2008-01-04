@@ -33,7 +33,7 @@ __all__ = ['s_add', 's_mul', 's_power', 's_expand', 's_tostr',
            's_add_terms_coeffs','s_mul_bases_exps',
            's_add_sequence', 's_mul_sequence', 's_toBasic']
 
-from ..core import classes, objects, sympify
+from ..core import classes, objects, sympify, Basic
 from ..core.sexpr import NUMBER, SYMBOLIC, TERMS, FACTORS, IMAGUNIT, NANINF
 
 one = objects.one
@@ -73,6 +73,7 @@ def s_toBasic_generator(expr):
         Pow = classes.Pow
         for t,c in seq:
             b = s_toBasic(t)
+            c = classes.Integer(c)
             if c is one:
                 yield b
             else:
@@ -100,6 +101,7 @@ def s_toBasic(expr):
     elif s is FACTORS:
         if len(seq)==1:
             t, c = list(seq)[0]
+            c = classes.Integer(c)
             if c is zero:
                 return one
             b = s_toBasic(t)
