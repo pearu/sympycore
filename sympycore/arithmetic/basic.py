@@ -4,9 +4,16 @@ from .methods import ArithmeticMethods
 
 __all__ = ['BasicArithmetic']
 
+
 class BasicArithmetic(ArithmeticMethods):
     """ Defines default methods for arithmetic classes.
     """
+
+    def __array__(self, dtype=None):
+        import numpy
+        obj = numpy.empty(1,dtype=object)
+        obj[0] = self
+        return obj
 
     def try_power(self, exponent):
         """ Try evaluating power self ** exponent.
