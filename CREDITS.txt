@@ -1,0 +1,61 @@
+Introduction
+------------
+
+This file collects the notes for credits, acknowledgments, and used
+third-party software of the Sympy Core project.
+
+Credits
+-------
+
+* The Sympy Core project started by Pearu Peterson is closely related
+  to the SymPy project
+
+    http://sympy.googlecode.com/
+
+  which was established by Ondrej Certik in autumn 2006.
+
+  The Sympy Core tries to provide an efficient, robust, and complete
+  implementations of the core part of a Computer Algebra System for
+  Python and it is the aim of this project that the SymPy project will
+  use sympycore for that in future.
+
+* The code of Sympy Core is based on the development of the
+  sympy-sandbox branch of the SymPy project SVN repository. The branch
+  as well as subsequent development of the sympycore package is
+  carried out by Pearu Peterson during the year 2007.
+
+* Sympy Core uses the idea of Fredrik Johansson's research to carry
+  out arithmetic operations using s-expression like structures. See
+
+    http://sympycore.googlecode.com/svn/trunk/research/directadd5.py
+
+  for details. The idea with added features is implemented in
+  sympycore by Pearu in late December 2007. This resulted a
+  considerable performance improvement in terms of creating new
+  symbolic expressions and performing arithmetic operations.
+
+Third-party software
+--------------------
+
+Sympy Core includes the following third-party software:
+
+* mpmath package (SVN revision 189) developed by Fredrik Johansson:
+
+    http://mpmath.googlecode.com/
+
+  The package is used as a backend for arbitrary precision floating
+  point number support.
+
+* qm module (v0.1) developed by Robert Dick:
+
+    http://ziyang.ece.northwestern.edu/~dickrp/python/mods.html
+
+  The module implements Quine-McCluskey two-level logic minimization
+  method that is used to evaluate boolean expressions.
+
+Acknowledgments
+---------------
+
+* Pearu Peterson acknowledges Simula Research Laboratory
+  (http://www.simula.no) for supporting his work on the SymPy and
+  Sympy Core projects.
