@@ -288,7 +288,9 @@ class Basic(object):
           sexpr.ARITHMETIC, sexpr.LOGICAL_SYMBOLIC, sexpr.LOGICAL_SET
         """
         return (SYMBOLIC, self)
-
+    
+    def as_sexpr2(self, context=ARITHMETIC):
+        return classes.s_Symbol(self)
 
 class Atom(Basic):
 

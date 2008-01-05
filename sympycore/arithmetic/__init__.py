@@ -14,6 +14,8 @@ from .symbol import Symbol, Dummy, Wild
 from .constants import initialize_constants
 initialize_constants() # add.py, mul.py, sexpr.py use oo,nan,etc.
 
+import sexpr2
+
 from .function import Function, Lambda, FunctionType, WildFunctionType
 from .operator import Operator, OperatorType
 

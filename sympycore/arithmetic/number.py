@@ -76,6 +76,11 @@ class Number(BasicArithmetic, Atom):
         #    return (sexpr.FLOAT, self)
         #raise NotImplementedError(`self`)
 
+    def as_sexpr2(self, context=sexpr.ARITHMETIC):
+        if context==sexpr.ARITHMETIC:
+            return classes.s_Number(self)
+        return Basic.as_sexpr2(self, context=None)
+
     @memoizer_immutable_args('Number.try_power')
     def try_power(self, other):
         r = self.__pow__(other)
