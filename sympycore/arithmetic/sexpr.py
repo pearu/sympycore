@@ -89,11 +89,12 @@ def s_toBasic(expr):
     if s is NUMBER:
         return seq
     elif s is TERMS:
+        seq = frozenset(seq)
         if len(seq)==1:
             t, c = list(seq)[0]
             coeff = (NUMBER, c)
             if t[0] is FACTORS:
-                t = (FACTORS, t[1].union([(coeff, one)]), coeff)
+                t = (FACTORS, frozenset(t[1]).union([(coeff, one)]), coeff)
             else:
                 t = (FACTORS, frozenset([(t, one), (coeff, one)]), coeff)
             return classes.Mul(s_toBasic_generator(t), sexpr=expr)
@@ -214,7 +215,7 @@ def mul_inplace_dict_factors1(d, rhs):
                 d[t] = c
     return
 
-def mul_inplace_dict_base_exp(d, base, exp):
+def _mul_inplace_dict_base_exp(d, base, exp): # XXX to be removed
     b = d.get(base)
     if b is None:
         d[base] = exp
@@ -337,7 +338,7 @@ def mul_nonfactors_nonfactors(lhs, rhs):
     t1 = lhs[1]
     t2 = rhs[1]
     if t1==t2:
-        return (FACTORS, frozenset([(lhs, 2)]), one)
+        return (FACTORS, frozenset([(lhs, classes.Integer(2))]), one)
     return (FACTORS, frozenset([(lhs, one), (rhs, one)]), one)
 
 def mul_terms_terms(lhs, rhs):
@@ -611,3 +612,16 @@ def s_mul_bases_exps(seq):
         return factors_dict_to_expr(d)
     return s_mul(factors_dict_to_expr(d), (NUMBER, coeff))
 
+try:
+    from .c_sexpr import init
+except ImportError, msg:
+    init = None
+    print 'failed to enable C code: %s' % (msg)
+#init = None
+if init is not None:
+    init(zero, one)
+    from .c_sexpr import add_inplace_dict_term_coeff
+    from .c_sexpr import add_inplace_dict_terms
+    from .c_sexpr import add_inplace_dict_terms1
+
+mul_inplace_dict_base_exp = add_inplace_dict_term_coeff

@@ -2,6 +2,8 @@ from ..core.utils import memoizer_immutable_args, singleton, memoizer_Integer
 from ..core import Basic, sympify, classes, objects
 from .number import Rational
 
+#from .integer_utils import c_gcd
+
 def integer_nthroot(y, n):
     """
     Usage
@@ -195,6 +197,8 @@ class Integer(Rational, pyint):
         while a:
             a, b = b%a, a
         return b
+
+    #gcd = staticmethod(c_gcd)
 
     @staticmethod
     def factor_trial_division(n):

@@ -210,7 +210,7 @@ if sys.platform=='win32':
 else:
     from time import time as clock
 
-import sympy
+import sympycore as sympy
 
 def time1():
     x = Expr('x')
@@ -254,7 +254,7 @@ def time2():
     t2 = clock()
     return 100 / (t2-t1)
 
-def time3():
+def time3(n=1000):
     x = sympy.Symbol('x').as_sexpr()
     y = sympy.Symbol('y').as_sexpr()
     z = sympy.Symbol('z').as_sexpr()
@@ -262,9 +262,8 @@ def time3():
     b = sympy.Rational(3,4).as_sexpr()
     c = sympy.Rational(5,6).as_sexpr()
     tre = sympy.Integer(3).as_sexpr()
-    from sympy.arithmetic.sexpr import s_add, s_mul
+    from sympycore.arithmetic.sexpr import s_add, s_mul
     t1 = clock()
-    n = 1000
     while n:
         s_mul(s_add(s_mul(a,x),s_add(s_mul(b,y),s_mul(c,z))),tre)
         #3*(a*x+b*y+c*z)
@@ -285,6 +284,10 @@ print "without psyco"
 print timing()
 print timing()
 print timing()
+
+from sympycore import profile_expr
+
+profile_expr('time3(1000)')
 
 try:
     import psyco

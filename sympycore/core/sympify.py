@@ -87,7 +87,7 @@ def sympify(a, globals=None, locals=None, debug=False):
         try:
             return sympy_eval(a, globals, locals)
         except Exception,msg:
-            raise ValueError("Failed to evaluate %s: %s" % (`a`,msg))
+            raise ValueError("Failed to evaluate %s (use debug=True to get longer trace): %s" % (`a`,msg))
     if isinstance(a, tuple):
         return classes.Tuple(*map(sympify, a))
     if hasattr(a, '__sympy__'):
