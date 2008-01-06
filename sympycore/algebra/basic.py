@@ -45,7 +45,7 @@ class AlgebraicExpression(Basic):
       (<AlgebraicExpression instance>, <integer exponent>).
 
     Commutativity and noncommutativity properties are defined in how
-    the pairs are updated when performing operations. As an
+    the pairs is updated when performing operations. As an
     implementation example, for commutative algebras pairs can be a
     frozenset instance; for noncommutative algebras pairs can be a
     tuple instance.
