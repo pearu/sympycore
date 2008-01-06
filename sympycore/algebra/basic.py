@@ -1,8 +1,12 @@
 # Author: Pearu Peterson
 # Created: January 2008
 
+__all__ = ['AlgebraicExpression', 'AlgebraicNumberExpression', 'as_ae']
+
 from ..core import Basic, classes, objects
 from ..core.sexpr import ELEMENT, NUMBER, TERMS, FACTORS
+
+from .commutative import CommutativePairs
 
 class AlgebraicExpression(Basic):
     """ Algebraic expression represents
@@ -98,16 +102,10 @@ class AlgebraicExpression(Basic):
 
     def __init__(self, kind, data):
         self.kind = kind
-        self.data = data
-        
-    def __add__(self, other):
-        k1, k2 = self.kind, other.kind
-        d1, d2 = self.data, other.data
-        if k1 is ELEMENT and k2 is ELEMENT:
-            if d1==d2:
-                return AlgebraicExpression(FACTORS, [(self, 2)])
-            return AlgebraicExpression(TERMS, [(self, 1), (other, 1)])
-        raise NotImplementedError('%s + %s' % (self, other))
+        if (kind is TERMS or kind is FACTORS) and not isinstance(data, CommutativePairs):
+            self.data = CommutativePairs(data)
+        else:
+            self.data = data
 
     def __repr__(self):
         return '%s(%r, %r)' % (self.__class__.__name__, self.kind, self.data)
@@ -124,6 +122,160 @@ class AlgebraicExpression(Basic):
         if k is FACTORS:
             return ' * '.join(['%s**%s' % tc for tc in d])
         raise NotImplementedError('str(%r)')
+        
+    def __add__(self, other):
+        cls = self.__class__
+        other = as_ae(other, cls)
+        k1, k2 = self.kind, other.kind
+        d1, d2 = self.data, other.data
+        if k1 is ELEMENT:
+            if k2 is ELEMENT:
+                if d1==d2:
+                    return cls(TERMS, [(self, 2)])
+                return cls(TERMS, [(self, 1), (other, 1)])
+            if k2 is NUMBER:
+                if d2==0:
+                    return self
+                return cls(TERMS, [(self, 1), (1, other)])
+            if k2 is TERMS:
+                r = cls(TERMS, other)
+                r.data.sum_add_element(self, 1, 0)
+                return r # XXX: canonize
+            if k2 is FACTORS:
+                return cls(TERMS, [(self, 1), (other, 1)])
+        elif k1 is NUMBER:
+            if k2 is NUMBER:
+                if d2==0:
+                    return self
+                return cls(NUMBER, d1 + d2)
+            if k2 is ELEMENT:
+                return cls(TERMS, [(self, 1), (other, 1)])
+            if k2 is TERMS:
+                r = cls(TERMS, d2)
+                r.data.sum_add_number(d1, 1, 0) ## lhs add
+                return r # XXX: canonize
+            if k2 is FACTORS:
+                return cls(TERMS, [(self, 1), (other, 1)])
+        elif k1 is TERMS:
+            if k2 is NUMBER:
+                if d2==0:
+                    return self
+                r = cls(TERMS, d1)
+                r.data.sum_add_number(d2, 1, 0)
+                return r # XXX: canonize
+            if k2 is ELEMENT:
+                r = cls(TERMS, d1)
+                r.data.sum_add_element(other, 1, 0)
+                return r # XXX: canonize
+            if k2 is TERMS:
+                r = cls(TERMS, d1)
+                r.data.sum_add_sum(d2, 1, 0)
+                return r # XXX: canonize
+            if k2 is FACTORS:
+                r = cls(TERMS, d1)
+                r.data.sum_add_element(other, 1, 0)
+                return r # XXX: canonize
+        elif k1 is FACTORS:
+            if k2 is NUMBER:
+                if d2==0:
+                    return self
+                return cls(TERMS, [(self, 1), (other, 1)])
+            if k2 is ELEMENT:
+                return cls(TERMS, [(self, 1), (other, 1)])
+            if k2 is TERMS:
+                r = cls(TERMS, other)
+                r.data.sum_add_element(self, 1, 0) ## lhs add
+                return r # XXX: canonize
+            if k2 is FACTORS:
+                if d1==d2: # XXX fix __eq__ when d1,d2 are different sequences of pairs
+                    return cls(TERMS, [(self, 2)])
+                return cls(TERMS, [(self, 1), (other, 1)])
+        raise NotImplementedError('%s + %s' % (self, other))
+
+    def __mul__(self, other):
+        cls = self.__class__
+        other = as_ae(other, cls)
+        k1, k2 = self.kind, other.kind
+        d1, d2 = self.data, other.data
+        if k1 is ELEMENT:
+            if k2 is ELEMENT:
+                if d1==d2:
+                    return cls(FACTORS, [(self, 2)])
+                return cls(FACTORS, [(self, 1), (other, 1)])
+            if k2 is NUMBER:
+                if d2==0:
+                    return other
+                return cls(TERMS, [(self, d2)])
+            if k2 is TERMS:
+                return cls(FACTORS, [(self, 1), (other,1)])
+            if k2 is FACTORS:
+                # XXX for commutative producs use r=cls(FACTORS, d2), then there will be no loop
+                r = cls(FACTORS,[(self,1)])
+                r.product_mul_product(other, 1, 0)
+                return r # XXX: canonize
+        elif k1 is NUMBER:
+            if k2 is NUMBER:
+                if d2==0:
+                    return other
+                return cls(NUMBER, d1 * d2)
+            if k2 is ELEMENT:
+                return cls(TERMS, [(other, d1)]) # XXX: commutativity
+            if k2 is TERMS:
+                r = cls(TERMS, d2)
+                r.data.sum_multiply_number(d1, 1, 0) ## lhs multiply, fix for noncom. product
+                return r # XXX: canonize
+            if k2 is FACTORS:
+                return cls(TERMS, [(self, 1), (other, 1)])
+        elif k1 is TERMS:
+            if k2 is NUMBER:
+                if d2==0:
+                    return other
+                r = cls(TERMS, d1)
+                r.data.sum_multiply_number(d2, 1, 0)
+                return r # XXX: canonize
+            if k2 is ELEMENT:
+                return cls(FACTORS, [(self, 1), (other,1)])
+            if k2 is TERMS:
+                r = cls(TERMS, d1)
+                r.data.sum_multiply_sum(d2, 1, 0)
+                return r # XXX: canonize
+            if k2 is FACTORS:
+                return cls(FACTORS, [(self, 1), (other, 1)])
+        elif k1 is FACTORS:
+            if k2 is NUMBER:
+                if d2==0:
+                    return other
+                return cls(FACTORS, [(self, 1), (other, 1)])
+            if k2 is ELEMENT:
+                r = cls(FACTORS, d1)
+                r.data.product_multiply_element(other, 1, 0)
+                return r # XXX: canonize
+            if k2 is TERMS:
+                return cls(FACTORS, [(self, 1), (other, 1)])
+            if k2 is FACTORS:
+                r = cls(FACTORS, d1)
+                if d1==d2: # XXX fix __eq__ when d1,d2 are different sequences of pairs
+                    r.data.product_power_exponent(2, 1, 0)
+                    return r # XXX: canonize
+                r.data.product_multiply_product(d2, 1, 0)
+                return r # XXX: canonize
+        raise NotImplementedError('%s * %s' % (self, other))
+
+    def __radd__(self, other):
+        return self + other # XXX: assumes commutativity
+
+    def __rmul__(self, other):
+        return self * other # XXX: assumes commutativity
+
+    def __hash__(self):
+        return hash((self.kind, self.data))
+
+    def __eq__(self, other):
+        if other.__class__ is not self.__class__:
+            return False
+        if self.kind is not other.kind:
+            return False
+        return self.data == other.data
 
 class AlgebraicNumberExpression(AlgebraicExpression):
     """ Represents algebraic numbers.
@@ -131,6 +283,19 @@ class AlgebraicNumberExpression(AlgebraicExpression):
     Here elements of the algebra are minimal roots of numbers, numbers,
     and results of operations + and *. E.g. 2**(4/3) is represented as
 
-      AlgebraicNumberExpression(FACTORS,
-        [(AlgebraicNumberExpression(ELEMENT, Root(2,3)), 4)])
+      AlgebraicNumberExpression(FACTORS,[(2,4/3)])
     """
+
+def as_ae(obj, cls = AlgebraicExpression):
+    """ Return obj as algebraic expression.
+    """
+    objcls = obj.__class__
+    if objcls is cls:
+        return obj
+    if issubclass(objcls, cls):
+        return cls(NUMBER, obj)
+    if issubclass(cls, objcls):
+        return obj
+    if isinstance(obj, (classes.Number, int, long, float, complex)):
+        return cls(NUMBER, obj)
+    return cls(ELEMENT, obj)

@@ -83,6 +83,8 @@ class CommutativePairs:
     def __hash__(self):
         h = self._hash
         if h is None:
+            #self._hash = h = hash(frozenset(self.pairs))
+        #elif 0:
             # Using frozenset hash algorithm to avoid creating
             # frozenset instance. It should be safe to have the
             # same hash value with the frozenset as dictionary
@@ -97,7 +99,7 @@ class CommutativePairs:
         return h
 
     def __str__(self):
-        return '%s([%s])' % (self.__class__.__name__, ', '.join(['(%s, %s)' % (t,c) for t,c in self]))
+        return '%s([%s])' % (self.__class__.__name__, ', '.join(['(%s, %s)' % tc for tc in self]))
 
     def __repr__(self):
         return '%s(%r)' % (self.__class__.__name__, self._pairs)
@@ -295,7 +297,7 @@ class CommutativePairs:
         if h is not None:
             raise TypeError('cannot multiply immutable product in-place'\
                             ' (hash has been computed)')
-        pairs = self.pairs
+        pairs = self.pairs        
         for t,c in rhs:
             b = pairs.get(t)
             if b is None:

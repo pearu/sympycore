@@ -275,9 +275,32 @@ def time3(n=1000):
     t2 = clock()
     return 100 / (t2-t1)
 
+def time4():
+    x = sympy.as_ae('x')
+    y = sympy.as_ae('y')
+    z = sympy.as_ae('z')
+    a = sympy.Rational(1,2)
+    b = sympy.Rational(3,4)
+    c = sympy.Rational(5,6)
+    A = a*x + b*y + c*z
+    B = b*x + c*y + a*z
+    t1 = clock()
+    n = 1000
+    while n:
+        3*(a*x+b*y+c*z)
+        #A + B
+        #x + y
+        #a + b
+        #a * b
+        n -= 1
+    t2 = clock()
+    return 100 / (t2-t1)
+
+
+
 def timing():
     t1 = time1()
-    t2 = time3()
+    t2 = time4()
     return t1, t2, t1/t2
 
 print "without psyco"
