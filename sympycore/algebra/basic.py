@@ -1,3 +1,5 @@
+# Author: Pearu Peterson
+# Created: January 2008
 
 from ..core import Basic, classes, objects
 
@@ -7,36 +9,38 @@ class AlgebraicExpression(Basic):
     - a set element of an algebra
     - a result of binary operation +
     - a result of binary operation *
+    - a number element of an algebra (see definition below)
 
-    An operant of the operation + has number coefficient that
-    represents a repetition of the given operant in the operation.
-    E.g. x * 3 means x + x + x. Number coefficient can be also
+    An operant of the operation + has a number coefficient that
+    represents the repetition of the given operant in the operation.
+    E.g. x * 3 means x + x + x. Number coefficient can also be
     fraction, algebraic number, or any other concept generalizing
     repetition notion.
 
     An operant of the operation * has integer exponent that also
-    represents a repetition of the given operant in the operation.
+    represents the repetition of the given operant in the operation.
     E.g. x ** 3 means x * x * x. The exponent must be integer.
 
     An element of an algebra is represented as
 
       AlgebraicExpression(ELEMENT, obj)
       
-    where obj can be any Python object that is hashable.
+    where obj can be any Python object that is hashable (this
+    requirement is related to the implementation algorithm).
 
-    A result of the operation + is represented as
+    The result of operation + is represented as
 
       AlgebraicExpression(TERMS, pairs)
 
-    where pairs is a sequence or iterator containing pairs
+    where pairs is a sequence or an iterator containing pairs
 
       (<AlgebraicExpression instance>, <number coefficient>).
 
-    A result of the operation * is represented as
+    The result of operation * is represented as
 
       AlgebraicExpression(FACTORS, pairs)
 
-    where pairs is a sequence or iterator containing pairs
+    where pairs is a sequence or an iterator containing pairs
 
       (<AlgebraicExpression instance>, <integer exponent>).
 
@@ -50,7 +54,7 @@ class AlgebraicExpression(Basic):
 
     and is represented as
 
-      AlgebraicExpression(TERMS, [(one, <number>)]).
+      AlgebraicExpression(NUMBER, <number>).
 
     The zero element of an algebra is represented as
 
@@ -61,7 +65,7 @@ class AlgebraicExpression(Basic):
       one * 1.
 
     Fractional powers are represented as powers of a minimal root
-    (that has exponent with a nominator equal to 1) where the root
+    (that has exponent with a numerator equal to 1) where the root
     expression is considered as an element of an algebra. E.g.
     x**(2/3) is equal to (x**(1/3)) ** 2 and is represented as
 
@@ -73,7 +77,7 @@ class AlgebraicExpression(Basic):
 
       Root(x, 3).
 
-    Symbolic powers are considered as an element of an algebra.
+    Symbolic powers are considered as elements of an algebra.
     E.g x**y is represented as
     
       AlgebraicExpression(ELEMENT, x**y)
@@ -88,20 +92,20 @@ class AlgebraicExpression(Basic):
 
      x**(2/3*y + 4/5) is rewritten as (x**(1/3*y+2/5), 2)
 
-    Python operations + and * use the following rules when the lhs
+    Python operations + and * use the following rules when the LHS
     operant is an instance of AlgebraicExpression:
     
-      - if rhs has the same class as lhs then result will be computed within
+      - if RHS has the same class as LHS then result will be computed within
         given algebra.
 
-      - if rhs is a subclass of the lhs class then it is considered
-        as a number element of the lhs algebra.
+      - if RHS is a subclass of the LHS class then it is considered
+        as a number element of the LHS algebra.
 
-      - if rhs is a superclass of tje lhs class then the lhs is considered
-        as a number element of the rhs algebra.
+      - if RHS is a superclass of the LHS class then the LHS is considered
+        as a number element of the RHS algebra.
 
-      - if rhs is not an AlgebraicExpression instance then it will be
-        converted to one using rhs.as_ae(lhs.__class__).
+      - if RHS is not an AlgebraicExpression instance then it will be
+        converted to one using RHS.as_ae(LHS.__class__).
 
     Examples:
 
@@ -120,9 +124,9 @@ class AlgebraicExpression(Basic):
 class AlgebraicNumberExpression(AlgebraicExpression):
     """ Represents algebraic numbers.
 
-    Here elements of the algebra are minimal roots of numbers and
-    numbers. E.g. 2**(2/3) is represented as
+    Here elements of the algebra are minimal roots of numbers, numbers,
+    and results of operations + and *. E.g. 2**(4/3) is represented as
 
       AlgebraicNumberExpression(FACTORS,
-        [(AlgebraicNumberExpression(ELEMENT, Root(2,3)), 2)])
+        [(AlgebraicNumberExpression(ELEMENT, Root(2,3)), 4)])
     """
