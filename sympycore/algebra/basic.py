@@ -2,6 +2,7 @@
 # Created: January 2008
 
 from ..core import Basic, classes, objects
+from ..core.sexpr import ELEMENT, NUMBER, TERMS, FACTORS
 
 class AlgebraicExpression(Basic):
     """ Algebraic expression represents
@@ -124,9 +125,35 @@ class AlgebraicExpression(Basic):
         where s = AlgebraicExpression(ELEMENT, <Power(2,1/3)>)
     """
 
-    def __new__(cls, kind, expr):
-        obj = object.__new__(cls)
+    def __init__(self, kind, data):
+        self.kind = kind
+        self.data = data
         
+    def __add__(self, other):
+        k1, k2 = self.kind, other.kind
+        d1, d2 = self.data, other.data
+        if k1 is ELEMENT and k2 is ELEMENT:
+            if d1==d2:
+                return AlgebraicExpression(FACTORS, [(self, 2)])
+            return AlgebraicExpression(TERMS, [(self, 1), (other, 1)])
+        raise NotImplementedError('%s + %s' % (self, other))
+
+    def __repr__(self):
+        return '%s(%r, %r)' % (self.__class__.__name__, self.kind, self.data)
+
+    def __str__(self):
+        k = self.kind
+        d = self.data
+        if k is ELEMENT:
+            return str(d)
+        if k is NUMBER:
+            return str(d)
+        if k is TERMS:
+            return ' + '.join(['%s*%s' % tc for tc in d])
+        if k is FACTORS:
+            return ' * '.join(['%s**%s' % tc for tc in d])
+        raise NotImplementedError('str(%r)')
+
 class AlgebraicNumberExpression(AlgebraicExpression):
     """ Represents algebraic numbers.
 

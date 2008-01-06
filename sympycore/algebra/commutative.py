@@ -18,6 +18,18 @@ class CommutativePairs:
     CommutativePairs instance is mutable until the moment
     its hash value is computed.
 
+    For a mutable CommutativePairs instance the following
+    methods are available:
+      sum_add_element(rhs, one, zero)
+      sum_add_number(rhs, one, zero)
+      sum_add_sum(rhs, one, zero)
+      sum_multiply_number(rhs, one, zero)
+      sum_multiply_sum(rhs, one, zero)
+      sum_power_exponent(exp, one, zero)
+      
+      product_multiply_element(rhs, one, zero)
+      product_multiply_product(rhs, one, zero)
+      product_power_exponent(exp, one, zero)
     """
 
     def __init__(self, pairs):
@@ -58,16 +70,14 @@ class CommutativePairs:
         h = self._hash
         if h is not None:
             raise TypeError('cannot set item to immutable %s instance'\
-                            ' (hash has been computed)'\
-                            % (self.__class__.__name__))
+                            ' (hash has been computed)')
         self.pairs[key] = item
 
     def __delitem__(self, key):
         h = self._hash
         if h is not None:
             raise TypeError('cannot delete item in immutable %s instance'\
-                            ' (hash has been computed)'\
-                            % (self.__class__.__name__))
+                            ' (hash has been computed)')
         del self.pairs[key]
 
     def __hash__(self):
@@ -86,6 +96,12 @@ class CommutativePairs:
             self._hash = h
         return h
 
+    def __str__(self):
+        return '%s([%s])' % (self.__class__.__name__, ', '.join(['(%s, %s)' % (t,c) for t,c in self]))
+
+    def __repr__(self):
+        return '%s(%r)' % (self.__class__.__name__, self._pairs)
+
     def sum_add_element(self, rhs, one, zero):
         """ Perform the following in-place operation on self:
 
@@ -96,8 +112,7 @@ class CommutativePairs:
         h = self._hash
         if h is not None:
             raise TypeError('cannot add immutable sum inplace'\
-                            ' (hash has been computed)'\
-                            % (self.__class__.__name__))
+                            ' (hash has been computed)')
         pairs = self.pairs
         b = pairs.get(rhs)
         if b is None:
@@ -118,8 +133,7 @@ class CommutativePairs:
         h = self._hash
         if h is not None:
             raise TypeError('cannot add immutable sum inplace'\
-                            ' (hash has been computed)'\
-                            % (self.__class__.__name__))
+                            ' (hash has been computed)')
         pairs = self.pairs
         b = pairs.get(one)
         if b is None:
@@ -131,20 +145,6 @@ class CommutativePairs:
             else:
                 pairs[one] = c        
 
-    def sum_multiply_number(self, rhs, one, zero):
-        """ Perform the following in-place operation on self:
-
-        AlgebraicExpression(TERMS, <self>) * AlgebraicExpression(NUMBER, <rhs>)
-        """
-        h = self._hash
-        if h is not None:
-            raise TypeError('cannot multiply immutable sum in place'\
-                            ' (hash has been computed)'\
-                            % (self.__class__.__name__))
-        pairs = self.pairs
-        for t in pairs.keys():
-            pairs[t] = pairs[t] * rhs
-
     def sum_add_sum(self, rhs, one, zero):
         """ Perform the following in-place operation on self:
 
@@ -153,8 +153,7 @@ class CommutativePairs:
         h = self._hash
         if h is not None:
             raise TypeError('cannot add immutable sum in-place'\
-                            ' (hash has been computed)'\
-                            % (self.__class__.__name__))
+                            ' (hash has been computed)')
         pairs = self.pairs
         for t,c in rhs:
             b = pairs.get(t)
@@ -167,6 +166,19 @@ class CommutativePairs:
                 else:
                     pairs[t] = c
 
+    def sum_multiply_number(self, rhs, one, zero):
+        """ Perform the following in-place operation on self:
+
+        AlgebraicExpression(TERMS, <self>) * AlgebraicExpression(NUMBER, <rhs>)
+        """
+        h = self._hash
+        if h is not None:
+            raise TypeError('cannot multiply immutable sum in place'\
+                            ' (hash has been computed)')
+        pairs = self.pairs
+        for t in pairs.keys():
+            pairs[t] = pairs[t] * rhs
+
     def sum_multiply_sum(self, rhs, one, zero):
         """ Perform the following in-place operation on self:
 
@@ -177,8 +189,7 @@ class CommutativePairs:
         h = self._hash
         if h is not None:
             raise TypeError('cannot add immutable sum in-place'\
-                            ' (hash has been computed)'\
-                            % (self.__class__.__name__))
+                            ' (hash has been computed)')
         pairs = self.pairs
         self._pairs = d = {}
         if isinstance(rhs, iterator_types):
@@ -205,3 +216,108 @@ class CommutativePairs:
                     else:
                         d[t] = c
 
+    def sum_power_exponent(self, exp, one, zero):
+        """ Perform the following in-place operation on self:
+
+          AlgebraicExpression(TERMS, <self>) ** <exp>
+
+        <exp> must be a positive integer.
+        The power is expanded.
+        """        
+        h = self._hash
+        if h is not None:
+            raise TypeError('cannot multiply immutable product inplace'\
+                            ' (hash has been computed)')
+
+        tc = list(self.pairs)
+        self._pairs = r = {}
+
+        ## Consider polynomial
+        ##   P(x) = sum_{i=0}^n p_i x^k
+        ## and its m-th exponent
+        ##   P(x)^m = sum_{k=0}^{m n} a(m,k) x^k
+        ## The coefficients a(m,k) can be computed using the
+        ## J.C.P. Miller Pure Recurrence [see D.E.Knuth,
+        ## Seminumerical Algorithms, The art of Computer
+        ## Programming v.2, Addison Wesley, Reading, 1981;]:
+        ##  a(m,k) = 1/(k p_0) sum_{i=1}^n p_i ((m+1)i-k) a(m,k-i),
+        ## where a(m,0) = p_0^m.
+        
+        m = int(p)
+        n = len(tc)-1
+        t0,c0 = tc[0]
+        """
+        p0 = [s_mul(s_mul(t, s_power(t0,-one)),(NUMBER, c/c0)) for t,c in tc]
+
+        add_inplace_dict(r, s_power(t0,p), c0**m)
+        l = [terms_dict_to_expr(r)]
+        for k in xrange(1, m * n + 1):
+            r1 = dict()
+            for i in xrange(1, min(n+1,k+1)):
+                nn = (m+1)*i-k
+            if nn:
+                add_inplace_dict(r1, expand_mul(l[k-i], p0[i]), Fraction(nn, k))
+        f = terms_dict_to_expr(r1)
+        add_inplace_dict1(r, f)
+        l.append(f)
+        return terms_dict_to_expr(r)
+        """
+        raise NotImplementedError
+        
+    def product_multiply_element(self, rhs, one, zero):
+        """ Perform the following in-place operation on self:
+
+        AlgebraicExpression(FACTORS, <self>) * <rhs>
+
+        <rhs> must be AlgebraicExpression instance.
+        """
+        h = self._hash
+        if h is not None:
+            raise TypeError('cannot multiply immutable product inplace'\
+                            ' (hash has been computed)')
+        pairs = self.pairs
+        b = pairs.get(rhs)
+        if b is None:
+            pairs[rhs] = one
+        else:
+            c = b + one
+            if c==zero:
+                del pairs[rhs]
+            else:
+                pairs[rhs] = c
+
+    def product_multiply_product(self, rhs, one, zero):
+        """ Perform the following in-place operation on self:
+
+        AlgebraicExpression(FACTORS, <self>) * AlgebraicExpression(FACTORS, <rhs>)
+        """
+        h = self._hash
+        if h is not None:
+            raise TypeError('cannot multiply immutable product in-place'\
+                            ' (hash has been computed)')
+        pairs = self.pairs
+        for t,c in rhs:
+            b = pairs.get(t)
+            if b is None:
+                pairs[t] = c
+            else:
+                c = b + c
+                if c==0:
+                    del pairs[t]
+                else:
+                    pairs[t] = c
+
+    def product_power_exponent(self, exp, one, zero):
+        """ Perform the following in-place operation on self:
+
+          AlgebraicExpression(FACTORS, <self>) ** <exp>
+
+        <exp> must be a number.
+        """
+        h = self._hash
+        if h is not None:
+            raise TypeError('cannot take a power of immutable product in-place'\
+                            ' (hash has been computed)')
+        pairs = self.pairs
+        for t in pairs.keys():
+            pairs[t] = pairs[t] * exp

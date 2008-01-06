@@ -11,7 +11,8 @@ TODO:
 
 __all__ = ['ARITHMETIC', 'LOGICAL_SYMBOLIC', 'LOGICAL_SET',
            'NUMBER','SYMBOLIC', 'TERMS', 'FACTORS',
-           'NANINF', 'IMAGUNIT'
+           'NANINF', 'IMAGUNIT',
+           'ELEMENT'
            ]
 
 # context words:
@@ -26,6 +27,7 @@ NUMBER = intern('N')
 # a number object that supports arithmetic operations with Python integers,
 # the code uses operations +, *, and ** with integer exponent.
 SYMBOLIC = intern('S')
+ELEMENT = intern('E')
 # any immutable object that supports __eq__ with other such objects
 TERMS = intern('+')
 # terms (stored in a frozenset) are in the form (term, coeff)

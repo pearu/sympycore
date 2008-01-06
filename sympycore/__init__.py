@@ -1,8 +1,11 @@
 from core import *
+from core.sexpr import *
+from algebra import *
 from logic import *
 from arithmetic import *
 from functions import *
 from calculus import *
+
 
 # expose predefined objects to sympy namespace
 for _n,_v in objects.iterNameValue():
