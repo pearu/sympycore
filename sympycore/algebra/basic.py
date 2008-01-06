@@ -20,7 +20,7 @@ class AlgebraicExpression(Basic):
 
     An operant of the operation * has integer exponent that also
     represents the repetition of the given operant in the operation.
-    E.g. x ** 3 means x * x * x. The exponent must be integer.
+    E.g. x ** 3 means x * x * x.
 
     An element of an algebra is represented as
 
@@ -43,9 +43,9 @@ class AlgebraicExpression(Basic):
 
     where pairs is a sequence or an iterator containing pairs
 
-      (<AlgebraicExpression instance>, <integer exponent>).
+      (<AlgebraicExpression instance>, <exponent>).
 
-    Commutativity and noncommutativity properties are defined in how
+    Commutativity and noncommutativity properties are defined via how
     the pairs is updated when performing operations. As an
     implementation example, for commutative algebras pairs can be a
     frozenset instance; for noncommutative algebras pairs can be a
@@ -71,34 +71,6 @@ class AlgebraicExpression(Basic):
 
       one * 1.
 
-    Fractional powers are represented as powers of a minimal root
-    (that has exponent with a numerator equal to 1) where the root
-    expression is considered as an element of an algebra. E.g.
-    x**(2/3) is equal to (x**(1/3)) ** 2 and is represented as
-
-      AlgebraicExpression(FACTORS,
-                      [(AlgebraicExpression(ELEMENT, x**(1/3)), 2)])
-
-    where y=x**(1/3) is a solution of x==y**3 with respect to y and is
-    represented as
-
-      Root(x, 3).
-
-    Symbolic powers are considered as elements of an algebra.
-    E.g x**y is represented as
-    
-      AlgebraicExpression(ELEMENT, x**y)
-
-    where x**y is represented as Power(x, y).
-
-    More examples:
-     x**(2/3*y) is represented as
-
-      AlgebraicExpression(FACTORS,
-                         [(AlgebraicExpression(ELEMENT, Power(x,1/3*y)) , 2)] )
-
-     x**(2/3*y + 4/5) is rewritten as (x**(1/3*y+2/5), 2)
-
     Python operations + and * use the following rules when the LHS
     operant is an instance of AlgebraicExpression:
     
@@ -116,13 +88,12 @@ class AlgebraicExpression(Basic):
 
     Examples:
 
-      <Number>.as_ae(AlgebraicExpression) -> AlgebraicExpression(TERMS,[(one, <Number>)])
+      <Number>.as_ae(AlgebraicExpression) -> AlgebraicExpression(TERMS, [(one, <Number>)])
 
-      <Symbol>.as_ae(AlgebraicExpression) -> AlgebraicExpression(TERMS,[(s, 1)])
+      <Symbol>.as_ae(AlgebraicExpression) -> AlgebraicExpression(TERMS, [(s, 1)])
         where s = AlgebraicExpression(ELEMENT, <Symbol>)
 
-      <Power(2,5/3)>.as_ae(AlgebraicExpression) -> AlgebraicExpression(FACTORS,[(s, 5)])
-        where s = AlgebraicExpression(ELEMENT, <Power(2,1/3)>)
+      <Power(2,5/3)>.as_ae(AlgebraicExpression) -> AlgebraicExpression(FACTORS, [(2, 5/3)])
     """
 
     def __init__(self, kind, data):
