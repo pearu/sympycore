@@ -193,7 +193,7 @@ class AlgebraicExpression(Basic):
         raise NotImplementedError('%s + %s' % (self, other))
 
     def __mul__(self, other):
-        cls = self.__class__
+        cls = type(self)
         other = as_ae(other, cls)
         k1, k2 = self.kind, other.kind
         d1, d2 = self.data, other.data
@@ -271,7 +271,7 @@ class AlgebraicExpression(Basic):
         return hash((self.kind, self.data))
 
     def __eq__(self, other):
-        if other.__class__ is not self.__class__:
+        if type(other) is not type(self):
             return False
         if self.kind is not other.kind:
             return False
@@ -289,7 +289,7 @@ class AlgebraicNumberExpression(AlgebraicExpression):
 def as_ae(obj, cls = AlgebraicExpression):
     """ Return obj as algebraic expression.
     """
-    objcls = obj.__class__
+    objcls = type(obj)
     if objcls is cls:
         return obj
     if issubclass(objcls, cls):

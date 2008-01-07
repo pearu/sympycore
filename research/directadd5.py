@@ -1,3 +1,5 @@
+import gmpy
+
 NUMBER = 'N'
 SYMBOLIC = 'S'
 TERMS = '+'
@@ -40,8 +42,10 @@ class rational(tuple):
         p, q = self
         if isinstance(other, int):
             r, s = other, 1
-        else:
+        elif isinstance(other, rational):
             r, s = other
+        else:
+            return NotImplemented
         return rational(p*r, q*s)
 
     __rmul__ = __mul__
@@ -275,17 +279,22 @@ def time3(n=1000):
     t2 = clock()
     return 100 / (t2-t1)
 
-def time4():
+def time4(n=1000):
     x = sympy.as_ae('x')
     y = sympy.as_ae('y')
     z = sympy.as_ae('z')
-    a = sympy.Rational(1,2)
-    b = sympy.Rational(3,4)
-    c = sympy.Rational(5,6)
+    a = sympy.AlgebraicExpression(sympy.NUMBER,sympy.Rational(1,2))
+    b = sympy.AlgebraicExpression(sympy.NUMBER,sympy.Rational(3,4))
+    c = sympy.AlgebraicExpression(sympy.NUMBER,sympy.Rational(5,6))
+    #a = sympy.AlgebraicExpression(sympy.NUMBER,rational(1,2))
+    #b = sympy.AlgebraicExpression(sympy.NUMBER,rational(3,4))
+    #c = sympy.AlgebraicExpression(sympy.NUMBER,rational(5,6))
+    #a = sympy.AlgebraicExpression(sympy.NUMBER,gmpy.mpq(1,2))
+    #b =  sympy.AlgebraicExpression(sympy.NUMBER,gmpy.mpq(3,4))
+    #c =  sympy.AlgebraicExpression(sympy.NUMBER,gmpy.mpq(5,6))
     A = a*x + b*y + c*z
     B = b*x + c*y + a*z
     t1 = clock()
-    n = 1000
     while n:
         3*(a*x+b*y+c*z)
         #A + B
@@ -310,7 +319,7 @@ print timing()
 
 from sympycore import profile_expr
 
-profile_expr('time3(1000)')
+profile_expr('time4(1000)')
 
 try:
     import psyco

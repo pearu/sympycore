@@ -179,7 +179,7 @@ class CommutativePairs:
                             ' (hash has been computed)')
         pairs = self.pairs
         for t in pairs.keys():
-            pairs[t] = pairs[t] * rhs
+            pairs[t] *= rhs
 
     def sum_multiply_sum(self, rhs, one, zero):
         """ Perform the following in-place operation on self:

@@ -1,0 +1,120 @@
+
+Introduction
+============
+
+In the following we recall the definitions of certain algebraic
+structures and define symbolic algebra.
+
+
+Algebra
+-------
+
+See also:
+  http://en.wikipedia.org/wiki/Universal_algebra
+
+An algebra is a tuple (A, +, *) where A is a set and +, *,
+are binary operations that are defined between the elements of A.
+Repeated usage of binary operations on the same element, say x and
+using + operation,
+
+  x + x + ... + x
+
+is denoted by
+
+  x * n
+
+where n is the number counting how many times the element x is used in
+the above sum expression. The number n, called as a coefficient, can
+be an integer but the above concept of repetition can be generalized
+to other sets of numbers such as rationals, real numbers, algebraic
+numbers etc etc.
+
+The above defines the multiplication operation between an algebra
+element and a number. Similarly is defined exponentation operation
+
+  x ** m
+
+that means using element x m-times in the product
+
+  x * x * ... * x
+
+The number m is called an exponent.
+
+Operations - and / can be defined using the concepts above:
+
+  x - y == x + y * (-1)
+  x / y == x * y ** (-1)
+
+Operation + can be also defined between an algebra element and
+a number:
+
+  x + n == x + e * n
+
+where e is identity element of an algebra with respect to * operation
+(x * e == x).
+
+So, instead of the tuple (A, +, *), we can consider equivalent tuple
+(A, +, *, -, /, **, N, M) where N, M are set of numbers where the
+coefficients and exponents of algebraic expressions belong.
+
+Ring
+----
+
+Note that the sets of numbers may also form algebras but often they
+are rings (R, +, *). Examples:
+
+  Sets (fields) of intergers, rational, real, complex numbers are
+  commutative rings.
+
+  Sets of (multivariate) polynomials with coefficients in ring, are
+  rings.
+
+See also http://en.wikipedia.org/wiki/Ring_(algebra).
+
+Symbolic algebra
+================
+
+By symbolic algebra we mean a tuple (E, +, *, -, /, **, N, M) where
+the set E consists of symbolic expressions. The number sets N and M
+represent sets of coefficients and exponents, respectively, and can
+also be symbolic algebras. A symbolic expression may be
+
+  - an instance of Terms that holds (expression, coefficient) pairs
+  - an instance of Factors that holds (expression, exponent) pairs
+  - any hashable object that is not an instance of Terms or Factors
+
+A symbolic algebra is defined by a class that is derived from
+singleton class AlgebraicStructure. The corresponding class must
+define methods:
+
+  coerce_term(self, obj)
+  coerce_factor(self, obj)
+
+The coerce_term(self, obj) method returns:
+
+  - (TERMS, obj)   when obj is a Terms instance and obj.structure = self
+  - (FACTORS, obj) when obj is a Factors instance and obj.structure = self
+  - (NUMBER, obj)  when obj represents a number from the set of coefficients
+  - (ELEMENT, obj) when obj is none of the above
+
+The coerce_factor(self, obj) method returns:
+
+  - (TERMS, obj)   when obj is a Terms instance and obj.structure = self
+  - (FACTORS, obj) when obj is a Factors instance and obj.structure = self
+  - (NUMBER, obj)  when obj represents a number from the set of exponents
+  - (ELEMENT, obj) when obj is none of the above
+
+Note that coerce_term, coerce_factor methods may replace obj with some
+other equivalent object (sympify(obj), for instance). They may also
+implement custom type checking.
+
+The Terms and Factors derive from Pairs class that has constructor
+in the form
+
+  Pairs(<sequence or iterator of 2-tuples>,
+        structure=<AlgebraicStructure singleton>)
+
+The Terms and Factors define arithmetic methods such as __add__, __mul__,
+etc. In these methods methods self.structure.coerce_* methods are used
+to obtain information about the rhs operant - is it a sum or a product
+or a number or an element of the given algebraic structure.
