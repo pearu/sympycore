@@ -53,7 +53,7 @@ class UnivariatePolynomial:
 
     def __add__(self, other):
         if not isinstance(other, UnivariatePolynomial):
-            return NotImplemented
+            other = self.__class__([other], self.symbol)
         if self.symbol != other.symbol:
             return NotImplemented
         coefs = [a+b for (a, b) in zip(self.coefs, other.coefs)]
@@ -94,6 +94,45 @@ class UnivariatePolynomial:
         if n == 1: return self
         if n & 1 == 0: return (self*self)**(n//2)
         if n & 1 == 1: return self*((self*self)**(n//2))
+
+    def __divmod__(self, other):
+        # XXX: should convert to rationals when coefficients are ints
+        if isinstance(other, UnivariatePolynomial):
+            if self.symbol != other.symbol:
+                return NotImplemented
+            if other.degree < 0:
+                raise ZeroDivisionError, "polynomial division"
+            n = self.degree
+            nv = other.degree
+            u = self.coefs
+            v = other.coefs
+            r = list(u)
+            q = [0] * (len(r)+1)
+            for k in range(n-nv, -1, -1):
+                q[k] = r[nv+k] / v[nv]
+                for j in range(nv+k-1, k-1, -1):
+                    r[j] -= q[k]*v[j-k]
+            for j in range(nv, n+1, 1):
+                r[j] = 0
+            return self.__class__(q), self.__class__(r)
+        else:
+            if other == 0:
+                raise ZeroDivisionError, "polynomial division"
+            q = self.__class__([c/other for c in self.coefs], self.symbol)
+            r = self.__class__(self.symbol)
+            return q, r
+
+    def __div__(self, other):
+        return divmod(self, other)[0]
+
+    __truediv__ = __div__
+
+    def __mod__(self, other):
+        return divmod(self, other)[1]
+
+    def diff(self):
+        return self.__class__([c*(k+1) for k, c in enumerate(self.coefs[1:])],
+            self.symbol)
 
 
 poly = UnivariatePolynomial
