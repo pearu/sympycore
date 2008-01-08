@@ -131,6 +131,21 @@ class SymbolicNumber(StandardCommutativeAlgebra): # rename to Number?
     def __hash__(self):
         return hash((type(self), self.data))
 
+    def __mul__(self, other):
+        other = StandardCommutativeAlgebra(other)
+        kind = other.kind
+        if kind is NUMBER:
+            return SymboliNumber(self.data * other.data)
+        if kind is SYMBOL:
+            return SymbolicTerms({other:self.data})
+        if kind is ADD:
+            r = SymbolicTerms(other)
+            r._add_value(1, self.data, 0)
+            return r # XXX: canonize
+        if kind is MUL:
+            return SymbolicTerms({other:self.data})
+        raise NotImplementedError('%s * %s' % (self, other))
+        
 class SymbolicTerms(CommutativePairs, StandardCommutativeAlgebra):
 
     kind = ADD
