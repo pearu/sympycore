@@ -6,9 +6,13 @@ iterator_types = (type(iter([])), type(iter(())), type(iter(frozenset())),
 class Pairs(object):
     """ Base class for holding pairs (by default non-commutative).
     """
-    def __init__(self, pairs):
-        self._pairs = pairs
-        self._hash = None
+    def __new__(cls, pairs):
+        if isinstance(pairs, cls):
+            return pairs
+        o = object.__new__(cls)
+        o._pairs = pairs
+        o._hash = None
+        return o
 
     @property
     def pairs(self):
@@ -19,7 +23,7 @@ class Pairs(object):
             self._pairs = pairs = tuple(pairs)
         return pairs
 
-    def iterator(self):
+    def __iter__(self):
         pairs = self._pairs
         if isinstance(pairs, iterator_types):
             self._pairs = pairs = tuple(pairs)
@@ -46,13 +50,16 @@ class CommutativePairs(Pairs):
             self._pairs = pairs = dict(pairs)
         return pairs
 
-    def iterator(self):
+    def __iter__(self):
         pairs = self._pairs
         if isinstance(pairs, iterator_types):
             self._pairs = pairs = dict(pairs)
             return pairs.iteritems()
         elif isinstance(pairs, dict):
             return pairs.iteritems()
+        elif isinstance(pairs, Pairs):
+            raise
+            return pairs.pairs
         return iter(pairs)
 
     def length(self):
@@ -62,6 +69,9 @@ class CommutativePairs(Pairs):
         if isinstance(pairs, iterator_types):
             self._pairs = pairs = dict(pairs)
             return len(pairs)
+        elif isinstance(pairs, Pairs):
+            raise
+            return pairs.length()
         return len(pairs)
 
     def __hash__(self):
@@ -73,7 +83,7 @@ class CommutativePairs(Pairs):
             # keys of self should never contain a frozenset.
             h = 1927868237
             h *= self.length()+1
-            for t in self.iterator():
+            for t in self:
                 h1 = hash(t)
                 h ^= (h1 ^ (h1 << 16) ^ 89869747)  * 3644798167
             h = h * 69069 + 907133923
@@ -81,7 +91,7 @@ class CommutativePairs(Pairs):
         return h
 
     def __str__(self):
-        return '%s([%s])' % (self.__class__.__name__, ', '.join(['(%s, %s)' % tc for tc in self.iterator()]))
+        return '%s([%s])' % (self.__class__.__name__, ', '.join(['(%s, %s)' % tc for tc in self.pairs.iteritems()]))
 
     def __repr__(self):
         return '%s(%r)' % (self.__class__.__name__, self._pairs)
@@ -108,7 +118,7 @@ class CommutativePairs(Pairs):
             raise TypeError('cannot add values to immutable pairs inplace'\
                             ' (hash has been computed)')
         pairs = self.pairs
-        for t,c in rhs.iterator():
+        for t,c in rhs:
             b = pairs.get(t)
             if b is None:
                 pairs[t] = c
