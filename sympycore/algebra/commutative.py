@@ -132,6 +132,7 @@ class CommutativePairs:
         AlgebraicExpression(TERMS, <self>) + AlgebraicExpression(NUMBER, <rhs>)
 
         """
+        return self.sum_add_element(one, rhs, zero)
         h = self._hash
         if h is not None:
             raise TypeError('cannot add immutable sum inplace'\
