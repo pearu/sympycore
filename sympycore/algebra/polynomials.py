@@ -1,5 +1,6 @@
+from primitive import Primitive
 
-class UnivariatePolynomial:
+class UnivariatePolynomial(Primitive):
 
     def __init__(self, coefs=[], symbol='x'):
         coefs = coefs or [0]
@@ -13,6 +14,17 @@ class UnivariatePolynomial:
     def coerce_coef(cls, x):
         # permit anything by default
         return x
+
+    def as_primitive(self):
+        t = []
+        x = Primitive(self.symbol)
+        for i, c in enumerate(self.coefs):
+            t.append(Primitive(c) * x**i)
+        return ('+',) + tuple(t)
+
+    @property
+    def tree(self):
+        return self.as_primitive().tree
 
     def __repr__(self):
         if self.degree == -1:
