@@ -71,8 +71,8 @@ are rings (R, +, *). Examples:
 
 See also http://en.wikipedia.org/wiki/Ring_(algebra).
 
-Symbolic algebra
-================
+Symbolic algebra, variant 1
+===========================
 
 By symbolic algebra we mean a tuple (E, +, *, -, /, **, N, M) where
 the set E consists of symbolic expressions. The number sets N and M
@@ -118,3 +118,51 @@ The Terms and Factors define arithmetic methods such as __add__, __mul__,
 etc. In these methods methods self.structure.coerce_* methods are used
 to obtain information about the rhs operant - is it a sum, a product,
 a number, or an element of the given algebraic structure.
+
+Symbolic algebra, variant 2
+===========================
+
+A symbolic algebra is defined by a base SymbolicAlgebra class that is
+derived from AlgebraicStructure. SymbolicAlgebra defines operations +,
+*, -, /, ** between its elements and numbers. There are four types of
+elements:
+
+  - numbers (representing identity * number)
+  - symbolic elements (wrapping any kind of hashable objects)
+  - terms (representing the result of + operation)
+  - factors (representing the result of * operation)
+
+For each type, (for efficiency) there are corresponding classes that
+are derived from SymbolicAlgebra:
+
+  Symbolic(<obj>)
+  SymbolicNumber(<obj>)
+  SymbolicTerms(<sequence or iterator of pairs>)
+  SymbolicFactors(<sequence of iterator of pairs>)
+
+The instances of these classes can be constructed directly or using
+SymbolicAlgebra constructor that takes optional keyword argument
+kind=None that can have the following values:
+  SYMBOLIC, NUMBER, TERMS, FACTORS
+
+If kind is None then it will be guessed from <obj>.  For example,
+Python numbers will be mapped to Number, strings will be mapped to
+Symbolic, etc.
+
+SymbolicTerms and SymbolicFactors should also derive from
+CommutativePairs class that provide efficient methods to deal with
+pairs (the Terms/Factors of noncommutative algebras should derive
+from Pairs).
+
+Polynomial algebra
+==================
+
+An element of an polynomial algebra can be represented solely via
+a sequence of its coefficients. Such a sequence consists of
+pairs
+
+  (exponents, coefficients)
+
+and hence one needs to define only one class PolynomialAlgebra
+(derived from CommutativePairs and AlgebraicStructure) to hold all
+different kinds of algebra elements.
