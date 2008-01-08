@@ -1,6 +1,8 @@
 
+from ..core import sympify
 from .pairs import CommutativePairs
 from .algebraic_structures import AlgebraicStructure
+from .primitive import PrimitiveAlgebra
 
 NUMBER = intern('N')
 SYMBOLIC = intern('S')
@@ -137,7 +139,7 @@ class SymbolicTerms(CommutativePairs, StandardCommutativeAlgebra):
                 l.append(PrimitiveAlgebra(c))
             else:
                 l.append(PrimitiveAlgebra(t) * PrimitiveAlgebra(c))
-        return PrimitiveAlgebra(('+',)+tuple(l))
+        return PrimitiveAlgebra(('+',tuple(l)))
 
 class SymbolicFactors(CommutativePairs, StandardCommutativeAlgebra):
     
@@ -152,4 +154,4 @@ class SymbolicFactors(CommutativePairs, StandardCommutativeAlgebra):
                 l.append(PrimitiveAlgebra(t))
             else:
                 l.append(PrimitiveAlgebra(t) ** PrimitiveAlgebra(c))
-        return PrimitiveAlgebra(('*',)+tuple(l))
+        return PrimitiveAlgebra(('*',tuple(l)))

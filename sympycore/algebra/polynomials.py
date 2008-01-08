@@ -1,14 +1,16 @@
-from primitive import Primitive
+from .primitive import PrimitiveAlgebra, ADD, SYMBOL
 
-class UnivariatePolynomial(Primitive):
+class UnivariatePolynomial(PrimitiveAlgebra):
 
-    def __init__(self, coefs=[], symbol='x'):
+    def __new__(cls, coefs=[], symbol='x'):
+        obj = object.__new__(cls)
         coefs = coefs or [0]
-        self.coefs = tuple(map(self.coerce_coef, coefs))
-        self.symbol = symbol
-        while self.coefs and not self.coefs[-1]:
-            self.coefs = self.coefs[:-1]
-        self.degree = len(self.coefs) - 1
+        obj.coefs = tuple(map(obj.coerce_coef, coefs))
+        obj.symbol = symbol
+        while obj.coefs and not obj.coefs[-1]:
+            obj.coefs = obj.coefs[:-1]
+        obj.degree = len(obj.coefs) - 1
+        return obj
 
     @classmethod
     def coerce_coef(cls, x):
@@ -17,10 +19,11 @@ class UnivariatePolynomial(Primitive):
 
     def as_primitive(self):
         t = []
-        x = Primitive(self.symbol)
+        x = PrimitiveAlgebra((SYMBOL,self.symbol))
         for i, c in enumerate(self.coefs):
-            t.append(Primitive(c) * x**i)
-        return ('+',) + tuple(t)
+            i = PrimitiveAlgebra((NUMBER,i))
+            t.append(PrimitiveAlgebra((NUMBER,c)) * x**i)
+        return (ADD,tuple(t))
 
     @property
     def tree(self):
