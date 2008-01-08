@@ -85,22 +85,22 @@ also be symbolic algebras. A symbolic expression may be
 
 A symbolic algebra is defined by a class that is derived from
 singleton class AlgebraicStructure. The corresponding class must
-define methods:
+define class methods:
 
   coerce_term(self, obj)
   coerce_factor(self, obj)
 
 The coerce_term(self, obj) method returns:
 
-  - (TERMS, obj)   when obj is a Terms instance and obj.structure = self
-  - (FACTORS, obj) when obj is a Factors instance and obj.structure = self
+  - (TERMS, obj)   when obj is a Terms instance and obj.structure == self
+  - (FACTORS, obj) when obj is a Factors instance and obj.structure == self
   - (NUMBER, obj)  when obj represents a number from the set of coefficients
   - (ELEMENT, obj) when obj is none of the above
 
 The coerce_factor(self, obj) method returns:
 
-  - (TERMS, obj)   when obj is a Terms instance and obj.structure = self
-  - (FACTORS, obj) when obj is a Factors instance and obj.structure = self
+  - (TERMS, obj)   when obj is a Terms instance and obj.structure == self
+  - (FACTORS, obj) when obj is a Factors instance and obj.structure == self
   - (NUMBER, obj)  when obj represents a number from the set of exponents
   - (ELEMENT, obj) when obj is none of the above
 
@@ -116,5 +116,5 @@ in the form
 
 The Terms and Factors define arithmetic methods such as __add__, __mul__,
 etc. In these methods methods self.structure.coerce_* methods are used
-to obtain information about the rhs operant - is it a sum or a product
-or a number or an element of the given algebraic structure.
+to obtain information about the rhs operant - is it a sum, a product,
+a number, or an element of the given algebraic structure.
