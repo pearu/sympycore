@@ -44,8 +44,42 @@ class Pairs(object):
             return self.pairs == other.pairs
         return False
 
-class CommutativePairs(Pairs):
+    #XXX: impl modification methods
 
+
+class CommutativePairs(Pairs):
+    """ Represents operands of an commutative operation.
+
+      CommutativePairs(<pairs>)
+
+    where <pairs> is a sequence or an iterator of pairs:
+
+      (<expression>, <repetition>)
+
+    Here <expression> must be hashable as internally the pairs are
+    saved in Python dictionary for update efficiency.
+
+    CommutativePairs instance is mutable until the moment its hash
+    value is computed.
+
+    The following methods are defined to modify the CommutativePairs
+    instance:
+      _add_value(rhs, one, zero)
+        rhs must be usable as key
+
+      _add_values(rhs, one, zero)
+        rhs must be an iterable returning pairs
+
+      _multiply_values(rhs, one, zero)
+        rhs must be support multiplication with values
+
+      _expand_multiply_values(rhs, one, zero)
+        rhs must be an iterable returning pairs
+        
+      _add_keys(rhs, one, zero)
+        rhs must support addition with keys
+    """
+    
     @property
     def pairs(self):
         """ Return pairs as mutable dictionary.
@@ -56,6 +90,8 @@ class CommutativePairs(Pairs):
         return pairs
 
     def __iter__(self):
+        """ Return iterator of pairs.
+        """
         pairs = self._pairs
         if isinstance(pairs, iterator_types):
             self._pairs = pairs = dict(pairs)
@@ -96,7 +132,8 @@ class CommutativePairs(Pairs):
         return h
 
     def __str__(self):
-        return '%s([%s])' % (self.__class__.__name__, ', '.join(['(%s, %s)' % tc for tc in self.pairs.iteritems()]))
+        return '%s([%s])' % (self.__class__.__name__,
+                             ', '.join(['(%s, %s)' % tc for tc in self.pairs.iteritems()]))
 
     def __repr__(self):
         return '%s(%r)' % (self.__class__.__name__, self._pairs)
