@@ -1,6 +1,9 @@
+
 from .primitive import PrimitiveAlgebra, ADD, SYMBOL
 
-class UnivariatePolynomial(PrimitiveAlgebra):
+from .algebraic_structures import BasicAlgebra
+
+class UnivariatePolynomial(BasicAlgebra):
 
     def __new__(cls, coefs=[], symbol='x'):
         obj = object.__new__(cls)
@@ -17,7 +20,7 @@ class UnivariatePolynomial(PrimitiveAlgebra):
         # permit anything by default
         return x
 
-    def as_primitive(self):
+    def as_PrimitiveAlgebra(self):
         t = []
         x = PrimitiveAlgebra((SYMBOL,self.symbol))
         for i, c in enumerate(self.coefs):

@@ -39,6 +39,11 @@ class Pairs(object):
             return len(pairs)
         return len(pairs)
 
+    def __eq__(self, other):
+        if type(self) is type(other):
+            return self.pairs == other.pairs
+        return False
+
 class CommutativePairs(Pairs):
 
     @property
