@@ -36,8 +36,8 @@ class UnivariatePolynomial:
 
     def __call__(self, x):
         if isinstance(x, UnivariatePolynomial):
-            p = FastPoly([])
-            xp = FastPoly([1])
+            p = self.__class__([])
+            xp = self.__class__([1])
             for i, c in enumerate(self.coefs):
                 p += c * xp
                 xp *= x
