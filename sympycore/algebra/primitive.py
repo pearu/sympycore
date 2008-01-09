@@ -4,7 +4,7 @@ import types
 import compiler
 from compiler import ast
 
-from .algebraic_structures import AlgebraicStructure
+from .algebraic_structures import BasicAlgebra
 
 OR = intern(' or ')
 AND = intern(' and ')
@@ -69,7 +69,7 @@ parentheses_map = {
     POW: [LAMBDA, ADD, SUB, POS, NEG, MOD, MUL, DIV, POW] + compare_lst + boolean_lst,
     }
 
-class PrimitiveAlgebra(AlgebraicStructure):
+class PrimitiveAlgebra(BasicAlgebra):
 
     def __new__(cls, tree):
         if hasattr(tree, 'as_PrimitiveAlgebra'):
@@ -86,6 +86,35 @@ class PrimitiveAlgebra(AlgebraicStructure):
 
     def __repr__(self):
         return str(self.tree)
+
+    @staticmethod
+    def convert(obj):
+        return PrimitiveAlgebra(obj)
+
+    def as_PrimitiveAlgebra(self):
+        return self
+
+    def as_algebra(self, cls):
+        head, rest = self.tree
+        if head is NUMBER:
+            return cls(rest, kind=NUMBER)
+        if head is SYMBOL:
+            return cls(rest, kind=SYMBOL)
+        if head is ADD:
+            return cls.Add([r.as_algebra(cls) for r in rest])
+        if head is MUL:
+            return cls.MUL([r.as_algebra(cls) for r in rest])
+        if head is POW:
+            return cls.Pow(*[r.as_algebra(cls) for r in rest])
+        if head is SUB:
+            # XXX: cls.Sub
+            res = rest[0].as_algebra(cls)
+            for r in rest[1:]:
+                res -= r.as_algebra(cls)
+            return res
+        if head is NEG:
+            return -(rest[0].as_algebra(cls))
+        raise NotImplementedError('as_algebra(%s): %s' % (cls, self))
 
     def __str__(self):
         head, rest = self.tree
@@ -126,34 +155,34 @@ class PrimitiveAlgebra(AlgebraicStructure):
         return hash(self.tree)
 
     def __add__(self, other):
-        other = PrimitiveAlgebra(other)
+        other = self.convert(other)
         return PrimitiveAlgebra((ADD, (self, other)))
     def __radd__(self, other):
-        other = PrimitiveAlgebra(other)
+        other = self.convert(other)
         return PrimitiveAlgebra((ADD, (other, self)))
     def __sub__(self, other):
-        other = PrimitiveAlgebra(other)
+        other = self.convert(other)
         return PrimitiveAlgebra((SUB, (self, other)))
     def __rsub__(self, other):
-        other = PrimitiveAlgebra(other)
+        other = self.convert(other)
         return PrimitiveAlgebra((SUB, (other, self)))
     def __mul__(self, other):
-        other = PrimitiveAlgebra(other)
+        other = self.convert(other)
         return PrimitiveAlgebra((MUL, (self, other)))
     def __rmul__(self, other):
-        other = PrimitiveAlgebra(other)
+        other = self.convert(other)
         return PrimitiveAlgebra((MUL, (other, self)))
     def __div__(self, other):
-        other = PrimitiveAlgebra(other)
+        other = self.convert(other)
         return PrimitiveAlgebra((DIV, (self, other)))
     def __rdiv__(self, other):
-        other = PrimitiveAlgebra(other)
+        other = self.convert(other)
         return PrimitiveAlgebra((DIV, (other, self)))
     def __pow__(self, other):
-        other = PrimitiveAlgebra(other)
+        other = self.convert(other)
         return PrimitiveAlgebra((POW, (self, other)))
     def __rpow__(self, other):
-        other = PrimitiveAlgebra(other)
+        other = self.convert(other)
         return PrimitiveAlgebra((POW, (other, self)))
     __truediv__ = __div__
     __rtruediv__ = __rdiv__

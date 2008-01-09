@@ -1,5 +1,5 @@
 
-from ..core import sympify
+from ..core import sympify, classes
 from .pairs import CommutativePairs
 from .algebraic_structures import BasicAlgebra
 from .primitive import PrimitiveAlgebra, SYMBOL, NUMBER, ADD, MUL
@@ -15,11 +15,17 @@ class StandardCommutativeAlgebra(BasicAlgebra):
     """
 
     def __new__(cls, obj, kind=None):
-        if isinstance(obj, cls):
+        if isinstance(obj, StandardCommutativeAlgebra):
             return obj
         if kind is None:
-            if isinstance(obj, cls):
+            if isinstance(obj, (str, unicode)):
+                obj = PrimitiveAlgebra(obj)
+            if isinstance(obj, PrimitiveAlgebra):
+                return obj.as_algebra(cls)
+            if isinstance(obj, BasicAlgebra):
                 # XXX: need another way to specify coefficent and exponent algebras
+                kind = NUMBER
+            elif isinstance(obj, classes.Number):
                 kind = NUMBER
             elif isinstance(obj, (int, long, float, complex)):
                 obj = sympify(obj)
@@ -37,6 +43,10 @@ class StandardCommutativeAlgebra(BasicAlgebra):
         return NotImplementedError(`cls, obj, kind`)
 
     @staticmethod
+    def convert(obj):
+        return StandardCommutativeAlgebra(obj)
+
+    @staticmethod
     def Add(seq):
         terms = SymbolicTerms({})
         for term in seq:
@@ -52,7 +62,7 @@ class StandardCommutativeAlgebra(BasicAlgebra):
                 terms._add_value(term, 1, 0)
             else:
                 raise TypeError(`term, kind`)
-        return terms # XXX: canonize
+        return terms.canonize()
 
     @staticmethod
     def Mul(seq):
@@ -71,8 +81,18 @@ class StandardCommutativeAlgebra(BasicAlgebra):
                 factors._add_values(factor, 1, 0)
             else:
                 raise TypeError(`factor, kind`)
+        factors = factors.canonize()
         if number==1:
-            return factors # XXX: canonize
+            return factors
+        if factors==1:
+            return number
+        kind = factors.kind
+        if kind is NUMBER:
+            return self.convert(factors.data * number)
+        if kind is ADD:
+            r = SymbolicTerms(iter(factors))
+            r._multiply_values(number, 1, 0)
+            return r.canonize()
         return SymbolicTerms({factors:number})
 
     @staticmethod
@@ -82,6 +102,8 @@ class StandardCommutativeAlgebra(BasicAlgebra):
     def __repr__(self):
         return '%s(%r)' % (type(self).__name__, self.data)
 
+    def canonize(self):
+        return self
     
 class Symbolic(StandardCommutativeAlgebra): # rename to Symbol?
 
@@ -107,6 +129,23 @@ class Symbolic(StandardCommutativeAlgebra): # rename to Symbol?
     def __hash__(self):
         return hash((type(self), self.data))
 
+    def __mul__(self, other):
+        other = self.convert(other)
+        kind = other.kind
+        if kind is NUMBER:
+            return SymbolicTerms({self:other.data})
+        if kind is SYMBOL:
+            if self.data == other.data:
+                return SymbolicTerms({self:2})
+            return SymbolicTerms({self:1, other:1})
+        if kind is ADD:
+            r = SymbolicTerms(other)
+            r._add_value(self, 1, 0)
+            return r.canonize()
+        if kind is MUL:
+            return SymbolicTerms({self:other.data})
+        raise NotImplementedError('%s * %s' % (self, other))
+
 class SymbolicNumber(StandardCommutativeAlgebra): # rename to Number?
 
     kind = NUMBER
@@ -123,16 +162,17 @@ class SymbolicNumber(StandardCommutativeAlgebra): # rename to Number?
         return PrimitiveAlgebra((NUMBER, self.data))
 
     def __eq__(self, other):
-        other = StandardCommutativeAlgebra(other)
+        other = self.convert(other)
         if self.kind != other.kind:
             return False
         return self.data == other.data
 
     def __hash__(self):
+        # XXX: cache hash
         return hash((type(self), self.data))
 
     def __mul__(self, other):
-        other = StandardCommutativeAlgebra(other)
+        other = self.convert(other)
         kind = other.kind
         if kind is NUMBER:
             return SymboliNumber(self.data * other.data)
@@ -162,8 +202,22 @@ class SymbolicTerms(CommutativePairs, StandardCommutativeAlgebra):
             elif t==1:
                 l.append(PrimitiveAlgebra(c))
             else:
-                l.append(PrimitiveAlgebra(t) * PrimitiveAlgebra(c))
+                l.append(t * c)
+        if len(l)==1:
+            return l[0]
         return PrimitiveAlgebra((ADD,tuple(l)))
+
+    def canonize(self):
+        pairs = self.pairs
+        if not pairs:
+            return SymbolicNumber(0)
+        if len(pairs)==1:
+            t, c = pairs.items()[0]
+            if c==1:
+                return t
+            if t==1:
+                return c
+        return self
 
 class SymbolicFactors(CommutativePairs, StandardCommutativeAlgebra):
     
@@ -175,8 +229,23 @@ class SymbolicFactors(CommutativePairs, StandardCommutativeAlgebra):
     def as_PrimitiveAlgebra(self):
         l = []
         for t,c in self:
+            t = PrimitiveAlgebra(t)
             if c==1:
-                l.append(PrimitiveAlgebra(t))
+                l.append(t)
             else:
-                l.append(PrimitiveAlgebra(t) ** PrimitiveAlgebra(c))
+                l.append(t ** c)
+        if len(l)==1:
+            return l[0]
         return PrimitiveAlgebra((MUL,tuple(l)))
+
+    def canonize(self):
+        pairs = self.pairs
+        if not pairs:
+            return SymbolicNumber(1)
+        if len(pairs)==1:
+            t, c = pairs.items()[0]
+            if c==1:
+                return t
+            if t==1:
+                return t
+        return self
