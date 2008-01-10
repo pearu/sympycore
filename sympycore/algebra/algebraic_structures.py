@@ -1,10 +1,30 @@
 
-from ..core import Basic, classes, objects, sympify
-
+from ..core import Basic, classes, objects, sympify, BasicType
 
 class AlgebraicStructure(Basic):
     """ Represents an element of an algebraic structure.
     Subclasses will define operations between elements if any.
+    """
+
+    @classmethod
+    def convert(cls, obj):
+        if isinstance(obj, cls):
+            return obj
+        if isinstance(obj, cls.coefficient_structure):
+            return PrimitiveAlgebra(obj, kind=NUMBER)
+        if isinstance(obj, AlgebraicStructure):
+            return obj.as_primitive()
+        return PrimitiveAlgebra(obj, kind=SYMBOL)
+
+    def as_primitve(self):
+        raise NotImplementedError('%s must define as_primitive method'\
+                                  % (type(self).__name__))
+
+    def __str__(self):
+        return str(self.as_primitive())
+
+class BasicRing(AlgebraicStructure):
+    """
     """
 
 class BasicAlgebra(AlgebraicStructure):
@@ -18,11 +38,6 @@ class BasicAlgebra(AlgebraicStructure):
     __add__, __mul__ etc methods.
     """
 
-    def as_primitve(self):
-        raise NotImplementedError('%s must define as_primitive method'\
-                                  % (type(self).__name__))
-
-
     def as_algebra(self, cls, source=None):
         """
         """
@@ -30,14 +45,6 @@ class BasicAlgebra(AlgebraicStructure):
         if cls is classes.PrimitiveAlgebra:
             return self.as_primitive()
         return self.as_primitive().as_algebra(cls, source=self)
-
-    @staticmethod
-    def convert(obj):
-        # Contains usually a line like `return AlgebraClass(obj)`
-        raise NotImplementedError('BasicAlgebra subclass must define staticmethod convert')
-
-    def __str__(self):
-        return str(self.as_primitive())
 
     @staticmethod
     def Add(seq):
@@ -102,8 +109,22 @@ class BasicAlgebra(AlgebraicStructure):
     __rtruediv__ = __rdiv__
 
 
+class StructureGenerator(BasicType):
+    
+    def __new__(cls, parameters, **kwargs):
+        name = '%s(%s, %s)' % (cls.__name__, ', '.join(map(str, parameters)), kwargs)
+        bases = (AlgebraicStructure,)
+        attrdict = dict(parameters = parameters, **kwargs)
+        cls = type.__new__(cls, name, bases, attrdict)
+        return cls
 
+class PolynomialGenerator(StructureGenerator):
 
+    def __new__(cls, symbols, coeff_structure=None):
+        if coeff_structure is None:
+            coeff_structure = classes.IntegerRing
+        return StructureGenerator.__new__(cls, symbols,
+                                          coeff_structure=coeff_structure)
 
 ##############################################################
 # These are ideas:

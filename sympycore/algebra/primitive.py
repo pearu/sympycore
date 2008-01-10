@@ -146,7 +146,7 @@ class PrimitiveAlgebra(BasicAlgebra):
                 l.append('(%s)' % s)
             else:
                 l.append(s)
-        if len(l)==1:
+        if len(l)==1: # unary operation
             return head + l[0]
         return head.join(l)
 
@@ -158,6 +158,10 @@ class PrimitiveAlgebra(BasicAlgebra):
     def __hash__(self):
         return hash(self.tree)
 
+    def __pos__(self):
+        return PrimitiveAlgebra((POS, (self,)))
+    def __neg__(self):
+        return PrimitiveAlgebra((NEG, (self,)))
     def __add__(self, other):
         other = self.convert(other)
         return PrimitiveAlgebra((ADD, (self, other)))

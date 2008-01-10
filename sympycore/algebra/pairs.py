@@ -1,7 +1,86 @@
+
 import types
+
+from ..core import classes
+from .algebraic_structures import BasicAlgebra
+from .primitive import PrimitiveAlgebra, ADD, MUL, SYMBOL, NUMBER
 
 iterator_types = (type(iter([])), type(iter(())), type(iter(frozenset())),
                   type(dict().iteritems()), types.GeneratorType)
+
+class PairsCommutativeRing(BasicAlgebra):
+    """ Contains generic methods to algebra classes that
+    use Pairs.
+    """
+    def __new__(cls, obj, kind=None):
+        if isinstance(obj, cls):
+            return obj
+        if kind is None:
+            if isinstance(obj, PrimitiveAlgebra):
+                return obj.as_algebra(cls)
+            if isinstance(obj, BasicAlgebra):
+                return obj.as_primitive().as_algebra(cls)
+            kind = cls.get_kind(obj)
+        return getattr(classes, cls.element_classes[kind])(obj)
+
+    @classmethod
+    def Add(cls, seq):
+        terms = getattr(classes, cls.element_classes[ADD])({})
+        one = cls.one
+        zero_c = cls.zero_c
+        one_c = cls.one_c
+        a_cls = cls.algebra_class
+        for t in seq:
+            t = a_cls(t)
+            kind = t.kind
+            if kind is SYMBOL:
+                terms._add_value(t, one_c, zero_c)
+            elif kind is NUMBER:
+                terms._add_value(one, t, zero_c)
+            elif kind is ADD:
+                terms._add_values(t, one_c, zero_c)
+            elif kind is MUL:
+                terms._add_value(t, one_c, zero_c)
+            else:
+                raise TypeError(`t, kind`)
+        return terms.canonize_add()
+
+    @classmethod
+    def Mul(cls, seq):
+        result = getattr(classes, cls.element_classes[MUL])({})
+        one = cls.one
+        zero_e = cls.zero_e
+        one_e = cls.one_e
+        one_c = cls.one_c
+        a_cls = cls.algebra_class
+        number = one_c
+        for t in seq:
+            t = cls(t)
+            kind = t.kind
+            if kind is SYMBOL:
+                result._add_value(t, one_e, zero_e)
+            elif kind is NUMBER:
+                number = number * t
+            elif kind is ADD:
+                result._add_value(t, one_e, zero_e)
+            elif kind is MUL:
+                result._add_values(t, one_e, zero_e)
+            else:
+                raise TypeError(`t, kind`)
+        result = result.canonize_mul()
+        if number==one_c:
+            return result
+        if result==one:
+            return getattr(classes, cls.element_classes[NUMBER])(number)
+        kind = result.kind
+        if kind is NUMBER:
+            return getattr(classes, cls.element_classes[NUMBER])(result * number)
+        terms_cls = getattr(classes, cls.element_classes[ADD])
+        if kind is ADD:
+            r = terms_cls(iter(result))
+            r._multiply_values(number, one_c, zero_c)
+            return r.canonize_add()
+        return terms_cls({result: number})
 
 class Pairs(object):
     """ Base class for holding pairs (by default non-commutative).
@@ -149,7 +228,7 @@ class CommutativePairs(Pairs):
             pairs[rhs] = one
         else:
             c = b + one
-            if c==zero:
+            if zero==c:
                 del pairs[rhs]
             else:
                 pairs[rhs] = c
@@ -166,7 +245,7 @@ class CommutativePairs(Pairs):
                 pairs[t] = c
             else:
                 c = b + c
-                if c==zero:
+                if zero==c:
                     del pairs[t]
                 else:
                     pairs[t] = c
@@ -206,7 +285,7 @@ class CommutativePairs(Pairs):
                     d[t] = c
                 else:
                     c = b + c
-                    if c==0:
+                    if zero==c:
                         del d[t]
                     else:
                         d[t] = c
@@ -221,3 +300,55 @@ class CommutativePairs(Pairs):
         for t,c in pairs.items():
             d[t + rhs] = c
         self._pairs = d
+
+    def canonize_add(self):
+        pairs = self.pairs
+        zero = self.zero
+        if not pairs:
+            return zero
+        one_c = self.one_c
+        if len(pairs)==1:
+            t, c = pairs.items()[0]
+            if c is one_c:
+                return t
+        return self
+
+    def canonize_mul(self):
+        pairs = self.pairs
+        one = self.one
+        if not pairs:
+            return zero
+        one_e = self.one_e
+        if len(pairs)==1:
+            t, c = pairs.items()[0]
+            if c is one_e:
+                return t
+            if t is one:
+                return one
+        return self
+
+    def as_primitive_add(self):
+        l = []
+        for t,c in self:
+            t = PrimitiveAlgebra(t)
+            if c==1:
+                l.append(t)
+            elif t==1:
+                l.append(PrimitiveAlgebra(c))
+            else:
+                l.append(t * c)
+        if len(l)==1:
+            return l[0]
+        return PrimitiveAlgebra((ADD,tuple(l)))
+
+    def as_primitive_mul(self):
+        l = []
+        for t,c in self:
+            t = PrimitiveAlgebra(t)
+            if c==1:
+                l.append(t)
+            else:
+                l.append(t ** c)
+        if len(l)==1:
+            return l[0]
+        return PrimitiveAlgebra((MUL,tuple(l)))
