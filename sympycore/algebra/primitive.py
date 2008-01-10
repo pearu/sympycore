@@ -1,6 +1,7 @@
 
 from __future__ import absolute_import
 import types
+import re
 import compiler
 from compiler import ast
 
@@ -69,11 +70,13 @@ parentheses_map = {
     POW: [LAMBDA, ADD, SUB, POS, NEG, MOD, MUL, DIV, POW] + compare_lst + boolean_lst,
     }
 
+_is_name = re.compile(r'\A[a-zA-z_]\w*\Z').match
+
 class PrimitiveAlgebra(BasicAlgebra):
 
     def __new__(cls, tree):
-        if hasattr(tree, 'as_PrimitiveAlgebra'):
-            tree = tree.as_PrimitiveAlgebra()
+        if hasattr(tree, 'as_primitive'):
+            tree = tree.as_primitive()
         if isinstance(tree, str): # XXX: unicode
             tree = string2PrimitiveAlgebra(tree)
         if isinstance(tree, cls):
@@ -91,10 +94,10 @@ class PrimitiveAlgebra(BasicAlgebra):
     def convert(obj):
         return PrimitiveAlgebra(obj)
 
-    def as_PrimitiveAlgebra(self):
+    def as_primitive(self):
         return self
 
-    def as_algebra(self, cls):
+    def as_algebra(self, cls, source=None):
         head, rest = self.tree
         if head is NUMBER:
             return cls(rest, kind=NUMBER)
@@ -102,18 +105,18 @@ class PrimitiveAlgebra(BasicAlgebra):
             return cls(rest, kind=SYMBOL)
         if head is ADD:
             return cls.Add([r.as_algebra(cls) for r in rest])
+        if head is SUB:
+            return rest[0].as_algebra(cls) - cls.Add([r.as_algebra(cls) for r in rest[1:]])
         if head is MUL:
-            return cls.MUL([r.as_algebra(cls) for r in rest])
+            return cls.Mul([r.as_algebra(cls) for r in rest])
+        if head is DIV:
+            return rest[0].as_algebra(cls) / cls.Mul([r.as_algebra(cls) for r in rest[1:]])
         if head is POW:
             return cls.Pow(*[r.as_algebra(cls) for r in rest])
-        if head is SUB:
-            # XXX: cls.Sub
-            res = rest[0].as_algebra(cls)
-            for r in rest[1:]:
-                res -= r.as_algebra(cls)
-            return res
         if head is NEG:
             return -(rest[0].as_algebra(cls))
+        if head is POS:
+            return +(rest[0].as_algebra(cls))
         raise NotImplementedError('as_algebra(%s): %s' % (cls, self))
 
     def __str__(self):
@@ -123,9 +126,10 @@ class PrimitiveAlgebra(BasicAlgebra):
         if head is APPLY:
             func = rest[0]
             args = rest[1:]
-            if func.tree[0] is SYMBOL:
-                return '%s(%s)' % (func, ', '.join(map(str,args)))
-            return '(%s)(%s)' % (func, ', '.join(map(str,args)))
+            s = str(func)
+            if _is_name(s):
+                return '%s(%s)' % (s, ', '.join(map(str,args)))
+            return '(%s)(%s)' % (s, ', '.join(map(str,args)))
         if head is LAMBDA:
             args = rest[0]
             body = rest[1]

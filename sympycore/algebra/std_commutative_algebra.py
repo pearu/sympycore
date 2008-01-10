@@ -117,7 +117,7 @@ class Symbolic(StandardCommutativeAlgebra): # rename to Symbol?
     def __str__(self):
         return str(self.data)
 
-    def as_PrimitiveAlgebra(self):
+    def as_primitive(self):
         return PrimitiveAlgebra((SYMBOL, self.data))
 
     def __eq__(self, other):
@@ -158,7 +158,7 @@ class SymbolicNumber(StandardCommutativeAlgebra): # rename to Number?
     def __str__(self):
         return str(self.data)
 
-    def as_PrimitiveAlgebra(self):
+    def as_primitive(self):
         return PrimitiveAlgebra((NUMBER, self.data))
 
     def __eq__(self, other):
@@ -193,7 +193,7 @@ class SymbolicTerms(CommutativePairs, StandardCommutativeAlgebra):
     __new__ = CommutativePairs.__new__
     __str__ = BasicAlgebra.__str__
     
-    def as_PrimitiveAlgebra(self):
+    def as_primitive(self):
         l = []
         for t,c in self:
             t = PrimitiveAlgebra(t)
@@ -226,7 +226,7 @@ class SymbolicFactors(CommutativePairs, StandardCommutativeAlgebra):
     __new__ = CommutativePairs.__new__
     __str__ = BasicAlgebra.__str__
 
-    def as_PrimitiveAlgebra(self):
+    def as_primitive(self):
         l = []
         for t,c in self:
             t = PrimitiveAlgebra(t)

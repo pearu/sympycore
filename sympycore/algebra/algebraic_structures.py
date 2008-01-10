@@ -1,6 +1,5 @@
 
 from ..core import Basic, classes, objects, sympify
-from ..core.sexpr import SYMBOLIC, NUMBER, TERMS, FACTORS
 
 
 class AlgebraicStructure(Basic):
@@ -12,24 +11,25 @@ class BasicAlgebra(AlgebraicStructure):
     """ Collects implementation specific methods of algebra classes.
     
     They must be all compatible with PrimitiveAlgebra class via
-    defining as_PrimitiveAlgebra and from_PrimitiveAlgebra methods.
+    defining as_primitive method.
 
-    Recommended way to construct + and * operation results is to
+    The recommended way to construct + and * operation results is to
     define Add, Mul, Pow static methods which are used by default
     __add__, __mul__ etc methods.
     """
 
-    def as_algebra(self, cls):
+    def as_primitve(self):
+        raise NotImplementedError('%s must define as_primitive method'\
+                                  % (type(self).__name__))
+
+
+    def as_algebra(self, cls, source=None):
         """
         """
         # XXX: cache primitive algebras
         if cls is classes.PrimitiveAlgebra:
-            return self.as_PrimitiveAlgebra()
-        return self.as_PrimitiveAlgebra().as_algebra(cls)
-
-    def as_PrimitiveAlgebra(self):
-        raise NotImplementedError('%s must define as_PrimitiveAlgebra method'\
-                                  % (type(self).__name__))
+            return self.as_primitive()
+        return self.as_primitive().as_algebra(cls, source=self)
 
     @staticmethod
     def convert(obj):
@@ -37,7 +37,7 @@ class BasicAlgebra(AlgebraicStructure):
         raise NotImplementedError('BasicAlgebra subclass must define staticmethod convert')
 
     def __str__(self):
-        return str(self.as_PrimitiveAlgebra())
+        return str(self.as_primitive())
 
     @staticmethod
     def Add(seq):
@@ -102,6 +102,12 @@ class BasicAlgebra(AlgebraicStructure):
     __rtruediv__ = __rdiv__
 
 
+
+
+
+##############################################################
+# These are ideas:
+
 class CommutativeRing(AlgebraicStructure):
     """ Represents an element of a commutative ring and defines binary
     operations +, *, -.
@@ -111,9 +117,6 @@ class CommutativeAlgebra(AlgebraicStructure):
     """ Represents an element of a commutative algebra and defines
     binary operations +, *, -, /, **.
     """
-
-
-##############################################################
 
 class PolynomialAlgebra(AlgebraicStructure):
     """ Represents a polynomial.

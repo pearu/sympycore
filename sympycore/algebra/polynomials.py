@@ -20,7 +20,7 @@ class UnivariatePolynomial(BasicAlgebra):
         # permit anything by default
         return x
 
-    def as_PrimitiveAlgebra(self):
+    def as_primitive(self):
         t = []
         x = PrimitiveAlgebra((SYMBOL,self.symbol))
         for i, c in enumerate(self.coefs):

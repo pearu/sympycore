@@ -166,3 +166,4 @@ pairs
 and hence one needs to define only one class PolynomialAlgebra
 (derived from CommutativePairs and AlgebraicStructure) to hold all
 different kinds of algebra elements.
+
