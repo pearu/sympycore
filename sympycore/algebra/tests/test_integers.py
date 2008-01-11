@@ -31,7 +31,7 @@ def test_Factors():
     ab = Integers.Mul(['a','b'])
     assert isinstance(ab, Integers)==True
     assert isinstance(ab, classes.IntegerFactors)==True
-    assert str(ab) in ['a*b','b*a']
+    assert str(ab)=='a*b'
     assert bool(ab=='a*b')==True
     assert bool(ab=='b*a')==True
 
@@ -114,12 +114,12 @@ def test_mul():
 
     assert isinstance(a*b, Integers)==True
     assert isinstance(a*b, classes.IntegerFactors)==True
-    assert str(a*b) in ['a*b', 'b*a']
+    assert str(a*b)=='a*b'
     assert a*b==b*a
 
     assert isinstance(a+i, Integers)==True
     assert isinstance(a*i, classes.IntegerTerms)==True
-    assert str(a*i) in ['a*3', '3*a']
+    assert str(a*i)=='3*a'
     assert a*i==i*a
     assert a*3==a*i
     assert 3*a==a*i
@@ -145,6 +145,8 @@ def test_mul():
     assert str(ab*'3')=='3*a*b'
     assert str(ab*ab)=='a**2*b**2'
 
+
+
 def test_pow():
     i = Integers(3)
     j = Integers(2)
@@ -160,12 +162,60 @@ def test_pow():
     assert str(a**j)=='a**2'
     assert str(a**3)=='a**3'
     assert str(a**'4')=='a**4'
-    assert str(a**b)=='a**b'
-    assert str(a**'b')=='a**b'
-    assert str(a**(b+1))=='a**(1 + b)'
-    assert str(a**(2*b))=='(a**b)**2'
-    assert str(j**(2*b))=='4**b'
-    assert str(a**(2*a+2))=='(a**(1 + a))**2'
-    assert str(a**(-a))=='a**(-a)'
     assert str((2*a)**2)=='4*a**2'
-    assert str((2*a)**(3*a))=='8*(a**a)**3'
+
+    assert a**1==a
+    assert a**0==1
+    assert Integers(1)**3==1
+
+    assert 2**i==8
+
+def test_int_long():
+    assert isinstance(int(Integers(-4)), int)==True
+    assert int(Integers(-4))==-4
+    assert isinstance(long(Integers(-4)), long)==True
+    assert long(Integers(-4))==-4L
+
+def test_abs():
+    assert abs(Integers(-4))==Integers(4)
+
+def test_relational():
+    assert bool(Integers(3)<Integers(4))==True
+    assert bool(Integers(3)<=Integers(4))==True
+    assert bool(Integers(3)>Integers(4))==False
+    assert bool(Integers(3)>=Integers(4))==False
+    assert bool(Integers(3)==Integers(4))==False
+    assert bool(Integers(3)!=Integers(4))==True
+
+    assert bool(Integers(5)<Integers(4))==False
+    assert bool(Integers(5)<=Integers(4))==False
+    assert bool(Integers(5)>Integers(4))==True
+    assert bool(Integers(5)>=Integers(4))==True
+    assert bool(Integers(5)==Integers(4))==False
+    assert bool(Integers(5)!=Integers(4))==True
+
+def test_as_terms_intcoeff():
+    assert Integers('2').as_terms_intcoeff()==(1,2)
+
+    assert Integers('2*a').as_terms_intcoeff()==(Integers('a'),2)
+    assert Integers('-2*a').as_terms_intcoeff()==(Integers('a'),-2)
+    
+    assert Integers('2+a').as_terms_intcoeff()==(Integers('2+a'),1)
+    assert Integers('-2-a').as_terms_intcoeff()==(Integers('2+a'),-1)
+    assert Integers('2-a').as_terms_intcoeff()==(Integers('2-a'),1)
+    assert Integers('-2+a').as_terms_intcoeff()==(Integers('-2+a'),1)
+    
+    assert Integers('2+2*a').as_terms_intcoeff()==(Integers('1+a'),2)
+    assert Integers('2+4*a').as_terms_intcoeff()==(Integers('1+2*a'),2)
+    assert Integers('2-4*a').as_terms_intcoeff()==(Integers('1-2*a'),2)
+    assert Integers('-2-4*a').as_terms_intcoeff()==(Integers('1+2*a'),-2)
+    assert Integers('-2+4*a').as_terms_intcoeff()==(Integers('-1+2*a'),2)
+    
+    assert Integers('2*a+2*b').as_terms_intcoeff()==(Integers('a+b'),2)
+    assert Integers('2*a+4*b').as_terms_intcoeff()==(Integers('a+2*b'),2)
+    assert Integers('2*a-4*b').as_terms_intcoeff()==(Integers('a-2*b'),2)
+    assert Integers('-2*a-4*b').as_terms_intcoeff()==(Integers('a+2*b'),-2)
+    assert Integers('-2*a+4*b').as_terms_intcoeff()==(Integers('-a+2*b'),2)
+
+
+    assert Integers('(-2*a+4*b)*2*a').as_terms_intcoeff()==(Integers('(-a+2*b)*a'),4)

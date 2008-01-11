@@ -18,6 +18,10 @@ class AlgebraicStructure(Basic):
             return obj.as_primitive()
         return classes.PrimitiveAlgebra((cls.get_kind(obj),obj))
 
+    @classmethod
+    def convert_exponent(cls, obj):
+        return int(obj)
+
     def as_primitve(self):
         raise NotImplementedError('%s must define as_primitive method'\
                                   % (type(self).__name__))
@@ -96,12 +100,12 @@ class BasicAlgebra(AlgebraicStructure):
         return self.Mul([other, self.Pow(self,-1)])
 
     def __pow__(self, other):
-        other = self.convert(other)
+        other = self.convert_exponent(other)
         return self.Pow(self, other)
 
     def __rpow__(self, other):
         other = self.convert(other)
-        return self.Pow(other, self)
+        return self.Pow(other,  self.convert_exponent(self))
 
     __truediv__ = __div__
     __rtruediv__ = __rdiv__

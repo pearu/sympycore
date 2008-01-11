@@ -305,9 +305,9 @@ class CommutativePairs(Pairs):
         one = self.one
         if len(pairs)==1:
             t, c = pairs.items()[0]
-            if c is one_c:
+            if one_c==c:
                 return t
-            if t is one:
+            if one==t:
                 return self.convert(c)
         return self
 
@@ -319,9 +319,9 @@ class CommutativePairs(Pairs):
         one_e = self.one_e
         if len(pairs)==1:
             t, c = pairs.items()[0]
-            if c is one_e:
+            if one_e==c:
                 return t
-            if t is one:
+            if one==t:
                 return one
         return self
 
@@ -330,9 +330,9 @@ class CommutativePairs(Pairs):
         one_c = self.one_c
         one = self.one
         for t,c in self:
-            if c is one_c:
+            if one_c==c:
                 l.append(PrimitiveAlgebra(t))
-            elif t is one:
+            elif one==t:
                 l.append(PrimitiveAlgebra(c))
             else:
                 if c==-one_c:
@@ -350,7 +350,7 @@ class CommutativePairs(Pairs):
         one_c = self.one_c
         for t,c in self:
             t = PrimitiveAlgebra(t)
-            if c is one_c:
+            if one_c==c:
                 l.append(t)
             else:
                 l.append(t ** c)

@@ -2,6 +2,7 @@
 from ..core.utils import singleton
 from ..core import classes
 
+from .algebraic_structures import BasicAlgebra
 from .primitive import PrimitiveAlgebra, SYMBOL, NUMBER, ADD, MUL
 from .pairs import CommutativePairs, PairsCommutativeRing
 
@@ -11,16 +12,18 @@ def gcd(a, b):
     return b
 
 class Integers(PairsCommutativeRing):
-    """ Represents a set of integers.
+    """ Represents a symbolic algebra of integers.
 
     The set of integers is a commutative ring.
 
-    The / operation is not closed and the result will
-    be a rational if the rhs operand does not divide with lhs.
+    See
+      http://code.google.com/p/sympycore/wiki/Algebra
     """
 
     @classmethod
     def convert(cls, obj, typeerror=True):
+        """
+        """
         if isinstance(obj, Integers):
             return obj
         if isinstance(obj, (int, long)):
@@ -37,29 +40,26 @@ class Integers(PairsCommutativeRing):
 
     @classmethod
     def Pow(cls, base, exponent):
-        base = cls.algebra_class(base)
-        exponent = cls.exponent_class(exponent)
-        if exponent is cls.one_e or base is cls.one:
+        one_e = cls.one_e
+        one = cls.one
+        zero_e = cls.zero_e
+        if one_e==exponent or one==base:
             return base
+        if zero_e==exponent:
+            return one
         head = base.head
-        terms, num =exponent.as_terms_intcoeff()
-        if isinstance(num, IntegerNumber) and terms is cls.one_e and num < cls.zero_e:
+        if exponent < zero_e:
             raise HintExtendAlgebraTo('Rationals')
-        if num is cls.one_e:
-            return IntegerFactors([(base, exponent)])
-        if num < cls.zero_e:
-            return IntegerFactors([(base, exponent)])
         if head is NUMBER:
-            if terms is cls.one_c:
-                return IntegerNumber(base.value ** num.value)
-            return IntegerFactors([(IntegerNumber(base.value ** num.value), terms)])
+            return IntegerNumber(base.value ** exponent)
         if head is ADD:
             bb, nn = base.as_terms_intcoeff()
-            return IntegerFactors([(bb**terms, num)]) * nn**num
-        else:
-            return IntegerFactors([(base**terms, num)])
+            return IntegerFactors([(bb, exponent)]) * nn**exponent
+        return IntegerFactors([(base, exponent)])
 
     def as_terms_intcoeff(self):
+        """ Split expression into (<expr-monoid>, <integer coefficient>)
+        """
         head = self.head
         one = self.one
         one_c = self.one_c
@@ -69,53 +69,55 @@ class Integers(PairsCommutativeRing):
             pairs = self.pairs
             if len(pairs)==1:
                 t, c = pairs.items()[0]
-                if isinstance(c, IntegerNumber):
-                    return t, c
-                return self, one_c
+                tt, cc = t.as_terms_intcoeff()
+                return tt, cc * c
             coeff = None
             sign = None
             l = []
             for t, c in pairs.iteritems():
-                if isinstance(c, IntegerNumber):
-                    if coeff is None:
-                        coeff = abs(c.value)
-                        sign = cmp(c.value, 0)
-                        l.append((t, self.one_c * sign))
-                    else:
-                        coeff = gcd(abs(c.value), coeff)
-                        if c.value > 0:
-                            if sign==1 and coeff==1:
-                                coeff = None
-                                break
-                            sign = 1
-                        l.append((t, IntegerNumber(c.value/coeff)))
+                t, cc = t.as_terms_intcoeff()
+                value = c.value*cc.value
+                l.append((t, value))
+                if coeff is None:
+                    coeff = abs(value)
+                    sign = cmp(value, 0)
+                else:
+                    coeff = gcd(abs(value), coeff)
+                    if value > 0:
+                        if sign==1 and coeff==1:
+                            coeff = None
+                            break
+                        sign = 1
             if coeff is not None:
                 if sign==-1:
-                    l = [(t,-c) for (t,c) in l]
+                    l = [(t,IntegerNumber(-c/coeff)) for (t,c) in l]
                     coeff = -coeff
                 elif coeff==1:
                     return self, one_c
+                else:
+                    l = [(t,IntegerNumber(c/coeff)) for (t,c) in l]
                 return IntegerTerms(l), one_c * coeff
+        if head is MUL:
+            pairs = self.pairs
+            l = []
+            coeff = one_c
+            for t, c in pairs.iteritems():
+                tt, cc = t.as_terms_intcoeff()
+                l.append((tt, c))
+                coeff *= cc.value ** c
+            if one_c!=coeff:
+                return IntegerFactors(l), IntegerNumber(coeff)
         return self, one_c
         
     def __pos__(self):
         return self
 
-
-
-@singleton
-def makeinteger(p):
-    obj = object.__new__(IntegerNumber)
-    obj.value = p
-    return obj
     
 class IntegerNumber(Integers):
 
     head = NUMBER
 
     def __new__(cls, p):
-        if p==0: return makeinteger(0)
-        if p==1: return makeinteger(1)
         o = object.__new__(cls)
         o.value = p
         return o
@@ -132,6 +134,11 @@ class IntegerNumber(Integers):
     def __repr__(self):
         return '%s(%r)' % (self.__class__.__name__, self.value)
 
+    def __int__(self):
+        return int(self.value)
+    def __long__(self):
+        return long(self.value)
+
     def as_primitive(self):
         value = self.value
         if value<0:
@@ -147,6 +154,8 @@ class IntegerNumber(Integers):
     def __ge__(self, other):
         return self.value >= other
 
+    def __abs__(self):
+        return IntegerNumber(abs(self.value))
     def __neg__(self):
         return IntegerNumber(-self.value)
 
@@ -169,12 +178,9 @@ class IntegerNumber(Integers):
         return NotImplemented
 
     def __pow__(self, other):
-        other = Integers(other)
-        if isinstance(other, Integers):
-            head = other.head
-            if head is NUMBER:
-                return IntegerNumber(self.value ** other.value)
-            return self.Pow(self, other)
+        if isinstance(other, (int, long, IntegerNumber)):
+            if other>=0:
+                return IntegerNumber(self.value ** other)
         return NotImplemented
 
 class IntegerSymbol(Integers):
@@ -227,22 +233,19 @@ class IntegerFactors(CommutativePairs, Integers):
             return self.pairs==other.pairs
         return False
 
-zero = IntegerNumber(0)
-one = IntegerNumber(1)
+Integers.algebra_c = (int, long)   # these types are converted to NUMBER
+Integers.algebra_class = Integers  # used in pairs to define Add, Mul class methods
+Integers.zero = IntegerNumber(0)   # zero element of symbolic integer algebra
+Integers.zero_c = IntegerNumber(0) # zero element of coefficient algebra
+Integers.zero_e = 0                # zero element of exponent algebra
+Integers.one = IntegerNumber(1)    # one element of symbolic integer algebra
+Integers.one_c = IntegerNumber(1)  # one element of coefficient algebra
+Integers.one_e = 1                 # one element of exponent algebra
 
-Integers.algebra_class = Integers
-Integers.exponent_class = Integers
-Integers.zero = zero
-Integers.zero_e = zero
-Integers.zero_c = zero
-Integers.one = one
-Integers.one_c = one
-Integers.one_e = one
-Integers.algebra_c = (int, long)
-
-Integers.element_classes = {SYMBOL: IntegerSymbol,
-                            NUMBER: IntegerNumber,
-                            ADD: IntegerTerms,
-                            MUL: IntegerFactors
-                            }
+Integers.element_classes = {\
+    SYMBOL: IntegerSymbol,
+    NUMBER: IntegerNumber,
+    ADD: IntegerTerms,
+    MUL: IntegerFactors
+    }
 
