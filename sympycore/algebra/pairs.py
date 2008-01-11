@@ -46,6 +46,7 @@ class PairsCommutativeRing(BasicAlgebra):
         zero_e = cls.zero_e
         one_e = cls.one_e
         one_c = cls.one_c
+        zero_c = cls.zero_c
         a_cls = cls.algebra_class
         number = one_c
         for t in seq:
@@ -314,7 +315,7 @@ class CommutativePairs(Pairs):
         pairs = self.pairs
         one = self.one
         if not pairs:
-            return zero
+            return one
         one_e = self.one_e
         if len(pairs)==1:
             t, c = pairs.items()[0]
@@ -337,10 +338,12 @@ class CommutativePairs(Pairs):
                 if c==-one_c:
                     l.append(-PrimitiveAlgebra(t))
                 else:
-                    l.append(PrimitiveAlgebra(t) * c)
+                    l.append(PrimitiveAlgebra(c) * t)
         if len(l)==1:
             return l[0]
-        return PrimitiveAlgebra((ADD,tuple(l)))
+        r = PrimitiveAlgebra((ADD,tuple(l)))
+        r.commutative_add = True
+        return r
 
     def as_primitive_mul(self):
         l = []
@@ -353,4 +356,6 @@ class CommutativePairs(Pairs):
                 l.append(t ** c)
         if len(l)==1:
             return l[0]
-        return PrimitiveAlgebra((MUL,tuple(l)))
+        r = PrimitiveAlgebra((MUL,tuple(l)))
+        r.commutative_mul = True
+        return r

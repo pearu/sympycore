@@ -72,7 +72,28 @@ parentheses_map = {
 
 _is_name = re.compile(r'\A[a-zA-z_]\w*\Z').match
 
+head_order = [NUMBER, SYMBOL, POS, ADD, SUB, NEG, MOD, MUL, DIV, POW,
+              BOR, BXOR, BAND, INVERT, EQ, NE, LT, GT, LE, GE,
+              OR, AND, NOT, LAMBDA, TUPLE
+              ]
+def tree_sort(a, b):
+    h1,h2 = a.tree[0], b.tree[0]
+    c = cmp(head_order.index(h1), head_order.index(h2))
+    if c: return c
+    t1,t2 = a.tree[1], b.tree[1]
+    if h1 is SYMBOL or h1 is NUMBER:
+        return cmp(t1, t2)
+    c = cmp(len(t1), len(t2))
+    if c: return c
+    for i1,i2 in zip(t1,t2):
+        c = tree_sort(i1, i2)
+        if c: return c
+    return 0
+
 class PrimitiveAlgebra(BasicAlgebra):
+
+    commutative_add = None
+    commutative_mul = None
 
     def __new__(cls, tree, head=None):
         if head is None:
@@ -140,6 +161,32 @@ class PrimitiveAlgebra(BasicAlgebra):
             return 'lambda %s: %s' % (str(args)[1:-1], body)
         if head is TUPLE:
             return '(%s)' % (', '.join(map(str,rest)))
+        if head is ADD:
+            if self.commutative_add:
+                rest = sorted(rest, cmp=tree_sort)
+            r = ''
+            for t in rest:
+                h = t.tree[0]
+                while h is POS:
+                    t = t.tree[1][0]
+                    h = t.tree[0]
+                sign = ' + '
+                if h is NEG:
+                    if not r:
+                        r = str(t)
+                        continue
+                    sign = ' - '
+                    s = str(t.tree[1][0])
+                else:
+                    s = str(t)
+                    if not r:
+                        r = s
+                        continue
+                    sign = ' + '
+                r += sign + s
+            return r
+        if head is MUL and self.commutative_mul:
+            rest = sorted(rest, cmp=tree_sort)
         l = []
         for t in rest:
             h = t.tree[0]

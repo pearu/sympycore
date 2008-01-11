@@ -23,7 +23,7 @@ def test_terms():
     ab = Integers.Add(['a','b'])
     assert isinstance(ab, Integers)==True
     assert isinstance(ab, classes.IntegerTerms)==True
-    assert str(ab) in ['a + b','b + a']
+    assert str(ab)=='a + b'
     assert bool(ab=='a+b')==True
     assert bool(ab=='b+a')==True
 
@@ -46,6 +46,11 @@ def test_neg():
     assert isinstance(b, classes.IntegerTerms)==True
     assert str(b) == '-a'
 
+    ab = Integers('a+b')
+    assert isinstance(-ab, Integers)==True
+    assert isinstance(-ab, classes.IntegerTerms)==True
+    assert str(-ab) == '-a - b'
+
 def test_add():
     i = Integers(1)
     j = Integers(2)
@@ -61,12 +66,12 @@ def test_add():
 
     assert isinstance(a+b, Integers)==True
     assert isinstance(a+b, classes.IntegerTerms)==True
-    assert str(a+b) in ['a + b', 'b + a']
+    assert str(a+b)=='a + b'
     assert a+b==b+a
 
     assert isinstance(a+i, Integers)==True
     assert isinstance(a+i, classes.IntegerTerms)==True
-    assert str(a+i) in ['a + 1', '1 + a']
+    assert str(a+i)=='1 + a'
     assert a+i==i+a
     assert a+1==a+i
     assert 1+a==a+i
@@ -74,3 +79,89 @@ def test_add():
     assert a+'1'==a+i
     assert i+'a'==a+i
     assert 'a'+i==a+i
+
+    ab = a + b
+    assert isinstance(ab+i, Integers)==True
+    assert isinstance(ab+i, classes.IntegerTerms)==True
+    assert str(ab+i)=='1 + a + b'
+    assert str(ab+2)=='2 + a + b'
+    assert str(ab+'3')=='3 + a + b'
+    assert str(ab+ab)=='2*a + 2*b'
+    assert str(ab-ab)=='0'
+
+    ab = a * b
+
+    assert isinstance(ab+i, Integers)==True
+    assert isinstance(ab+i, classes.IntegerTerms)==True
+    assert str(ab+i)=='1 + a*b'
+    assert str(ab+2)=='2 + a*b'
+    assert str(ab+'3')=='3 + a*b'
+    assert str(ab+ab)=='2*a*b'
+    assert str(ab-ab)=='0'
+
+def test_mul():
+    i = Integers(3)
+    j = Integers(2)
+    assert isinstance(i*j, Integers)==True
+    assert isinstance(i*j, IntegerNumber)==True
+    assert isinstance(3*j, IntegerNumber)==True
+    assert bool(i*j==6)==True
+    assert bool(i*2==6)==True
+    assert bool(3*j==6)==True
+
+    a = Integers('a')
+    b = Integers('b')
+
+    assert isinstance(a*b, Integers)==True
+    assert isinstance(a*b, classes.IntegerFactors)==True
+    assert str(a*b) in ['a*b', 'b*a']
+    assert a*b==b*a
+
+    assert isinstance(a+i, Integers)==True
+    assert isinstance(a*i, classes.IntegerTerms)==True
+    assert str(a*i) in ['a*3', '3*a']
+    assert a*i==i*a
+    assert a*3==a*i
+    assert 3*a==a*i
+    assert '3'*a==a*i
+    assert a*'3'==a*i
+    assert i*'a'==a*i
+    assert 'a'*i==a*i
+
+    ab = a + b
+    assert isinstance(ab*i, Integers)==True
+    assert isinstance(ab*i, classes.IntegerTerms)==True
+    assert str(ab*i)=='3*a + 3*b'
+    assert str(ab*2)=='2*a + 2*b'
+    assert str(ab*'3')=='3*a + 3*b'
+    assert str(ab*ab)=='(a + b)**2'
+    assert str(ab*(1+ab))=='(a + b)*(1 + a + b)'
+
+    ab = a * b
+    assert isinstance(ab*i, Integers)==True
+    assert isinstance(ab*i, classes.IntegerTerms)==True
+    assert str(ab*i)=='3*a*b'
+    assert str(ab*2)=='2*a*b'
+    assert str(ab*'3')=='3*a*b'
+    assert str(ab*ab)=='a**2*b**2'
+
+def test_pow():
+    i = Integers(3)
+    j = Integers(2)
+    assert isinstance(i**j, Integers)==True
+    assert isinstance(i**j, IntegerNumber)==True
+    assert i**j==9
+
+    a = Integers('a')
+    b = Integers('b')
+    
+    assert isinstance(a**j, Integers)==True
+    assert isinstance(a**j, classes.IntegerFactors)==True
+    assert str(a**j)=='a**2'
+    assert str(a**3)=='a**3'
+    assert str(a**'4')=='a**4'
+    assert str(a**b)=='a**b'
+    assert str(a**'b')=='a**b'
+    assert str(a**(b+1))=='a**(1 + b)'
+    assert str(a**(2*b))=='a**(2*b)'
+    assert str(j**(2*b))=='4**b'
