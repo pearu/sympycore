@@ -15,16 +15,20 @@ class Integers(PairsCommutativeRing):
     """
 
     @classmethod
-    def get_kind(cls, obj):
+    def convert(cls, obj, typeerror=True):
+        if isinstance(obj, Integers):
+            return obj
         if isinstance(obj, (int, long)):
-            return NUMBER
-        return SYMBOL
-
-    element_classes = {SYMBOL: 'IntegerSymbol',
-                       NUMBER: 'IntegerNumber',
-                       ADD: 'IntegerTerms',
-                       MUL: 'IntegerFactors'
-                       }
+            return IntegerNumber(obj)
+        if isinstance(obj, (str, unicode)):
+            obj = PrimitiveAlgebra(obj)
+        if isinstance(obj, PrimitiveAlgebra):
+            return obj.as_algebra(Integers)
+        if isinstance(obj, BasicAlgebra):
+            return obj.as_primitive().as_algebra(Integers)
+        if typeerror:
+            raise TypeError('%s.convert(<%s object>)' % (cls.__name__, type(obj)))
+        return obj
 
     def __pos__(self):
         return self
@@ -37,7 +41,7 @@ def makeinteger(p):
     
 class IntegerNumber(Integers):
 
-    kind = NUMBER
+    head = NUMBER
 
     def __new__(cls, p):
         if p==0: return makeinteger(0)
@@ -46,37 +50,61 @@ class IntegerNumber(Integers):
         o.value = p
         return o
 
+    def __eq__(self, other):
+        other = self.convert(other, False)
+        if isinstance(other, IntegerNumber):
+            return self.value==other.value
+        return False
+
+    def __hash__(self):
+        return hash(self.value)
+
     def __repr__(self):
         return '%s(%r)' % (self.__class__.__name__, self.value)
 
     def as_primitive(self):
-        # XXX: -2 -> NEG 2
-        return PrimitiveAlgebra((NUMBER, self.value))
+        value = self.value
+        if value<0:
+            return -PrimitiveAlgebra((NUMBER, -value))
+        return PrimitiveAlgebra((NUMBER, value))
+
+    def __neg__(self):
+        return IntegerNumber(-self.value)
 
     def __add__(self, other):
         other = Integers(other)
         if isinstance(other, Integers):
-            kind = other.kind
-            if kind is NUMBER:
+            head = other.head
+            if head is NUMBER:
                 return IntegerNumber(self.value + other.value)
+            return self.Add([self, other])
         return NotImplemented
 
     def __mul__(self, other):
         other = Integers(other)
         if isinstance(other, Integers):
-            kind = other.kind
-            if kind is NUMBER:
+            head = other.head
+            if head is NUMBER:
                 return IntegerNumber(self.value * other.value)
         return NotImplemented
 
 class IntegerSymbol(Integers):
 
-    kind = SYMBOL
+    head = SYMBOL
 
     def __new__(cls, obj):
         o = object.__new__(cls)
         o.data = obj
         return o
+
+    def __hash__(self):
+        return hash(self.data)
+
+    def __eq__(self, other):
+        other = self.convert(other, False)
+        if isinstance(other, IntegerSymbol):
+            return self.data==other.data
+        return False
 
     def __repr__(self):
         return '%s(%r)' % (self.__class__.__name__, self.data)
@@ -86,17 +114,29 @@ class IntegerSymbol(Integers):
 
 class IntegerTerms(CommutativePairs, Integers):
 
-    kind = ADD
+    head = ADD
 
     __str__ = Integers.__str__
     as_primitive = CommutativePairs.as_primitive_add
 
+    def __eq__(self, other):
+        other = self.convert(other, False)
+        if isinstance(other, IntegerTerms):
+            return self.pairs==other.pairs
+        return False
+
 class IntegerFactors(CommutativePairs, Integers):
 
-    kind = MUL
+    head = MUL
 
     __str__ = Integers.__str__
     as_primitive = CommutativePairs.as_primitive_mul
+
+    def __eq__(self, other):
+        other = self.convert(other, False)
+        if isinstance(other, IntegerFactors):
+            return self.pairs==other.pairs
+        return False
 
 zero = IntegerNumber(0)
 one = IntegerNumber(1)
@@ -108,3 +148,11 @@ Integers.zero_c = zero
 Integers.one = one
 Integers.one_c = one
 Integers.one_e = one
+Integers.algebra_c = (int, long)
+
+Integers.element_classes = {SYMBOL: IntegerSymbol,
+                            NUMBER: IntegerNumber,
+                            ADD: IntegerTerms,
+                            MUL: IntegerFactors
+                            }
+

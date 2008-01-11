@@ -8,13 +8,15 @@ class AlgebraicStructure(Basic):
 
     @classmethod
     def convert(cls, obj):
+        raise NotImplementedError('%s must define convert classmethod'\
+                                  % (cls.__name__))
         if isinstance(obj, cls):
             return obj
-        if isinstance(obj, cls.coefficient_structure):
-            return PrimitiveAlgebra(obj, kind=NUMBER)
+        if isinstance(obj, cls.algebra_c):
+            return classes.PrimitiveAlgebra((NUMBER, obj))
         if isinstance(obj, AlgebraicStructure):
             return obj.as_primitive()
-        return PrimitiveAlgebra(obj, kind=SYMBOL)
+        return classes.PrimitiveAlgebra((cls.get_kind(obj),obj))
 
     def as_primitve(self):
         raise NotImplementedError('%s must define as_primitive method'\
@@ -22,10 +24,6 @@ class AlgebraicStructure(Basic):
 
     def __str__(self):
         return str(self.as_primitive())
-
-class BasicRing(AlgebraicStructure):
-    """
-    """
 
 class BasicAlgebra(AlgebraicStructure):
     """ Collects implementation specific methods of algebra classes.

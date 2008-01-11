@@ -12,42 +12,36 @@ class PairsCommutativeRing(BasicAlgebra):
     """ Contains generic methods to algebra classes that
     use Pairs.
     """
-    def __new__(cls, obj, kind=None):
-        if isinstance(obj, cls):
-            return obj
-        if kind is None:
-            if isinstance(obj, PrimitiveAlgebra):
-                return obj.as_algebra(cls)
-            if isinstance(obj, BasicAlgebra):
-                return obj.as_primitive().as_algebra(cls)
-            kind = cls.get_kind(obj)
-        return getattr(classes, cls.element_classes[kind])(obj)
+    def __new__(cls, obj, head=None):
+        if head is None:
+            return cls.convert(obj)
+        return cls.element_classes[head](obj)
 
     @classmethod
     def Add(cls, seq):
-        terms = getattr(classes, cls.element_classes[ADD])({})
+        terms = cls.element_classes[ADD]({})
         one = cls.one
         zero_c = cls.zero_c
         one_c = cls.one_c
         a_cls = cls.algebra_class
         for t in seq:
             t = a_cls(t)
-            kind = t.kind
-            if kind is SYMBOL:
+            head = t.head
+            if head is SYMBOL:
                 terms._add_value(t, one_c, zero_c)
-            elif kind is NUMBER:
+            elif head is NUMBER:
                 terms._add_value(one, t, zero_c)
-            elif kind is ADD:
+            elif head is ADD:
                 terms._add_values(t, one_c, zero_c)
-            elif kind is MUL:
+            elif head is MUL:
                 terms._add_value(t, one_c, zero_c)
             else:
-                raise TypeError(`t, kind`)
+                raise TypeError(`t, head`)
         return terms.canonize_add()
 
     @classmethod
     def Mul(cls, seq):
-        result = getattr(classes, cls.element_classes[MUL])({})
+        result = cls.element_classes[MUL]({})
         one = cls.one
         zero_e = cls.zero_e
         one_e = cls.one_e
@@ -55,28 +49,28 @@ class PairsCommutativeRing(BasicAlgebra):
         a_cls = cls.algebra_class
         number = one_c
         for t in seq:
-            t = cls(t)
-            kind = t.kind
-            if kind is SYMBOL:
+            t = a_cls(t)
+            head = t.head
+            if head is SYMBOL:
                 result._add_value(t, one_e, zero_e)
-            elif kind is NUMBER:
+            elif head is NUMBER:
                 number = number * t
-            elif kind is ADD:
+            elif head is ADD:
                 result._add_value(t, one_e, zero_e)
-            elif kind is MUL:
+            elif head is MUL:
                 result._add_values(t, one_e, zero_e)
             else:
-                raise TypeError(`t, kind`)
+                raise TypeError(`t, head`)
         result = result.canonize_mul()
         if number==one_c:
             return result
         if result==one:
-            return getattr(classes, cls.element_classes[NUMBER])(number)
-        kind = result.kind
-        if kind is NUMBER:
-            return getattr(classes, cls.element_classes[NUMBER])(result * number)
-        terms_cls = getattr(classes, cls.element_classes[ADD])
-        if kind is ADD:
+            return cls.element_classes[NUMBER](number)
+        head = result.head
+        if head is NUMBER:
+            return cls.element_classes[NUMBER](result * number)
+        terms_cls = cls.element_classes[ADD]
+        if head is ADD:
             r = terms_cls(iter(result))
             r._multiply_values(number, one_c, zero_c)
             return r.canonize_add()
@@ -307,10 +301,13 @@ class CommutativePairs(Pairs):
         if not pairs:
             return zero
         one_c = self.one_c
+        one = self.one
         if len(pairs)==1:
             t, c = pairs.items()[0]
             if c is one_c:
                 return t
+            if t is one:
+                return self.convert(c)
         return self
 
     def canonize_mul(self):
@@ -329,23 +326,28 @@ class CommutativePairs(Pairs):
 
     def as_primitive_add(self):
         l = []
+        one_c = self.one_c
+        one = self.one
         for t,c in self:
-            t = PrimitiveAlgebra(t)
-            if c==1:
-                l.append(t)
-            elif t==1:
+            if c is one_c:
+                l.append(PrimitiveAlgebra(t))
+            elif t is one:
                 l.append(PrimitiveAlgebra(c))
             else:
-                l.append(t * c)
+                if c==-one_c:
+                    l.append(-PrimitiveAlgebra(t))
+                else:
+                    l.append(PrimitiveAlgebra(t) * c)
         if len(l)==1:
             return l[0]
         return PrimitiveAlgebra((ADD,tuple(l)))
 
     def as_primitive_mul(self):
         l = []
+        one_c = self.one_c
         for t,c in self:
             t = PrimitiveAlgebra(t)
-            if c==1:
+            if c is one_c:
                 l.append(t)
             else:
                 l.append(t ** c)

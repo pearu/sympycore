@@ -74,15 +74,13 @@ _is_name = re.compile(r'\A[a-zA-z_]\w*\Z').match
 
 class PrimitiveAlgebra(BasicAlgebra):
 
-    def __new__(cls, tree):
-        if hasattr(tree, 'as_primitive'):
-            tree = tree.as_primitive()
-        if isinstance(tree, str): # XXX: unicode
-            tree = string2PrimitiveAlgebra(tree)
+    def __new__(cls, tree, head=None):
+        if head is None:
+            return cls.convert(tree)
         if isinstance(tree, cls):
             return tree
         if not isinstance(tree, tuple):
-            tree = (SYMBOL, tree)
+            tree = (head, tree)
         obj = object.__new__(cls)
         obj.tree = tree
         return obj
@@ -90,9 +88,15 @@ class PrimitiveAlgebra(BasicAlgebra):
     def __repr__(self):
         return str(self.tree)
 
-    @staticmethod
-    def convert(obj):
-        return PrimitiveAlgebra(obj)
+    @classmethod
+    def convert(cls, obj):
+        if isinstance(obj, (str, unicode)):
+            obj = string2PrimitiveAlgebra(obj)
+        if hasattr(obj, 'as_primitive'):
+            return obj.as_primitive()
+        if isinstance(obj, cls):
+            return obj
+        return PrimitiveAlgebra(obj, head=SYMBOL)
 
     def as_primitive(self):
         return self
@@ -100,9 +104,9 @@ class PrimitiveAlgebra(BasicAlgebra):
     def as_algebra(self, cls, source=None):
         head, rest = self.tree
         if head is NUMBER:
-            return cls(rest, kind=NUMBER)
+            return cls(rest, head=NUMBER)
         if head is SYMBOL:
-            return cls(rest, kind=SYMBOL)
+            return cls(rest, head=SYMBOL)
         if head is ADD:
             return cls.Add([r.as_algebra(cls) for r in rest])
         if head is SUB:
