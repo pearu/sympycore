@@ -79,6 +79,9 @@ def test_add():
     assert a+'1'==a+i
     assert i+'a'==a+i
     assert 'a'+i==a+i
+    assert a+0==a
+    assert 0+a==a
+    assert str(a+a)=='2*a'
 
     ab = a + b
     assert isinstance(ab+i, Integers)==True
@@ -87,7 +90,18 @@ def test_add():
     assert str(ab+2)=='2 + a + b'
     assert str(ab+'3')=='3 + a + b'
     assert str(ab+ab)=='2*a + 2*b'
+    assert str(ab+a)=='b + 2*a'
+    assert str(ab+2*a)=='b + 3*a'
+    assert str(ab+a*b)=='a + b + a*b'
     assert str(ab-ab)=='0'
+    assert i+ab == ab+i
+    assert 2+ab == ab+2
+    assert '3'+ab == ab+'3'
+    assert 0+ab == ab
+    assert ab+0 == ab
+    assert ab+a == a+ab
+    assert ab+2*a == 2*a+ab
+    assert ab + a*b == a*b + ab
 
     ab = a * b
 
@@ -97,7 +111,17 @@ def test_add():
     assert str(ab+2)=='2 + a*b'
     assert str(ab+'3')=='3 + a*b'
     assert str(ab+ab)=='2*a*b'
+    assert str(ab+a*ab)=='a*b + b*a**2'
+    assert str(ab+a)=='a + a*b'
     assert str(ab-ab)=='0'
+    assert i+ab == ab+i
+    assert 2+ab == ab+2
+    assert '3'+ab == ab+'3'
+    assert ab+a==a+ab
+    assert 0+ab == ab
+    assert ab+0 == ab
+    assert str(a + ab) == 'a + a*b'
+
 
 def test_mul():
     i = Integers(3)
@@ -127,7 +151,13 @@ def test_mul():
     assert a*'3'==a*i
     assert i*'a'==a*i
     assert 'a'*i==a*i
+    assert a*1==a
+    assert 1*a==a
+    assert a*0==0
+    assert 0*a==0
+    assert str(a*a)=='a**2'
 
+    
     ab = a + b
     assert isinstance(ab*i, Integers)==True
     assert isinstance(ab*i, classes.IntegerTerms)==True
@@ -136,6 +166,14 @@ def test_mul():
     assert str(ab*'3')=='3*a + 3*b'
     assert str(ab*ab)=='(a + b)**2'
     assert str(ab*(1+ab))=='(a + b)*(1 + a + b)'
+    assert i*ab == ab*i
+    assert 2*ab == ab*2
+    assert '3'*ab == ab*'3'
+    assert 1*ab == ab
+    assert ab*1 == ab
+    assert 0*ab == 0
+    assert ab*0 == 0
+    assert str(a*ab)=='a*(a + b)'
 
     ab = a * b
     assert isinstance(ab*i, Integers)==True
@@ -144,6 +182,24 @@ def test_mul():
     assert str(ab*2)=='2*a*b'
     assert str(ab*'3')=='3*a*b'
     assert str(ab*ab)=='a**2*b**2'
+    assert str(ab*a**2)=='b*a**3'
+    assert str((a+b)*ab)=='a*b*(a + b)'
+    assert i*ab == ab*i
+    assert 2*ab == ab*2
+    assert '3'*ab == ab*'3'
+    assert (a+b)*ab == ab*(a+b)
+    assert ab*a**2==a**2*ab
+
+    assert 1*ab == ab
+    assert ab*1 == ab
+    assert 0*ab == 0
+    assert ab*0 == 0
+    assert str(a*ab)=='b*a**2'
+    assert str(a*(2*a))=='2*a**2'
+    assert str(a*(2*b))=='2*a*b'
+    assert a*ab==ab*a
+    assert a*(2*a)==(2*a)*a
+    assert a*(2*b)==(2*b)*a
 
 
 

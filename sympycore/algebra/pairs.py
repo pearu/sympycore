@@ -23,14 +23,14 @@ class PairsCommutativeRing(BasicAlgebra):
         one = cls.one
         zero_c = cls.zero_c
         one_c = cls.one_c
-        a_cls = cls.algebra_class
+        a_cls = cls.convert
         for t in seq:
             t = a_cls(t)
             head = t.head
             if head is SYMBOL:
                 terms._add_value(t, one_c, zero_c)
             elif head is NUMBER:
-                terms._add_value(one, t, zero_c)
+                terms._add_value(one, t.value, zero_c)
             elif head is ADD:
                 terms._add_values(t, one_c, zero_c)
             elif head is MUL:
@@ -47,7 +47,7 @@ class PairsCommutativeRing(BasicAlgebra):
         one_e = cls.one_e
         one_c = cls.one_c
         zero_c = cls.zero_c
-        a_cls = cls.algebra_class
+        a_cls = cls.convert
         number = one_c
         for t in seq:
             t = a_cls(t)
@@ -55,7 +55,7 @@ class PairsCommutativeRing(BasicAlgebra):
             if head is SYMBOL:
                 result._add_value(t, one_e, zero_e)
             elif head is NUMBER:
-                number = number * t
+                number = number * t.value
             elif head is ADD:
                 result._add_value(t, one_e, zero_e)
             elif head is MUL:
@@ -70,12 +70,23 @@ class PairsCommutativeRing(BasicAlgebra):
         head = result.head
         if head is NUMBER:
             return cls.element_classes[NUMBER](result * number)
-        terms_cls = cls.element_classes[ADD]
         if head is ADD:
-            r = terms_cls(iter(result))
+            r = result.copy()
             r._multiply_values(number, one_c, zero_c)
             return r.canonize_add()
-        return terms_cls({result: number})
+        return cls.element_classes[ADD]({result: number})
+
+    def __radd__(self, other):
+        other = self.convert(other, False)
+        if isinstance(other, self.algebra_class):
+            return other + self
+        return NotImplemented
+
+    def __rmul__(self, other):
+        other = self.convert(other, False)
+        if isinstance(other, self.algebra_class):
+            return other * self
+        return NotImplemented
 
 class Pairs(object):
     """ Base class for holding pairs (by default non-commutative).
@@ -163,6 +174,9 @@ class CommutativePairs(Pairs):
             self._pairs = pairs = dict(pairs)
         return pairs
 
+    def copy(self):
+        return type(self)(self.pairs.copy())
+
     def __iter__(self):
         """ Return iterator of pairs.
         """
@@ -184,9 +198,6 @@ class CommutativePairs(Pairs):
         if isinstance(pairs, iterator_types):
             self._pairs = pairs = dict(pairs)
             return len(pairs)
-        elif isinstance(pairs, Pairs):
-            raise
-            return pairs.length()
         return len(pairs)
 
     def __hash__(self):
@@ -213,8 +224,7 @@ class CommutativePairs(Pairs):
         return '%s(%r)' % (self.__class__.__name__, self._pairs)
 
     def _add_value(self, rhs, one, zero):
-        h = self._hash
-        if h is not None:
+        if self._hash is not None:
             raise TypeError('cannot add value to immutable pairs inplace'\
                             ' (hash has been computed)')
         pairs = self.pairs
@@ -229,8 +239,7 @@ class CommutativePairs(Pairs):
                 pairs[rhs] = c
 
     def _add_values(self, rhs, one, zero):
-        h = self._hash
-        if h is not None:
+        if self._hash is not None:
             raise TypeError('cannot add values to immutable pairs inplace'\
                             ' (hash has been computed)')
         pairs = self.pairs
@@ -246,17 +255,15 @@ class CommutativePairs(Pairs):
                     pairs[t] = c
 
     def _multiply_values(self, rhs, one, zero):
-        h = self._hash
-        if h is not None:
+        if self._hash is not None:
             raise TypeError('cannot multiply values to immutable pairs inplace'\
                             ' (hash has been computed)')
         pairs = self.pairs
         for t in pairs.keys():
-            pairs[t] *= rhs
+            pairs[t] = pairs[t] * rhs
 
     def _expand_multiply_values(self, rhs, one, zero):
-        h = self._hash
-        if h is not None:
+        if self._hash is not None:
             raise TypeError('cannot expand multiply values to immutable pairs inplace'\
                             ' (hash has been computed)')
         pairs = self.pairs
@@ -286,8 +293,7 @@ class CommutativePairs(Pairs):
                         d[t] = c
 
     def _add_keys(self, rhs, one, zero):
-        h = self._hash
-        if h is not None:
+        if self._hash is not None:
             raise TypeError('cannot add keys to immutable pairs inplace'\
                             ' (hash has been computed)')
         pairs = self.pairs        
@@ -298,31 +304,26 @@ class CommutativePairs(Pairs):
 
     def canonize_add(self):
         pairs = self.pairs
-        zero = self.zero
         if not pairs:
-            return zero
-        one_c = self.one_c
-        one = self.one
+            return self.zero
         if len(pairs)==1:
             t, c = pairs.items()[0]
-            if one_c==c:
+            if self.one_c==c:
                 return t
-            if one==t:
+            if self.one==t:
                 return self.convert(c)
         return self
 
     def canonize_mul(self):
         pairs = self.pairs
-        one = self.one
         if not pairs:
-            return one
-        one_e = self.one_e
+            return self.one
         if len(pairs)==1:
             t, c = pairs.items()[0]
-            if one_e==c:
+            if self.one_e==c:
                 return t
-            if one==t:
-                return one
+            if self.one==t:
+                return t
         return self
 
     def as_primitive_add(self):

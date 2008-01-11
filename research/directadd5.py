@@ -306,10 +306,31 @@ def time4(n=1000):
     return 100 / (t2-t1)
 
 
+def time5(n=1000):
+    Integers = sympy.algebra.Integers
+    x = Integers('x')
+    y = Integers('y')
+    z = Integers('z')
+    a = Integers(2)
+    b = Integers(3)
+    c = Integers(4)
+    A = a*x + b*y + c*z
+    B = b*x + c*y + a*z
+    t1 = clock()
+    while n:
+        3*(a*x+b*y+c*z)
+        #A + B
+        #x + y
+        #a + b
+        #a * b
+        n -= 1
+    t2 = clock()
+    return 100 / (t2-t1)
+
 
 def timing():
     t1 = time1()
-    t2 = time4()
+    t2 = time5()
     return t1, t2, t1/t2
 
 print "without psyco"
@@ -319,7 +340,7 @@ print timing()
 
 from sympycore import profile_expr
 
-profile_expr('time4(1000)')
+#profile_expr('time4(1000)')
 
 try:
     import psyco
