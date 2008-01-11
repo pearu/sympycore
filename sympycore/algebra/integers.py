@@ -5,6 +5,11 @@ from ..core import classes
 from .primitive import PrimitiveAlgebra, SYMBOL, NUMBER, ADD, MUL
 from .pairs import CommutativePairs, PairsCommutativeRing
 
+def gcd(a, b):
+    while a:
+        a, b = b%a, a
+    return b
+
 class Integers(PairsCommutativeRing):
     """ Represents a set of integers.
 
@@ -40,29 +45,24 @@ class Integers(PairsCommutativeRing):
         terms, num =exponent.as_terms_intcoeff()
         if isinstance(num, IntegerNumber) and terms is cls.one_e and num < cls.zero_e:
             raise HintExtendAlgebraTo('Rationals')
+        if num is cls.one_e:
+            return IntegerFactors([(base, exponent)])
+        if num < cls.zero_e:
+            return IntegerFactors([(base, exponent)])
         if head is NUMBER:
-            if terms is one:
+            if terms is cls.one_c:
                 return IntegerNumber(base.value ** num.value)
-            if num is cls.one_e:
-                b, e = base, terms
-            else:
-                b, e = IntegerNumber(base.value ** num.value), terms
+            return IntegerFactors([(IntegerNumber(base.value ** num.value), terms)])
+        if head is ADD:
+            bb, nn = base.as_terms_intcoeff()
+            return IntegerFactors([(bb**terms, num)]) * nn**num
         else:
-            if num is cls.one_e:
-                b, e = base, terms
-            else:
-                b, e = base ** terms, num
-        head = b.head
-        if head is MUL:
-            result = IntegerFactors(iter(b))
-        else:
-            result = IntegerFactors([(b, cls.one_e)])
-        result._multiply_values(e, 1, 0)
-        return result.canonize_mul()
+            return IntegerFactors([(base**terms, num)])
 
     def as_terms_intcoeff(self):
         head = self.head
         one = self.one
+        one_c = self.one_c
         if head is NUMBER:
             return one, self
         if head is ADD:
@@ -71,8 +71,32 @@ class Integers(PairsCommutativeRing):
                 t, c = pairs.items()[0]
                 if isinstance(c, IntegerNumber):
                     return t, c
-                return self, one
-        return self, one
+                return self, one_c
+            coeff = None
+            sign = None
+            l = []
+            for t, c in pairs.iteritems():
+                if isinstance(c, IntegerNumber):
+                    if coeff is None:
+                        coeff = abs(c.value)
+                        sign = cmp(c.value, 0)
+                        l.append((t, self.one_c * sign))
+                    else:
+                        coeff = gcd(abs(c.value), coeff)
+                        if c.value > 0:
+                            if sign==1 and coeff==1:
+                                coeff = None
+                                break
+                            sign = 1
+                        l.append((t, IntegerNumber(c.value/coeff)))
+            if coeff is not None:
+                if sign==-1:
+                    l = [(t,-c) for (t,c) in l]
+                    coeff = -coeff
+                elif coeff==1:
+                    return self, one_c
+                return IntegerTerms(l), one_c * coeff
+        return self, one_c
         
     def __pos__(self):
         return self
@@ -113,6 +137,15 @@ class IntegerNumber(Integers):
         if value<0:
             return -PrimitiveAlgebra((NUMBER, -value))
         return PrimitiveAlgebra((NUMBER, value))
+
+    def __lt__(self, other):
+        return self.value < other
+    def __le__(self, other):
+        return self.value <= other
+    def __gt__(self, other):
+        return self.value > other
+    def __ge__(self, other):
+        return self.value >= other
 
     def __neg__(self):
         return IntegerNumber(-self.value)

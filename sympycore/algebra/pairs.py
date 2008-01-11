@@ -359,3 +359,6 @@ class CommutativePairs(Pairs):
         r = PrimitiveAlgebra((MUL,tuple(l)))
         r.commutative_mul = True
         return r
+
+
+            
