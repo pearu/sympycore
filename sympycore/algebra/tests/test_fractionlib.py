@@ -12,6 +12,8 @@ def test_mpq():
     assert float(mpq(1,4)) == 0.25
     assert mpq(1,2) == mpq(-1,-2)
     assert mpq(-1,2) == mpq(1,-2)
+    assert -mpq(2,3) == mpq(-2,3)
+    assert +mpq(2,3) == mpq(2,3)
     assert mpq(1,2) - 1 == mpq(-1,2)
     assert 1 - mpq(1,2) == mpq(1,2)
     assert mpq(2,3)**0 == 1

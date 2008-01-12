@@ -53,7 +53,7 @@ class mpq(tuple):
 
     def __neg__(self, tnew=tuple.__new__):
         p, q = self
-        return tnew(rational, (-p, q))
+        return tnew(mpq, (-p, q))
 
     def __pos__(self):
         return self
