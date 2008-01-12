@@ -100,7 +100,7 @@ class PrimitiveAlgebra(BasicAlgebra):
             return cls.convert(tree)
         if isinstance(tree, cls):
             return tree
-        if not isinstance(tree, tuple):
+        if type(tree) is not tuple:
             tree = (head, tree)
         obj = object.__new__(cls)
         obj.tree = tree

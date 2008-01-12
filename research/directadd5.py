@@ -308,12 +308,19 @@ def time4(n=1000):
 
 def time5(n=1000):
     Integers = sympy.algebra.Integers
+    IntegerNumber = sympy.algebra.IntegerNumber
     x = Integers('x')
     y = Integers('y')
     z = Integers('z')
-    a = Integers(2)
-    b = Integers(3)
-    c = Integers(4)
+    a = IntegerNumber(sympy.Fraction(1,2))
+    b = IntegerNumber(sympy.Fraction(2,3))
+    c = IntegerNumber(sympy.Fraction(4,5))
+    #a = IntegerNumber(gmpy.mpq(1,2))
+    #b = IntegerNumber(gmpy.mpq(2,3))
+    #c = IntegerNumber(gmpy.mpq(4,5))
+    a = IntegerNumber(rational(1,2))
+    b = IntegerNumber(rational(2,3))
+    c = IntegerNumber(rational(4,5))
     A = a*x + b*y + c*z
     B = b*x + c*y + a*z
     t1 = clock()
@@ -340,7 +347,7 @@ print timing()
 
 from sympycore import profile_expr
 
-#profile_expr('time4(1000)')
+profile_expr('time5(1000)')
 
 try:
     import psyco

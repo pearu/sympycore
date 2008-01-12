@@ -12,6 +12,11 @@ class PairsCommutativeRing(BasicAlgebra):
     """ Contains generic methods to algebra classes that
     use Pairs.
     """
+    one_c = 1   # one element of coefficient algebra
+    one_e = 1   # one element of exponent algebra
+    zero_c = 0  # zero element of coefficient algebra
+    zero_e = 0  # zero element of exponent algebra
+
     def __new__(cls, obj, head=None):
         if head is None:
             return cls.convert(obj)
@@ -128,6 +133,8 @@ class Pairs(object):
         return len(pairs)
 
     def __eq__(self, other):
+        if self is other:
+            return True
         if type(self) is type(other):
             return self.pairs == other.pairs
         return False
@@ -269,9 +276,10 @@ class CommutativePairs(Pairs):
         if self._hash is not None:
             raise TypeError('cannot multiply values to immutable pairs inplace'\
                             ' (hash has been computed)')
-        pairs = self.pairs
-        for t in pairs.keys():
-            pairs[t] = pairs[t] * rhs
+        d = {}
+        for t,c in self.pairs.iteritems():
+            d[t] = c * rhs
+        self._pairs = d
 
     def _expand_multiply_values(self, rhs, one, zero):
         if self._hash is not None:
@@ -413,7 +421,6 @@ class CommutativeTerms(CommutativePairs):
             return self.Mul([self, other])
         return NotImplemented
 
-
 class CommutativeFactors(CommutativePairs):
 
     head = MUL
@@ -499,6 +506,7 @@ class CommutativeFactors(CommutativePairs):
             return self.Mul([self, other])
         return NotImplemented
 
+
 class PairsCommutativeSymbol(object):
 
     head = SYMBOL
@@ -506,10 +514,14 @@ class PairsCommutativeSymbol(object):
     def __new__(cls, obj):
         o = object.__new__(cls)
         o.data = obj
+        o._hash = None
         return o
 
     def __hash__(self):
-        return hash(self.data)
+        h = self._hash
+        if h is None:
+            self._hash = h = hash(self.data)
+        return h
 
     def __eq__(self, other):
         if self is other:
@@ -578,6 +590,7 @@ class PairsCommutativeSymbol(object):
             return self.Mul([self, other])
         return NotImplemented
 
+
 class PairsNumber(object):
 
     head = NUMBER
@@ -587,6 +600,7 @@ class PairsNumber(object):
             return p
         o = object.__new__(cls)
         o.value = p
+        o._hash = None
         return o
 
     def __eq__(self, other):
@@ -598,7 +612,10 @@ class PairsNumber(object):
         return False
 
     def __hash__(self):
-        return hash(self.value)
+        h = self._hash
+        if h is None:
+            self._hash = h = hash(self.value)
+        return h
 
     def __lt__(self, other):
         return self.value < other
@@ -654,14 +671,14 @@ class PairsNumber(object):
         other = self.convert(other, False)
         if isinstance(other, self.algebra_class):
             value = self.value
-            if value==1:
-                return other
-            if value==0:
-                return self
             head = other.head
             elcls = self.element_classes
             if head is NUMBER:
                 return elcls[NUMBER](value * other.value)
+            if value==1:
+                return other
+            if value==0:
+                return self
             if head is SYMBOL:
                 return elcls[ADD]({other:value})
             if head is ADD:
@@ -672,3 +689,4 @@ class PairsNumber(object):
                 return elcls[ADD]({other:value})
             return self.Mul([self, other])
         return NotImplemented
+

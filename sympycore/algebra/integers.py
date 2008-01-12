@@ -13,7 +13,7 @@ def gcd(a, b):
     return b
 
 # Optimization ideas:
-# 1) in multiplication exponents grow, so one could avoid checking for zeros
+# 1) in multiplication can exponents grow, so one could avoid checking for zeros
 
 class Integers(PairsCommutativeRing):
     """ Represents a symbolic algebra of integers.
@@ -138,11 +138,7 @@ zero = IntegerNumber(0)
 Integers.algebra_c = (int, long)   # these types are converted to NUMBER
 Integers.algebra_class = Integers  # used in pairs to define Add, Mul class methods
 Integers.zero = zero               # zero element of symbolic integer algebra
-Integers.zero_c = 0                # zero element of coefficient algebra
-Integers.zero_e = 0                # zero element of exponent algebra
 Integers.one = one                 # one element of symbolic integer algebra
-Integers.one_c = 1                 # one element of coefficient algebra
-Integers.one_e = 1                 # one element of exponent algebra
 
 Integers.element_classes = {\
     SYMBOL: IntegerSymbol,
@@ -150,4 +146,3 @@ Integers.element_classes = {\
     ADD: IntegerTerms,
     MUL: IntegerFactors
     }
-
