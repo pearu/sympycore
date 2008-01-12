@@ -37,7 +37,7 @@ class PairsCommutativeRing(BasicAlgebra):
                 terms._add_value(t, one_c, zero_c)
             else:
                 raise TypeError(`t, head`)
-        return terms.canonize_add()
+        return terms.canonize()
 
     @classmethod
     def Mul(cls, seq):
@@ -62,7 +62,7 @@ class PairsCommutativeRing(BasicAlgebra):
                 result._add_values(t, one_e, zero_e)
             else:
                 raise TypeError(`t, head`)
-        result = result.canonize_mul()
+        result = result.canonize()
         if number==one_c:
             return result
         if result==one:
@@ -73,8 +73,11 @@ class PairsCommutativeRing(BasicAlgebra):
         if head is ADD:
             r = result.copy()
             r._multiply_values(number, one_c, zero_c)
-            return r.canonize_add()
+            return r.canonize()
         return cls.element_classes[ADD]({result: number})
+
+    def __pos__(self):
+        return self
 
     def __radd__(self, other):
         other = self.convert(other, False)
@@ -216,6 +219,14 @@ class CommutativePairs(Pairs):
             self._hash = h
         return h
 
+    def __eq__(self, other):
+        if self is other:
+            return True
+        other = self.convert(other, False)
+        if isinstance(other, type(self)):
+            return self.pairs==other.pairs
+        return False
+
     def __str__(self):
         return '%s([%s])' % (self.__class__.__name__,
                              ', '.join(['(%s, %s)' % tc for tc in self.pairs.iteritems()]))
@@ -302,31 +313,24 @@ class CommutativePairs(Pairs):
             d[t + rhs] = c
         self._pairs = d
 
-    def canonize_add(self):
+
+class CommutativeTerms(CommutativePairs):
+
+    head = ADD
+
+    def canonize(self):
         pairs = self.pairs
         if not pairs:
             return self.zero
         if len(pairs)==1:
             t, c = pairs.items()[0]
-            if self.one_c==c:
+            if c==1:
                 return t
             if self.one==t:
                 return self.convert(c)
         return self
 
-    def canonize_mul(self):
-        pairs = self.pairs
-        if not pairs:
-            return self.one
-        if len(pairs)==1:
-            t, c = pairs.items()[0]
-            if self.one_e==c:
-                return t
-            if self.one==t:
-                return t
-        return self
-
-    def as_primitive_add(self):
+    def as_primitive(self):
         l = []
         one_c = self.one_c
         one = self.one
@@ -346,7 +350,87 @@ class CommutativePairs(Pairs):
         r.commutative_add = True
         return r
 
-    def as_primitive_mul(self):
+    def __add__(self, other):
+        other = self.convert(other, False)
+        if isinstance(other, self.algebra_class):
+            head = other.head
+            if head is NUMBER:
+                value = other.value
+                if value==0:
+                    return self
+                result = self.copy()
+                result._add_value(self.one, value, 0)
+                return result.canonize()
+            if head is SYMBOL:
+                result = self.copy()
+                result._add_value(other, 1, 0)
+                return result.canonize()
+            if head is ADD:
+                if self.length() < other.length():
+                    result = other.copy()
+                    result._add_values(self, 1, 0)
+                else:
+                    result = self.copy()
+                    result._add_values(other, 1, 0)
+                return result.canonize()
+            if head is MUL:
+                result = self.copy()
+                result._add_value(other, 1, 0)
+                return result.canonize()
+            return self.Add([self, other])
+        return NotImplemented
+
+    def __mul__(self, other):
+        other = self.convert(other, False)
+        if isinstance(other, self.algebra_class):
+            head = other.head
+            if head is NUMBER:
+                value = other.value
+                if value==1:
+                    return self
+                if value==0:
+                    return other
+                result = self.copy()
+                result._multiply_values(value, 1, 0)
+                return result
+            elcls = self.element_classes
+            if head is SYMBOL:
+                if self.length()>1:
+                    return elcls[MUL]({self:1, other: 1})
+                pairs = self.pairs
+                t, c = pairs.items()[0]
+                if t==other:
+                    return elcls[ADD]({elcls[MUL]({t: 2}): c})
+                return elcls[ADD]({elcls[MUL]({t: 1, other:1}): c})
+            if head is ADD:
+                if self.pairs==other.pairs:
+                    return elcls[MUL]({self: 2})
+                return elcls[MUL]({self: 1, other: 1})
+            if head is MUL:
+                result = other.copy()
+                result._add_value(self, 1, 0)
+                return result.canonize()
+            return self.Mul([self, other])
+        return NotImplemented
+
+
+class CommutativeFactors(CommutativePairs):
+
+    head = MUL
+
+    def canonize(self):
+        pairs = self.pairs
+        if not pairs:
+            return self.one
+        if len(pairs)==1:
+            t, c = pairs.items()[0]
+            if c==1:
+                return t
+            if self.one==t:
+                return t
+        return self
+
+    def as_primitive(self):
         l = []
         one_c = self.one_c
         for t,c in self:
@@ -361,5 +445,230 @@ class CommutativePairs(Pairs):
         r.commutative_mul = True
         return r
 
+    def __add__(self, other):
+        other = self.convert(other, False)
+        if isinstance(other, self.algebra_class):
+            head = other.head
+            elcls = self.element_classes
+            if head is NUMBER:
+                value = other.value
+                if value==0:
+                    return self
+                return elcls[ADD]({self.one: value, self: 1})
+            if head is SYMBOL:
+                return elcls[ADD]({self: 1, other: 1})
+            if head is ADD:
+                result = other.copy()
+                result._add_value(self, 1, 0)
+                return result.canonize()
+            if head is MUL:
+                if self.pairs == other.pairs:
+                    return elcls[ADD]({self:2})
+                return elcls[ADD]({self: 1, other: 1})
+            return self.Add([self, other])
+        return NotImplemented
 
-            
+    def __mul__(self, other):
+        other = self.convert(other, False)
+        if isinstance(other, self.algebra_class):
+            head = other.head
+            if head is NUMBER:
+                elcls = self.element_classes
+                value = other.value
+                if value==1:
+                    return self
+                if value==0:
+                    return other
+                return elcls[ADD]({self:value})
+            if head is SYMBOL:
+                result = self.copy()
+                result._add_value(other, 1, 0)
+                return result.canonize()
+            if head is ADD:
+                result = self.copy()
+                result._add_value(other, 1, 0)
+                return result.canonize()
+            if head is MUL:
+                if self.length() < other.length():
+                    result = other.copy()
+                    result._add_values(self, 1, 0)
+                else:
+                    result = self.copy()
+                    result._add_values(other, 1, 0)
+                return result.canonize()
+            return self.Mul([self, other])
+        return NotImplemented
+
+class PairsCommutativeSymbol(object):
+
+    head = SYMBOL
+
+    def __new__(cls, obj):
+        o = object.__new__(cls)
+        o.data = obj
+        return o
+
+    def __hash__(self):
+        return hash(self.data)
+
+    def __eq__(self, other):
+        if self is other:
+            return True
+        other = self.convert(other, False)
+        if isinstance(other, type(self)):
+            return self.data==other.data
+        return False
+
+    def __repr__(self):
+        return '%s(%r)' % (self.__class__.__name__, self.data)
+
+    def as_primitive(self):
+        return PrimitiveAlgebra((SYMBOL, self.data))
+
+    def __add__(self, other):
+        other = self.convert(other, False)
+        if isinstance(other, self.algebra_class):
+            head = other.head
+            elcls = self.element_classes
+            if head is NUMBER:
+                value = other.value
+                if value==0:
+                    return self
+                return elcls[ADD]({self:1, self.one:value})
+            if head is SYMBOL:
+                if self.data == other.data:
+                    return elcls[ADD]({self: 2})
+                return elcls[ADD]({self: 1, other: 1})
+            if head is ADD:
+                result = other.copy()
+                result._add_value(self, 1, 0)
+                return result.canonize()
+            if head is MUL:
+                return elcls[ADD]({self: 1, other: 1})
+            return self.Add([self, other])
+        return NotImplemented
+
+    def __mul__(self, other):
+        other = self.convert(other, False)
+        if isinstance(other, self.algebra_class):
+            head = other.head
+            elcls = self.element_classes
+            if head is NUMBER:
+                value = other.value
+                if value==1:
+                    return self
+                if value==0:
+                    return other
+                return elcls[ADD]({self:value})                
+            if head is SYMBOL:
+                if self.data==other.data:
+                    return elcls[MUL]({self: 2})
+                return elcls[MUL]({self: 1, other: 1})
+            if head is ADD:
+                if other.length()>1:
+                    return elcls[MUL]({self:1, other: 1})
+                t, c = other.pairs.items()[0]
+                if t==self:
+                    return elcls[ADD]({elcls[MUL]({t: 2}): c})
+                return elcls[ADD]({elcls[MUL]({t: 1, self:1}): c})
+            if head is MUL:
+                result = other.copy()
+                result._add_value(self, 1, 0)
+                return result.canonize()
+            return self.Mul([self, other])
+        return NotImplemented
+
+class PairsNumber(object):
+
+    head = NUMBER
+
+    def __new__(cls, p):
+        if isinstance(p, cls):
+            return p
+        o = object.__new__(cls)
+        o.value = p
+        return o
+
+    def __eq__(self, other):
+        if self is other:
+            return True
+        other = self.convert(other, False)
+        if isinstance(other, type(self)):
+            return self.value==other.value
+        return False
+
+    def __hash__(self):
+        return hash(self.value)
+
+    def __lt__(self, other):
+        return self.value < other
+    def __le__(self, other):
+        return self.value <= other
+    def __gt__(self, other):
+        return self.value > other
+    def __ge__(self, other):
+        return self.value >= other
+    def __ne__(self, other):
+        return not (self.value == other)
+
+    def __repr__(self):
+        return '%s(%r)' % (self.__class__.__name__, self.value)
+
+    def __int__(self):
+        return int(self.value)
+    def __long__(self):
+        return long(self.value)
+
+    def as_primitive(self):
+        value = self.value
+        if value<0:
+            return -PrimitiveAlgebra((NUMBER, -value))
+        return PrimitiveAlgebra((NUMBER, value))
+
+    def __abs__(self):
+        return type(self)(abs(self.value))
+    def __neg__(self):
+        return type(self)(-self.value)
+
+    def __add__(self, other):
+        other = self.convert(other, False)
+        if isinstance(other, self.algebra_class):
+            if self.value==0:
+                return other
+            head = other.head
+            elcls = self.element_classes
+            if head is NUMBER:
+                return elcls[NUMBER](self.value + other.value)
+            if head is SYMBOL:
+                return elcls[ADD]({self.one: self.value, other: 1})
+            if head is ADD:
+                result = other.copy()
+                result._add_value(self.one, self.value, 0)
+                return result.canonize()
+            if head is MUL:
+                return elcls[ADD]({self.one: self.value, other: 1})
+            return self.Add([self, other])
+        return NotImplemented
+
+    def __mul__(self, other):
+        other = self.convert(other, False)
+        if isinstance(other, self.algebra_class):
+            value = self.value
+            if value==1:
+                return other
+            if value==0:
+                return self
+            head = other.head
+            elcls = self.element_classes
+            if head is NUMBER:
+                return elcls[NUMBER](value * other.value)
+            if head is SYMBOL:
+                return elcls[ADD]({other:value})
+            if head is ADD:
+                result = other.copy()
+                result._multiply_values(value, 1, 0)
+                return result
+            if head is MUL:
+                return elcls[ADD]({other:value})
+            return self.Mul([self, other])
+        return NotImplemented
