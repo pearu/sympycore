@@ -275,3 +275,11 @@ def test_as_terms_intcoeff():
 
 
     assert Integers('(-2*a+4*b)*2*a').as_terms_intcoeff()==(Integers('(-a+2*b)*a'),4)
+
+def test_expand():
+    assert str(Integers('a+b').expand())=='a + b'
+    assert str(Integers('a*(a+b)').expand())=='a*b + a**2'
+    assert str(Integers('(a+b)*a').expand())=='a*b + a**2'
+    assert str(Integers('(a+b)*(a-b)').expand())=='a**2 - b**2'
+    assert str(Integers('(a+b)*(a+b+c)').expand())=='2*a*b + a*c + b*c + a**2 + b**2'
+    

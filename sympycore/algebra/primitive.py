@@ -72,7 +72,8 @@ parentheses_map = {
 
 _is_name = re.compile(r'\A[a-zA-z_]\w*\Z').match
 
-head_order = [NUMBER, SYMBOL, POS, ADD, SUB, NEG, MOD, MUL, DIV, POW,
+head_order = [NUMBER, SYMBOL, POS, ADD, SUB, MOD, MUL, DIV, POW,
+              NEG,
               BOR, BXOR, BAND, INVERT, EQ, NE, LT, GT, LE, GE,
               OR, AND, NOT, LAMBDA, TUPLE
               ]

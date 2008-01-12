@@ -272,6 +272,22 @@ class CommutativePairs(Pairs):
                 else:
                     pairs[t] = c
 
+    def _add_values_mul_coeff(self, rhs, coeff, zero):
+        if self._hash is not None:
+            raise TypeError('cannot add values to immutable pairs inplace'\
+                            ' (hash has been computed)')
+        pairs = self.pairs
+        for t,c in rhs:
+            b = pairs.get(t)
+            if b is None:
+                pairs[t] = c * coeff
+            else:
+                c = b + c * coeff
+                if zero==c:
+                    del pairs[t]
+                else:
+                    pairs[t] = c
+
     def _multiply_values(self, rhs, one, zero):
         if self._hash is not None:
             raise TypeError('cannot multiply values to immutable pairs inplace'\
@@ -421,6 +437,25 @@ class CommutativeTerms(CommutativePairs):
             return self.Mul([self, other])
         return NotImplemented
 
+    def expand(self):
+        elcls = self.element_classes
+        result = elcls[ADD]({})
+        one = self.one
+        for t, c in self.pairs.iteritems():
+            t = t.expand()
+            head = t.head
+            if head is NUMBER:
+                result._add_value(one, t.value * c, 0)
+            elif head is SYMBOL:
+                result._add_value(t, c, 0)
+            elif head is MUL:
+                result._add_value(t, c, 0)
+            elif head is ADD:
+                result._add_values_mul_coeff(t.pairs.iteritems(), c, 0)
+            else:
+                raise TypeError(`t, head`)            
+        return result.canonize()
+
 class CommutativeFactors(CommutativePairs):
 
     head = MUL
@@ -506,6 +541,53 @@ class CommutativeFactors(CommutativePairs):
             return self.Mul([self, other])
         return NotImplemented
 
+    def expand(self):
+        elcls = self.element_classes
+        result = elcls[ADD]({})
+        one = self.one
+        pairs = self.pairs
+        if len(pairs)==1:
+            t, c = pairs.items()[0]
+            t = t.expand()
+            if c==1:
+                return t
+            head = t.head
+            if head is NUMBER:
+                return t ** c
+            if head is SYMBOL:
+                return elcls[MUL]({t:c})
+            if head is MUL:
+                t._multiply_values(c, 1, 0)
+                return t
+            if head is ADD:
+                raise NotImplementedError(`t, head, c`)
+            else:
+                raise TypeError(`t, head`)
+        it = pairs.iteritems()
+        lhs = elcls[MUL]([it.next()]).expand()
+        rhs = elcls[MUL](it).expand()
+        h1 = lhs.head
+        h2 = rhs.head
+        if h1 is ADD:
+            if h2 is ADD:
+                lhs._expand_multiply_values(rhs.pairs.items(), 1, 0)
+            elif h2 is NUMBER:
+                lhs._multiply_values(rhs.value, 1, 0)
+            else:
+                lhs._expand_multiply_values([(rhs,1)], 1, 0)
+            return lhs
+        if h1 is NUMBER:
+            if h2 is ADD:
+                rhs._multiply_values(lhs.value, 1, 0)
+                return rhs
+            if h2 is NUMBER:
+                return lhs * rhs
+            return elcls[ADD]({rhs:lhs.value})
+        if h1 is SYMBOL:
+            if h2 is ADD:
+                rhs._expand_multiply_values([(lhs,1)], 1, 0)
+                return rhs
+        return lhs * rhs
 
 class PairsCommutativeSymbol(object):
 
@@ -590,6 +672,8 @@ class PairsCommutativeSymbol(object):
             return self.Mul([self, other])
         return NotImplemented
 
+    def expand(self):
+        return self
 
 class PairsNumber(object):
 
@@ -690,3 +774,5 @@ class PairsNumber(object):
             return self.Mul([self, other])
         return NotImplemented
 
+    def expand(self):
+        return self
