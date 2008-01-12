@@ -17,23 +17,22 @@ def test_symbols():
     assert isinstance(i, IntegerSymbol)==True
     assert str(i)=='a'
     assert bool(i==1)==False
-    assert bool(i=='a')==True
 
 def test_terms():
     ab = Integers.Add(['a','b'])
     assert isinstance(ab, Integers)==True
     assert isinstance(ab, classes.IntegerTerms)==True
     assert str(ab)=='a + b'
-    assert bool(ab=='a+b')==True
-    assert bool(ab=='b+a')==True
+    assert bool(ab==Integers('a+b'))==True
+    assert bool(ab==Integers('b+a'))==True
 
 def test_Factors():
     ab = Integers.Mul(['a','b'])
     assert isinstance(ab, Integers)==True
     assert isinstance(ab, classes.IntegerFactors)==True
     assert str(ab)=='a*b'
-    assert bool(ab=='a*b')==True
-    assert bool(ab=='b*a')==True
+    assert bool(ab==Integers('a*b'))==True
+    assert bool(ab==Integers('b*a'))==True
 
 def test_pos():
     assert +Integers(2)==2

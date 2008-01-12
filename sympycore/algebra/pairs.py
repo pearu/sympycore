@@ -214,6 +214,8 @@ class CommutativePairs(Pairs):
     def __hash__(self):
         h = self._hash
         if h is None:
+            self._hash = h = hash(frozenset(self))
+        elif 0 and h is None:
             # Using frozenset hash algorithm to avoid creating
             # frozenset instance. It should be safe to have the
             # same hash value with the frozenset as dictionary
@@ -230,8 +232,7 @@ class CommutativePairs(Pairs):
     def __eq__(self, other):
         if self is other:
             return True
-        other = self.convert(other, False)
-        if isinstance(other, type(self)):
+        if type(other) is type(self):
             return self.pairs==other.pairs
         return False
 
@@ -268,7 +269,7 @@ class CommutativePairs(Pairs):
                 pairs[t] = c
             else:
                 c = b + c
-                if zero==c:
+                if c==zero:
                     del pairs[t]
                 else:
                     pairs[t] = c
@@ -323,7 +324,7 @@ class CommutativePairs(Pairs):
                     d[t] = c
                 else:
                     c = b + c
-                    if zero==c:
+                    if c==zero:
                         del d[t]
                     else:
                         d[t] = c
@@ -337,6 +338,19 @@ class CommutativePairs(Pairs):
         for t,c in pairs.items():
             d[t + rhs] = c
         self._pairs = d
+
+def multiply_ADD_ADD(lhs, rhs, elcls):
+    if lhs.length()==rhs.length()==1:
+        t1, c1 = lhs.pairs.items()[0]
+        t2, c2 = rhs.pairs.items()[0]
+        t = t1 * t2
+        if t==lhs.one:
+            return c1*c2
+        return elcls[ADD]({t: c1*c2})
+    else:
+        if lhs.pairs==rhs.pairs:
+            return elcls[MUL]({lhs:2})
+        return elcls[MUL]({lhs:1, rhs:1})
 
 
 class CommutativeTerms(CommutativePairs):
@@ -428,9 +442,7 @@ class CommutativeTerms(CommutativePairs):
                     return elcls[ADD]({elcls[MUL]({t: 2}): c})
                 return elcls[ADD]({elcls[MUL]({t: 1, other:1}): c})
             if head is ADD:
-                if self.pairs==other.pairs:
-                    return elcls[MUL]({self: 2})
-                return elcls[MUL]({self: 1, other: 1})
+                return multiply_ADD_ADD(self, other, elcls)
             if head is MUL:
                 result = other.copy()
                 result._add_value(self, 1, 0)
@@ -452,7 +464,8 @@ class CommutativeTerms(CommutativePairs):
             elif head is MUL:
                 result._add_value(t, c, 0)
             elif head is ADD:
-                result._add_values_mul_coeff(t.pairs.iteritems(), c, 0)
+                p = t.pairs
+                result._add_values_mul_coeff(p.items(), c, 0)
             else:
                 raise TypeError(`t, head`)            
         return result.canonize()
@@ -470,44 +483,94 @@ class CommutativeTerms(CommutativePairs):
     ##  a(m,k) = 1/(k p_0) sum_{i=1}^n p_i ((m+1)i-k) a(m,k-i),
     ## where a(m,0) = p_0^m.
     def _expand_intpower(self, m):
+        pairs = self.pairs
+        data = generate_expand_data(len(pairs), int(m))
+        l = pairs.items()
+        self._pairs = d = {}
         elcls = self.element_classes
         mul = elcls[MUL]
-        add = elcls[ADD]
-        m = int(m)
-        n = self.length()-1
-        it = iter(self)
-        t0, c0 = it.next()
-        p0 = [None] # first element of p0 is never used
-        m0 = mul({t0:-1})
-        for t, c in it:
-            p0.append((m0*t, c))
-        t1, c1 = t0**m, c0**m
-        self._pairs = {t1:c1}
-        l = [[(t1,c1)]]
-        for k in xrange(1, m*n+1):
-            d = {}
-            den = k * c0
-            for i in xrange(1, min(n+1,k+1)):
-                nn = (m+1)*i-k
-                if nn:
-                    t, c = p0[i]
-                    nom = c * nn
-                    for t2, c2 in l[k-i]:
-                        tt = t * t2
-                        cc = expand_mpq(nom * c2, den)
-                        b = d.get(tt)
-                        if b is None:
-                            d[tt] = cc
-                        else:
-                            cc = b + cc
-                            if cc==0:
-                                del d[tt]
-                            else:
-                                d[tt] = cc
-            r1 = d.items()
-            l.append(r1)
-            self._add_values(r1, 1, 0)
+        for exps, c in data.iteritems():
+            t,n = exps.apply_to_terms(l)
+            t = mul(t).canonize()
+            b = d.get(t)
+            if b is None:
+                d[t] = n * c
+            else:
+                c = b + n * c
+                if c==0:
+                    del d[t]
+                else:
+                    d[t] = c
 
+class ExpSymbol(tuple):
+
+    def __div__(self, other):
+        return self * other**-1
+
+    def __mul__(self, other):
+        assert isinstance(other, type(self)),`other`
+        return self.__class__([i+j for i,j in zip(self,other)])
+
+    def __pow__(self, e):
+        assert isinstance(e, int),`e`
+        return self.__class__([i*e for i in self])
+
+    def apply_to_terms(self, terms):
+        l = []
+        num = 1
+        j = None
+        for i,e in enumerate(self):
+            if e==0: continue
+            t, c = terms[i]
+            l.append((t, e))
+            if c!=1:
+                num = num * c**e
+        if j is not None:
+            if len(l)>1:
+                del l[j]
+        return l, num
+
+def generate_expand_data(n, m):
+    """ Return power-coefficient dictionary of an expanded
+    sum (A1 + A2 + .. + An)**m.
+    """
+    symbols = [ExpSymbol((0,)*i + (1,) +(0,)*(n-i-1)) for i in range(n)]
+    s0 = symbols[0]
+    p0 = [s/s0 for s in symbols]
+    r = {s0**m:1}
+    l = [r.items()]
+    for k in xrange(1, m*(n-1)+1):
+        d = {}
+        for i in xrange(1, min(n,k+1)):
+            nn = (m+1)*i-k
+            if nn:
+                t = p0[i]
+                for t2, c2 in l[k-i]:
+                    tt = t2 * t
+                    cc = expand_mpq(nn * c2, k)
+                    b = d.get(tt)
+                    if b is None:
+                        d[tt] = cc
+                    else:
+                        cc = b + cc
+                        if cc==0:
+                            del d[tt]
+                        else:
+                            d[tt] = cc
+        r1 = d.items()
+        l.append(r1)
+        for t, c in r1:
+            b = r.get(t)
+            if b is None:
+                r[t] = c
+            else:
+                c = b + c
+                if c:
+                    r[t] = c
+                else:
+                    del r[t]
+    return r
+        
 class expand_mpq(tuple):
     
     def __new__(cls, p, q):
@@ -519,13 +582,12 @@ class expand_mpq(tuple):
             q //= x
         if q == 1:
             return p
-        
         return tuple.__new__(cls, (p, q))
 
     def __add__(self, other):
         p, q = self
         if isinstance(other, (int, long)):
-            return expand_mpq(p + q*r, q)
+            return expand_mpq(p + q*other, q)
         elif isinstance(other, expand_mpq):
             r, s = other
             return expand_mpq(p*s + q*r, q*s)
@@ -538,6 +600,7 @@ class CommutativeFactors(CommutativePairs):
 
     def canonize(self):
         pairs = self.pairs
+        pairs.pop(self.one, None)
         if not pairs:
             return self.one
         if len(pairs)==1:
@@ -609,10 +672,10 @@ class CommutativeFactors(CommutativePairs):
             if head is MUL:
                 if self.length() < other.length():
                     result = other.copy()
-                    result._add_values(self, 1, 0)
+                    result._add_values(self.pairs.iteritems(), 1, 0)
                 else:
                     result = self.copy()
-                    result._add_values(other, 1, 0)
+                    result._add_values(other.pairs.iteritems(), 1, 0)
                 return result.canonize()
             return self.Mul([self, other])
         return NotImplemented
@@ -640,9 +703,22 @@ class CommutativeFactors(CommutativePairs):
                 return t
             else:
                 raise TypeError(`t, head`)
+        # split product into lhs * rhs:
         it = pairs.iteritems()
-        lhs = elcls[MUL]([it.next()]).expand()
-        rhs = elcls[MUL](it).expand()
+        t, c = it.next()
+        if c==1:
+            lhs = t.expand()
+        else:
+            lhs = elcls[MUL]({t:c}).expand()
+        if len(pairs)==2:
+            t, c = it.next()
+            if c==1:
+                rhs = t.expand()
+            else:
+                rhs = elcls[MUL]({t:c}).expand()
+        else:
+            rhs = elcls[MUL](it).expand()
+        #
         h1 = lhs.head
         h2 = rhs.head
         if h1 is ADD:
@@ -685,8 +761,7 @@ class PairsCommutativeSymbol(object):
     def __eq__(self, other):
         if self is other:
             return True
-        other = self.convert(other, False)
-        if isinstance(other, type(self)):
+        if type(self) is type(other):
             return self.data==other.data
         return False
 
