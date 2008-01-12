@@ -282,4 +282,4 @@ def test_expand():
     assert str(Integers('(a+b)*a').expand())=='a*b + a**2'
     assert str(Integers('(a+b)*(a-b)').expand())=='a**2 - b**2'
     assert str(Integers('(a+b)*(a+b+c)').expand())=='2*a*b + a*c + b*c + a**2 + b**2'
-    
+    assert str(Integers('(a+b+c)**2').expand())=='2*a*b + 2*a*c + 2*b*c + a**2 + b**2 + c**2'

@@ -4,6 +4,7 @@ import types
 from ..core import classes
 from .algebraic_structures import BasicAlgebra
 from .primitive import PrimitiveAlgebra, ADD, MUL, SYMBOL, NUMBER
+from .fractionlib import mpq
 
 iterator_types = (type(iter([])), type(iter(())), type(iter(frozenset())),
                   type(dict().iteritems()), types.GeneratorType)
@@ -456,6 +457,81 @@ class CommutativeTerms(CommutativePairs):
                 raise TypeError(`t, head`)            
         return result.canonize()
 
+
+    ## 
+    ## Consider polynomial
+    ##   P(x) = sum_{i=0}^n p_i x^k
+    ## and its m-th exponent
+    ##   P(x)^m = sum_{k=0}^{m n} a(m,k) x^k
+    ## The coefficients a(m,k) can be computed using the
+    ## J.C.P. Miller Pure Recurrence [see D.E.Knuth,
+    ## Seminumerical Algorithms, The art of Computer
+    ## Programming v.2, Addison Wesley, Reading, 1981;]:
+    ##  a(m,k) = 1/(k p_0) sum_{i=1}^n p_i ((m+1)i-k) a(m,k-i),
+    ## where a(m,0) = p_0^m.
+    def _expand_intpower(self, m):
+        elcls = self.element_classes
+        mul = elcls[MUL]
+        add = elcls[ADD]
+        m = int(m)
+        n = self.length()-1
+        it = iter(self)
+        t0, c0 = it.next()
+        p0 = [None] # first element of p0 is never used
+        m0 = mul({t0:-1})
+        for t, c in it:
+            p0.append((m0*t, c))
+        t1, c1 = t0**m, c0**m
+        self._pairs = {t1:c1}
+        l = [[(t1,c1)]]
+        for k in xrange(1, m*n+1):
+            d = {}
+            den = k * c0
+            for i in xrange(1, min(n+1,k+1)):
+                nn = (m+1)*i-k
+                if nn:
+                    t, c = p0[i]
+                    nom = c * nn
+                    for t2, c2 in l[k-i]:
+                        tt = t * t2
+                        cc = expand_mpq(nom * c2, den)
+                        b = d.get(tt)
+                        if b is None:
+                            d[tt] = cc
+                        else:
+                            cc = b + cc
+                            if cc==0:
+                                del d[tt]
+                            else:
+                                d[tt] = cc
+            r1 = d.items()
+            l.append(r1)
+            self._add_values(r1, 1, 0)
+
+class expand_mpq(tuple):
+    
+    def __new__(cls, p, q):
+        x, y = p, q
+        while y:
+            x, y = y, x % y
+        if x != 1:
+            p //= x
+            q //= x
+        if q == 1:
+            return p
+        
+        return tuple.__new__(cls, (p, q))
+
+    def __add__(self, other):
+        p, q = self
+        if isinstance(other, (int, long)):
+            return expand_mpq(p + q*r, q)
+        elif isinstance(other, expand_mpq):
+            r, s = other
+            return expand_mpq(p*s + q*r, q*s)
+        else:
+            return NotImplemented
+
 class CommutativeFactors(CommutativePairs):
 
     head = MUL
@@ -543,14 +619,14 @@ class CommutativeFactors(CommutativePairs):
 
     def expand(self):
         elcls = self.element_classes
-        result = elcls[ADD]({})
-        one = self.one
         pairs = self.pairs
         if len(pairs)==1:
             t, c = pairs.items()[0]
             t = t.expand()
             if c==1:
                 return t
+            if c < 1:
+                return t ** c
             head = t.head
             if head is NUMBER:
                 return t ** c
@@ -560,7 +636,8 @@ class CommutativeFactors(CommutativePairs):
                 t._multiply_values(c, 1, 0)
                 return t
             if head is ADD:
-                raise NotImplementedError(`t, head, c`)
+                t._expand_intpower(c)
+                return t
             else:
                 raise TypeError(`t, head`)
         it = pairs.iteritems()
