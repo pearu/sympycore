@@ -100,12 +100,11 @@ class PairsCommutativeRing(BasicAlgebra):
 class Pairs(object):
     """ Base class for holding pairs (by default non-commutative).
     """
-    def __new__(cls, pairs):
-        if isinstance(pairs, cls):
-            return pairs
-        o = object.__new__(cls)
+
+    _hash = None
+    def __new__(cls, pairs, new=object.__new__):
+        o = new(cls)
         o._pairs = pairs
-        o._hash = None
         return o
 
     @property
@@ -214,24 +213,10 @@ class CommutativePairs(Pairs):
     def __hash__(self):
         h = self._hash
         if h is None:
-            self._hash = h = hash(frozenset(self))
-        elif 0 and h is None:
-            # Using frozenset hash algorithm to avoid creating
-            # frozenset instance. It should be safe to have the
-            # same hash value with the frozenset as dictionary
-            # keys of self should never contain a frozenset.
-            h = 1927868237
-            h *= self.length()+1
-            for t in self:
-                h1 = hash(t)
-                h ^= (h1 ^ (h1 << 16) ^ 89869747)  * 3644798167
-            h = h * 69069 + 907133923
-            self._hash = h
+            self._hash = h = hash(frozenset(self.pairs.iteritems()))
         return h
 
     def __eq__(self, other):
-        if self is other:
-            return True
         if type(other) is type(self):
             return self.pairs==other.pairs
         return False
@@ -269,7 +254,7 @@ class CommutativePairs(Pairs):
                 pairs[t] = c
             else:
                 c = b + c
-                if c==zero:
+                if c==0:
                     del pairs[t]
                 else:
                     pairs[t] = c
@@ -339,18 +324,6 @@ class CommutativePairs(Pairs):
             d[t + rhs] = c
         self._pairs = d
 
-def multiply_ADD_ADD(lhs, rhs, elcls):
-    if lhs.length()==rhs.length()==1:
-        t1, c1 = lhs.pairs.items()[0]
-        t2, c2 = rhs.pairs.items()[0]
-        t = t1 * t2
-        if t==lhs.one:
-            return c1*c2
-        return elcls[ADD]({t: c1*c2})
-    else:
-        if lhs.pairs==rhs.pairs:
-            return elcls[MUL]({lhs:2})
-        return elcls[MUL]({lhs:1, rhs:1})
 
 
 class CommutativeTerms(CommutativePairs):
@@ -392,62 +365,13 @@ class CommutativeTerms(CommutativePairs):
     def __add__(self, other):
         other = self.convert(other, False)
         if isinstance(other, self.algebra_class):
-            head = other.head
-            if head is NUMBER:
-                value = other.value
-                if value==0:
-                    return self
-                result = self.copy()
-                result._add_value(self.one, value, 0)
-                return result.canonize()
-            if head is SYMBOL:
-                result = self.copy()
-                result._add_value(other, 1, 0)
-                return result.canonize()
-            if head is ADD:
-                if self.length() < other.length():
-                    result = other.copy()
-                    result._add_values(self, 1, 0)
-                else:
-                    result = self.copy()
-                    result._add_values(other, 1, 0)
-                return result.canonize()
-            if head is MUL:
-                result = self.copy()
-                result._add_value(other, 1, 0)
-                return result.canonize()
-            return self.Add([self, other])
+            return add_dict[ADD, other.head](self, other, self.element_classes)
         return NotImplemented
 
     def __mul__(self, other):
         other = self.convert(other, False)
         if isinstance(other, self.algebra_class):
-            head = other.head
-            if head is NUMBER:
-                value = other.value
-                if value==1:
-                    return self
-                if value==0:
-                    return other
-                result = self.copy()
-                result._multiply_values(value, 1, 0)
-                return result
-            elcls = self.element_classes
-            if head is SYMBOL:
-                if self.length()>1:
-                    return elcls[MUL]({self:1, other: 1})
-                pairs = self.pairs
-                t, c = pairs.items()[0]
-                if t==other:
-                    return elcls[ADD]({elcls[MUL]({t: 2}): c})
-                return elcls[ADD]({elcls[MUL]({t: 1, other:1}): c})
-            if head is ADD:
-                return multiply_ADD_ADD(self, other, elcls)
-            if head is MUL:
-                result = other.copy()
-                result._add_value(self, 1, 0)
-                return result.canonize()
-            return self.Mul([self, other])
+            return multiply_dict[ADD, other.head](self, other, self.element_classes)
         return NotImplemented
 
     def expand(self):
@@ -469,130 +393,6 @@ class CommutativeTerms(CommutativePairs):
             else:
                 raise TypeError(`t, head`)            
         return result.canonize()
-
-
-    ## 
-    ## Consider polynomial
-    ##   P(x) = sum_{i=0}^n p_i x^k
-    ## and its m-th exponent
-    ##   P(x)^m = sum_{k=0}^{m n} a(m,k) x^k
-    ## The coefficients a(m,k) can be computed using the
-    ## J.C.P. Miller Pure Recurrence [see D.E.Knuth,
-    ## Seminumerical Algorithms, The art of Computer
-    ## Programming v.2, Addison Wesley, Reading, 1981;]:
-    ##  a(m,k) = 1/(k p_0) sum_{i=1}^n p_i ((m+1)i-k) a(m,k-i),
-    ## where a(m,0) = p_0^m.
-    def _expand_intpower(self, m):
-        pairs = self.pairs
-        data = generate_expand_data(len(pairs), int(m))
-        l = pairs.items()
-        self._pairs = d = {}
-        elcls = self.element_classes
-        mul = elcls[MUL]
-        for exps, c in data.iteritems():
-            t,n = exps.apply_to_terms(l)
-            t = mul(t).canonize()
-            b = d.get(t)
-            if b is None:
-                d[t] = n * c
-            else:
-                c = b + n * c
-                if c==0:
-                    del d[t]
-                else:
-                    d[t] = c
-
-class ExpSymbol(tuple):
-
-    def __div__(self, other):
-        return self * other**-1
-
-    def __mul__(self, other):
-        assert isinstance(other, type(self)),`other`
-        return self.__class__([i+j for i,j in zip(self,other)])
-
-    def __pow__(self, e):
-        assert isinstance(e, int),`e`
-        return self.__class__([i*e for i in self])
-
-    def apply_to_terms(self, terms):
-        l = []
-        num = 1
-        j = None
-        for i,e in enumerate(self):
-            if e==0: continue
-            t, c = terms[i]
-            l.append((t, e))
-            if c!=1:
-                num = num * c**e
-        if j is not None:
-            if len(l)>1:
-                del l[j]
-        return l, num
-
-def generate_expand_data(n, m):
-    """ Return power-coefficient dictionary of an expanded
-    sum (A1 + A2 + .. + An)**m.
-    """
-    symbols = [ExpSymbol((0,)*i + (1,) +(0,)*(n-i-1)) for i in range(n)]
-    s0 = symbols[0]
-    p0 = [s/s0 for s in symbols]
-    r = {s0**m:1}
-    l = [r.items()]
-    for k in xrange(1, m*(n-1)+1):
-        d = {}
-        for i in xrange(1, min(n,k+1)):
-            nn = (m+1)*i-k
-            if nn:
-                t = p0[i]
-                for t2, c2 in l[k-i]:
-                    tt = t2 * t
-                    cc = expand_mpq(nn * c2, k)
-                    b = d.get(tt)
-                    if b is None:
-                        d[tt] = cc
-                    else:
-                        cc = b + cc
-                        if cc==0:
-                            del d[tt]
-                        else:
-                            d[tt] = cc
-        r1 = d.items()
-        l.append(r1)
-        for t, c in r1:
-            b = r.get(t)
-            if b is None:
-                r[t] = c
-            else:
-                c = b + c
-                if c:
-                    r[t] = c
-                else:
-                    del r[t]
-    return r
-        
-class expand_mpq(tuple):
-    
-    def __new__(cls, p, q):
-        x, y = p, q
-        while y:
-            x, y = y, x % y
-        if x != 1:
-            p //= x
-            q //= x
-        if q == 1:
-            return p
-        return tuple.__new__(cls, (p, q))
-
-    def __add__(self, other):
-        p, q = self
-        if isinstance(other, (int, long)):
-            return expand_mpq(p + q*other, q)
-        elif isinstance(other, expand_mpq):
-            r, s = other
-            return expand_mpq(p*s + q*r, q*s)
-        else:
-            return NotImplemented
 
 class CommutativeFactors(CommutativePairs):
 
@@ -629,55 +429,13 @@ class CommutativeFactors(CommutativePairs):
     def __add__(self, other):
         other = self.convert(other, False)
         if isinstance(other, self.algebra_class):
-            head = other.head
-            elcls = self.element_classes
-            if head is NUMBER:
-                value = other.value
-                if value==0:
-                    return self
-                return elcls[ADD]({self.one: value, self: 1})
-            if head is SYMBOL:
-                return elcls[ADD]({self: 1, other: 1})
-            if head is ADD:
-                result = other.copy()
-                result._add_value(self, 1, 0)
-                return result.canonize()
-            if head is MUL:
-                if self.pairs == other.pairs:
-                    return elcls[ADD]({self:2})
-                return elcls[ADD]({self: 1, other: 1})
-            return self.Add([self, other])
+            return add_dict[MUL, other.head](self, other, self.element_classes)
         return NotImplemented
 
     def __mul__(self, other):
         other = self.convert(other, False)
         if isinstance(other, self.algebra_class):
-            head = other.head
-            if head is NUMBER:
-                elcls = self.element_classes
-                value = other.value
-                if value==1:
-                    return self
-                if value==0:
-                    return other
-                return elcls[ADD]({self:value})
-            if head is SYMBOL:
-                result = self.copy()
-                result._add_value(other, 1, 0)
-                return result.canonize()
-            if head is ADD:
-                result = self.copy()
-                result._add_value(other, 1, 0)
-                return result.canonize()
-            if head is MUL:
-                if self.length() < other.length():
-                    result = other.copy()
-                    result._add_values(self.pairs.iteritems(), 1, 0)
-                else:
-                    result = self.copy()
-                    result._add_values(other.pairs.iteritems(), 1, 0)
-                return result.canonize()
-            return self.Mul([self, other])
+            return multiply_dict[MUL, other.head](self, other, self.element_classes)
         return NotImplemented
 
     def expand(self):
@@ -699,8 +457,7 @@ class CommutativeFactors(CommutativePairs):
                 t._multiply_values(c, 1, 0)
                 return t
             if head is ADD:
-                t._expand_intpower(c)
-                return t
+                return expand_ADD_INTPOW(t, c, elcls)
             else:
                 raise TypeError(`t, head`)
         # split product into lhs * rhs:
@@ -718,38 +475,16 @@ class CommutativeFactors(CommutativePairs):
                 rhs = elcls[MUL]({t:c}).expand()
         else:
             rhs = elcls[MUL](it).expand()
-        #
-        h1 = lhs.head
-        h2 = rhs.head
-        if h1 is ADD:
-            if h2 is ADD:
-                lhs._expand_multiply_values(rhs.pairs.items(), 1, 0)
-            elif h2 is NUMBER:
-                lhs._multiply_values(rhs.value, 1, 0)
-            else:
-                lhs._expand_multiply_values([(rhs,1)], 1, 0)
-            return lhs
-        if h1 is NUMBER:
-            if h2 is ADD:
-                rhs._multiply_values(lhs.value, 1, 0)
-                return rhs
-            if h2 is NUMBER:
-                return lhs * rhs
-            return elcls[ADD]({rhs:lhs.value})
-        if h1 is SYMBOL:
-            if h2 is ADD:
-                rhs._expand_multiply_values([(lhs,1)], 1, 0)
-                return rhs
-        return lhs * rhs
+        return expand_dict[lhs.head, rhs.head](lhs, rhs, elcls)
 
 class PairsCommutativeSymbol(object):
 
     head = SYMBOL
 
-    def __new__(cls, obj):
-        o = object.__new__(cls)
+    _hash = None
+    def __new__(cls, obj, new=object.__new__):
+        o = new(cls)
         o.data = obj
-        o._hash = None
         return o
 
     def __hash__(self):
@@ -774,54 +509,13 @@ class PairsCommutativeSymbol(object):
     def __add__(self, other):
         other = self.convert(other, False)
         if isinstance(other, self.algebra_class):
-            head = other.head
-            elcls = self.element_classes
-            if head is NUMBER:
-                value = other.value
-                if value==0:
-                    return self
-                return elcls[ADD]({self:1, self.one:value})
-            if head is SYMBOL:
-                if self.data == other.data:
-                    return elcls[ADD]({self: 2})
-                return elcls[ADD]({self: 1, other: 1})
-            if head is ADD:
-                result = other.copy()
-                result._add_value(self, 1, 0)
-                return result.canonize()
-            if head is MUL:
-                return elcls[ADD]({self: 1, other: 1})
-            return self.Add([self, other])
+            return add_dict[SYMBOL, other.head](self, other, self.element_classes)
         return NotImplemented
 
     def __mul__(self, other):
         other = self.convert(other, False)
         if isinstance(other, self.algebra_class):
-            head = other.head
-            elcls = self.element_classes
-            if head is NUMBER:
-                value = other.value
-                if value==1:
-                    return self
-                if value==0:
-                    return other
-                return elcls[ADD]({self:value})                
-            if head is SYMBOL:
-                if self.data==other.data:
-                    return elcls[MUL]({self: 2})
-                return elcls[MUL]({self: 1, other: 1})
-            if head is ADD:
-                if other.length()>1:
-                    return elcls[MUL]({self:1, other: 1})
-                t, c = other.pairs.items()[0]
-                if t==self:
-                    return elcls[ADD]({elcls[MUL]({t: 2}): c})
-                return elcls[ADD]({elcls[MUL]({t: 1, self:1}): c})
-            if head is MUL:
-                result = other.copy()
-                result._add_value(self, 1, 0)
-                return result.canonize()
-            return self.Mul([self, other])
+            return multiply_dict[SYMBOL, other.head](self, other, self.element_classes)
         return NotImplemented
 
     def expand(self):
@@ -831,17 +525,18 @@ class PairsNumber(object):
 
     head = NUMBER
 
-    def __new__(cls, p):
+    _hash = None
+    def __new__(cls, p, new=object.__new__):
         if isinstance(p, cls):
             return p
-        o = object.__new__(cls)
+        o = new(cls)
         o.value = p
-        o._hash = None
         return o
 
     def __eq__(self, other):
-        if self is other:
-            return True
+        if isinstance(other, int):
+            # short cut to commonly used self==0, self==1 cases
+            return self.value == other
         other = self.convert(other, False)
         if isinstance(other, type(self)):
             return self.value==other.value
@@ -886,45 +581,514 @@ class PairsNumber(object):
     def __add__(self, other):
         other = self.convert(other, False)
         if isinstance(other, self.algebra_class):
-            if self.value==0:
-                return other
-            head = other.head
-            elcls = self.element_classes
-            if head is NUMBER:
-                return elcls[NUMBER](self.value + other.value)
-            if head is SYMBOL:
-                return elcls[ADD]({self.one: self.value, other: 1})
-            if head is ADD:
-                result = other.copy()
-                result._add_value(self.one, self.value, 0)
-                return result.canonize()
-            if head is MUL:
-                return elcls[ADD]({self.one: self.value, other: 1})
-            return self.Add([self, other])
+            return add_dict[NUMBER, other.head](self, other, self.element_classes)
         return NotImplemented
 
     def __mul__(self, other):
         other = self.convert(other, False)
         if isinstance(other, self.algebra_class):
-            value = self.value
-            head = other.head
-            elcls = self.element_classes
-            if head is NUMBER:
-                return elcls[NUMBER](value * other.value)
-            if value==1:
-                return other
-            if value==0:
-                return self
-            if head is SYMBOL:
-                return elcls[ADD]({other:value})
-            if head is ADD:
-                result = other.copy()
-                result._multiply_values(value, 1, 0)
-                return result
-            if head is MUL:
-                return elcls[ADD]({other:value})
-            return self.Mul([self, other])
+            return multiply_dict[NUMBER, other.head](self, other, self.element_classes)
         return NotImplemented
 
     def expand(self):
         return self
+
+####################################################################
+# Implementation of binary operations +, *, and expanding products.
+
+def add_NUMBER_NUMBER(lhs, rhs, elcls):
+    return elcls[NUMBER](lhs.value + rhs.value)
+
+def add_NUMBER_SYMBOL(lhs, rhs, elcls):
+    if lhs==0:
+        return rhs
+    return elcls[ADD]({lhs.one: lhs.value, rhs: 1})
+
+def add_NUMBER_ADD(lhs, rhs, elcls):
+    if lhs==0:
+        return rhs
+    result = rhs.copy()
+    pairs = result.pairs
+    one = lhs.one
+    b = pairs.get(one)
+    if b is None:
+        pairs[one] = lhs.value
+    else:
+        c = b + lhs.value
+        if c:
+            pairs[one] = c
+        else:
+            del pairs[one]
+    return result
+
+def add_NUMBER_MUL(lhs, rhs, elcls):
+    if lhs==0:
+        return rhs
+    return elcls[ADD]({lhs.one: lhs.value, rhs: 1})
+
+def add_SYMBOL_NUMBER(lhs, rhs, elcls):
+    if rhs==0:
+        return lhs
+    return elcls[ADD]({lhs.one: rhs.value, lhs: 1})
+
+def add_SYMBOL_SYMBOL(lhs, rhs, elcls):
+    if lhs==rhs:
+        return elcls[ADD]({lhs: 2})
+    return elcls[ADD]({lhs: 1, rhs: 1})
+
+def add_SYMBOL_ADD(lhs, rhs, elcls):
+    result = rhs.copy()
+    result._add_value(lhs, 1, 0)
+    return result.canonize()
+
+def add_SYMBOL_MUL(lhs, rhs, elcls):
+    return elcls[ADD]({lhs: 1, rhs: 1})
+
+def add_ADD_NUMBER(lhs, rhs, elcls):
+    if rhs==0:
+        return lhs
+    result = lhs.copy()
+    result._add_value(lhs.one, rhs.value, 0)
+    return result.canonize()
+
+def add_ADD_SYMBOL(lhs, rhs, elcls):
+    result = lhs.copy()
+    result._add_value(rhs, 1, 0)
+    return result.canonize()
+
+def add_ADD_ADD(lhs, rhs, elcls):
+    if lhs.length() < rhs.length():
+        rhs, lhs = lhs, rhs
+    result = lhs.copy()
+    pairs = result.pairs
+    for t,c in rhs.pairs.iteritems():
+        b = pairs.get(t)
+        if b is None:
+            pairs[t] = c
+        else:
+            c = b + c
+            if c:
+                pairs[t] = c
+            else:
+                del pairs[t]
+    return result.canonize()
+
+def add_ADD_MUL(lhs, rhs, elcls):
+    result = lhs.copy()
+    result._add_value(rhs, 1, 0)
+    return result.canonize()
+
+def add_MUL_NUMBER(lhs, rhs, elcls):
+    if rhs==0:
+        return lhs
+    return elcls[ADD]({lhs.one: rhs.value, lhs: 1})
+
+add_MUL_SYMBOL = add_SYMBOL_MUL
+
+def add_MUL_ADD(lhs, rhs, elcls):
+    result = rhs.copy()
+    result._add_value(lhs, 1, 0)
+    return result.canonize()
+
+def add_MUL_MUL(lhs, rhs, elcls):
+    if lhs==rhs:
+        return elcls[ADD]({lhs: 2})
+    return elcls[ADD]({lhs: 1, rhs: 1})
+
+def multiply_NUMBER_NUMBER(lhs, rhs, elcls):
+    return elcls[NUMBER](lhs.value * rhs.value)
+
+def multiply_NUMBER_SYMBOL(lhs, rhs, elcls):
+    value = lhs.value    
+    if value==1:
+        return rhs
+    if value==0:
+        return lhs
+    return elcls[ADD]({rhs:value})
+
+def multiply_NUMBER_ADD(lhs, rhs, elcls):
+    value = lhs.value    
+    if value==1:
+        return rhs
+    if value==0:
+        return lhs
+    result = elcls[ADD]({})
+    d = result.pairs
+    for t,c in rhs.pairs.iteritems():
+        d[t] = c * value
+    return result
+
+def multiply_NUMBER_MUL(lhs, rhs, elcls):
+    value = lhs.value    
+    if value==1:
+        return rhs
+    if value==0:
+        return lhs
+    return elcls[ADD]({rhs:value})
+
+def multiply_SYMBOL_NUMBER(lhs, rhs, elcls):
+    value = rhs.value    
+    if value==1:
+        return lhs
+    if value==0:
+        return rhs
+    return elcls[ADD]({lhs:value})
+
+def multiply_SYMBOL_SYMBOL(lhs, rhs, elcls):
+    if lhs==rhs:
+        return elcls[MUL]({lhs:2})
+    return elcls[MUL]({lhs:1, rhs:1})
+
+def multiply_SYMBOL_ADD(lhs, rhs, elcls):
+    if rhs.length()>1:
+        return elcls[MUL]({lhs:1, rhs: 1})
+    t, c = rhs.pairs.items()[0]
+    if lhs==t:
+        return elcls[ADD]({elcls[MUL]({lhs: 2}): c})
+    return elcls[ADD]({elcls[MUL]({lhs: 1, t:1}): c})
+
+def multiply_SYMBOL_MUL(lhs, rhs, elcls):
+    result = rhs.copy()
+    result._add_value(lhs, 1, 0)
+    return result.canonize()
+
+def multiply_ADD_NUMBER(lhs, rhs, elcls):
+    value = rhs.value    
+    if value==1:
+        return lhs
+    if value==0:
+        return rhs
+    result = elcls[ADD]({})
+    d = result.pairs
+    for t,c in lhs.pairs.iteritems():
+        d[t] = c * value
+    return result    
+
+def multiply_ADD_SYMBOL(lhs, rhs, elcls):
+    if lhs.length()>1:
+        return elcls[MUL]({lhs:1, rhs: 1})
+    t, c = lhs.pairs.items()[0]
+    if rhs==t:
+        return elcls[ADD]({elcls[MUL]({rhs: 2}): c})
+    return elcls[ADD]({elcls[MUL]({rhs: 1, t:1}): c})
+
+def multiply_ADD_ADD(lhs, rhs, elcls):
+    if lhs.length()==rhs.length()==1:
+        t1, c1 = lhs.pairs.items()[0]
+        t2, c2 = rhs.pairs.items()[0]
+        t = t1 * t2
+        if t==lhs.one:
+            return c1*c2
+        return elcls[ADD]({t: c1*c2})
+    else:
+        if lhs.pairs==rhs.pairs:
+            return elcls[MUL]({lhs:2})
+        return elcls[MUL]({lhs:1, rhs:1})
+
+def multiply_ADD_MUL(lhs, rhs, elcls):
+    result = rhs.copy()
+    if lhs.length()>1:
+        result._add_value(lhs, 1, 0)
+        return result.canonize()
+    t, c = lhs.pairs.items()[0]
+    result._add_value(t, 1, 0)
+    result = result.canonize()
+    return multiply_dict[result.head, NUMBER](result, elcls[NUMBER](c), elcls)
+
+def multiply_MUL_NUMBER(lhs, rhs, elcls):
+    value = rhs.value    
+    if value==1:
+        return lhs
+    if value==0:
+        return rhs
+    return elcls[ADD]({lhs:value})
+
+def multiply_MUL_SYMBOL(lhs, rhs, elcls):
+    result = lhs.copy()
+    result._add_value(rhs, 1, 0)
+    return result.canonize()
+
+def multiply_MUL_ADD(lhs, rhs, elcls):
+    result = lhs.copy()
+    if lhs.length()>1:
+        result._add_value(rhs, 1, 0)
+        return result.canonize()
+    t, c = rhs.pairs.items()[0]
+    result._add_value(t, 1, 0)
+    result = result.canonize()
+    return multiply_dict[result.head, NUMBER](result, elcls[NUMBER](c), elcls)
+
+def multiply_MUL_MUL(lhs, rhs, elcls):
+    if lhs.length() < rhs.length():
+        rhs, lhs = lhs, rhs
+    result = lhs.copy()
+    pairs = result.pairs
+    for t,c in rhs.pairs.iteritems():
+        b = pairs.get(t)
+        if b is None:
+            pairs[t] = c
+        else:
+            c = b + c
+            if c:
+                pairs[t] = c
+            else:
+                del pairs[t]
+    return result.canonize()
+
+def expand_NUMBER_ADD(lhs, rhs, elcls):
+    value = lhs.value
+    if value==0:
+        return lhs
+    if value==1:
+        return rhs
+    result = elcls[ADD]({})
+    d = result.pairs
+    for t,c in lhs.pairs.iteritems():
+        d[t] = c * value
+    return result
+
+def expand_SYMBOL_ADD(lhs, rhs, elcls):
+    result = elcls[ADD]({})
+    d = result.pairs
+    for t,c in rhs.pairs.iteritems():
+        d[t * lhs] = c
+    return result
+
+def expand_ADD_NUMBER(lhs, rhs, elcls):
+    value = rhs.value
+    if value==0:
+        return rhs
+    if value==1:
+        return lhs
+    result = elcls[ADD]({})
+    d = result.pairs
+    for t,c in lhs.pairs.iteritems():
+        d[t] = c * value
+    return result
+
+def expand_ADD_SYMBOL(lhs, rhs, elcls):
+    result = elcls[ADD]({})
+    d = result.pairs
+    for t,c in lhs.pairs.iteritems():
+        d[t * rhs] = c
+    return result
+
+def expand_ADD_ADD(lhs, rhs, elcls):
+    if lhs.length() > rhs.length():
+        lhs, rhs = rhs, lhs
+    result = elcls[ADD]({})
+    pairs1 = lhs.pairs
+    pairs2 = rhs.pairs
+    d = result.pairs
+    for t1, c1 in pairs1.iteritems():
+        for t2, c2 in pairs2.iteritems():
+            t = t1 * t2
+            c = c1 * c2
+            b = d.get(t)
+            if b is None:
+                d[t] = c
+            else:
+                c = b + c
+                if c:
+                    d[t] = c
+                else:
+                    del d[t]
+    return result
+
+def expand_ADD_MUL(lhs, rhs, elcls):
+    result = elcls[ADD]({})
+    d = result.pairs
+    for t,c in lhs.pairs.iteritems():
+        d[t * rhs] = c
+    return result
+
+def expand_MUL_ADD(lhs, rhs, elcls):
+    result = elcls[ADD]({})
+    d = result.pairs
+    for t,c in rhs.pairs.iteritems():
+        d[t * lhs] = c
+    return result
+
+def expand_ADD_INTPOW(lhs, m, elcls):
+    terms = lhs.pairs.items()
+    data = generate_expand_data(len(terms), int(m))
+    result = elcls[ADD]({})
+    d = result.pairs
+    mul = elcls[MUL]
+    for exps, c in data.iteritems():
+        t, n = exps.apply_to_terms(terms)
+        t = mul(t).canonize()
+        b = d.get(t)
+        if b is None:
+            d[t] = n * c
+        else:
+            c = b + n * c
+            if c:
+                d[t] = c
+            else:
+                del d[t]
+    return result
+
+add_dict = {
+    (NUMBER, NUMBER): add_NUMBER_NUMBER,
+    (NUMBER, SYMBOL): add_NUMBER_SYMBOL,
+    (NUMBER, ADD): add_NUMBER_ADD,
+    (NUMBER, MUL): add_NUMBER_MUL,
+    (SYMBOL, NUMBER): add_SYMBOL_NUMBER,
+    (SYMBOL, SYMBOL): add_SYMBOL_SYMBOL,
+    (SYMBOL, ADD): add_SYMBOL_ADD,
+    (SYMBOL, MUL): add_SYMBOL_MUL,
+    (ADD, NUMBER): add_ADD_NUMBER,
+    (ADD, SYMBOL): add_ADD_SYMBOL,
+    (ADD, ADD): add_ADD_ADD,
+    (ADD, MUL): add_ADD_MUL,
+    (MUL, NUMBER): add_MUL_NUMBER,
+    (MUL, SYMBOL): add_MUL_SYMBOL,
+    (MUL, ADD): add_MUL_ADD,
+    (MUL, MUL): add_MUL_MUL,
+    }
+
+multiply_dict = {
+    (NUMBER, NUMBER): multiply_NUMBER_NUMBER,
+    (NUMBER, SYMBOL): multiply_NUMBER_SYMBOL,
+    (NUMBER, ADD): multiply_NUMBER_ADD,
+    (NUMBER, MUL): multiply_NUMBER_MUL,
+    (SYMBOL, NUMBER): multiply_SYMBOL_NUMBER,
+    (SYMBOL, SYMBOL): multiply_SYMBOL_SYMBOL,
+    (SYMBOL, ADD): multiply_SYMBOL_ADD,
+    (SYMBOL, MUL): multiply_SYMBOL_MUL,
+    (ADD, NUMBER): multiply_ADD_NUMBER,
+    (ADD, SYMBOL): multiply_ADD_SYMBOL,
+    (ADD, ADD): multiply_ADD_ADD,
+    (ADD, MUL): multiply_ADD_MUL,
+    (MUL, NUMBER): multiply_MUL_NUMBER,
+    (MUL, SYMBOL): multiply_MUL_SYMBOL,
+    (MUL, ADD): multiply_MUL_ADD,
+    (MUL, MUL): multiply_MUL_MUL,
+    }
+
+expand_dict = {
+    (NUMBER, NUMBER): multiply_NUMBER_NUMBER,
+    (NUMBER, SYMBOL): multiply_NUMBER_SYMBOL,
+    (NUMBER, ADD): expand_NUMBER_ADD,
+    (NUMBER, MUL): multiply_NUMBER_MUL,
+    (SYMBOL, NUMBER): multiply_SYMBOL_NUMBER,
+    (SYMBOL, SYMBOL): multiply_SYMBOL_SYMBOL,
+    (SYMBOL, ADD): expand_SYMBOL_ADD,
+    (SYMBOL, MUL): multiply_SYMBOL_MUL,
+    (ADD, NUMBER): expand_ADD_NUMBER,
+    (ADD, SYMBOL): expand_ADD_SYMBOL,
+    (ADD, ADD): expand_ADD_ADD,
+    (ADD, MUL): expand_ADD_MUL,
+    (MUL, NUMBER): multiply_MUL_NUMBER,
+    (MUL, SYMBOL): multiply_MUL_SYMBOL,
+    (MUL, ADD): expand_MUL_ADD,
+    (MUL, MUL): multiply_MUL_MUL,
+    }
+
+
+###
+
+class ExponentsTuple(tuple):
+
+    def __div__(self, other):
+        return self * other**-1
+
+    def __mul__(self, other):
+        assert isinstance(other, type(self)),`other`
+        return self.__class__([i+j for i,j in zip(self,other)])
+
+    def __pow__(self, e):
+        assert isinstance(e, int),`e`
+        return self.__class__([i*e for i in self])
+
+    def apply_to_terms(self, terms):
+        l = []
+        num = 1
+        j = None
+        for i,e in enumerate(self):
+            if e==0: continue
+            t, c = terms[i]
+            l.append((t, e))
+            if c!=1:
+                num = num * c**e
+        return l, num
+
+class NumerDenom(tuple):
+    """ Holds a pair of numerator and denominator.
+    When denominator is 1, returns numerator.
+    """
+    
+    def __new__(cls, p, q, new=tuple.__new__):
+        x, y = p, q
+        while y:
+            x, y = y, x % y
+        if x != 1:
+            p //= x
+            q //= x
+        if q == 1:
+            return p
+        return new(cls, (p, q))
+
+    def __add__(self, other):
+        p, q = self
+        if isinstance(other, (int, long)):
+            return NumerDenom(p + q*other, q)
+        elif isinstance(other, NumerDenom):
+            r, s = other
+            return NumerDenom(p*s + q*r, q*s)
+        else:
+            return NotImplemented
+
+def generate_expand_data(n, m):
+    """ Return power-coefficient dictionary of an expanded
+    sum (A1 + A2 + .. + An)**m.
+    """
+    ## 
+    ## Consider polynomial
+    ##   P(x) = sum_{i=0}^n p_i x^k
+    ## and its m-th exponent
+    ##   P(x)^m = sum_{k=0}^{m n} a(m,k) x^k
+    ## The coefficients a(m,k) can be computed using the
+    ## J.C.P. Miller Pure Recurrence [see D.E.Knuth,
+    ## Seminumerical Algorithms, The art of Computer
+    ## Programming v.2, Addison Wesley, Reading, 1981;]:
+    ##  a(m,k) = 1/(k p_0) sum_{i=1}^n p_i ((m+1)i-k) a(m,k-i),
+    ## where a(m,0) = p_0^m.
+    
+    symbols = [ExponentsTuple((0,)*i + (1,) +(0,)*(n-i-1)) for i in range(n)]
+    s0 = symbols[0]
+    p0 = [s/s0 for s in symbols]
+    r = {s0**m:1}
+    l = [r.items()]
+    for k in xrange(1, m*(n-1)+1):
+        d = {}
+        for i in xrange(1, min(n,k+1)):
+            nn = (m+1)*i-k
+            if nn:
+                t = p0[i]
+                for t2, c2 in l[k-i]:
+                    tt = t2 * t
+                    cc = NumerDenom(nn * c2, k)
+                    b = d.get(tt)
+                    if b is None:
+                        d[tt] = cc
+                    else:
+                        cc = b + cc
+                        if cc:
+                            d[tt] = cc
+                        else:
+                            del d[tt]
+        r1 = d.items()
+        l.append(r1)
+        for t, c in r1:
+            b = r.get(t)
+            if b is None:
+                r[t] = c
+            else:
+                c = b + c
+                if c:
+                    r[t] = c
+                else:
+                    del r[t]
+    return r

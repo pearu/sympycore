@@ -190,7 +190,7 @@ class SymbolicTerms(CommutativePairs, StandardCommutativeAlgebra):
 
     kind = ADD
 
-    __new__ = CommutativePairs.__new__
+    #__new__ = CommutativePairs.__new__
     __str__ = BasicAlgebra.__str__
     
     def as_primitive(self):
@@ -223,7 +223,7 @@ class SymbolicFactors(CommutativePairs, StandardCommutativeAlgebra):
     
     kind = MUL
 
-    __new__ = CommutativePairs.__new__
+    #__new__ = CommutativePairs.__new__
     __str__ = BasicAlgebra.__str__
 
     def as_primitive(self):
