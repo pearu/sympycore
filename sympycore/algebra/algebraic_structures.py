@@ -7,18 +7,6 @@ class AlgebraicStructure(Basic):
     """
 
     @classmethod
-    def convert(cls, obj):
-        raise NotImplementedError('%s must define convert classmethod'\
-                                  % (cls.__name__))
-        if isinstance(obj, cls):
-            return obj
-        if isinstance(obj, cls.algebra_c):
-            return classes.PrimitiveAlgebra((NUMBER, obj))
-        if isinstance(obj, AlgebraicStructure):
-            return obj.as_primitive()
-        return classes.PrimitiveAlgebra((cls.get_kind(obj),obj))
-
-    @classmethod
     def convert_exponent(cls, obj):
         return int(obj)
 
@@ -39,6 +27,26 @@ class BasicAlgebra(AlgebraicStructure):
     define Add, Mul, Pow static methods which are used by default
     __add__, __mul__ etc methods.
     """
+
+    @classmethod
+    def convert(cls, obj, typeerror=True):
+        algebra_class = cls.algebra_class
+        if isinstance(obj, algebra_class):
+            return obj
+        if isinstance(obj, cls.algebra_numbers):
+            elcls = cls.element_classes
+            return elcls[NUMBER](obj)
+        if isinstance(obj, (str, unicode)):
+            obj = PrimitiveAlgebra(obj)
+        if isinstance(obj, PrimitiveAlgebra):
+            return obj.as_algebra(cls.algebra_class)
+        if isinstance(obj, BasicAlgebra):
+            return obj.as_primitive().as_algebra(cls.algebra_class)
+        if typeerror:
+            raise TypeError('%s.convert(<%s object>)' % (cls.__name__, type(obj)))
+        else:
+            return NotImplemented
+        return obj
 
     def as_algebra(self, cls, source=None):
         """
@@ -110,6 +118,8 @@ class BasicAlgebra(AlgebraicStructure):
     __truediv__ = __div__
     __rtruediv__ = __rdiv__
 
+from .primitive import PrimitiveAlgebra, NUMBER
+
 
 class StructureGenerator(BasicType):
     
@@ -157,3 +167,4 @@ class PolynomialAlgebra(AlgebraicStructure):
         else:
             o.data = (MultivariatePolynomialAlgebra(obj), symbols)
         return o
+

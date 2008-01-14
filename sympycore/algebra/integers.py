@@ -25,26 +25,6 @@ class Integers(PairsCommutativeRing):
     """
 
     @classmethod
-    def convert(cls, obj, typeerror=True):
-        """
-        """
-        if isinstance(obj, Integers):
-            return obj
-        if isinstance(obj, (int, long)):
-            return IntegerNumber(obj)
-        if isinstance(obj, (str, unicode)):
-            obj = PrimitiveAlgebra(obj)
-        if isinstance(obj, PrimitiveAlgebra):
-            return obj.as_algebra(Integers)
-        if isinstance(obj, BasicAlgebra):
-            return obj.as_primitive().as_algebra(Integers)
-        if typeerror:
-            raise TypeError('%s.convert(<%s object>)' % (cls.__name__, type(obj)))
-        else:
-            return NotImplemented
-        return obj
-
-    @classmethod
     def Pow(cls, base, exponent):
         if exponent==0:
             return cls.one
@@ -135,7 +115,7 @@ class IntegerFactors(CommutativeFactors, Integers):
 one = IntegerNumber(1)
 zero = IntegerNumber(0)
 
-Integers.algebra_c = (int, long)   # these types are converted to NUMBER
+Integers.algebra_numbers = (int, long)   # these types are converted to NUMBER
 Integers.algebra_class = Integers  # used in pairs to define Add, Mul class methods
 Integers.zero = zero               # zero element of symbolic integer algebra
 Integers.one = one                 # one element of symbolic integer algebra
