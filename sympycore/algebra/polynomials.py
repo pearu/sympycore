@@ -1,5 +1,5 @@
 
-from .primitive import PrimitiveAlgebra, ADD, SYMBOL
+from .primitive import PrimitiveAlgebra, ADD, POW, MUL, NUMBER, SYMBOL
 
 from .algebraic_structures import BasicAlgebra
 
@@ -21,28 +21,32 @@ class UnivariatePolynomial(BasicAlgebra):
         return x
 
     def as_primitive(self):
+        P = PrimitiveAlgebra
+        if self.degree == -1:
+            return P((NUMBER, 0))
         t = []
-        x = PrimitiveAlgebra((SYMBOL,self.symbol))
-        for i, c in enumerate(self.coefs):
-            i = PrimitiveAlgebra((NUMBER,i))
-            t.append(PrimitiveAlgebra((NUMBER,c)) * x**i)
-        return (ADD,tuple(t))
+        x = P((SYMBOL, self.symbol))
+        for exp, coef in enumerate(self.coefs):
+            if coef == 0:
+                continue
+            scoef = P((NUMBER, coef))
+            if exp == 0:
+                monomial = scoef
+            else:
+                monomial = x
+                if exp != 1: monomial = monomial ** P((NUMBER, exp))
+                if coef != 1: monomial = scoef * monomial
+            t.append(monomial)
+        return PrimitiveAlgebra((ADD, tuple(t)), head=ADD)
 
     @property
     def tree(self):
         return self.as_primitive().tree
 
     def __repr__(self):
-        if self.degree == -1:
-            return "0.0"
-        s = []
-        for i, c in enumerate(self.coefs):
-            if not c: continue
-            t = str(c)
-            if i > 0: t += "*" + self.symbol
-            if i > 1: t += ("**%i" % i)
-            s.append(t)
-        return " + ".join(s[::-1])
+        return str(self.as_primitive())
+
+    __str__ = __repr__
 
     def __hash__(self):
         return hash((self.coefs, self.symbol))

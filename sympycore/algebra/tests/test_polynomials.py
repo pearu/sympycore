@@ -14,3 +14,6 @@ def test_polynomials():
     assert (x-1)*(x+1) == x**2 - 1
     assert (x-1)*(x+1) / (x-1) == (x+1)
     assert (x**3 + x).diff() == 3*x**2 + 1
+    assert str(poly([3, 0, 1])) == '3 + x**2'
+    assert str(poly([0])) == '0'
+    assert str(poly([1, 1])) == '1 + x'
