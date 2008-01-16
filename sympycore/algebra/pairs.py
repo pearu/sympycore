@@ -344,6 +344,7 @@ class CommutativePairs: # XXX: to be removed
 
 def expand_ADD(obj):
     result = newinstance(obj.__class__, ADD, {})
+    d = result.data
     one = obj.one
     for t,c in obj.data.iteritems():
         t = t.expand()
@@ -359,7 +360,9 @@ def expand_ADD(obj):
             result._add_values_mul_coeff(p.items(), c, 0)
         else:
             raise TypeError(`t, head`)
-    return result.canonize()
+    if len(d)<=1:
+        return result.canonize()
+    return result
 
 def expand_MUL(obj):
     cls = type(obj)
@@ -593,7 +596,7 @@ def multiply_ADD_ADD(lhs, rhs, cls):
     if lhs.length()==rhs.length()==1:
         t1, c1 = lhs.data.items()[0]
         t2, c2 = rhs.data.items()[0]
-        t = t1 * t2
+        t = multiply_dict[t1.head, t2.head](t1, t2, cls)
         if t==lhs.one:
             return c1*c2
         return newinstance(cls,ADD,{t: c1*c2})
@@ -687,7 +690,8 @@ def expand_ADD_SYMBOL(lhs, rhs, cls):
     result = newinstance(cls,ADD,{})
     d = result.data
     for t,c in lhs.data.iteritems():
-        d[t * rhs] = c
+        t = multiply_dict[t.head, SYMBOL](t, rhs, cls)
+        d[t] = c
     return result
 
 def expand_ADD_ADD(lhs, rhs, cls):
@@ -699,7 +703,7 @@ def expand_ADD_ADD(lhs, rhs, cls):
     d = result.data
     for t1, c1 in pairs1.iteritems():
         for t2, c2 in pairs2.iteritems():
-            t = t1 * t2
+            t = multiply_dict[t1.head, t2.head](t1, t2, cls)
             c = c1 * c2
             b = d.get(t)
             if b is None:
