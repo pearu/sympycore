@@ -43,7 +43,7 @@ class CommutativeRingWithPairs(BasicAlgebra):
     def __eq__(self, other):
         if self is other:
             return True
-        if type(self) is type(other):
+        if other.__class__ is self.__class__:
             return self.head is other.head and self.data == other.data
         if self.head is NUMBER and isinstance(other, self.algebra_numbers):
             return self.data == other
@@ -278,10 +278,10 @@ class CommutativeRingWithPairs(BasicAlgebra):
                 pairs[t] = c
             else:
                 c = b + c
-                if c==0:
-                    del pairs[t]
-                else:
+                if c:
                     pairs[t] = c
+                else:
+                    del pairs[t]
 
     def _add_values_mul_coeff(self, rhs, coeff, zero):
         if self._hash is not None:
@@ -294,10 +294,10 @@ class CommutativeRingWithPairs(BasicAlgebra):
                 pairs[t] = c * coeff
             else:
                 c = b + c * coeff
-                if zero==c:
-                    del pairs[t]
-                else:
+                if c:
                     pairs[t] = c
+                else:
+                    del pairs[t]
 
     def _multiply_values(self, rhs, one, zero):
         if self._hash is not None:
@@ -342,11 +342,8 @@ class CommutativePairs: # XXX: to be removed
     """
 
 
-
-
-
 def expand_ADD(obj):
-    result = type(obj)({}, head=ADD)
+    result = newinstance(obj.__class__, ADD, {})
     one = obj.one
     for t,c in obj.data.iteritems():
         t = t.expand()
