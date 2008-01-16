@@ -104,33 +104,18 @@ class Pairs(object):
     _hash = None
     def __new__(cls, pairs, new=object.__new__):
         o = new(cls)
-        o._pairs = pairs
+        o.pairs = pairs
         return o
 
-    @property
-    def pairs(self):
-        """ Return pairs as a tuple.
-        """
-        pairs = self._pairs
-        if not isinstance(pairs, tuple):
-            self._pairs = pairs = tuple(pairs)
-        return pairs
-
     def __iter__(self):
-        pairs = self._pairs
-        if isinstance(pairs, iterator_types):
-            self._pairs = pairs = tuple(pairs)
-            return pairs
-        return iter(pairs)
+        return iter(self.pairs)
 
     def length(self):
         """ Return the number of pairs.
         """
-        pairs = self._pairs
-        if isinstance(pairs, iterator_types):
-            self._pairs = pairs = tuple(pairs)
-            return len(pairs)
-        return len(pairs)
+        # we don't define __len__ in order to avoid implementing sequence protocol
+        # that will by misused by numpy.array
+        return len(self.pairs)
 
     def __eq__(self, other):
         if self is other:
@@ -174,15 +159,14 @@ class CommutativePairs(Pairs):
       _add_keys(rhs, one, zero)
         rhs must support addition with keys
     """
-    
-    @property
-    def pairs(self):
-        """ Return pairs as mutable dictionary.
-        """
-        pairs = self._pairs
+
+    _hash = None
+    def __new__(cls, pairs, new=object.__new__):
+        o = new(cls)
         if not isinstance(pairs, dict):
-            self._pairs = pairs = dict(pairs)
-        return pairs
+            pairs = dict(pairs)
+        o.pairs = pairs
+        return o
 
     def copy(self):
         return type(self)(self.pairs.copy())
@@ -190,25 +174,7 @@ class CommutativePairs(Pairs):
     def __iter__(self):
         """ Return iterator of pairs.
         """
-        pairs = self._pairs
-        if isinstance(pairs, iterator_types):
-            self._pairs = pairs = dict(pairs)
-            return pairs.iteritems()
-        elif isinstance(pairs, dict):
-            return pairs.iteritems()
-        elif isinstance(pairs, Pairs):
-            raise
-            return pairs.pairs
-        return iter(pairs)
-
-    def length(self):
-        """ Return the number of pairs.
-        """
-        pairs = self._pairs
-        if isinstance(pairs, iterator_types):
-            self._pairs = pairs = dict(pairs)
-            return len(pairs)
-        return len(pairs)
+        return self.pairs.iteritems()
 
     def __hash__(self):
         h = self._hash
@@ -226,7 +192,7 @@ class CommutativePairs(Pairs):
                              ', '.join(['(%s, %s)' % tc for tc in self.pairs.iteritems()]))
 
     def __repr__(self):
-        return '%s(%r)' % (self.__class__.__name__, self._pairs)
+        return '%s(%r)' % (self.__class__.__name__, self.pairs)
 
     def _add_value(self, rhs, one, zero):
         if self._hash is not None:
@@ -282,14 +248,14 @@ class CommutativePairs(Pairs):
         d = {}
         for t,c in self.pairs.iteritems():
             d[t] = c * rhs
-        self._pairs = d
+        self.pairs = d
 
     def _expand_multiply_values(self, rhs, one, zero):
         if self._hash is not None:
             raise TypeError('cannot expand multiply values to immutable pairs inplace'\
                             ' (hash has been computed)')
         pairs = self.pairs
-        self._pairs = d = {}
+        self.pairs = d = {}
         if isinstance(rhs, iterator_types):
             seq1 = rhs
             seq2 = pairs.items()
@@ -319,12 +285,9 @@ class CommutativePairs(Pairs):
             raise TypeError('cannot add keys to immutable pairs inplace'\
                             ' (hash has been computed)')
         pairs = self.pairs        
-        self._pairs = d = {}
+        self.pairs = d = {}
         for t,c in pairs.items():
             d[t + rhs] = c
-        self._pairs = d
-
-
 
 class CommutativeTerms(CommutativePairs):
 
@@ -393,6 +356,9 @@ class CommutativeTerms(CommutativePairs):
             else:
                 raise TypeError(`t, head`)            
         return result.canonize()
+
+    def matches(self, expr, repl_dict={}):
+        pass
 
 class CommutativeFactors(CommutativePairs):
 

@@ -22,6 +22,10 @@ class StandardCommutativeAlgebra(PairsCommutativeRing):
     def Pow(cls, base, exp):
         if exp is -1 and base.head is NUMBER:
             return SymbolicNumber(mpq(1, base.value) ** -exp)
+        if exponent==0:
+            return cls.one
+        if exponent==1 or cls.one==base:
+            return base
         return SymbolicFactors({base:exp})
 
 

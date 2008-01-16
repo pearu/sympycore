@@ -118,8 +118,25 @@ class BasicAlgebra(AlgebraicStructure):
     __truediv__ = __div__
     __rtruediv__ = __rdiv__
 
-from .primitive import PrimitiveAlgebra, NUMBER
+    def match(self, pattern):
+        """
+        Pattern matching.
 
+        Wild symbols match all.
+
+        Return None when expression (self) does not match
+        with pattern. Otherwise return a dictionary such that
+
+          pattern.subs_dict(self.match(pattern)) == self
+
+        Don't redefine this method, redefine matches(..) method instead.
+        """
+        pattern = sympify(pattern)
+        if isinstance(pattern, bool):
+            return
+        return pattern.as_algebra(type(self)).matches(self, {})
+
+from .primitive import PrimitiveAlgebra, NUMBER
 
 class StructureGenerator(BasicType):
     
