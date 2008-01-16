@@ -4,8 +4,10 @@ from ..core import classes
 
 from .algebraic_structures import BasicAlgebra
 from .primitive import PrimitiveAlgebra, SYMBOL, NUMBER, ADD, MUL
-from .pairs import (CommutativePairs, PairsCommutativeRing, CommutativeTerms,
-                    CommutativeFactors, PairsCommutativeSymbol, PairsNumber)
+#from .pairs import (CommutativePairs, PairsCommutativeRing, CommutativeTerms,
+#                    CommutativeFactors, PairsCommutativeSymbol, PairsNumber)
+
+from .pairs import CommutativeRingWithPairs
 
 def gcd(a, b):
     while a:
@@ -15,7 +17,7 @@ def gcd(a, b):
 # Optimization ideas:
 # 1) in multiplication can exponents grow, so one could avoid checking for zeros
 
-class Integers(PairsCommutativeRing):
+class Integers(CommutativeRingWithPairs):
     """ Represents a symbolic algebra of integers.
 
     The set of integers is a commutative ring.
@@ -23,6 +25,16 @@ class Integers(PairsCommutativeRing):
     See
       http://code.google.com/p/sympycore/wiki/Algebra
     """
+
+    @classmethod
+    def Number(cls, num):
+        if isinstance(num, (int,long)):
+            return cls(num, head=NUMBER)
+        raise TypeError(`num`)
+
+    @classmethod
+    def Symbol(cls, obj):
+        return cls(obj, head=SYMBOL)
 
     @classmethod
     def Pow(cls, base, exponent):
@@ -34,11 +46,11 @@ class Integers(PairsCommutativeRing):
         if exponent < 0:
             raise HintExtendAlgebraTo('Rationals')
         if head is NUMBER:
-            return IntegerNumber(base.value ** exponent)
+            return Integers(base.data ** exponent, head=NUMBER)
         if head is ADD:
             bb, nn = base.as_terms_intcoeff()
-            return IntegerFactors({bb: exponent}) * nn**exponent
-        return IntegerFactors({base: exponent})
+            return Integers({bb: exponent}, head=MUL) * nn**exponent
+        return Integers({base: exponent}, head=MUL)
 
     def as_terms_intcoeff(self):
         """ Split expression into (<subexpr>, <integer coeff>) such that
@@ -46,9 +58,9 @@ class Integers(PairsCommutativeRing):
         """
         head = self.head
         if head is NUMBER:
-            return one, self.value
+            return one, self.data
         if head is ADD:
-            pairs = self.pairs
+            pairs = self.data
             if len(pairs)==1:
                 t, c = pairs.items()[0]
                 tt, cc = t.as_terms_intcoeff()
@@ -78,9 +90,9 @@ class Integers(PairsCommutativeRing):
                     return self, 1
                 else:
                     l = [(t,c/coeff) for (t,c) in l]
-                return IntegerTerms(l), coeff
+                return Integers(l, head=ADD), coeff
         if head is MUL:
-            pairs = self.pairs
+            pairs = self.data
             l = []
             coeff = 1
             for t, c in pairs.iteritems():
@@ -88,41 +100,22 @@ class Integers(PairsCommutativeRing):
                 l.append((tt, c))
                 coeff *= cc ** c
             if coeff != 1:
-                return IntegerFactors(l), coeff
+                return Integers(l, head=MUL), coeff
         return self, 1
         
     
-class IntegerNumber(PairsNumber, Integers):
+class IntegerNumber(Integers): # XXX: to be removed
 
     def __pow__(self, other):
         if isinstance(other, (int, long, IntegerNumber)):
             if other>=0:
-                return IntegerNumber(self.value ** other)
+                return IntegerNumber(self.data ** other)
         return NotImplemented
 
-class IntegerSymbol(PairsCommutativeSymbol, Integers):
-
-    pass
-
-class IntegerTerms(CommutativeTerms, Integers):
-
-    __str__ = Integers.__str__
-
-class IntegerFactors(CommutativeFactors, Integers):
-
-    __str__ = Integers.__str__
-
-one = IntegerNumber(1)
-zero = IntegerNumber(0)
+one = Integers(1, head=NUMBER)
+zero = Integers(0, head=NUMBER)
 
 Integers.algebra_numbers = (int, long)   # these types are converted to NUMBER
 Integers.algebra_class = Integers  # used in pairs to define Add, Mul class methods
 Integers.zero = zero               # zero element of symbolic integer algebra
 Integers.one = one                 # one element of symbolic integer algebra
-
-Integers.element_classes = {\
-    SYMBOL: IntegerSymbol,
-    NUMBER: IntegerNumber,
-    ADD: IntegerTerms,
-    MUL: IntegerFactors
-    }

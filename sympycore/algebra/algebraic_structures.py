@@ -27,15 +27,13 @@ class BasicAlgebra(AlgebraicStructure):
     define Add, Mul, Pow static methods which are used by default
     __add__, __mul__ etc methods.
     """
-
     @classmethod
     def convert(cls, obj, typeerror=True):
         algebra_class = cls.algebra_class
         if isinstance(obj, algebra_class):
             return obj
         if isinstance(obj, cls.algebra_numbers):
-            elcls = cls.element_classes
-            return elcls[NUMBER](obj)
+            return cls(obj, head=NUMBER)
         if isinstance(obj, (str, unicode)):
             obj = PrimitiveAlgebra(obj)
         if isinstance(obj, PrimitiveAlgebra):

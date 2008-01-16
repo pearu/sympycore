@@ -24,7 +24,8 @@ Possible issues:
 inttypes = (int, long)
 
 class mpq(tuple):
-
+    __slots__ = []
+    
     def __new__(cls, p, q=1, tnew=tuple.__new__):
         x, y = p, q
         while y:

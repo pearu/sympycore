@@ -1,6 +1,6 @@
 from sympycore.algebra import *
 
-x = Symbolic('x')
+x = Symbol('x')
 
 def test_linear():
     assert x + x == 2*x

@@ -2,26 +2,26 @@
 from sympycore import *
 from sympycore.algebra import *
 
+Number = Integers.Number
+Symbol = Integers.Symbol
+
 def test_numbers():
-    i = Integers(1)
+    i = Number(1)
     assert isinstance(i, Integers)==True
-    assert isinstance(i, IntegerNumber)==True
     assert str(i)=='1'
     assert bool(i==1)==True
     assert bool(i==2)==False
     assert bool(i=='a')==False
 
 def test_symbols():
-    i = Integers('a')
+    i = Symbol('a')
     assert isinstance(i, Integers)==True
-    assert isinstance(i, IntegerSymbol)==True
     assert str(i)=='a'
     assert bool(i==1)==False
 
 def test_terms():
     ab = Integers.Add(['a','b'])
     assert isinstance(ab, Integers)==True
-    assert isinstance(ab, classes.IntegerTerms)==True
     assert str(ab)=='a + b'
     assert bool(ab==Integers('a+b'))==True
     assert bool(ab==Integers('b+a'))==True
@@ -29,33 +29,28 @@ def test_terms():
 def test_Factors():
     ab = Integers.Mul(['a','b'])
     assert isinstance(ab, Integers)==True
-    assert isinstance(ab, classes.IntegerFactors)==True
     assert str(ab)=='a*b'
     assert bool(ab==Integers('a*b'))==True
     assert bool(ab==Integers('b*a'))==True
 
 def test_pos():
-    assert +Integers(2)==2
-    assert +Integers('a')==Integers('a')
+    assert +Number(2)==2
+    assert +Symbol('a')==Symbol('a')
 
 def test_neg():
     assert -Integers(2)==-2
     b = -Integers('a')
     assert isinstance(b, Integers)==True
-    assert isinstance(b, classes.IntegerTerms)==True
     assert str(b) == '-a'
 
     ab = Integers('a+b')
     assert isinstance(-ab, Integers)==True
-    assert isinstance(-ab, classes.IntegerTerms)==True
     assert str(-ab) == '-a - b'
 
 def test_add():
     i = Integers(1)
     j = Integers(2)
     assert isinstance(i+j, Integers)==True
-    assert isinstance(i+j, IntegerNumber)==True
-    assert isinstance(1+j, IntegerNumber)==True
     assert bool(i+j==3)==True
     assert bool(i+2==3)==True
     assert bool(1+j==3)==True
@@ -64,12 +59,10 @@ def test_add():
     b = Integers('b')
 
     assert isinstance(a+b, Integers)==True
-    assert isinstance(a+b, classes.IntegerTerms)==True
     assert str(a+b)=='a + b'
     assert a+b==b+a
 
     assert isinstance(a+i, Integers)==True
-    assert isinstance(a+i, classes.IntegerTerms)==True
     assert str(a+i)=='1 + a'
     assert a+i==i+a
     assert a+1==a+i
@@ -84,7 +77,6 @@ def test_add():
 
     ab = a + b
     assert isinstance(ab+i, Integers)==True
-    assert isinstance(ab+i, classes.IntegerTerms)==True
     assert str(ab+i)=='1 + a + b'
     assert str(ab+2)=='2 + a + b'
     assert str(ab+'3')=='3 + a + b'
@@ -105,7 +97,6 @@ def test_add():
     ab = a * b
 
     assert isinstance(ab+i, Integers)==True
-    assert isinstance(ab+i, classes.IntegerTerms)==True
     assert str(ab+i)=='1 + a*b'
     assert str(ab+2)=='2 + a*b'
     assert str(ab+'3')=='3 + a*b'
@@ -126,8 +117,8 @@ def test_mul():
     i = Integers(3)
     j = Integers(2)
     assert isinstance(i*j, Integers)==True
-    assert isinstance(i*j, IntegerNumber)==True
-    assert isinstance(3*j, IntegerNumber)==True
+    assert isinstance(i*j, Integers)==True
+    assert isinstance(3*j, Integers)==True
     assert bool(i*j==6)==True
     assert bool(i*2==6)==True
     assert bool(3*j==6)==True
@@ -136,12 +127,10 @@ def test_mul():
     b = Integers('b')
 
     assert isinstance(a*b, Integers)==True
-    assert isinstance(a*b, classes.IntegerFactors)==True
     assert str(a*b)=='a*b'
     assert a*b==b*a
 
     assert isinstance(a+i, Integers)==True
-    assert isinstance(a*i, classes.IntegerTerms)==True
     assert str(a*i)=='3*a'
     assert a*i==i*a
     assert a*3==a*i
@@ -159,7 +148,6 @@ def test_mul():
     
     ab = a + b
     assert isinstance(ab*i, Integers)==True
-    assert isinstance(ab*i, classes.IntegerTerms)==True
     assert str(ab*i)=='3*a + 3*b'
     assert str(ab*2)=='2*a + 2*b'
     assert str(ab*'3')=='3*a + 3*b'
@@ -176,7 +164,6 @@ def test_mul():
 
     ab = a * b
     assert isinstance(ab*i, Integers)==True
-    assert isinstance(ab*i, classes.IntegerTerms)==True
     assert str(ab*i)=='3*a*b'
     assert str(ab*2)=='2*a*b'
     assert str(ab*'3')=='3*a*b'
@@ -206,14 +193,12 @@ def test_pow():
     i = Integers(3)
     j = Integers(2)
     assert isinstance(i**j, Integers)==True
-    assert isinstance(i**j, IntegerNumber)==True
     assert i**j==9
 
     a = Integers('a')
     b = Integers('b')
     
     assert isinstance(a**j, Integers)==True
-    assert isinstance(a**j, classes.IntegerFactors)==True
     assert str(a**j)=='a**2'
     assert str(a**3)=='a**3'
     assert str(a**'4')=='a**4'
