@@ -14,6 +14,7 @@ def time1(n=1):
     e1 = ((x+y+z)**20).expand()
     e2 = ((x+y)**19).expand()
     expr = e1 * e2
+    expr = ((x+y+z)**20) * ((x+y)**19)
     t1 = clock()
     while n:
         expr.expand()
@@ -26,6 +27,7 @@ def time2(n=1):
     e1 = ((x+y+z)**20).expand()
     e2 = ((x+y)**19).expand()
     expr = e1 * e2
+    expr = ((x+y+z)**20) * ((x+y)**19)
     t1 = clock()
     while n:
         expr.expand()

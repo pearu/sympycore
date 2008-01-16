@@ -203,10 +203,10 @@ class CommutativePairs(Pairs):
             pairs[rhs] = one
         else:
             c = b + one
-            if zero==c:
-                del pairs[rhs]
-            else:
+            if c:
                 pairs[rhs] = c
+            else:
+                del pairs[rhs]
 
     def _add_values(self, rhs, one, zero):
         if self._hash is not None:

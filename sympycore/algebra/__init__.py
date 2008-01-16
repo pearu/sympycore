@@ -5,3 +5,6 @@ from .std_commutative_algebra import Symbolic, SymbolicNumber, StandardCommutati
 from .pairs import CommutativePairs
 
 from .integers import Integers, IntegerNumber, IntegerSymbol
+
+Symbol = StandardCommutativeAlgebra.Symbol
+Number = StandardCommutativeAlgebra.Number

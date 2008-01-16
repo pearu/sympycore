@@ -19,6 +19,16 @@ class StandardCommutativeAlgebra(PairsCommutativeRing):
     """
 
     @classmethod
+    def Symbol(cls, obj):
+        return SymbolicNumber(obj)
+
+    @classmethod
+    def Number(cls, num, denom=None):
+        if denom is None:
+            return SymbolicNumber(num)
+        return SymbolicNumber(mpq(num, denom))
+
+    @classmethod
     def Pow(cls, base, exp):
         if exp is -1 and base.head is NUMBER:
             return SymbolicNumber(mpq(1, base.value) ** -exp)

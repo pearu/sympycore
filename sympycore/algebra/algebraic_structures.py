@@ -56,17 +56,25 @@ class BasicAlgebra(AlgebraicStructure):
             return self.as_primitive()
         return self.as_primitive().as_algebra(cls, source=self)
 
-    @staticmethod
-    def Add(seq):
-        raise NotImplementedError('BasicAlgebra subclass must define staticmethod Add')
+    @classmethod
+    def Symbol(cls, obj):
+        raise NotImplementedError('%s must define classmethod Symbol' % (cls.__name__))
 
-    @staticmethod
-    def Mul(seq):
-        raise NotImplementedError('BasicAlgebra subclass must define staticmethod Mul')
+    @classmethod
+    def Number(cls, num, denom=None):
+        raise NotImplementedError('%s must define classmethod Number' % (cls.__name__))
 
-    @staticmethod
-    def Pow(base, exponent):
-        raise NotImplementedError('BasicAlgebra subclass must define staticmethod Pow')
+    @classmethod
+    def Add(cls seq):
+        raise NotImplementedError('%s must define classmethod Add' % (cls.__name__))
+
+    @classmethod
+    def Mul(cls, seq):
+        raise NotImplementedError('%s must define classmethod Mul' % (cls.__name__))
+
+    @classmethod
+    def Pow(cls, base, exponent):
+        raise NotImplementedError('%s must define classmethod Pow' % (cls.__name__))
 
     def __pos__(self):
         return self
@@ -118,24 +126,43 @@ class BasicAlgebra(AlgebraicStructure):
     __truediv__ = __div__
     __rtruediv__ = __rdiv__
 
-    def match(self, pattern):
+    def match(self, pattern, *wildcards):
         """
         Pattern matching.
-
-        Wild symbols match all.
 
         Return None when expression (self) does not match
         with pattern. Otherwise return a dictionary such that
 
-          pattern.subs_dict(self.match(pattern)) == self
+          pattern.subs_dict(self.match(pattern, *wildcards)) == self
 
         Don't redefine this method, redefine matches(..) method instead.
-        """
-        pattern = sympify(pattern)
-        if isinstance(pattern, bool):
-            return
-        return pattern.as_algebra(type(self)).matches(self, {})
 
+        See:
+          http://wiki.sympy.org/wiki/Generic_interface#Pattern_matching
+        """
+        pattern = self.convert(pattern)
+        wild_expressions = []
+        wild_predicates = []
+        for w in wildcards:
+            if type(w) in [list, tuple]:
+                assert len(w)==2,`w`
+                expr, func = w
+            else:
+                expr, func = w, lambda subexpr: True
+            wild_expressions.append(self.convert(expr))
+            wild_predicates.append(func)
+        return pattern.matches(self, {}, wild_expressions, wild_predicates)
+
+    def matches(pattern, expr, repl_dict={}, wild_expressions=(), wild_predicates=()):
+        if not wild_expressions:
+            v = repl_dict.get(pattern)
+            if v is not None:
+                if v==expr:
+                    return repl_dict
+                return
+            if pattern==expr:
+                return repl_dict
+    
 from .primitive import PrimitiveAlgebra, NUMBER
 
 class StructureGenerator(BasicType):
