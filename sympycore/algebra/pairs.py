@@ -1,10 +1,9 @@
-
 import types
 
 from ..core import classes
 from .algebraic_structures import BasicAlgebra
 from .primitive import PrimitiveAlgebra, ADD, MUL, SYMBOL, NUMBER
-from .fractionlib import mpq
+from .numberlib import mpq
 
 iterator_types = (type(iter([])), type(iter(())), type(iter(frozenset())),
                   type(dict().iteritems()), types.GeneratorType)
@@ -979,8 +978,6 @@ class ExponentsTuple(tuple):
             if c!=1:
                 num = num * c**e
         return l, num
-
-from fractionlib import mpq
 
 def generate_expand_data(n, m):
     """ Return power-coefficient dictionary of an expanded

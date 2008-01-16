@@ -7,7 +7,7 @@ from .primitive import PrimitiveAlgebra, SYMBOL, NUMBER, ADD, MUL
 from .pairs import (CommutativePairs, PairsCommutativeRing, CommutativeTerms,
                     CommutativeFactors, PairsCommutativeSymbol, PairsNumber)
 
-from fractionlib import mpq
+from .numberlib import mpq
 
 class StandardCommutativeAlgebra(PairsCommutativeRing):
     """ Represents an element of a symbolic algebra. The set of a
