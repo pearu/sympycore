@@ -21,6 +21,10 @@ Possible issues:
 
 """
 
+__all__ = ['mpq', 'mpf', 'mpc', 'div', 'extended_number',
+           'nan', 'undefined', 'oo', 'moo', 'zoo']
+
+
 inttypes = (int, long)
 
 class mpq(tuple):
@@ -267,7 +271,7 @@ class mpc(object):
             return x.real, x.imag
         if isinstance(x, complex):
             return mpc(mpf(x.real), mpf(x.imag))
-        if isinstance(x, unnumber):
+        if isinstance(x, extended_number):
             return NotImplemented, 0
         return x, 0
 
@@ -334,39 +338,39 @@ def as_direction(x):
     return cmp(x, 0)
 
 
-class unnumber:
+class extended_number:
 
     def __init__(self, infinite, direction):
         self.infinite = infinite
         self.direction = direction
 
     def __repr__(self):
-        if not self.infinite: return 'nan'
+        if not self.infinite: return 'undefined'
         if not self.direction: return 'zoo'
         if self.direction == 1: return 'oo'
         if self.direction == -1: return '-oo'
         return "%s*oo" % self.direction
 
     def __eq__(self, other):
-        if isinstance(other, unnumber):
+        if isinstance(other, extended_number):
             return self.infinite == other.infinite and \
                 self.direction == other.direction
         return False
 
     def __hash__(self):
-        return hash(('unnumber', infinite, direction))
+        return hash(('extended_number', infinite, direction))
 
     def __neg__(self):
-        return unnumber(self.infinite, -self.direction)
+        return extended_number(self.infinite, -self.direction)
 
     def __pos__(self):
         return self
 
     def __add__(self, other):
-        if isinstance(other, unnumber):
+        if isinstance(other, extended_number):
             if self.direction != other.direction:
                 return nan
-            return unnumber(self.infinite*other.infinite, self.direction)
+            return extended_number(self.infinite*other.infinite, self.direction)
         return self
 
     __radd__ = __add__
@@ -378,20 +382,17 @@ class unnumber:
         return (-self) + other
 
     def __mul__(self, other):
-        if isinstance(other, unnumber):
-            return unnumber(self.infinite*other.infinite,
+        if isinstance(other, extended_number):
+            return extended_number(self.infinite*other.infinite,
                 as_direction(self.direction*other.direction))
         if not other:
             return nan
-        return unnumber(self.infinite, as_direction(self.direction*other))
+        return extended_number(self.infinite, as_direction(self.direction*other))
 
     __rmul__ = __mul__
 
 
-nan = unnumber(0, 0)
-oo = unnumber(1, 1)
-moo = unnumber(1, -1)
-zoo = unnumber(1, 0)
-
-
-__all__ = ['mpq', 'mpf', 'mpc', 'div', 'unnumber', 'nan', 'oo', 'moo', 'zoo']
+undefined = nan = extended_number(0, 0)
+oo = extended_number(1, 1)
+moo = extended_number(1, -1)
+zoo = extended_number(1, 0)
