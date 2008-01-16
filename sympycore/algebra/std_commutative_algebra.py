@@ -20,7 +20,7 @@ class StandardCommutativeAlgebra(PairsCommutativeRing):
 
     @classmethod
     def Symbol(cls, obj):
-        return SymbolicNumber(obj)
+        return Symbolic(obj)
 
     @classmethod
     def Number(cls, num, denom=None):
@@ -68,11 +68,10 @@ zero = SymbolicNumber(0)
 StandardCommutativeAlgebra.one = one
 StandardCommutativeAlgebra.zero = zero
 StandardCommutativeAlgebra.algebra_class = StandardCommutativeAlgebra
-StandardCommutativeAlgebra.algebra_numbers = (int, long, float)
+StandardCommutativeAlgebra.algebra_numbers = (int, long, float, mpq)
 StandardCommutativeAlgebra.element_classes = {\
     SYMBOL: Symbolic,
     NUMBER: SymbolicNumber,
     ADD: SymbolicTerms,
     MUL: SymbolicFactors
     }
-

@@ -65,7 +65,7 @@ class BasicAlgebra(AlgebraicStructure):
         raise NotImplementedError('%s must define classmethod Number' % (cls.__name__))
 
     @classmethod
-    def Add(cls seq):
+    def Add(cls, seq):
         raise NotImplementedError('%s must define classmethod Add' % (cls.__name__))
 
     @classmethod
