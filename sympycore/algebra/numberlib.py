@@ -198,4 +198,97 @@ class mpf(object):
         assert isinstance(n, inttypes)
         return mpf(fpow(self.val, n, self.prec, rounding))
 
-__all__ = ['mpq', 'mpf', 'div']
+
+class mpc(object):
+
+    __slots__ = ['real', 'imag']
+
+    def __new__(cls, real, imag=0):
+        if not imag:
+            return real
+        self = object.__new__(mpc)
+        self.real = real
+        self.imag = imag
+        return self
+
+    def __repr__(self):
+        return "mpc(%s, %s)" % (self.real, self.imag)
+
+    def __hash__(self):
+        return hash((self.real, self.imag))
+
+    def __str__(self):
+        re, im = self.real, self.imag
+        if not re:
+            if im == 1: return "I"
+            if im == -1: return "-I"
+            return "%s*I" % self.imag
+        if im == 1: return "(%s+I)" % self.real
+        if im == -1: return "(%s-I)" % self.real
+        if im > 0: return "(%s+%s*I)" % (self.real, self.imag)
+        if im < 0: return "(%s-%s*I)" % (self.real, -self.imag)
+
+    def __eq__(self, other):
+        if isinstance(other, mpc):
+            return self.real == other.real and self.imag == other.imag
+        if isinstance(other, complex):
+            return self.real, self.imag == self.convert(other)
+        return False
+
+    def convert(self, x):
+        if isinstance(x, mpc):
+            return x.real, x.imag
+        if isinstance(x, complex):
+            return mpc(mpf(x.real), mpf(x.imag))
+        return x, 0
+
+    def __pos__(self): return self
+    def __neg__(self): return mpc(-self.real, -self.imag)
+
+    def __add__(self, other):
+        a, b = self.real, self.imag
+        c, d = self.convert(other)
+        return mpc(a+c, b+d)
+
+    __radd__ = __add__
+
+    def __sub__(self, other):
+        a, b = self.real, self.imag
+        c, d = self.convert(other)
+        return mpc(a-c, b-d)
+
+    def __rsub__(self, other):
+        a, b = self.real, self.imag
+        c, d = self.convert(other)
+        return mpc(c-a, d-b)
+
+    def __mul__(self, other):
+        a, b = self.real, self.imag
+        c, d = self.convert(other)
+        return mpc(a*c-b*d, b*c+a*d)
+
+    __rmul__ = __mul__
+
+    def __pow__(self, n):
+        assert isinstance(n, (int, long)) and n >= 0
+        if not n: return 1
+        if n == 1: return self
+        if n == 2: return self * self
+        a, b = self.real, self.imag
+        if not a:
+            case = n % 4
+            if case == 0: return b**n
+            if case == 1: return mpc(0, b**n)
+            if case == 2: return -(b**n)
+            if case == 3: return mpc(0, -b**n)
+        c, d = 1, 0
+        while n:
+            if n & 1:
+                c, d = a*c-b*d, b*c+a*d
+                n -= 1
+            a, b = a*a-b*b, 2*a*b
+            n //= 2
+        return mpc(c, d)
+
+
+__all__ = ['mpq', 'mpf', 'mpc', 'div']

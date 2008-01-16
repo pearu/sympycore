@@ -44,3 +44,26 @@ def test_mpf():
     assert mpf(3) > mpf(2)
     assert mpf(3) < 4
 
+def test_mpc():
+    assert mpc(2,3) == mpc(2,3)
+    assert mpc(2,3) != mpc(2,4)
+    assert mpc(3,0) == 3
+    assert mpc(3,1) != 3
+    assert mpc(2,3)*2 == mpc(4,6)
+    assert 2*mpc(2,3) == mpc(4,6)
+    assert mpc(2,3)+2 == mpc(4,3)
+    assert 2+mpc(2,3) == mpc(4,3)
+    assert mpc(2,3)-2 == mpc(0,3)
+    assert 2-mpc(2,3) == mpc(0,-3)
+    assert mpc(mpq(2,3), 1) + mpc(mpq(1,3), 1) == mpc(1, 2)
+    assert -mpc(2,3) == mpc(-2,-3)
+    assert +mpc(2,3) == mpc(2,3)
+    assert mpc(0,1)**2 == -1
+    assert mpc(0,1)**3 == mpc(0,-1)
+    assert mpc(0,1)**4 == 1
+    assert mpc(0,1)**(10**9) == 1
+    assert mpc(0,1)**(10**9+1) == mpc(0,1)
+    assert mpc(0,1)**(10**9+2) == -1
+    assert mpc(0,1)**(10**9+3) == mpc(0,-1)
+    assert mpc(3,4)**10 == mpc(-9653287,1476984)
+    assert mpc(mpq(1,2), mpq(-5,6))**3 == mpc(mpq(-11,12), mpq(-5,108))
