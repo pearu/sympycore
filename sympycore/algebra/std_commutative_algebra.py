@@ -9,7 +9,7 @@ from .primitive import PrimitiveAlgebra, SYMBOL, NUMBER, ADD, MUL
 
 from .pairs import CommutativeRingWithPairs
 
-from .numberlib import mpq
+from .numberlib import mpq, mpc
 
 class StandardCommutativeAlgebra(CommutativeRingWithPairs):
     """ Represents an element of a symbolic algebra. The set of a
@@ -36,15 +36,16 @@ class StandardCommutativeAlgebra(CommutativeRingWithPairs):
     @classmethod
     def Pow(cls, base, exp):
         if exp is -1 and base.head is NUMBER:
-            return cls.Number(mpq(1, base.data) ** -exp)
-        if exponent==0:
+            return cls.Number(mpq(1, base.data))
+        if exp == 0:
             return cls.one
-        if exponent==1 or cls.one==base:
+        if exp == 1 or cls.one==base:
             return base
         return cls({base:exp}, head=MUL)
 
 one = StandardCommutativeAlgebra(1, head=NUMBER)
 zero = StandardCommutativeAlgebra(0, head=NUMBER)
+I = StandardCommutativeAlgebra(mpc(0,1), head=NUMBER)
 
 StandardCommutativeAlgebra.one = one
 StandardCommutativeAlgebra.zero = zero
