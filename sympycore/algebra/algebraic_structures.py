@@ -146,21 +146,35 @@ class BasicAlgebra(AlgebraicStructure):
                 assert len(w)==2,`w`
                 expr, func = w
             else:
-                expr, func = w, lambda subexpr: True
+                expr, func = w, True
             wild_expressions.append(self.convert(expr))
             wild_predicates.append(func)
         return pattern.matches(self, {}, wild_expressions, wild_predicates)
 
-    def matches(pattern, expr, repl_dict={}, wild_expressions=(), wild_predicates=()):
-        if not wild_expressions:
-            v = repl_dict.get(pattern)
-            if v is not None:
-                if v==expr:
-                    return repl_dict
-                return
-            if pattern==expr:
+    def matches(pattern, expr, repl_dict={}, wild_expressions=[], wild_predicates=[]):
+        # check if pattern has a match and return it provided that
+        # the match matches with expr:
+        v = repl_dict.get(pattern)
+        if v is not None:
+            if v==expr:
                 return repl_dict
-    
+            return
+        # check if pattern matches with expr:
+        if pattern==expr:
+            return repl_dict
+        # check if pattern is a wild expression
+        if pattern in wild_expressions:
+            if expr in wild_expressions:
+                # wilds do not match other wilds
+                return
+            # wild pattern matches with expr only if predicate(expr) returns True
+            predicate = wild_predicates[wild_expressions.index(pattern)]
+            if (isinstance(predicate, bool) and predicate) or predicate(expr):
+                repl_dict = repl_dict.copy()
+                repl_dict[pattern] = expr
+                return repl_dict
+        return
+
 from .primitive import PrimitiveAlgebra, NUMBER
 
 class StructureGenerator(BasicType):

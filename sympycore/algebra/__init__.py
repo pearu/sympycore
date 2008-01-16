@@ -10,4 +10,4 @@ Symbol = StandardCommutativeAlgebra.Symbol
 Number = StandardCommutativeAlgebra.Number
 
 # a temporary convenience
-x,y,a,b = map(Symbol, 'xyab')
+#x,y,a,b = map(Symbol, 'xyab')
