@@ -22,8 +22,13 @@ class StandardCommutativeAlgebra(PairsCommutativeRing):
 
 class Symbolic(PairsCommutativeSymbol, StandardCommutativeAlgebra): # rename to Symbol?
 
+    _hash = None
+
     def __hash__(self):
-        return hash((type(self), self.data))
+        h = self._hash
+        if h is None:
+            self._hash = h = hash((type(self), self.data))
+        return h
 
 class SymbolicNumber(PairsNumber, StandardCommutativeAlgebra): # rename to Number?
 
