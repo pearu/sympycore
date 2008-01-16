@@ -37,7 +37,7 @@ class mpq(tuple):
         return tnew(cls, (p, q))
 
     def __str__(self):
-        return "%i/%i" % self
+        return "(%i/%i)" % self
 
     def __repr__(self):
         return "mpq(%i, %i)" % (self[0], self[1])

@@ -7,6 +7,8 @@ from .primitive import PrimitiveAlgebra, SYMBOL, NUMBER, ADD, MUL
 from .pairs import (CommutativePairs, PairsCommutativeRing, CommutativeTerms,
                     CommutativeFactors, PairsCommutativeSymbol, PairsNumber)
 
+from fractionlib import mpq
+
 class StandardCommutativeAlgebra(PairsCommutativeRing):
     """ Represents an element of a symbolic algebra. The set of a
     symbolic algebra is a set of expressions. There are four kinds of
@@ -16,9 +18,12 @@ class StandardCommutativeAlgebra(PairsCommutativeRing):
     StandardCommutativeAlgebra basically models the structure of SymPy.
     """
 
-    @staticmethod
-    def Pow(base, exp):
+    @classmethod
+    def Pow(cls, base, exp):
+        if exp is -1 and base.head is NUMBER:
+            return SymbolicNumber(mpq(1, base.value) ** -exp)
         return SymbolicFactors({base:exp})
+
 
 class Symbolic(PairsCommutativeSymbol, StandardCommutativeAlgebra): # rename to Symbol?
 

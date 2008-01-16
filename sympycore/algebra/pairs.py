@@ -1014,31 +1014,7 @@ class ExponentsTuple(tuple):
                 num = num * c**e
         return l, num
 
-class NumerDenom(tuple):
-    """ Holds a pair of numerator and denominator.
-    When denominator is 1, returns numerator.
-    """
-    
-    def __new__(cls, p, q, new=tuple.__new__):
-        x, y = p, q
-        while y:
-            x, y = y, x % y
-        if x != 1:
-            p //= x
-            q //= x
-        if q == 1:
-            return p
-        return new(cls, (p, q))
-
-    def __add__(self, other):
-        p, q = self
-        if isinstance(other, (int, long)):
-            return NumerDenom(p + q*other, q)
-        elif isinstance(other, NumerDenom):
-            r, s = other
-            return NumerDenom(p*s + q*r, q*s)
-        else:
-            return NotImplemented
+from fractionlib import mpq
 
 def generate_expand_data(n, m):
     """ Return power-coefficient dictionary of an expanded
@@ -1069,7 +1045,7 @@ def generate_expand_data(n, m):
                 t = p0[i]
                 for t2, c2 in l[k-i]:
                     tt = t2 * t
-                    cc = NumerDenom(nn * c2, k)
+                    cc = mpq(nn * c2, k)
                     b = d.get(tt)
                     if b is None:
                         d[tt] = cc
