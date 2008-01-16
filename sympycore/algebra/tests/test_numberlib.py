@@ -85,3 +85,6 @@ def test_unnumber():
     assert zoo * -oo == zoo
     assert zoo * nan == nan
     assert zoo + nan == nan
+    assert 0*oo == nan
+    assert 0*zoo == nan
+    assert 0*nan == nan
