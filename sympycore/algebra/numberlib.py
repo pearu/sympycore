@@ -68,6 +68,12 @@ class mpq(tuple):
     def __pos__(self):
         return self
 
+    def __abs__(self, tnew=tuple.__new__):
+        p, q = self
+        if p < 0:
+            return tnew(mpq, (-p, q))
+        return self
+
     def __add__(self, other, check=isinstance, inttypes=inttypes):
         p, q = self
         if check(other, inttypes):
@@ -160,7 +166,7 @@ class mpf(object):
             return from_float(x, self.prec, rounding)
         if isinstance(x, basestring):
             return from_str(x, self.prec, rounding)
-        raise NotImplementedError
+        return NotImplemented
 
     def __str__(self):
         return to_str(self.val, int((self.prec/3.33) - 3))
@@ -175,22 +181,43 @@ class mpf(object):
     def __neg__(self): return mpf(fneg(self.val), self.prec)
 
     # XXX: these should handle rationals exactly
-    def __eq__(self, other): return feq(self.val, self.convert(other))
-    def __cmp__(self, other): return fcmp(self.val, self.convert(other))
+    def __eq__(self, other):
+        other = self.convert(other)
+        if other is NotImplemented:
+            return other
+        return feq(self.val, other)
+
+    def __cmp__(self, other):
+        other = self.convert(other)
+        if other is NotImplemented:
+            return other
+        return fcmp(self.val, other)
 
     def __add__(self, other):
-        return mpf(fadd(self.val, self.convert(other), self.prec, rounding), self.prec)
+        other = self.convert(other)
+        if other is NotImplemented:
+            return other
+        return mpf(fadd(self.val, other, self.prec, rounding), self.prec)
 
     __radd__ = __add__
 
     def __sub__(self, other):
-        return mpf(fsub(self.val, self.convert(other), self.prec, rounding), self.prec)
+        other = self.convert(other)
+        if other is NotImplemented:
+            return other
+        return mpf(fsub(self.val, other, self.prec, rounding), self.prec)
 
     def __rsub__(self, other):
-        return mpf(fsub(self.convert(other), self.val, self.prec, rounding), self.prec)
+        other = self.convert(other)
+        if other is NotImplemented:
+            return other
+        return mpf(fsub(other, self.val, self.prec, rounding), self.prec)
 
     def __mul__(self, other):
-        return mpf(fmul(self.val, self.convert(other), self.prec, rounding), self.prec)
+        other = self.convert(other)
+        if other is NotImplemented:
+            return other
+        return mpf(fmul(self.val, other, self.prec, rounding), self.prec)
 
     __rmul__ = __mul__
 
@@ -240,6 +267,8 @@ class mpc(object):
             return x.real, x.imag
         if isinstance(x, complex):
             return mpc(mpf(x.real), mpf(x.imag))
+        if isinstance(x, unnumber):
+            return NotImplemented, 0
         return x, 0
 
     def __pos__(self): return self
@@ -248,6 +277,8 @@ class mpc(object):
     def __add__(self, other):
         a, b = self.real, self.imag
         c, d = self.convert(other)
+        if c is NotImplemented:
+            return c
         return mpc(a+c, b+d)
 
     __radd__ = __add__
@@ -255,16 +286,22 @@ class mpc(object):
     def __sub__(self, other):
         a, b = self.real, self.imag
         c, d = self.convert(other)
+        if c is NotImplemented:
+            return c
         return mpc(a-c, b-d)
 
     def __rsub__(self, other):
         a, b = self.real, self.imag
         c, d = self.convert(other)
+        if c is NotImplemented:
+            return c
         return mpc(c-a, d-b)
 
     def __mul__(self, other):
         a, b = self.real, self.imag
         c, d = self.convert(other)
+        if c is NotImplemented:
+            return c
         return mpc(a*c-b*d, b*c+a*d)
 
     __rmul__ = __mul__
@@ -291,4 +328,70 @@ class mpc(object):
         return mpc(c, d)
 
 
-__all__ = ['mpq', 'mpf', 'mpc', 'div']
+def as_direction(x):
+    if isinstance(x, (mpc, complex)):
+        return mpc(cmp(x.real, 0), cmp(x.imag, 0))
+    return cmp(x, 0)
+
+
+class unnumber:
+
+    def __init__(self, infinite, direction):
+        self.infinite = infinite
+        self.direction = direction
+
+    def __repr__(self):
+        if not self.infinite: return 'nan'
+        if not self.direction: return 'zoo'
+        if self.direction == 1: return 'oo'
+        if self.direction == -1: return '-oo'
+        return "%s*oo" % self.direction
+
+    def __eq__(self, other):
+        if isinstance(other, unnumber):
+            return self.infinite == other.infinite and \
+                self.direction == other.direction
+        return False
+
+    def __hash__(self):
+        return hash(('unnumber', infinite, direction))
+
+    def __neg__(self):
+        return unnumber(self.infinite, -self.direction)
+
+    def __pos__(self):
+        return self
+
+    def __add__(self, other):
+        if isinstance(other, unnumber):
+            if self.direction != other.direction:
+                return nan
+            return unnumber(self.infinite*other.infinite, self.direction)
+        return self
+
+    __radd__ = __add__
+
+    def __sub__(self, other):
+        return self + (-other)
+
+    def __rsub__(self, other):
+        return (-self) + other
+
+    def __mul__(self, other):
+        if isinstance(other, unnumber):
+            return unnumber(self.infinite*other.infinite,
+                as_direction(self.direction*other.direction))
+        if not other:
+            return nan
+        return unnumber(self.infinite, as_direction(self.direction*other))
+
+    __rmul__ = __mul__
+
+
+nan = unnumber(0, 0)
+oo = unnumber(1, 1)
+moo = unnumber(1, -1)
+zoo = unnumber(1, 0)
+
+
+__all__ = ['mpq', 'mpf', 'mpc', 'div', 'unnumber', 'nan', 'oo', 'moo', 'zoo']

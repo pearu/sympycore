@@ -67,3 +67,21 @@ def test_mpc():
     assert mpc(0,1)**(10**9+3) == mpc(0,-1)
     assert mpc(3,4)**10 == mpc(-9653287,1476984)
     assert mpc(mpq(1,2), mpq(-5,6))**3 == mpc(mpq(-11,12), mpq(-5,108))
+
+def test_unnumber():
+    assert 1*oo == oo
+    assert -3*oo == -oo
+    assert oo*oo == oo
+    assert oo+oo == oo
+    assert mpq(1,3)*oo == oo
+    assert -oo == (-1)*oo
+    assert -(-oo) == oo
+    assert oo - oo == nan
+    assert -oo + -oo == -oo
+    assert -oo - (-oo) == nan
+    assert oo + nan == nan
+    assert (mpc(0,1)*oo)*mpc(0,1) == -oo
+    assert zoo * oo == zoo
+    assert zoo * -oo == zoo
+    assert zoo * nan == nan
+    assert zoo + nan == nan
