@@ -24,7 +24,7 @@ Possible issues:
 __all__ = ['mpq', 'mpf', 'mpc', 'div', 'extended_number',
            'nan', 'undefined', 'oo', 'moo', 'zoo']
 
-from primitive import PrimitiveAlgebra, NUMBER
+from primitive import PrimitiveAlgebra, NUMBER, SYMBOL
 
 inttypes = (int, long)
 
@@ -273,6 +273,29 @@ class mpc(object):
         if im > 0: return "(%s + %s*I)" % (restr, innerstr(self.imag))
         if im < 0: return "(%s - %s*I)" % (restr, innerstr(-self.imag))
 
+    def as_primitive(self):
+        re, im = self.real, self.imag
+        if re < 0: 
+            r = -PrimitiveAlgebra(-self.real)
+        else:
+            r = PrimitiveAlgebra(self.real)
+        if im < 0:
+            i = -PrimitiveAlgebra(-self.imag)
+            ni = PrimitiveAlgebra(-self.imag)
+        else:
+            i = PrimitiveAlgebra(self.imag)
+        I = PrimitiveAlgebra('I', head=SYMBOL)
+        if not re:
+            if im == 1: return I
+            if im == -1: return -I
+            return i * I
+        if im == 1: return r + I
+        if im == -1: return r - I
+        if im < 0:
+            return r - ni * I
+        else:
+            return r + i * I
+    
     def __eq__(self, other):
         if isinstance(other, mpc):
             return self.real == other.real and self.imag == other.imag
