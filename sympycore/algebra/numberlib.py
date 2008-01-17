@@ -284,7 +284,7 @@ class mpc(object):
             ni = PrimitiveAlgebra(-self.imag)
         else:
             i = PrimitiveAlgebra(self.imag)
-        I = PrimitiveAlgebra('I', head=SYMBOL)
+        I = PrimitiveAlgebra(mpc(0,1), head=NUMBER)
         if not re:
             if im == 1: return I
             if im == -1: return -I
