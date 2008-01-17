@@ -253,11 +253,11 @@ class mpc(object):
         if not re:
             if im == 1: return "I"
             if im == -1: return "-I"
-            return "%s*I" % self.imag
-        if im == 1: return "(%s+I)" % self.real
-        if im == -1: return "(%s-I)" % self.real
-        if im > 0: return "(%s+%s*I)" % (self.real, self.imag)
-        if im < 0: return "(%s-%s*I)" % (self.real, -self.imag)
+            return str(self.imag) + "*I"
+        if im == 1: return "(%s+I)" % str(self.real)
+        if im == -1: return "(%s-I)" % str(self.real)
+        if im > 0: return "(%s+%s*I)" % (str(self.real), str(self.imag))
+        if im < 0: return "(%s-%s*I)" % (str(self.real), str(-self.imag))
 
     def __eq__(self, other):
         if isinstance(other, mpc):

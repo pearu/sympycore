@@ -67,8 +67,10 @@ def test_mpc():
     assert mpc(0,1)**(10**9+3) == mpc(0,-1)
     assert mpc(3,4)**10 == mpc(-9653287,1476984)
     assert mpc(mpq(1,2), mpq(-5,6))**3 == mpc(mpq(-11,12), mpq(-5,108))
+    assert str(mpc(4,-3)) == '(4-3*I)'
+    assert str(mpc(0,mpq(1,2))) == '(1/2)*I'
 
-def test_unnumber():
+def test_extended_numbers():
     assert 1*oo == oo
     assert -3*oo == -oo
     assert oo*oo == oo
