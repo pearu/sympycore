@@ -38,6 +38,14 @@ APPLY = intern('A')
 TUPLE = intern('T')
 LAMBDA = intern('L')
 
+head_to_string = {\
+    OR:'OR', AND:'AND', NOT:'NOT',
+    LT:'LT', LE:'LE', GT:'GT', GE:'GE', NE:'NE',
+    BAND:'BAND', BOR:'BOR', BXOR:'BXOR', INVERT:'INVERT',
+    POS:'POS', NEG:'NEG', ADD:'ADD', SUB:'SUB', MOD:'MOD', MUL:'MUL', DIV:'DIV', POW:'POW',
+    NUMBER:'NUMBER', SYMBOL:'SYMBOL', APPLY:'APPLY', TUPLE:'TUPLE', LAMBDA:'LAMBDA',
+    }
+
 # XXX: Unimplemented expression parts:
 # XXX: LeftShift, RightShift, List*, Subscript, Slice, KeyWord, GetAttr, Ellipsis
 # XXX: function calls assume no optional nor *args nor *kwargs, same applies to lambda
@@ -71,7 +79,7 @@ parentheses_map = {
     }
 
 _is_name = re.compile(r'\A[a-zA-z_]\w*\Z').match
-_is_number = re.compile(r'\A[0-9.+-]+\Z').match
+_is_number = re.compile(r'\A\d+\Z').match
 
 head_order = [NUMBER, SYMBOL, POS, ADD, SUB, MOD, MUL, DIV, POW,
               NEG,
@@ -109,7 +117,8 @@ class PrimitiveAlgebra(BasicAlgebra):
         return obj
 
     def __repr__(self):
-        return str(self.tree)
+        return '%s(%r, head=%s)' % (self.__class__.__name__, self.tree[1],
+                                    head_to_string[self.tree[0]])
 
     @classmethod
     def convert(cls, obj):
@@ -148,14 +157,9 @@ class PrimitiveAlgebra(BasicAlgebra):
 
     def __str__(self):
         head, rest = self.tree
-        if head is NUMBER:
+        if head is SYMBOL or head is NUMBER:
             s = str(rest)
-            if not _is_number(s):
-                s = '((%s))' % (s)
-            return s
-        if head is SYMBOL:
-            s = str(rest)
-            if not _is_name(s):
+            if not (_is_name(s) or _is_number(s)):
                 s = '((%s))' % (s)
             return s
         if head is APPLY:
