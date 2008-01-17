@@ -9,7 +9,7 @@ from .primitive import PrimitiveAlgebra, SYMBOL, NUMBER, ADD, MUL
 
 from .pairs import CommutativeRingWithPairs
 
-from .numberlib import mpq, mpc
+from .numberlib import mpq, mpf, mpc
 
 class StandardCommutativeAlgebra(CommutativeRingWithPairs):
     """ Represents an element of a symbolic algebra. The set of a
@@ -50,4 +50,4 @@ I = StandardCommutativeAlgebra(mpc(0,1), head=NUMBER)
 StandardCommutativeAlgebra.one = one
 StandardCommutativeAlgebra.zero = zero
 StandardCommutativeAlgebra.algebra_class = StandardCommutativeAlgebra
-StandardCommutativeAlgebra.algebra_numbers = (int, long, float, mpq)
+StandardCommutativeAlgebra.algebra_numbers = (int, long, float, mpq, mpf, mpc)

@@ -159,7 +159,7 @@ class PrimitiveAlgebra(BasicAlgebra):
         head, rest = self.tree
         if head is SYMBOL or head is NUMBER:
             s = str(rest)
-            if not (_is_name(s) or _is_number(s)):
+            if not (_is_name(s) or _is_number(s)) and not s.startswith('('):
                 s = '((%s))' % (s)
             return s
         if head is APPLY:
@@ -205,9 +205,9 @@ class PrimitiveAlgebra(BasicAlgebra):
         for t in rest:
             h = t.tree[0]
             s = str(t)
-            if h is NUMBER and  s.startswith('-'):
+            if h is NUMBER and s.startswith('-'):
                 h = ADD
-            if h in parentheses_map.get(head, [h]):
+            if h in parentheses_map.get(head, [h]) and l:
                 l.append('(%s)' % s)
             else:
                 l.append(s)

@@ -24,6 +24,7 @@ Possible issues:
 __all__ = ['mpq', 'mpf', 'mpc', 'div', 'extended_number',
            'nan', 'undefined', 'oo', 'moo', 'zoo']
 
+from primitive import PrimitiveAlgebra, NUMBER
 
 inttypes = (int, long)
 
@@ -40,6 +41,12 @@ class mpq(tuple):
         if q == 1:
             return p
         return tnew(cls, (p, q))
+
+    def as_primitive(self):
+        p, q = self
+        if p<0:
+            return -(PrimitiveAlgebra(-p, head=NUMBER) / PrimitiveAlgebra(q, head=NUMBER))
+        return PrimitiveAlgebra(p, head=NUMBER) / PrimitiveAlgebra(q, head=NUMBER)
 
     def __str__(self):
         return "(%i/%i)" % self
