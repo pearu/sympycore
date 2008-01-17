@@ -90,3 +90,25 @@ def test_extended_numbers():
     assert 0*oo == nan
     assert 0*zoo == nan
     assert 0*nan == nan
+
+def test_extended_cmp():
+    assert -oo < oo
+    assert -oo < 3
+    assert -oo < mpq(-5,4)
+    assert -oo <= 3
+    assert -oo <= -oo
+    assert not (-oo > 3)
+    assert not (-oo > -oo)
+    assert not (-oo < -oo)
+    assert oo > 3
+    assert oo > -oo
+    assert oo <= oo
+    assert not (oo < 3)
+    assert not (oo < oo)
+    assert not (oo > oo)
+    assert not (nan < nan)
+    assert not (nan > nan)
+    assert max(2, 3, 1, nan, 2) == 3
+    assert min(2, 3, 1, nan, 2) == 1
+    assert max(2, -oo, oo, 3) == oo
+    assert min(2, -oo, oo, 3) == -oo

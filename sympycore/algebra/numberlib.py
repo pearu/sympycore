@@ -345,6 +345,8 @@ def as_direction(x):
     return cmp(x, 0)
 
 
+cmp_error = "no ordering relation is defined for complex numbers"
+
 class extended_number:
 
     def __init__(self, infinite, direction):
@@ -363,6 +365,38 @@ class extended_number:
             return self.infinite == other.infinite and \
                 self.direction == other.direction
         return False
+
+    def __lt__(self, other):
+        if self.direction == 0:
+            return False
+        if self.direction not in (1, -1):
+            raise TypeError(cmp_error)
+        if isinstance(other, extended_number):
+            if other.direction not in (1, -1):
+                raise TypeError(cmp_error)
+            return (self.direction, other.direction) == (-1, 1)
+        if isinstance(other, (complex, mpc)):
+            raise TypeError(cmp_error)
+        return self.direction == -1
+
+    def __gt__(self, other):
+        if self.direction == 0:
+            return False
+        if self.direction not in (1, -1):
+            raise TypeError(cmp_error)
+        if isinstance(other, extended_number):
+            if other.direction not in (1, -1):
+                raise TypeError(cmp_error)
+            return (self.direction, other.direction) == (1, -1)
+        if isinstance(other, (complex, mpc)):
+            raise TypeError(cmp_error)
+        return self.direction == 1
+
+    def __le__(self, other):
+        return self == other or self.__lt__(other)
+
+    def __ge__(self, other):
+        return self == other or self.__gt__(other)
 
     def __hash__(self):
         return hash(('extended_number', infinite, direction))
