@@ -230,6 +230,12 @@ class mpf(object):
         return mpf(fpow(self.val, n, self.prec, rounding))
 
 
+def innerstr(x):
+    if isinstance(x, mpq):
+        return "%s/%s" % x
+    return str(x)
+
+
 class mpc(object):
 
     __slots__ = ['real', 'imag']
@@ -243,7 +249,7 @@ class mpc(object):
         return self
 
     def __repr__(self):
-        return "mpc(%s, %s)" % (self.real, self.imag)
+        return "mpc(%r, %r)" % (self.real, self.imag)
 
     def __hash__(self):
         return hash((self.real, self.imag))
@@ -254,10 +260,11 @@ class mpc(object):
             if im == 1: return "I"
             if im == -1: return "-I"
             return str(self.imag) + "*I"
-        if im == 1: return "(%s+I)" % str(self.real)
-        if im == -1: return "(%s-I)" % str(self.real)
-        if im > 0: return "(%s+%s*I)" % (str(self.real), str(self.imag))
-        if im < 0: return "(%s-%s*I)" % (str(self.real), str(-self.imag))
+        restr = innerstr(self.real)
+        if im == 1: return "(%s + I)" % restr
+        if im == -1: return "(%s - I)" % restr
+        if im > 0: return "(%s + %s*I)" % (restr, innerstr(self.imag))
+        if im < 0: return "(%s - %s*I)" % (restr, innerstr(-self.imag))
 
     def __eq__(self, other):
         if isinstance(other, mpc):
