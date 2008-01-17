@@ -71,6 +71,7 @@ parentheses_map = {
     }
 
 _is_name = re.compile(r'\A[a-zA-z_]\w*\Z').match
+_is_number = re.compile(r'\A[0-9.+-]+\Z').match
 
 head_order = [NUMBER, SYMBOL, POS, ADD, SUB, MOD, MUL, DIV, POW,
               NEG,
@@ -147,8 +148,16 @@ class PrimitiveAlgebra(BasicAlgebra):
 
     def __str__(self):
         head, rest = self.tree
-        if head is NUMBER or head is SYMBOL:
-            return str(rest)
+        if head is NUMBER:
+            s = str(rest)
+            if not _is_number(s):
+                s = '((%s))' % (s)
+            return s
+        if head is SYMBOL:
+            s = str(rest)
+            if not _is_name(s):
+                s = '((%s))' % (s)
+            return s
         if head is APPLY:
             func = rest[0]
             args = rest[1:]
