@@ -18,8 +18,9 @@ class BasicAlgebra(Basic):
       as_primitive(self)
       as_algebra(self, cls)
       Symbol(cls, obj), Number(cls, obj), Add(cls, *seq), Mul(cls, *seq),
-      Pow(cls, base, exponent)
-      as_Add_args(self), as_Mul_args(self), as_Pow_args()
+      Pow(cls, base, exponent), Terms(cls, *seq), Factors(cls, *seq)
+      as_Add_args(self), as_Mul_args(self), as_Pow_args(self),
+      as_Terms_args(self), as_Factors_args(self)
       properties: args(self). func(self)
     """
 
@@ -105,10 +106,14 @@ class BasicAlgebra(Basic):
 
     @property
     def func(self):
+        """ Returns a callable such that self.func(*self.args) == self.
+        """
         raise NotImplementedError('%s must define property func' % (cls.__name__))
 
     @property
     def args(self):
+        """ Returns a sequence such that self.func(*self.args) == self.
+        """
         raise NotImplementedError('%s must define property args' % (cls.__name__))
 
     @classmethod
@@ -125,31 +130,37 @@ class BasicAlgebra(Basic):
 
     @classmethod
     def Add(cls, *seq):
-        """ Compute sum over seq.
+        """ Compute sum over seq containing algebra elements.
         """
         raise NotImplementedError('%s must define classmethod Add' % (cls.__name__))
 
     @classmethod
     def Mul(cls, *seq):
-        """ Compute product over seq.
+        """ Compute product over seq containing algebra elements.
         """
         raise NotImplementedError('%s must define classmethod Mul' % (cls.__name__))
 
     @classmethod
     def Pow(cls, base, exponent):
         """ Compute power from base and exponent.
+        Argument base must be an algebra element and exponent must be
+        an element of exponent algebra.
         """
         raise NotImplementedError('%s must define classmethod Pow' % (cls.__name__))
 
     @classmethod
     def Terms(cls, *seq):
         """ Compute sum over seq containing pairs (element, coefficient).
+        elements must belong to algebra.
+        coefficients must belong to the coefficient algebra.
         """
         raise NotImplementedError('%s must define classmethod Terms' % (cls.__name__))
 
     @classmethod
     def Factors(cls, *seq):
         """ Compute product over seq containing pairs (element, exponent).
+        elements must belong to algebra.
+        exponents must belong to the exponent algebra.
         """
         raise NotImplementedError('%s must define classmethod Factors' % (cls.__name__))
 
