@@ -36,7 +36,7 @@ Some issues:
 """
 #
 # Author: Fredrik Johansson
-# Created: January 2007
+# Created: January 2008
 
 __all__ = ['mpq', 'mpf', 'mpc', 'div', 'try_power', 'extended_number',
            'nan', 'undefined', 'oo', 'moo', 'zoo']
@@ -111,44 +111,37 @@ class mpq(tuple):
     def __add__(self, other, check=isinstance, inttypes=inttypes):
         p, q = self
         if check(other, inttypes):
-            r, s = other, 1
-        elif check(other, mpq):
+            return mpq(p+q*other, q)
+        if check(other, mpq):
             r, s = other
-        else:
-            return NotImplemented
-        return mpq(p*s + q*r, q*s)
+            return mpq(p*s+q*r, q*s)
+        return NotImplemented
 
     __radd__ = __add__
 
     def __sub__(self, other, check=isinstance, inttypes=inttypes):
         p, q = self
         if check(other, inttypes):
-            r, s = other, 1
-        elif check(other, mpq):
+            return mpq(p-q*other, q)
+        if check(other, mpq):
             r, s = other
-        else:
-            return NotImplemented
-        return mpq(p*s - q*r, q*s)
+            return mpq(p*s - q*r, q*s)
+        return NotImplemented
 
     def __rsub__(self, other, check=isinstance, inttypes=inttypes):
         p, q = self
         if check(other, inttypes):
-            r, s = other, 1
-        elif check(other, mpq):
-            r, s = other
-        else:
-            return NotImplemented
-        return mpq(q*r - p*s, q*s)
+            return mpq(q*other-p, q)
+        return NotImplemented
 
     def __mul__(self, other, check=isinstance, inttypes=inttypes):
         p, q = self
         if check(other, inttypes):
-            r, s = other, 1
-        elif check(other, mpq):
+            return mpq(p*other, q)
+        if check(other, mpq):
             r, s = other
-        else:
-            return NotImplemented
-        return mpq(p*r, q*s)
+            return mpq(p*r, q*s)
+        return NotImplemented
 
     __rmul__ = __mul__
 
@@ -157,22 +150,17 @@ class mpq(tuple):
         if check(other, inttypes):
             if not other:
                 return cmp(p, 0) * oo
-            r, s = other, 1
-        elif check(other, mpq):
+            return mpq(p, q*other)
+        if check(other, mpq):
             r, s = other
-        else:
-            return NotImplemented
-        return mpq(p*s, q*r)
+            return mpq(p*s, q*r)
+        return NotImplemented
 
     def __rdiv__(self, other, check=isinstance, inttypes=inttypes):
         p, q = self
         if check(other, inttypes):
-            r, s = other, 1
-        elif check(other, mpq):
-            r, s = other
-        else:
-            return NotImplemented
-        return mpq(q*r, p*s)
+            return mpq(q*other, p)
+        return NotImplemented
 
     def __pow__(self, n):
         assert isinstance(n, inttypes)
