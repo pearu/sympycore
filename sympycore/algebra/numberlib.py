@@ -1,35 +1,55 @@
 """
-The mpq fraction type implemented here is only intended to be used to
-extend code that would otherwise use Python ints for the purpose
-of representing exact numbers. Addition, multiplication and comparison
-with mpqs and Python ints is therefore safe.
+This module implements "low-level" number types which may be used
+by algebras to represent coefficients internally, for purely numerical
+calculations, etc. In the interest of speed, the classes implemented
+here have some quirks which make them unsuitable to be exposed
+directly to (non-expert) users.
 
-However, integer-valued fractions are converted back to Python ints,
-and therefore code that would not work ordinarily with ints like
+In particular, we want fractions to normalize back to Python ints
+when they become integer-valued, and we want complex numbers to
+normalize back to their real parts when the imaginary parts disappear.
+This means code like
 
     a = mpq(2)
     b = mpq(3)
     a / b
 
-should not be expected to work (this itself is an implementation detail
-that may be changed). For this reason, non-integer-safe operations are
-provided as functions (which take either mpq or Python ints as input).
+should not be expected to work. Instead, the div() function can be used
+to safely divide numbers (it checks for integers). However, +, - and *,
+as well as positive integer powers, are always safe.
 
-Possible issues:
-* Hashing is not compatible with floats (however, mixing floats and
-  rationals is probably not a good idea).
+Powers, except when the exponent is a positive integer, should be
+computed with the try_power() function which detects when the result is
+not exact.
+
+In addition to the number types mpq (rationals), mpf (floats) and mpc
+(complexes), the extended_number type can be used to represent infinities
+and indeterminate/undefined (nan) results.
+
+Some issues:
+* Rational hashing is not compatible with floats (however, mixing floats
+  and rationals is generally not a good idea).
+* Extended numbers are not fully handled yet.
+* try_power does not yet know how to compute fractional powers
+  (and square roots in particular)
 
 """
 #
 # Author: Fredrik Johansson
 # Created: January 2007
 
-__all__ = ['mpq', 'mpf', 'mpc', 'div', 'extended_number',
+__all__ = ['mpq', 'mpf', 'mpc', 'div', 'try_power', 'extended_number',
            'nan', 'undefined', 'oo', 'moo', 'zoo']
 
 from primitive import PrimitiveAlgebra, NUMBER, SYMBOL
 
 inttypes = (int, long)
+
+#----------------------------------------------------------------------------#
+#                                                                            #
+#                              Rational numbers                              #
+#                                                                            #
+#----------------------------------------------------------------------------#
 
 class mpq(tuple):
     __slots__ = []
@@ -132,30 +152,46 @@ class mpq(tuple):
 
     __rmul__ = __mul__
 
-    def __pow__(self, n):
-        if not (isinstance(n, inttypes) and n >= 0):
-            raise ValueError
+    def __div__(self, other, check=isinstance, inttypes=inttypes):
         p, q = self
-        return mpq(p**n, q**n)
+        if check(other, inttypes):
+            if not other:
+                return cmp(p, 0) * oo
+            r, s = other, 1
+        elif check(other, mpq):
+            r, s = other
+        else:
+            return NotImplemented
+        return mpq(p*s, q*r)
 
-rational_types = (int, long, mpq)
+    def __rdiv__(self, other, check=isinstance, inttypes=inttypes):
+        p, q = self
+        if check(other, inttypes):
+            r, s = other, 1
+        elif check(other, mpq):
+            r, s = other
+        else:
+            return NotImplemented
+        return mpq(q*r, p*s)
 
-def div(a, b, check=isinstance, inttypes=inttypes):
-    if check(a, inttypes):
-        p, q = a, 1
-    else:
-        p, q = a
-    if check(b, inttypes):
-        r, s = b, 1
-    else:
-        r, s = b
-    return mpq(p*s, q*r)
+    def __pow__(self, n):
+        assert isinstance(n, inttypes)
+        p, q = self
+        if n >= 0:
+            return mpq(p**n, q**n)
+        else:
+            return mpq(q**n, p**n)
 
 
+#----------------------------------------------------------------------------#
+#                                                                            #
+#                          Floating-point numbers                            #
+#                                                                            #
+#----------------------------------------------------------------------------#
 
 from mpmath.lib import from_int, from_rational, to_str, fadd, fsub, fmul, \
   round_half_even, from_float, to_float, to_int, fpow, from_str, feq, \
-  fhash, fcmp
+  fhash, fcmp, fdiv
 
 rounding = round_half_even
 
@@ -235,10 +271,31 @@ class mpf(object):
 
     __rmul__ = __mul__
 
+    def __div__(self, other):
+        # XXX: check for divide by zero
+        other = self.convert(other)
+        if other is NotImplemented:
+            return other
+        return mpf(fdiv(self.val, other, self.prec, rounding), self.prec)
+
+    def __rdiv__(self, other):
+        # XXX: check for divide by zero
+        other = self.convert(other)
+        if other is NotImplemented:
+            return other
+        return mpf(fdiv(other, self.val, self.prec, rounding), self.prec)
+
     def __pow__(self, n):
+        # XXX: check for divide by zero
         assert isinstance(n, inttypes)
         return mpf(fpow(self.val, n, self.prec, rounding))
 
+
+#----------------------------------------------------------------------------#
+#                                                                            #
+#                              Complex numbers                               #
+#                                                                            #
+#----------------------------------------------------------------------------#
 
 def innerstr(x):
     if isinstance(x, mpq):
@@ -350,11 +407,33 @@ class mpc(object):
 
     __rmul__ = __mul__
 
+    def __div__(self, other):
+        a, b = self.real, self.imag
+        c, d = self.convert(other)
+        if c is NotImplemented:
+            return c
+        mag = c*c + d*d
+        re = div(a*c+b*d, mag)
+        im = div(b*c-a*d, mag)
+        return mpc(re, im)
+
+    def __rdiv__(self, other):
+        c, d = self.real, self.imag
+        a, b = self.convert(other)
+        if a is NotImplemented:
+            return a
+        mag = c*c + d*d
+        re = div(a*c+b*d, mag)
+        im = div(b*c-a*d, mag)
+        return mpc(re, im)
+
     def __pow__(self, n):
-        assert isinstance(n, (int, long)) and n >= 0
+        assert isinstance(n, (int, long))
         if not n: return 1
         if n == 1: return self
         if n == 2: return self * self
+        if n < 0:
+            return (1 / self) ** (-n)
         a, b = self.real, self.imag
         if not a:
             case = n % 4
@@ -372,11 +451,16 @@ class mpc(object):
         return mpc(c, d)
 
 
+#----------------------------------------------------------------------------#
+#                                                                            #
+#                             Extended numbers                               #
+#                                                                            #
+#----------------------------------------------------------------------------#
+
 def as_direction(x):
     if isinstance(x, (mpc, complex)):
         return mpc(cmp(x.real, 0), cmp(x.imag, 0))
     return cmp(x, 0)
-
 
 cmp_error = "no ordering relation is defined for complex numbers"
 
@@ -470,3 +554,42 @@ undefined = nan = extended_number(0, 0)
 oo = extended_number(1, 1)
 moo = extended_number(1, -1)
 zoo = extended_number(1, 0)
+
+
+#----------------------------------------------------------------------------#
+#                                                                            #
+#                            Interface functions                             #
+#                                                                            #
+#----------------------------------------------------------------------------#
+
+def div(a, b):
+    """Safely compute a/b (if a or b is an integer, this function makes sure
+    to convert it to a rational)."""
+    if isinstance(b, inttypes):
+        return mpq(1,b) * a
+    return a / b
+
+def try_power(x, y):
+    """
+    Attempt to compute x**y where x and y must be of the types int,
+    long, mpq, mpf, mpc or extended_number. The function returns
+
+      z, symbolic
+
+    where z is a number (i.e. a complex rational) and symbolic is
+    either None (if z is the exact answer) or a pair (b, e) representing
+    the symbolic product b**e. For example, this function should return:
+
+      try_power(3, 2) --> (9, None)
+      try_power(2, 1/2) --> (1, (2, 1/2))
+      try_power(45, 1/2) --> (3, (5, 1/2))
+
+    """
+    if isinstance(x, extended_number) or isinstance(y, extended_number):
+        raise NotImplementedError
+    if isinstance(y, inttypes):
+        if y >= 0: return x**y, None
+        if not x: return oo, None
+        if isinstance(x, inttypes): return mpq(1, x**(-y)), None
+        if isinstance(x, (mpq, mpf, mpc)): return x**y, None
+    return 1, (x, y)

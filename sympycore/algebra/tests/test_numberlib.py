@@ -69,6 +69,8 @@ def test_mpc():
     assert mpc(mpq(1,2), mpq(-5,6))**3 == mpc(mpq(-11,12), mpq(-5,108))
     assert str(mpc(4,-3)) == '(4 - 3*I)'
     assert str(mpc(0,mpq(1,2))) == '(1/2)*I'
+    assert mpc(0,1)**(-2) == -1
+
 
 def test_extended_numbers():
     assert 1*oo == oo
@@ -112,3 +114,12 @@ def test_extended_cmp():
     assert min(2, 3, 1, nan, 2) == 1
     assert max(2, -oo, oo, 3) == oo
     assert min(2, -oo, oo, 3) == -oo
+
+def test_powers():
+    assert try_power(3, 2) == (9, None)
+    assert try_power(3, -2) == (mpq(1, 9), None)
+    assert try_power(0, -1) == (oo, None)
+    assert try_power(mpq(1,2), 0) == (1, None)
+    assert try_power(mpc(0, 1), 2) == (-1, None)
+    assert try_power(mpc(-1,2), -2) == (mpc(mpq(-3,25), mpq(4,25)), None)
+    assert try_power(2, mpq(1, 2)) == (1, (2, mpq(1, 2)))

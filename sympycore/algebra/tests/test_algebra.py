@@ -10,3 +10,8 @@ def test_linear():
     assert 2*x/3 + x/3 == x
     assert I*x + 3*x == (3+I)*x
 
+def test_powers():
+    assert Number(3) ** Number(-2) == Number(1,9)
+    assert str(Number(2) ** Number(1,2)) == "2**(1/2)"
+
+

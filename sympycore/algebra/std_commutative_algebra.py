@@ -9,7 +9,7 @@ from .primitive import PrimitiveAlgebra, SYMBOL, NUMBER, ADD, MUL
 
 from .pairs import CommutativeRingWithPairs
 
-from .numberlib import mpq, mpf, mpc
+from .numberlib import mpq, mpf, mpc, try_power
 
 class StandardCommutativeAlgebra(CommutativeRingWithPairs):
     """ Represents an element of a symbolic algebra. The set of a
@@ -34,9 +34,27 @@ class StandardCommutativeAlgebra(CommutativeRingWithPairs):
         return cls(obj, head=SYMBOL)
 
     @classmethod
+    def convert_exponent(cls, obj, *args):
+        if isinstance(obj, cls):
+            return obj
+        return cls(obj)
+
+    @classmethod
     def Pow(cls, base, exp):
         if exp is -1 and base.head is NUMBER:
-            return cls.Number(mpq(1, base.data))
+            # fast path for division
+            return cls(try_power(base.data, -1)[0], head=NUMBER)
+        N = cls.Number
+        exp = cls.convert(exp)
+        if base.head is NUMBER and exp.head is NUMBER:
+            num, sym = try_power(base.data, exp.data)
+            if not sym:
+                return N(num)
+            base, exp = sym
+            sym = cls({N(base):N(exp)}, head=MUL)
+            if num == 1:
+                return sym
+            return cls({sym:N(num)}, head=ADD)
         if exp == 0:
             return cls.one
         if exp == 1 or cls.one==base:
