@@ -103,6 +103,14 @@ class BasicAlgebra(Basic):
             return self.as_primitive()
         return self.as_primitive().as_algebra(cls)
 
+    @property
+    def func(self):
+        raise NotImplementedError('%s must define property func' % (cls.__name__))
+
+    @property
+    def args(self):
+        raise NotImplementedError('%s must define property args' % (cls.__name__))
+
     @classmethod
     def Symbol(cls, obj):
         """ Construct algebra symbol directly from obj.
@@ -134,6 +142,18 @@ class BasicAlgebra(Basic):
         raise NotImplementedError('%s must define classmethod Pow' % (cls.__name__))
 
     @classmethod
+    def Terms(cls, *seq):
+        """ Compute sum over seq containing pairs (element, coefficient).
+        """
+        raise NotImplementedError('%s must define classmethod Terms' % (cls.__name__))
+
+    @classmethod
+    def Factors(cls, *seq):
+        """ Compute product over seq containing pairs (element, exponent).
+        """
+        raise NotImplementedError('%s must define classmethod Factors' % (cls.__name__))
+
+    @classmethod
     def as_Add_args(self):
         """ Return a sequence such that Add(*self.as_Add_args()) == self
         """
@@ -150,6 +170,18 @@ class BasicAlgebra(Basic):
         """ Return a 2-tuple such that Pow(*self.as_Pow_args()) == self
         """
         raise NotImplementedError('%s must define classmethod as_Pow_args' % (cls.__name__))
+
+    @classmethod
+    def as_Terms_args(self):
+        """ Return a sequence such that Terms(*self.as_Terms_args()) == self
+        """
+        raise NotImplementedError('%s must define classmethod as_Terms_args' % (cls.__name__))
+
+    @classmethod
+    def as_Factors_args(self):
+        """ Return a sequence such that Factors(*self.as_Factors_args()) == self
+        """
+        raise NotImplementedError('%s must define classmethod as_Factors_args' % (cls.__name__))
 
     def __pos__(self):
         return self
