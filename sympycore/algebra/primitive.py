@@ -140,13 +140,13 @@ class PrimitiveAlgebra(BasicAlgebra):
         if head is SYMBOL:
             return cls(rest, head=SYMBOL)
         if head is ADD:
-            return cls.Add([r.as_algebra(cls) for r in rest])
+            return cls.Add(*[r.as_algebra(cls) for r in rest])
         if head is SUB:
-            return rest[0].as_algebra(cls) - cls.Add([r.as_algebra(cls) for r in rest[1:]])
+            return rest[0].as_algebra(cls) - cls.Add(*[r.as_algebra(cls) for r in rest[1:]])
         if head is MUL:
-            return cls.Mul([r.as_algebra(cls) for r in rest])
+            return cls.Mul(*[r.as_algebra(cls) for r in rest])
         if head is DIV:
-            return rest[0].as_algebra(cls) / cls.Mul([r.as_algebra(cls) for r in rest[1:]])
+            return rest[0].as_algebra(cls) / cls.Mul(*[r.as_algebra(cls) for r in rest[1:]])
         if head is POW:
             return cls.Pow(*[r.as_algebra(cls) for r in rest])
         if head is NEG:
@@ -207,7 +207,11 @@ class PrimitiveAlgebra(BasicAlgebra):
             s = str(t)
             if h is NUMBER and s.startswith('-'):
                 h = ADD
-            if h in parentheses_map.get(head, [h]) and l:
+                if h in parentheses_map.get(head, [h]) and l:
+                    l.append('(%s)' % s)
+                else:
+                    l.append(s)
+            elif h in parentheses_map.get(head, [h]):
                 l.append('(%s)' % s)
             else:
                 l.append(s)

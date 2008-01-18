@@ -20,6 +20,9 @@ Possible issues:
   rationals is probably not a good idea).
 
 """
+#
+# Author: Fredrik Johansson
+# Created: January 2007
 
 __all__ = ['mpq', 'mpf', 'mpc', 'div', 'extended_number',
            'nan', 'undefined', 'oo', 'moo', 'zoo']

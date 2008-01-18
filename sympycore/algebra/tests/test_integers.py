@@ -20,14 +20,14 @@ def test_symbols():
     assert bool(i==1)==False
 
 def test_terms():
-    ab = Integers.Add(['a','b'])
+    ab = Integers.Add(*map(Integers.convert,['a','b']))
     assert isinstance(ab, Integers)==True
     assert str(ab)=='a + b'
     assert bool(ab==Integers('a+b'))==True
     assert bool(ab==Integers('b+a'))==True
 
 def test_Factors():
-    ab = Integers.Mul(['a','b'])
+    ab = Integers.Mul(*map(Integers.convert,['a','b']))
     assert isinstance(ab, Integers)==True
     assert str(ab)=='a*b'
     assert bool(ab==Integers('a*b'))==True

@@ -27,6 +27,10 @@ class Integers(CommutativeRingWithPairs):
     """
 
     @classmethod
+    def convert_exponent(cls, obj, typeerror=True):
+        return cls.convert(obj, typeerror)
+        
+    @classmethod
     def Number(cls, num):
         if isinstance(num, (int,long)):
             return cls(num, head=NUMBER)
@@ -46,7 +50,11 @@ class Integers(CommutativeRingWithPairs):
         if exponent < 0:
             raise HintExtendAlgebraTo('Rationals')
         if head is NUMBER:
-            return Integers(base.data ** exponent, head=NUMBER)
+            if isinstance(exponent, cls):
+                if exponent.head is NUMBER:
+                    return Integers(base.data ** exponent.data, head=NUMBER)
+            else:
+                return Integers(base.data ** exponent, head=NUMBER)
         if head is ADD:
             bb, nn = base.as_terms_intcoeff()
             return Integers({bb: exponent}, head=MUL) * nn**exponent

@@ -6,6 +6,8 @@ Number = Algebra.Number
 Add = Algebra.Add
 Mul = Algebra.Mul
 Pow = Algebra.Pow
+Terms = Algebra.Terms
+Factors = Algebra.Factors
 
 def test_symbol():
     a = Symbol('a')
@@ -32,3 +34,15 @@ def test_pow():
     n = Number(2)
     s = Pow(a,3)
     assert str(s)=='a**3'
+
+def test_terms():
+    a = Symbol('a')
+    n = Number(2)
+    s = Terms((a,2))
+    assert str(s)=='2*a'
+
+def test_factors():
+    a = Symbol('a')
+    n = Number(2)
+    s = Factors((a,2))
+    assert str(s)=='a**2'

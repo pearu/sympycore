@@ -1,8 +1,12 @@
+#
+# Author: Pearu Peterson
+# Created: January 2007
+
 import types
 
 from ..core import classes
 from .algebraic_structures import BasicAlgebra
-from .primitive import PrimitiveAlgebra, ADD, MUL, SYMBOL, NUMBER
+from .primitive import PrimitiveAlgebra, ADD, MUL, SYMBOL, NUMBER, head_to_string
 from .numberlib import mpq
 
 def newinstance(cls, head, data, new = object.__new__):
@@ -60,14 +64,81 @@ class CommutativeRingWithPairs(BasicAlgebra):
             self._hash = h
         return h
 
+    def __nonzero__(self):
+        return self.head is not NUMBER or self.data!=0
+
     def copy(self):
         if self.head in [ADD, MUL]:
             return newinstance(self.__class__, self.head, self.data.copy())
         return self
 
     def __repr__(self):
-        return '%s(%r)' % (self.__class__.__name__, self.data)
+        return '%s(%r, head=%s)' % (self.__class__.__name__, self.data, head_to_string[self.head])
 
+    @property
+    def func(self):
+        head = self.head
+        data = self.data
+        if head is SYMBOL or head is HEAD:
+            return lambda : self
+        if head is ADD:
+            if len(data)>1:
+                return self.Add
+            return self.Mul
+        if head is MUL:
+            if len(data)>1:
+                return self.Mul
+            return self.Pow
+        raise NotImplementedError(`self, head`)
+
+    @property
+    def args(self):
+        head = self.head
+        if head is SYMBOL or head is NUMBER:
+            return []
+        if head is ADD:
+            if len(data)>1:
+                return self.as_Add_args()
+            return self.as_Mul_args()
+        if head is MUL:
+            if len(data)>1:
+                return self.as_Mul_args()
+            return self.as_Pow_args()
+        raise NotImplementedError(`self, head`)
+
+    def as_Add_args(self):
+        head = self.head
+        data = self.data
+        if head is SYMBOL or head is NUMBER or head is MUL:
+            return [self]
+        if head is ADD:
+            if len(data)==1:
+                return [self]
+            return [t * c for t,c in data.iteritems()]
+        raise NotImplementedError(`self, head`)
+
+    def as_Mul_args(self):
+        head = self.head
+        data = self.data
+        if head is SYMBOL or head is NUMBER or head is ADD:
+            return [self]
+        if head is MUL:
+            if len(data)==1:
+                return [self]
+            return [t ** c for t,c in data.iteritems()]
+        raise NotImplementedError(`self, head`)
+
+    def as_Pow_args(self):
+        head = self.head
+        data = self.data
+        if head is SYMBOL or head is NUMBER or head is ADD:
+            return [self, self.one_e]
+        if head is MUL:
+            if len(data)==1:
+                return data.items()
+            return [self, self.one_e] #XXX: improve me
+        raise NotImplementedError(`self, head`)
+    
     def canonize(self):
         head = self.head
         if head is ADD:
@@ -127,9 +198,14 @@ class CommutativeRingWithPairs(BasicAlgebra):
             r = PrimitiveAlgebra((MUL,tuple(l)))
             r.commutative_mul = True
         elif head is SYMBOL:
+            data = self.data
+            if hasattr(data, 'as_primitive'):
+                return data.as_primitive()
             r = PrimitiveAlgebra((SYMBOL, self.data))
         elif head is NUMBER:
             value = self.data
+            if hasattr(value, 'as_primitive'):
+                return value.as_primitive()
             if value<0:
                 r = -PrimitiveAlgebra((NUMBER, -value))
             else:
@@ -141,15 +217,101 @@ class CommutativeRingWithPairs(BasicAlgebra):
     def expand(self):
         return expand_dict[self.head](self)
 
+
+    def matches(pattern, expr, repl_dict={}, wild_expressions=[], wild_predicates=[]):
+        r = BasicAlgebra.matches(pattern, expr, repl_dict, wild_expressions, wild_predicates)
+        head = pattern.head
+        if r is not None or head is NUMBER:
+            return r
+        if head is SYMBOL:
+            if expr.head is SYMBOL:
+                #XXX: return pattern.data.matches(expr.data, repl_dict, ...)
+                return
+            return
+        if not wild_expression:
+            return
+        wild_part = []
+        exact_part = []
+        for t,c in pattern.data.iteritems():
+            if t.has(*wild_exprssions):
+                wild_part.append((t,c))
+            else:
+                exact_part.append((t,-c))
+
+        def newobj(data):
+            r = newinstance(pattern.__class__, pattern.head, data)
+            if len(data)<=1:
+                return r.canonize()
+            return r
+
+        if exact_part:
+            if head is ADD:
+                new_expr = expr + newobj(dict(exact_part))
+            elif head is MUL:
+                new_expr = expr * newobj(dict(exact_part))
+            else:
+                raise TypeError(`pattern, head`)
+            new_pattern = newobj(dict(wild_part))
+            return new_pattern.matches(expr, repl_dict, wild_expressions, wild_predicate)
+
+        args = repl_dict, wild_expressions, wild_predicates
+        if head is ADD:
+            expr_args = list(expr.as_Terms_args)
+            op = lambda x,y: x*y
+        else:
+            assert head is MUL,`expr`
+            expr_args = list(expr.as_Factors_args)
+            op = lambda x,y: x**y
+            
+        for i in xrange(len(wild_part)):
+            wild, wcoeff = wild_part[i]
+            rest = newobj(dict(wild_part[:i] + wild_part[i+1:]))
+
+            # sort expression arguments by matching coefficient/exponent
+            items1, items2 = [], []
+            for item in expr_args:
+                if item[1]==wcoeff:
+                    items1.append(item)
+                else:
+                    items2.append(item)
+            items = items1 + items2
+
+            # matches nontrivial wild:
+            for j in xrange(len(items)):
+                t, c = items[j]
+                cc = c/wcoeff # XXX: check for fractional powers if head is MUL
+                r = wild.matches(op(t,cc), *args)
+                if r is None:
+                    continue
+                new_pattern = rest.subs(r.items())
+                new_expr = newobj(dict(items[:j]+items[j+1:]))
+                r = new_pattern.matches(new_expr, *args)
+                if r is not None:
+                    return r
+
+            # matches trivial wild:
+            r = wild.matches(pattern.zero, *args)
+            if r is not None:
+                r = rest.subs(r.items()).matches(expr, *args)
+                if r is not None:
+                    return r
+        return
+
     @classmethod
-    def Add(cls, seq):
+    def Symbol(cls, obj):
+        return newinstance(cls, SYMBOL, obj)
+
+    @classmethod
+    def Number(cls, obj):
+        return newinstance(cls, NUMBER, obj)
+
+    @classmethod
+    def Add(cls, *seq):
         terms = newinstance(cls, ADD,{})
         one = cls.one
         zero_c = cls.zero_c
         one_c = cls.one_c
-        a_cls = cls.convert
         for t in seq:
-            t = a_cls(t)
             head = t.head
             if head is SYMBOL:
                 terms._add_value(t, one_c, zero_c)
@@ -164,17 +326,15 @@ class CommutativeRingWithPairs(BasicAlgebra):
         return terms.canonize()
 
     @classmethod
-    def Mul(cls, seq):
+    def Mul(cls, *seq):
         result = newinstance(cls, MUL,{})
         one = cls.one
         zero_e = cls.zero_e
         one_e = cls.one_e
         one_c = cls.one_c
         zero_c = cls.zero_c
-        a_cls = cls.convert
         number = one_c
         for t in seq:
-            t = a_cls(t)
             head = t.head
             if head is SYMBOL:
                 result._add_value(t, one_e, zero_e)
@@ -183,7 +343,7 @@ class CommutativeRingWithPairs(BasicAlgebra):
             elif head is ADD:
                 result._add_value(t, one_e, zero_e)
             elif head is MUL:
-                result._add_values(t, one_e, zero_e)
+                result._add_values(t.data.iteritems(), one_e, zero_e)
             else:
                 raise TypeError(`t, head`)
         result = result.canonize()
@@ -199,6 +359,47 @@ class CommutativeRingWithPairs(BasicAlgebra):
             r._multiply_values(number, one_c, zero_c)
             return r.canonize()
         return newinstance(cls, ADD, {result:number})
+
+    @classmethod
+    def Pow(cls, base, exponent):
+        return newinstance(cls, MUL, {base:exponent})
+
+    @classmethod
+    def Terms(cls, *seq):
+        result = newinstance(cls, ADD, {})
+        one = cls.one
+        one_c = cls.one_c
+        zero_c = cls.zero_c
+        for t,c in seq:
+            head = t.head
+            if head is NUMBER:
+                result._add_value(one, t.data * c, zero_c)
+            elif head is SYMBOL or head is MUL:
+                result._add_value(t, c, zero_c)
+            elif head is ADD:
+                result._add_values(t.pairs.iteritems(), c, zero_c)
+            else:
+                raise TypeError(`t, head`)
+        return result.canonize()
+
+    @classmethod
+    def Factors(cls, *seq):
+        result = newinstance(cls, MUL, {})
+        one = cls.one
+        zero_e = cls.zero_e
+        one_e = cls.one_e
+        number = cls.one_c
+        for t,c in seq:
+            head = t.head
+            if head is NUMBER:
+                number = number * t.data ** c
+            elif head is SYMBOL or head is ADD:
+                result._add_value(t, c, zero_e)
+            elif head is MUL:
+                result._add_values(t.pairs.iteritems(), c, zero_e)
+            else:
+                raise TypeError(`t, head`)
+        return result.canonize() * number
 
     def __int__(self):
         assert self.head is NUMBER,`self`
@@ -307,6 +508,9 @@ class CommutativeRingWithPairs(BasicAlgebra):
         for t,c in self.data.iteritems():
             d[t] = c * rhs
         self.data = d
+
+CommutativeRingWithPairs.one = CommutativeRingWithPairs.Number(1)
+CommutativeRingWithPairs.zero = CommutativeRingWithPairs.Number(0)
 
 class CommutativePairs: # XXX: to be removed
     """ Represents operands of an commutative operation.

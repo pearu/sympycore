@@ -1,3 +1,6 @@
+#
+# Author: Fredrik Johansson
+# Created: January 2007
 
 from .primitive import PrimitiveAlgebra, ADD, POW, MUL, NUMBER, SYMBOL
 
