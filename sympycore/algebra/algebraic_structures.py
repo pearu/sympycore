@@ -1,128 +1,233 @@
 
-from ..core import Basic, classes, objects, sympify, BasicType
+from ..core import Basic
 
-class AlgebraicStructure(Basic):
+class BasicAlgebra(Basic):
     """ Represents an element of an algebraic structure.
-    Subclasses will define operations between elements if any.
+
+    This class collects implementation specific methods of algebra classes.
+    
+    For implemented algebras, see:
+      PrimitiveAlgebra
+      CommutativeRingWithPairs
+    
+    New algebras may need to redefine the following methods:
+      __new__(cls, ...)
+      convert(cls, obj, typeerror=True)
+      convert_coefficient(cls, obj, typeerror=True)
+      convert_exponent(cls, obj, typeerror=True)
+      as_primitive(self)
+      as_algebra(self, cls)
+      Symbol(cls, obj), Number(cls, obj), Add(cls, *seq), Mul(cls, *seq),
+      Pow(cls, base, exponent)
+      as_Add_args(self), as_Mul_args(self), as_Pow_args()
+      properties: args(self). func(self)
     """
-
-    @classmethod
-    def convert_exponent(cls, obj):
-        return int(obj)
-
-    def as_primitve(self):
-        raise NotImplementedError('%s must define as_primitive method'\
-                                  % (type(self).__name__))
 
     def __str__(self):
         return str(self.as_primitive())
 
-class BasicAlgebra(AlgebraicStructure):
-    """ Collects implementation specific methods of algebra classes.
-    
-    They must be all compatible with PrimitiveAlgebra class via
-    defining as_primitive method.
-
-    The recommended way to construct + and * operation results is to
-    define Add, Mul, Pow static methods which are used by default
-    __add__, __mul__ etc methods.
-    """
     @classmethod
     def convert(cls, obj, typeerror=True):
-        algebra_class = cls.algebra_class
-        if isinstance(obj, algebra_class):
+        """ Convert obj to algebra element.
+
+        Set typeerror=False when calling from operation methods like __add__,
+        __mul__, etc.
+        """
+        # check if obj is already algebra element:
+        if isinstance(obj, cls):
             return obj
-        if isinstance(obj, cls.algebra_numbers):
-            return cls(obj, head=NUMBER)
+
+        # parse algebra expression from string:
         if isinstance(obj, (str, unicode)):
             obj = PrimitiveAlgebra(obj)
+
+        # convert from primitive algebra:
         if isinstance(obj, PrimitiveAlgebra):
             return obj.as_algebra(cls.algebra_class)
+
+        # convert from another algebra:
         if isinstance(obj, BasicAlgebra):
-            return obj.as_primitive().as_algebra(cls.algebra_class)
+            return obj.as_algebra(cls.algebra_class)
+
+        # as a last resort, check if obj belongs to coefficient algebra
+        r = cls.convert_coefficient(obj, typeerror=False)
+        if r is not NotImplemented:
+            return cls.Number(r)
+
         if typeerror:
-            raise TypeError('%s.convert(<%s object>)' % (cls.__name__, type(obj)))
+            raise TypeError('%s.convert: failed to convert %s instance'\
+                            ' to algebra'\
+                            % (cls.__name__, obj.__class__.__name__))
         else:
             return NotImplemented
-        return obj
 
-    def as_algebra(self, cls, source=None):
+    @classmethod
+    def convert_exponent(cls, obj, typeerror=True):
+        """ Convert obj to exponent algebra.
         """
+        if isinstance(obj, (int, long)):
+            return obj
+        if typeerror:
+            raise TypeError('%s.convert_exponent: failed to convert %s instance'\
+                            ' to exponent algebra, expected int|long object'\
+                            % (cls.__name__, obj.__class__.__name__))
+        else:
+            return NotImplemented
+
+    @classmethod
+    def convert_coefficient(cls, obj, typeerror=True):
+        """ Convert obj to coefficient algebra.
         """
-        # XXX: cache primitive algebras
+        if isinstance(obj, (int, long)):
+            return obj
+        if typeerror:
+            raise TypeError('%s.convert_coefficient: failed to convert %s instance'\
+                            ' to coefficient algebra, expected int|long object'\
+                            % (cls.__name__, obj.__class__.__name__))
+        else:
+            return NotImplemented
+
+    def as_primitve(self):
+        raise NotImplementedError('%s must define as_primitive method'\
+                                  % (self.__class__.__name__))
+
+    def as_algebra(self, cls):
+        """ Convert algebra to another algebra.
+
+        This method uses default conversation via primitive algebra that
+        might not be the most efficient. For efficiency, algebras should
+        redefine this method to implement direct conversation.
+        """
+        # todo: cache primitive algebras
         if cls is classes.PrimitiveAlgebra:
             return self.as_primitive()
-        return self.as_primitive().as_algebra(cls, source=self)
+        return self.as_primitive().as_algebra(cls)
 
     @classmethod
     def Symbol(cls, obj):
+        """ Construct algebra symbol directly from obj.
+        """
         raise NotImplementedError('%s must define classmethod Symbol' % (cls.__name__))
 
     @classmethod
     def Number(cls, num, denom=None):
+        """ Construct algebra number directly from obj.
+        """
         raise NotImplementedError('%s must define classmethod Number' % (cls.__name__))
 
     @classmethod
-    def Add(cls, seq):
+    def Add(cls, *seq):
+        """ Compute sum over seq.
+        """
         raise NotImplementedError('%s must define classmethod Add' % (cls.__name__))
 
     @classmethod
-    def Mul(cls, seq):
+    def Mul(cls, *seq):
+        """ Compute product over seq.
+        """
         raise NotImplementedError('%s must define classmethod Mul' % (cls.__name__))
 
     @classmethod
     def Pow(cls, base, exponent):
+        """ Compute power from base and exponent.
+        """
         raise NotImplementedError('%s must define classmethod Pow' % (cls.__name__))
+
+    @classmethod
+    def as_Add_args(self):
+        """ Return a sequence such that Add(*self.as_Add_args()) == self
+        """
+        raise NotImplementedError('%s must define classmethod as_Add_args' % (cls.__name__))
+
+    @classmethod
+    def as_Mul_args(self):
+        """ Return a sequence such that Mul(*self.as_Mul_args()) == self
+        """
+        raise NotImplementedError('%s must define classmethod as_Mul_args' % (cls.__name__))
+
+    @classmethod
+    def as_Pow_args(self):
+        """ Return a 2-tuple such that Pow(*self.as_Pow_args()) == self
+        """
+        raise NotImplementedError('%s must define classmethod as_Pow_args' % (cls.__name__))
 
     def __pos__(self):
         return self
 
     def __neg__(self):
-        return self.Mul([self, -1])
+        return self.Mul(self, self.convert(-1))
 
-    #XXX: need to deal with other algebras where self is a number, should return NotImplemented
     def __add__(self, other):
-        other = self.convert(other)
-        return self.Add([self, other])
+        other = self.convert(other, False)
+        if other is NotImplemented:
+            return NotImplemented
+        return self.Add(self, other)
 
     def __radd__(self, other):
-        other = self.convert(other)
-        return self.Add([other, self])
+        other = self.convert(other, False)
+        if other is NotImplemented:
+            return NotImplemented
+        return self.Add(other, self)
 
     def __sub__(self, other):
-        other = self.convert(other)
+        other = self.convert(other, False)
+        if other is NotImplemented:
+            return NotImplemented
         return self + (-other)
 
     def __rsub__(self, other):
-        other = self.convert(other)
+        other = self.convert(other, False)
+        if other is NotImplemented:
+            return NotImplemented
         return other + (-self)
 
     def __mul__(self, other):
-        other = self.convert(other)
-        return self.Mul([self, other])
+        other = self.convert(other, False)
+        if other is NotImplemented:
+            return NotImplemented
+        return self.Mul(self, other)
 
     def __rmul__(self, other):
-        other = self.convert(other)
-        return self.Mul([other, self])
+        other = self.convert(other, False)
+        if other is NotImplemented:
+            return NotImplemented
+        return self.Mul(other, self)
 
     def __div__(self, other):
-        other = self.convert(other)
-        return self.Mul([self, self.Pow(other,-1)])
+        other = self.convert(other, False)
+        if other is NotImplemented:
+            return NotImplemented
+        return self.Mul(self, other ** (-1))
 
     def __rdiv__(self, other):
-        other = self.convert(other)
-        return self.Mul([other, self.Pow(self,-1)])
+        other = self.convert(other, False)
+        if other is NotImplemented:
+            return NotImplemented
+        return self.Mul([other, self ** (-1)])
+
+    def __truediv__(self, other):
+        other = self.convert(other, False)
+        if other is NotImplemented:
+            return NotImplemented
+        return self.Mul(self, other ** (-1))
+
+    def __rtruediv__(self, other):
+        other = self.convert(other, False)
+        if other is NotImplemented:
+            return NotImplemented
+        return self.Mul([other, self ** (-1)])
 
     def __pow__(self, other):
-        other = self.convert_exponent(other)
+        other = self.convert_exponent(other, False)
+        if other is NotImplemented:
+            return NotImplemented
         return self.Pow(self, other)
 
     def __rpow__(self, other):
-        other = self.convert(other)
+        other = self.convert(other, False)
+        if other is NotImplemented:
+            return NotImplemented
         return self.Pow(other,  self.convert_exponent(self))
-
-    __truediv__ = __div__
-    __rtruediv__ = __rdiv__
 
     def match(self, pattern, *wildcards):
         """
@@ -144,10 +249,12 @@ class BasicAlgebra(AlgebraicStructure):
         for w in wildcards:
             if type(w) in [list, tuple]:
                 assert len(w)==2,`w`
-                expr, func = w
+                s, func = w
             else:
-                expr, func = w, True
-            wild_expressions.append(self.convert(expr))
+                s, func = w, True
+            s = self.convert(s)
+            assert s.head==SYMBOL,`s`
+            wild_expressions.append(s)
             wild_predicates.append(func)
         return pattern.matches(self, {}, wild_expressions, wild_predicates)
 
@@ -175,52 +282,70 @@ class BasicAlgebra(AlgebraicStructure):
                 return repl_dict
         return
 
-from .primitive import PrimitiveAlgebra, NUMBER
+    def subs(self, pattern, expr=None, wildcards=[]):
+        """ Substitute subexpressions matching pattern with expr.
+        
+        There are two usage forms:
+          obj.subs(pattern, expr, wildcards=[..])
+          obj.subs([(pattern1, expr1), (pattern2, expr2), ..], wildcards=[..])
+        """
+        # XXX: incomplete
+        if expr is None:
+            r = self
+            for item in pattern:
+                r = r.subs(item[0], item[1], wildcards=wildcards)
+            return r
+        if self.match(pattern, *wildcards) is not None:
+            return expr
+        return self
 
-class StructureGenerator(BasicType):
+from .primitive import PrimitiveAlgebra, NUMBER, SYMBOL
+
+
+## class StructureGenerator(BasicType):
     
-    def __new__(cls, parameters, **kwargs):
-        name = '%s(%s, %s)' % (cls.__name__, ', '.join(map(str, parameters)), kwargs)
-        bases = (AlgebraicStructure,)
-        attrdict = dict(parameters = parameters, **kwargs)
-        cls = type.__new__(cls, name, bases, attrdict)
-        return cls
+##     def __new__(cls, parameters, **kwargs):
+##         name = '%s(%s, %s)' % (cls.__name__, ', '.join(map(str, parameters)), kwargs)
+##         bases = (AlgebraicStructure,)
+##         attrdict = dict(parameters = parameters, **kwargs)
+##         cls = type.__new__(cls, name, bases, attrdict)
+##         return cls
 
-class PolynomialGenerator(StructureGenerator):
+## class PolynomialGenerator(StructureGenerator):
 
-    def __new__(cls, symbols, coeff_structure=None):
-        if coeff_structure is None:
-            coeff_structure = classes.IntegerRing
-        return StructureGenerator.__new__(cls, symbols,
-                                          coeff_structure=coeff_structure)
+##     def __new__(cls, symbols, coeff_structure=None):
+##         if coeff_structure is None:
+##             coeff_structure = classes.IntegerRing
+##         return StructureGenerator.__new__(cls, symbols,
+##                                           coeff_structure=coeff_structure)
 
-##############################################################
-# These are ideas:
+## ##############################################################
+## # These are ideas:
 
-class CommutativeRing(AlgebraicStructure):
-    """ Represents an element of a commutative ring and defines binary
-    operations +, *, -.
-    """
+## class CommutativeRing(AlgebraicStructure):
+##     """ Represents an element of a commutative ring and defines binary
+##     operations +, *, -.
+##     """
 
-class CommutativeAlgebra(AlgebraicStructure):
-    """ Represents an element of a commutative algebra and defines
-    binary operations +, *, -, /, **.
-    """
+## class CommutativeAlgebra(AlgebraicStructure):
+##     """ Represents an element of a commutative algebra and defines
+##     binary operations +, *, -, /, **.
+##     """
 
-class PolynomialAlgebra(AlgebraicStructure):
-    """ Represents a polynomial.
-    """
+## class PolynomialAlgebra(AlgebraicStructure):
+##     """ Represents a polynomial.
+##     """
 
-class PolynomialAlgebra(AlgebraicStructure):
-    """ Represents a polynomial function.
-    """
+## class PolynomialAlgebra(AlgebraicStructure):
+##     """ Represents a polynomial function.
+##     """
 
-    def __new__(cls, obj, symbols, coefficient_symbols=[]):
-        o = object.__new__(cls)
-        o.coefficient_symbols = coefficient_symbols
-        if len(symbols)==1:
-            o.data = (UnivariatePolynomialAlgebra(obj), symbols)
-        else:
-            o.data = (MultivariatePolynomialAlgebra(obj), symbols)
-        return o
+##     def __new__(cls, obj, symbols, coefficient_symbols=[]):
+##         o = object.__new__(cls)
+##         o.coefficient_symbols = coefficient_symbols
+##         if len(symbols)==1:
+##             o.data = (UnivariatePolynomialAlgebra(obj), symbols)
+##         else:
+##             o.data = (MultivariatePolynomialAlgebra(obj), symbols)
+##         return o
 
