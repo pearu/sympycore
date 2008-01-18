@@ -49,7 +49,7 @@ class CommutativeRingWithPairs(BasicAlgebra):
             return True
         if other.__class__ is self.__class__:
             return self.head is other.head and self.data == other.data
-        if self.head is NUMBER and isinstance(other, self.algebra_numbers):
+        if self.head is NUMBER and isinstance(other, (int, long)):
             return self.data == other
         return False
 
@@ -79,7 +79,7 @@ class CommutativeRingWithPairs(BasicAlgebra):
     def func(self):
         head = self.head
         data = self.data
-        if head is SYMBOL or head is HEAD:
+        if head is SYMBOL or head is NUMBER:
             return lambda : self
         if head is ADD:
             if len(data)>1:
@@ -97,11 +97,11 @@ class CommutativeRingWithPairs(BasicAlgebra):
         if head is SYMBOL or head is NUMBER:
             return []
         if head is ADD:
-            if len(data)>1:
+            if len(self.data)>1:
                 return self.as_Add_args()
             return self.as_Mul_args()
         if head is MUL:
-            if len(data)>1:
+            if len(self.data)>1:
                 return self.as_Mul_args()
             return self.as_Pow_args()
         raise NotImplementedError(`self, head`)
@@ -135,8 +135,26 @@ class CommutativeRingWithPairs(BasicAlgebra):
             return [self, self.one_e]
         if head is MUL:
             if len(data)==1:
-                return data.items()
+                return data.items()[0]
             return [self, self.one_e] #XXX: improve me
+        raise NotImplementedError(`self, head`)
+
+    def as_Terms_args(self):
+        head = self.head
+        if head is SYMBOL or head is MUL:
+            return [(self, self.one_c)]
+        if head is NUMBER:
+            return [(self.one, self.data)]
+        if head is ADD:
+            return self.data.items()
+        raise NotImplementedError(`self, head`)
+
+    def as_Factors_args(self):
+        head = self.head
+        if head is SYMBOL or head is ADD or head is NUMBER:
+            return [(self, self.one_e)]
+        if head is MUL:
+            return self.data.items()
         raise NotImplementedError(`self, head`)
     
     def canonize(self):
@@ -362,6 +380,10 @@ class CommutativeRingWithPairs(BasicAlgebra):
 
     @classmethod
     def Pow(cls, base, exponent):
+        if exponent==cls.zero_e:
+            return cls.one
+        if exponent==cls.one_e or cls.one==base:
+            return base
         return newinstance(cls, MUL, {base:exponent})
 
     @classmethod

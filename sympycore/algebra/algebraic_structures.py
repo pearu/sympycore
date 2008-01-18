@@ -42,13 +42,9 @@ class BasicAlgebra(Basic):
         if isinstance(obj, (str, unicode)):
             obj = PrimitiveAlgebra(obj)
 
-        # convert from primitive algebra:
-        if isinstance(obj, PrimitiveAlgebra):
-            return obj.as_algebra(cls.algebra_class)
-
         # convert from another algebra:
         if isinstance(obj, BasicAlgebra):
-            return obj.as_algebra(cls.algebra_class)
+            return obj.as_algebra(cls)
 
         # as a last resort, check if obj belongs to coefficient algebra
         r = cls.convert_coefficient(obj, typeerror=False)
@@ -162,37 +158,38 @@ class BasicAlgebra(Basic):
         elements must belong to algebra.
         exponents must belong to the exponent algebra.
         """
-        raise NotImplementedError('%s must define classmethod Factors' % (cls.__name__))
+        raise NotImplementedError('%s must define classmethod Factors'
+                                  % (self.__class__.__name__))
 
-    @classmethod
     def as_Add_args(self):
         """ Return a sequence such that Add(*self.as_Add_args()) == self
         """
-        raise NotImplementedError('%s must define classmethod as_Add_args' % (cls.__name__))
-
-    @classmethod
+        raise NotImplementedError('%s must define method as_Add_args'
+                                  % (self.__class__.__name__))
+    
     def as_Mul_args(self):
         """ Return a sequence such that Mul(*self.as_Mul_args()) == self
         """
-        raise NotImplementedError('%s must define classmethod as_Mul_args' % (cls.__name__))
-
-    @classmethod
+        raise NotImplementedError('%s must define method as_Mul_args'
+                                  % (self.__class__.__name__))
+    
     def as_Pow_args(self):
         """ Return a 2-tuple such that Pow(*self.as_Pow_args()) == self
         """
-        raise NotImplementedError('%s must define classmethod as_Pow_args' % (cls.__name__))
+        raise NotImplementedError('%s must define method as_Pow_args' \
+                                  % (self.__class__.__name__))
 
-    @classmethod
     def as_Terms_args(self):
         """ Return a sequence such that Terms(*self.as_Terms_args()) == self
         """
-        raise NotImplementedError('%s must define classmethod as_Terms_args' % (cls.__name__))
+        raise NotImplementedError('%s must define method as_Terms_args' \
+                                  % (self.__class__.__name__))
 
-    @classmethod
     def as_Factors_args(self):
         """ Return a sequence such that Factors(*self.as_Factors_args()) == self
         """
-        raise NotImplementedError('%s must define classmethod as_Factors_args' % (cls.__name__))
+        raise NotImplementedError('%s must define method as_Factors_args' \
+                                  % (self.__class__.__name__))
 
     def __pos__(self):
         return self
