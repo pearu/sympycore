@@ -236,7 +236,7 @@ class CommutativeRingWithPairs(BasicAlgebra):
         return r
 
     def expand(self):
-        return expand_dict[self.head](self)
+        return expand_dict[self.head](self, self.__class__)
 
 
     def matches(pattern, expr, repl_dict={}, wild_expressions=[], wild_predicates=[]):
@@ -328,103 +328,68 @@ class CommutativeRingWithPairs(BasicAlgebra):
 
     @classmethod
     def Add(cls, *seq):
-        terms = newinstance(cls, ADD,{})
-        one = cls.one
-        zero_c = cls.zero_c
-        one_c = cls.one_c
+        d = {}
+        result = newinstance(cls, ADD, d)
         for t in seq:
-            head = t.head
-            if head is SYMBOL:
-                terms._add_value(t, one_c, zero_c)
-            elif head is NUMBER:
-                terms._add_value(one, t.data, zero_c)
-            elif head is ADD:
-                terms._add_values(t.data.iteritems(), one_c, zero_c)
-            elif head is MUL:
-                terms._add_value(t, one_c, zero_c)
-            else:
-                raise TypeError(`t, head`)
-        return terms.canonize()
+            inplace_dict[ADD, t.head](result, t, 1, cls)
+        if len(d)<=1:
+            return result.canonize()
+        return result
 
     @classmethod
     def Mul(cls, *seq):
         result = newinstance(cls, MUL,{})
-        one = cls.one
-        zero_e = cls.zero_e
-        one_e = cls.one_e
-        one_c = cls.one_c
-        zero_c = cls.zero_c
-        number = one_c
+        number = 1
         for t in seq:
             head = t.head
-            if head is SYMBOL:
-                result._add_value(t, one_e, zero_e)
-            elif head is NUMBER:
+            if head is NUMBER:
                 number = number * t.data
-            elif head is ADD:
-                result._add_value(t, one_e, zero_e)
-            elif head is MUL:
-                result._add_values(t.data.iteritems(), one_e, zero_e)
             else:
-                raise TypeError(`t, head`)
+                inplace_dict[MUL, head](result, t, 1, cls)
         result = result.canonize()
-        if number==one_c:
+        if number==1:
             return result
-        if result==one:
+        if result==1:
             return newinstance(cls, NUMBER, number)
         head = result.head
         if head is NUMBER:
             return newinstance(cls, NUMBER, result * number)
         if head is ADD:
-            r = result.copy()
-            r._multiply_values(number, one_c, zero_c)
-            return r.canonize()
+            return multiply_dict[head, NUMBER](result, newinstance(cls, NUMBER, number), cls)
         return newinstance(cls, ADD, {result:number})
 
     @classmethod
     def Pow(cls, base, exponent):
-        if exponent==cls.zero_e:
+        if exponent==0:
             return cls.one
-        if exponent==cls.one_e or cls.one==base:
+        if exponent==1 or cls.one==base:
             return base
         return newinstance(cls, MUL, {base:exponent})
 
     @classmethod
     def Terms(cls, *seq):
-        result = newinstance(cls, ADD, {})
-        one = cls.one
-        one_c = cls.one_c
-        zero_c = cls.zero_c
+        d = {}
+        result = newinstance(cls, ADD, d)
         for t,c in seq:
-            head = t.head
-            if head is NUMBER:
-                result._add_value(one, t.data * c, zero_c)
-            elif head is SYMBOL or head is MUL:
-                result._add_value(t, c, zero_c)
-            elif head is ADD:
-                result._add_values(t.pairs.iteritems(), c, zero_c)
-            else:
-                raise TypeError(`t, head`)
-        return result.canonize()
+            inplace_dict[ADD, t.head](result, t, c, cls)
+        if len(d)<=1:
+            return result.canonize()
+        return result
 
     @classmethod
     def Factors(cls, *seq):
-        result = newinstance(cls, MUL, {})
-        one = cls.one
-        zero_e = cls.zero_e
-        one_e = cls.one_e
-        number = cls.one_c
+        d = {}
+        result = newinstance(cls, MUL, d)
+        number = 1
         for t,c in seq:
             head = t.head
             if head is NUMBER:
                 number = number * t.data ** c
-            elif head is SYMBOL or head is ADD:
-                result._add_value(t, c, zero_e)
-            elif head is MUL:
-                result._add_values(t.pairs.iteritems(), c, zero_e)
             else:
-                raise TypeError(`t, head`)
-        return result.canonize() * number
+                inplace_dict[MUL, head](result, t, c, cls)
+        if len(d)<=1:
+            return result.canonize() * number
+        return result * number
 
     def __int__(self):
         assert self.head is NUMBER,`self`
@@ -478,122 +443,132 @@ class CommutativeRingWithPairs(BasicAlgebra):
     def __ne__(self, other):
         return not (self.data == other)
 
-    def _add_value(self, rhs, one, zero):
-        if self._hash is not None:
-            raise TypeError('cannot add value to immutable pairs inplace'\
-                            ' (hash has been computed)')
-        pairs = self.data
-        b = pairs.get(rhs)
-        if b is None:
-            pairs[rhs] = one
-        else:
-            c = b + one
-            if c:
-                pairs[rhs] = c
-            else:
-                del pairs[rhs]
-
-    def _add_values(self, rhs, one, zero):
-        if self._hash is not None:
-            raise TypeError('cannot add values to immutable pairs inplace'\
-                            ' (hash has been computed)')
-        pairs = self.data
-        for t,c in rhs:
-            b = pairs.get(t)
-            if b is None:
-                pairs[t] = c
-            else:
-                c = b + c
-                if c:
-                    pairs[t] = c
-                else:
-                    del pairs[t]
-
-    def _add_values_mul_coeff(self, rhs, coeff, zero):
-        if self._hash is not None:
-            raise TypeError('cannot add values to immutable pairs inplace'\
-                            ' (hash has been computed)')
-        pairs = self.data
-        for t,c in rhs:
-            b = pairs.get(t)
-            if b is None:
-                pairs[t] = c * coeff
-            else:
-                c = b + c * coeff
-                if c:
-                    pairs[t] = c
-                else:
-                    del pairs[t]
-
-    def _multiply_values(self, rhs, one, zero):
-        if self._hash is not None:
-            raise TypeError('cannot multiply values to immutable pairs inplace'\
-                            ' (hash has been computed)')
-        d = {}
-        for t,c in self.data.iteritems():
-            d[t] = c * rhs
-        self.data = d
-
 CommutativeRingWithPairs.one = CommutativeRingWithPairs.Number(1)
 CommutativeRingWithPairs.zero = CommutativeRingWithPairs.Number(0)
 
-class CommutativePairs: # XXX: to be removed
-    """ Represents operands of an commutative operation.
+def iadd_ADD_NUMBER(lhs, rhs, one_c, cls):
+    value = rhs.data * one_c
+    if not value:
+        return
+    pairs = lhs.data
+    one = cls.one
+    b = pairs.get(one)
+    if b is None:
+        pairs[one] = value
+    else:
+        c = b + value
+        if c:
+            pairs[one] = c
+        else:
+            del pairs[one]
+    return
 
-      CommutativePairs(<pairs>)
+def iadd_ADD_SYMBOL(lhs, rhs, one_c, cls):
+    pairs = lhs.data
+    b = pairs.get(rhs)
+    if b is None:
+        pairs[rhs] = one_c
+    else:
+        c = b + one_c
+        if c:
+            pairs[rhs] = c
+        else:
+            del pairs[rhs]
+    return
 
-    where <pairs> is a sequence or an iterator of pairs:
+def iadd_ADD_ADD(lhs, rhs, one_c, cls):
+    pairs = lhs.data
+    get = pairs.get
+    for t,c in rhs.data.iteritems():
+        b = get(t)
+        if b is None:
+            pairs[t] = c * one_c
+        else:
+            c = b + c * one_c
+            if c:
+                pairs[t] = c
+            else:
+                del pairs[t]
+    return
 
-      (<expression>, <repetition>)
+def iadd_ADD_MUL(lhs, rhs, one_c, cls):
+    pairs = lhs.data
+    b = pairs.get(rhs)
+    if b is None:
+        pairs[rhs] = one_c
+    else:
+        c = b + one_c
+        if c:
+            pairs[rhs] = c
+        else:
+            del pairs[rhs]
+    return
 
-    Here <expression> must be hashable as internally the pairs are
-    saved in Python dictionary for update efficiency.
+def imul_MUL_NUMBER(lhs, rhs, one_e, cls):
+    pairs = lhs.data
+    b = pairs.get(rhs)
+    if b is None:
+        pairs[rhs] = one_e
+    else:
+        c = b + one_e
+        if c:
+            pairs[rhs] = c
+        else:
+            del pairs[rhs]
+    return
 
-    CommutativePairs instance is mutable until the moment its hash
-    value is computed.
+def imul_MUL_SYMBOL(lhs, rhs, one_e, cls):
+    pairs = lhs.data
+    b = pairs.get(rhs)
+    if b is None:
+        pairs[rhs] = one_e
+    else:
+        c = b + one_e
+        if c:
+            pairs[rhs] = c
+        else:
+            del pairs[rhs]
+    return
 
-    The following methods are defined to modify the CommutativePairs
-    instance:
-      _add_value(rhs, one, zero)
-        rhs must be usable as key
+def imul_MUL_ADD(lhs, rhs, one_e, cls):
+    pairs = lhs.data
+    b = pairs.get(rhs)
+    if b is None:
+        pairs[rhs] = one_e
+    else:
+        c = b + one_e
+        if c:
+            pairs[rhs] = c
+        else:
+            del pairs[rhs]
+    return
 
-      _add_values(rhs, one, zero)
-        rhs must be an iterable returning pairs
+def imul_MUL_MUL(lhs, rhs, one_e, cls):
+    pairs = lhs.data
+    get = pairs.get
+    for t,c in rhs.data.iteritems():
+        b = get(t)
+        if b is None:
+            pairs[t] = c * one_e
+        else:
+            c = b + c * one_e
+            if c:
+                pairs[t] = c
+            else:
+                del pairs[t]
+    return
 
-      _multiply_values(rhs, one, zero)
-        rhs must be support multiplication with values
-
-      _expand_multiply_values(rhs, one, zero)
-        rhs must be an iterable returning pairs
-        
-      _add_keys(rhs, one, zero)
-        rhs must support addition with keys
-    """
-
-
-def expand_ADD(obj):
-    result = newinstance(obj.__class__, ADD, {})
-    d = result.data
-    one = obj.one
+def expand_ADD(obj, cls):
+    d = {}
+    result = newinstance(obj.__class__, ADD, d)
     for t,c in obj.data.iteritems():
         t = t.expand()
-        head = t.head
-        if head is NUMBER:
-            result._add_value(one, t.data * c, 0)
-        elif head is SYMBOL:
-            result._add_value(t, c, 0)
-        elif head is MUL:
-            result._add_value(t, c, 0)
-        elif head is ADD:
-            p = t.data
-            result._add_values_mul_coeff(p.items(), c, 0)
-        else:
-            raise TypeError(`t, head`)
+        inplace_dict[ADD, t.head](result, t, c, cls)
     if len(d)<=1:
         return result.canonize()
     return result
 
-def expand_MUL(obj):
+def expand_MUL(obj, cls):
     cls = type(obj)
     pairs = obj.data
     if len(pairs)==1:
@@ -640,19 +615,19 @@ def add_NUMBER_NUMBER(lhs, rhs, cls):
     return newinstance(cls, NUMBER, lhs.data + rhs.data)
 
 def add_NUMBER_SYMBOL(lhs, rhs, cls):
-    if lhs.data==0:
-        return rhs
-    return newinstance(cls, ADD, {lhs.one: lhs.data, rhs: 1})
+    if lhs.data:
+        return newinstance(cls, ADD, {lhs.one: lhs.data, rhs: 1})
+    return rhs
 
 generate_swapped_first_arguments(add_NUMBER_SYMBOL)
 
 def add_NUMBER_ADD(lhs, rhs, cls):
     value = lhs.data
-    if value==0:
+    if not value:
         return rhs
     result = rhs.copy()
     pairs = result.data
-    one = lhs.one
+    one = cls.one
     b = pairs.get(one)
     if b is None:
         pairs[one] = value
@@ -662,15 +637,17 @@ def add_NUMBER_ADD(lhs, rhs, cls):
             pairs[one] = c
         else:
             del pairs[one]
+    if len(pairs)<=1:
+        return result.canonize()
     return result
 
 generate_swapped_first_arguments(add_NUMBER_ADD)
 
 def add_NUMBER_MUL(lhs, rhs, cls):
     value = lhs.data
-    if value==0:
-        return rhs
-    return newinstance(cls,ADD,{lhs.one: value, rhs: 1})
+    if value:
+        return newinstance(cls,ADD, {cls.one: value, rhs: 1})
+    return rhs
 
 generate_swapped_first_arguments(add_NUMBER_MUL)
 
@@ -681,8 +658,19 @@ def add_SYMBOL_SYMBOL(lhs, rhs, cls):
 
 def add_SYMBOL_ADD(lhs, rhs, cls):
     result = rhs.copy()
-    result._add_value(lhs, 1, 0)
-    return result.canonize()
+    pairs = result.data
+    b = pairs.get(lhs)
+    if b is None:
+        pairs[lhs] = 1
+    else:
+        c = b + 1
+        if c:
+            pairs[lhs] = c
+        else:
+            del pairs[lhs]
+    if len(pairs)<=1:
+        return result.canonize()
+    return result
 
 generate_swapped_first_arguments(add_SYMBOL_ADD)
 
@@ -696,8 +684,9 @@ def add_ADD_ADD(lhs, rhs, cls):
         rhs, lhs = lhs, rhs
     result = lhs.copy()
     pairs = result.data
+    get = pairs.get
     for t,c in rhs.data.iteritems():
-        b = pairs.get(t)
+        b = get(t)
         if b is None:
             pairs[t] = c
         else:
@@ -712,13 +701,24 @@ def add_ADD_ADD(lhs, rhs, cls):
 
 def add_ADD_MUL(lhs, rhs, cls):
     result = lhs.copy()
-    result._add_value(rhs, 1, 0)
-    return result.canonize()
+    pairs = result.data
+    b = pairs.get(rhs)
+    if b is None:
+        pairs[rhs] = 1
+    else:
+        c = b + 1
+        if c:
+            pairs[rhs] = c
+        else:
+            del pairs[rhs]
+    if len(pairs)<=1:
+        return result.canonize()
+    return result
 
 generate_swapped_first_arguments(add_ADD_MUL)
 
 def add_MUL_MUL(lhs, rhs, cls):
-    if lhs==rhs:
+    if lhs.data==rhs.data:
         return newinstance(cls,ADD,{lhs: 2})
     return newinstance(cls,ADD,{lhs: 1, rhs: 1})
 
@@ -726,56 +726,56 @@ def multiply_NUMBER_NUMBER(lhs, rhs, cls):
     return newinstance(cls, NUMBER, lhs.data * rhs.data)
 
 def multiply_NUMBER_SYMBOL(lhs, rhs, cls):
-    value = lhs.data    
-    if value==1:
-        return rhs
-    if value==0:
-        return lhs
-    return newinstance(cls, ADD, {rhs:value})
+    value = lhs.data
+    if value:
+        if value==1:
+            return rhs
+        return newinstance(cls, ADD, {rhs:value})
+    return lhs
 
 generate_swapped_first_arguments(multiply_NUMBER_SYMBOL)
 
 def multiply_NUMBER_ADD(lhs, rhs, cls):
-    value = lhs.data    
-    if value==1:
-        return rhs
-    if value==0:
-        return lhs
-    result = newinstance(cls, ADD, {})
-    d = result.data
-    for t,c in rhs.data.iteritems():
-        d[t] = c * value
-    if len(d)==1:
-        return result.canonize()
-    return result
+    value = lhs.data
+    if value:
+        if value==1:
+            return rhs
+        d = {}
+        result = newinstance(cls, ADD, d)
+        for t,c in rhs.data.iteritems():
+            d[t] = c * value
+        if len(d)<=1:
+            return result.canonize()
+        return result
+    return lhs
 
 generate_swapped_first_arguments(multiply_NUMBER_ADD)
 
 def multiply_NUMBER_MUL(lhs, rhs, cls):
-    value = lhs.data    
-    if value==1:
-        return rhs
-    if value==0:
-        return lhs
-    b = rhs.data.get(lhs)
-    if b is not None:
-        result = rhs.copy()
-        pairs = result.data
-        c = b + rhs.one_e
-        if c:
-            pairs[lhs] = c
+    value = lhs.data
+    if value:
+        if value==1:
+            return rhs
+        b = rhs.data.get(lhs)
+        if b is not None:
+            result = rhs.copy()
+            pairs = result.data
+            c = b + cls.one_e
+            if c:
+                pairs[lhs] = c
+                return result
+            else:
+                del pairs[lhs]
+            if len(pairs)<=1:
+                return result.canonize()
             return result
-        else:
-            del pairs[lhs]
-        if len(pairs)<=1:
-            return result.canonize()
-        return result
-    return newinstance(cls,ADD,{rhs:value})
+        return newinstance(cls,ADD,{rhs:value})
+    return lhs
 
 generate_swapped_first_arguments(multiply_NUMBER_MUL)
 
 def multiply_SYMBOL_SYMBOL(lhs, rhs, cls):
-    if lhs==rhs:
+    if lhs.data==rhs.data:
         return newinstance(cls, MUL, {lhs:2})
     return newinstance(cls, MUL, {lhs:1, rhs:1})
 
@@ -791,8 +791,19 @@ generate_swapped_first_arguments(multiply_SYMBOL_ADD)
 
 def multiply_SYMBOL_MUL(lhs, rhs, cls):
     result = rhs.copy()
-    result._add_value(lhs, 1, 0)
-    return result.canonize()
+    pairs = result.data
+    b = pairs.get(lhs)
+    if b is None:
+        pairs[lhs] = 1
+    else:
+        c = b + 1
+        if c:
+            pairs[lhs] = c
+        else:
+            del pairs[lhs]
+    if len(pairs)<=1:
+        return result.canonize()
+    return result
 
 generate_swapped_first_arguments(multiply_SYMBOL_MUL)
 
@@ -811,11 +822,30 @@ def multiply_ADD_ADD(lhs, rhs, cls):
 
 def multiply_ADD_MUL(lhs, rhs, cls):
     result = rhs.copy()
+    pairs = result.data
     if lhs.length()>1:
-        result._add_value(lhs, 1, 0)
-        return result.canonize()
+        b = pairs.get(lhs)
+        if b is None:
+            pairs[lhs] = 1
+        else:
+            c = b + 1
+            if c:
+                pairs[lhs] = c
+            else:
+                del pairs[lhs]
+        if len(pairs)<=1:
+            return result.canonize()
+        return result
     t, c = lhs.data.items()[0]
-    result._add_value(t, 1, 0)
+    b = pairs.get(t)
+    if b is None:
+        pairs[t] = 1
+    else:
+        c = b + 1
+        if c:
+            pairs[t] = c
+        else:
+            del pairs[t]
     result = result.canonize()
     return multiply_dict[result.head, NUMBER](result, newinstance(cls, NUMBER, c), cls)
 
@@ -827,48 +857,59 @@ def multiply_MUL_MUL(lhs, rhs, cls):
     result = newinstance(cls, MUL, dict(lhs.data))
     pairs = result.data
     get = pairs.get
-    zero = cls.zero_c
     for t,c in rhs.data.iteritems():
-        c = get(t, zero) + c
-        if c:
+        b = get(t)
+        if b is None:
             pairs[t] = c
         else:
-            del pairs[t]
-    return result.canonize()
+            c = b + c
+            if c:
+                pairs[t] = c
+            else:
+                del pairs[t]
+    if len(pairs)<=1:
+        return result.canonize()
+    return result
 
 def expand_NUMBER_ADD(lhs, rhs, cls):
     value = lhs.data
-    if value==0:
-        return lhs
-    if value==1:
-        return rhs
-    result = newinstance(cls,ADD,{})
-    d = result.data
-    for t,c in lhs.data.iteritems():
-        d[t] = c * value
-    return result
+    if value:
+        if value==1:
+            return rhs
+        d = {}
+        result = newinstance(cls, ADD, d)
+        for t,c in lhs.data.iteritems():
+            d[t] = c * value
+        if len(d)<=1:
+            return result.canonize()
+        return result
+    return lhs
+
 generate_swapped_first_arguments(expand_NUMBER_ADD)
 
 def expand_SYMBOL_ADD(lhs, rhs, cls):
-    result = newinstance(cls,ADD,{})
-    d = result.data
+    d = {}
+    result = newinstance(cls, ADD, d)
     for t,c in rhs.data.iteritems():
         d[t * lhs] = c
     return result
+
 generate_swapped_first_arguments(expand_SYMBOL_ADD)
 
 def expand_ADD_ADD(lhs, rhs, cls):
     if lhs.length() > rhs.length():
         lhs, rhs = rhs, lhs
-    result = newinstance(cls,ADD,{})
+    d = {}
+    result = newinstance(cls, ADD, d)
     pairs1 = lhs.data
     pairs2 = rhs.data
-    d = result.data
+    get = d.get
     for t1, c1 in pairs1.iteritems():
+        t1_head = t1.head
         for t2, c2 in pairs2.iteritems():
-            t = multiply_dict[t1.head, t2.head](t1, t2, cls)
+            t = multiply_dict[t1_head, t2.head](t1, t2, cls)
             c = c1 * c2
-            b = d.get(t)
+            b = get(t)
             if b is None:
                 d[t] = c
             else:
@@ -877,11 +918,13 @@ def expand_ADD_ADD(lhs, rhs, cls):
                     d[t] = c
                 else:
                     del d[t]
+    if len(d)<=1:
+        return result.canonize()
     return result
 
 def expand_ADD_MUL(lhs, rhs, cls):
-    result = newinstance(cls,ADD,{})
-    d = result.data
+    d = {}
+    result = newinstance(cls, ADD, d)
     for t,c in lhs.data.iteritems():
         d[t * rhs] = c
     return result
@@ -891,12 +934,13 @@ generate_swapped_first_arguments(expand_ADD_MUL)
 def expand_ADD_INTPOW(lhs, m, cls):
     terms = lhs.data.items()
     data = generate_expand_data(len(terms), int(m))
-    result = newinstance(cls,ADD,{})
-    d = result.data
+    d = {}
+    result = newinstance(cls, ADD, d)
+    get = d.get
     for exps, c in data.iteritems():
         t, n = exps.apply_to_terms(terms)
         t = newinstance(cls, MUL, dict(t)).canonize()
-        b = d.get(t)
+        b = get(t)
         if b is None:
             d[t] = n * c
         else:
@@ -906,6 +950,17 @@ def expand_ADD_INTPOW(lhs, m, cls):
             else:
                 del d[t]
     return result
+
+inplace_dict = {
+    (ADD, NUMBER): iadd_ADD_NUMBER,
+    (ADD, SYMBOL): iadd_ADD_SYMBOL,
+    (ADD, ADD): iadd_ADD_ADD,
+    (ADD, MUL): iadd_ADD_MUL,
+    (MUL, NUMBER): imul_MUL_NUMBER,
+    (MUL, SYMBOL): imul_MUL_SYMBOL,
+    (MUL, ADD): imul_MUL_ADD,
+    (MUL, MUL): imul_MUL_MUL,
+    }
 
 add_dict = {
     (NUMBER, NUMBER): add_NUMBER_NUMBER,
@@ -946,8 +1001,8 @@ multiply_dict = {
     }
 
 expand_dict = {
-    NUMBER: lambda obj: obj,
-    SYMBOL: lambda obj: obj,
+    NUMBER: lambda obj, cls: obj,
+    SYMBOL: lambda obj, cls: obj,
     ADD: expand_ADD,
     MUL: expand_MUL,
     (NUMBER, NUMBER): multiply_NUMBER_NUMBER,
@@ -1016,9 +1071,11 @@ def generate_expand_data(n, m):
     s0 = symbols[0]
     p0 = [s/s0 for s in symbols]
     r = {s0**m:1}
+    r_get = r.get
     l = [r.items()]
     for k in xrange(1, m*(n-1)+1):
         d = {}
+        d_get = d.get
         for i in xrange(1, min(n,k+1)):
             nn = (m+1)*i-k
             if nn:
@@ -1026,7 +1083,7 @@ def generate_expand_data(n, m):
                 for t2, c2 in l[k-i]:
                     tt = t2 * t
                     cc = mpq(nn * c2, k)
-                    b = d.get(tt)
+                    b = d_get(tt)
                     if b is None:
                         d[tt] = cc
                     else:
@@ -1038,7 +1095,7 @@ def generate_expand_data(n, m):
         r1 = d.items()
         l.append(r1)
         for t, c in r1:
-            b = r.get(t)
+            b = r_get(t)
             if b is None:
                 r[t] = c
             else:

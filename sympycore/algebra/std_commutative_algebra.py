@@ -1,11 +1,7 @@
 
 from ..core import sympify, classes
-from .pairs import CommutativePairs
 from .algebraic_structures import BasicAlgebra
 from .primitive import PrimitiveAlgebra, SYMBOL, NUMBER, ADD, MUL
-
-#from .pairs import (CommutativePairs, PairsCommutativeRing, CommutativeTerms,
-#                    CommutativeFactors, PairsCommutativeSymbol, PairsNumber)
 
 from .pairs import CommutativeRingWithPairs
 
