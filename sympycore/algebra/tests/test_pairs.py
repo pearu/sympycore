@@ -151,3 +151,29 @@ def test_Factors_args():
     assert Factors(*s1.as_Factors_args())==s1
     assert Factors(*m.as_Factors_args())==m
     assert Factors(*m2.as_Factors_args())==m2
+
+def test_as_primitive():
+    a = Symbol('a')
+    b = Symbol('b')
+    n = Number(2)
+    t = Number(-3)
+    s = a + n
+    s1 = 2*a
+    m = a ** 2
+    m2 = a*b
+
+    assert str(a.as_primitive())=='a'
+    assert str(n.as_primitive())=='2'
+    assert str(t.as_primitive())=='-3'
+    assert str(s.as_primitive())=='2 + a'
+    assert str(s1.as_primitive())=='2*a'
+    assert str(m.as_primitive())=='a**2'
+    assert str(m2.as_primitive())=='a*b'
+
+def test_Mul():
+    a = Symbol('a')
+    b = Symbol('b')
+    n = Number(2)
+    assert Mul(a,a**-1)==1
+    #assert Mul(n,n**-1)==1
+    

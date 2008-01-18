@@ -57,7 +57,8 @@ class CommutativeRingWithPairs(BasicAlgebra):
         h = self._hash
         if h is None:
             data = self.data
-            if type(data) is dict:
+            if isinstance(data, dict):
+            #if type(data) is dict:
                 h = hash(frozenset(data.iteritems()))
             else:
                 h = hash(data)
@@ -69,7 +70,7 @@ class CommutativeRingWithPairs(BasicAlgebra):
 
     def copy(self):
         if self.head in [ADD, MUL]:
-            return newinstance(self.__class__, self.head, self.data.copy())
+            return newinstance(self.__class__, self.head, dict(self.data))
         return self
 
     def __repr__(self):
@@ -768,6 +769,19 @@ def multiply_NUMBER_MUL(lhs, rhs, cls):
         return rhs
     if value==0:
         return lhs
+    b = rhs.data.get(lhs)
+    if b is not None:
+        result = rhs.copy()
+        pairs = result.data
+        c = b + rhs.one_e
+        if c:
+            pairs[lhs] = c
+            return result
+        else:
+            del pairs[lhs]
+        if len(pairs)<=1:
+            return result.canonize()
+        return result
     return newinstance(cls,ADD,{rhs:value})
 
 def multiply_SYMBOL_NUMBER(lhs, rhs, cls):
@@ -847,6 +861,19 @@ def multiply_MUL_NUMBER(lhs, rhs, cls):
         return lhs
     if value==0:
         return rhs
+    b = lhs.data.get(rhs)
+    if b is not None:
+        result = lhs.copy()
+        pairs = result.data
+        c = b + lhs.one_e
+        if c:
+            pairs[rhs] = c
+            return result
+        else:
+            del pairs[rhs]
+        if len(pairs)<=1:
+            return result.canonize()
+        return result
     return newinstance(cls,ADD,{lhs:value})
 
 def multiply_MUL_SYMBOL(lhs, rhs, cls):
@@ -864,21 +891,21 @@ def multiply_MUL_ADD(lhs, rhs, cls):
     result = result.canonize()
     return multiply_dict[result.head, NUMBER](result, newinstance(cls, NUMBER, c), cls)
 
+from collections import defaultdict
+
 def multiply_MUL_MUL(lhs, rhs, cls):
     if lhs.length() < rhs.length():
         rhs, lhs = lhs, rhs
-    result = lhs.copy()
+    result = newinstance(cls, MUL, dict(lhs.data))
     pairs = result.data
+    get = pairs.get
+    zero = cls.zero_c
     for t,c in rhs.data.iteritems():
-        b = pairs.get(t)
-        if b is None:
+        c = get(t, zero) + c
+        if c:
             pairs[t] = c
         else:
-            c = b + c
-            if c:
-                pairs[t] = c
-            else:
-                del pairs[t]
+            del pairs[t]
     return result.canonize()
 
 def expand_NUMBER_ADD(lhs, rhs, cls):

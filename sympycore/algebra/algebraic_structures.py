@@ -243,7 +243,7 @@ class BasicAlgebra(Basic):
         other = self.convert(other, False)
         if other is NotImplemented:
             return NotImplemented
-        return self.Mul([other, self ** (-1)])
+        return self.Mul(other, self ** (-1))
 
     def __truediv__(self, other):
         other = self.convert(other, False)
@@ -255,7 +255,7 @@ class BasicAlgebra(Basic):
         other = self.convert(other, False)
         if other is NotImplemented:
             return NotImplemented
-        return self.Mul([other, self ** (-1)])
+        return self.Mul(other, self ** (-1))
 
     def __pow__(self, other):
         other = self.convert_exponent(other, False)
