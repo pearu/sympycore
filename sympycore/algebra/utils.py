@@ -1,44 +1,47 @@
 
-__all__ = ['swap_first_arguments']
+__all__ = ['generate_swapped_first_arguments']
 
-import new
-def swap_first_arguments(func):
-    """ Return a function that behaves like func but the
-    first arguments are swapped.
+def generate_swapped_first_arguments(func):
+    """ Creates a new function from func by swapping its
+    first arguments and parts of its name. For example, if
+
+      def foo_LHS_RHS(lhs, rhs, rest):
+          ...
+
+    then calling
+
+      generate_swapped_first_arguments(foo_LHS_RHS)
+
+    is equivalent to defining
+
+      def foo_RHS_LHS(rhs, lhs, rest):
+          return foo_LHS_RHS(lhs, rhs, rest)
+    
     """
-    func_code = func.func_code
-    co_varnames = func_code.co_varnames
-    co_varnames = (co_varnames[1], co_varnames[0]) + co_varnames[2:]
-    co_name = func_code.co_name + '_swapped_first_arguments'
-    new_code = new.code(func_code.co_argcount,
-                        func_code.co_argcount,
-                        func_code.co_stacksize,
-                        func_code.co_flags,
-                        '|\x01\x00|\x00\x00\x02}\x00\x00}\x01\x00'+func_code.co_code,
-                        func_code.co_consts,
-                        func_code.co_names,
-                        co_varnames,
-                        func_code.co_filename,
-                        co_name,
-                        func_code.co_firstlineno,
-                        func_code.co_lnotab,
-                        func_code.co_freevars,
-                        func_code.co_cellvars
-                        )
-    new_func = new.function(new_code, func.func_globals)
-    return new_func
+    fn = func.func_code.co_filename
+    if fn.endswith('.pyc'):
+        fn = fn[:-1]
+    fl = func.func_code.co_firstlineno
+    f = open(fn,'r')
+    for i in xrange(fl-1):
+        f.readline()
+    code_lines = [f.readline()]
+    while 1:
+        l = f.readline()
+        if l[:1].strip():
+            break
+        code_lines.append(l)
+    f.close()
+    first_line = code_lines[0]
+    i = first_line.index('(')
+    name = first_line[3:i].strip()
+    l = name.split('_')
+    if len(l)<3:
+        return
+    new_name = '_'.join(l[:-2] + [l[-1], l[-2]])
+    l = first_line[i+1:].split(',')
+    new_args = '(' + ','.join([l[1].strip(),l[0].strip()]+l[2:])
+    code_lines = ['def %s%s' % (new_name, new_args)] + code_lines[1:]
+    code = ''.join(code_lines)
+    exec code in func.func_globals
 
-def safe_swap_first_arguments(func):
-    """ Return a function that behaves like func but the
-    first arguments are swapped.
-    """
-    return lambda lhs, rhs, *args: func(rhs, lhs, *args)
-
-try:
-    def _foo(lhs, rhs, rest):
-        return lhs, rhs, rest
-    assert swap_first_arguments(_foo)(1,2,3)==(2,1,3)
-except Exception, msg:
-    print 'Using safe_swap_first_arguments since got: %s' % (msg)
-    swap_first_arguments = safe_swap_first_arguments
-    assert swap_first_arguments(_foo)(1,2,3)==(2,1,3)

@@ -8,6 +8,8 @@ from ..core import classes
 from .algebraic_structures import BasicAlgebra
 from .primitive import PrimitiveAlgebra, ADD, MUL, SYMBOL, NUMBER, head_to_string
 from .numberlib import mpq
+from .utils import generate_swapped_first_arguments
+
 
 def newinstance(cls, head, data, new = object.__new__):
     o = new(cls)
@@ -642,6 +644,8 @@ def add_NUMBER_SYMBOL(lhs, rhs, cls):
         return rhs
     return newinstance(cls, ADD, {lhs.one: lhs.data, rhs: 1})
 
+generate_swapped_first_arguments(add_NUMBER_SYMBOL)
+
 def add_NUMBER_ADD(lhs, rhs, cls):
     value = lhs.data
     if value==0:
@@ -660,17 +664,15 @@ def add_NUMBER_ADD(lhs, rhs, cls):
             del pairs[one]
     return result
 
+generate_swapped_first_arguments(add_NUMBER_ADD)
+
 def add_NUMBER_MUL(lhs, rhs, cls):
     value = lhs.data
     if value==0:
         return rhs
     return newinstance(cls,ADD,{lhs.one: value, rhs: 1})
 
-def add_SYMBOL_NUMBER(lhs, rhs, cls):
-    value = rhs.data
-    if value==0:
-        return lhs
-    return newinstance(cls,ADD,{lhs.one: value, lhs: 1})
+generate_swapped_first_arguments(add_NUMBER_MUL)
 
 def add_SYMBOL_SYMBOL(lhs, rhs, cls):
     if lhs.data==rhs.data:
@@ -682,20 +684,12 @@ def add_SYMBOL_ADD(lhs, rhs, cls):
     result._add_value(lhs, 1, 0)
     return result.canonize()
 
+generate_swapped_first_arguments(add_SYMBOL_ADD)
+
 def add_SYMBOL_MUL(lhs, rhs, cls):
     return newinstance(cls,ADD,{lhs: 1, rhs: 1})
 
-def add_ADD_NUMBER(lhs, rhs, cls):
-    if rhs==0:
-        return lhs
-    result = lhs.copy()
-    result._add_value(lhs.one, rhs.data, 0)
-    return result.canonize()
-
-def add_ADD_SYMBOL(lhs, rhs, cls):
-    result = lhs.copy()
-    result._add_value(rhs, 1, 0)
-    return result.canonize()
+generate_swapped_first_arguments(add_SYMBOL_MUL)
 
 def add_ADD_ADD(lhs, rhs, cls):
     if lhs.length() < rhs.length():
@@ -721,17 +715,7 @@ def add_ADD_MUL(lhs, rhs, cls):
     result._add_value(rhs, 1, 0)
     return result.canonize()
 
-def add_MUL_NUMBER(lhs, rhs, cls):
-    if rhs==0:
-        return lhs
-    return newinstance(cls,ADD,{lhs.one: rhs.data, lhs: 1})
-
-add_MUL_SYMBOL = add_SYMBOL_MUL
-
-def add_MUL_ADD(lhs, rhs, cls):
-    result = rhs.copy()
-    result._add_value(lhs, 1, 0)
-    return result.canonize()
+generate_swapped_first_arguments(add_ADD_MUL)
 
 def add_MUL_MUL(lhs, rhs, cls):
     if lhs==rhs:
@@ -749,6 +733,8 @@ def multiply_NUMBER_SYMBOL(lhs, rhs, cls):
         return lhs
     return newinstance(cls, ADD, {rhs:value})
 
+generate_swapped_first_arguments(multiply_NUMBER_SYMBOL)
+
 def multiply_NUMBER_ADD(lhs, rhs, cls):
     value = lhs.data    
     if value==1:
@@ -762,6 +748,8 @@ def multiply_NUMBER_ADD(lhs, rhs, cls):
     if len(d)==1:
         return result.canonize()
     return result
+
+generate_swapped_first_arguments(multiply_NUMBER_ADD)
 
 def multiply_NUMBER_MUL(lhs, rhs, cls):
     value = lhs.data    
@@ -784,13 +772,7 @@ def multiply_NUMBER_MUL(lhs, rhs, cls):
         return result
     return newinstance(cls,ADD,{rhs:value})
 
-def multiply_SYMBOL_NUMBER(lhs, rhs, cls):
-    value = rhs.data    
-    if value==1:
-        return lhs
-    if value==0:
-        return rhs
-    return newinstance(cls,ADD,{lhs:value})
+generate_swapped_first_arguments(multiply_NUMBER_MUL)
 
 def multiply_SYMBOL_SYMBOL(lhs, rhs, cls):
     if lhs==rhs:
@@ -805,32 +787,14 @@ def multiply_SYMBOL_ADD(lhs, rhs, cls):
         return newinstance(cls,ADD,{newinstance(cls, MUL, {lhs: 2}): c})
     return newinstance(cls,ADD,{newinstance(cls, MUL, {lhs: 1, t:1}): c})
 
+generate_swapped_first_arguments(multiply_SYMBOL_ADD)
+
 def multiply_SYMBOL_MUL(lhs, rhs, cls):
     result = rhs.copy()
     result._add_value(lhs, 1, 0)
     return result.canonize()
 
-def multiply_ADD_NUMBER(lhs, rhs, cls):
-    value = rhs.data    
-    if value==1:
-        return lhs
-    if value==0:
-        return rhs
-    result = newinstance(cls,ADD,{})
-    d = result.data
-    for t,c in lhs.data.iteritems():
-        d[t] = c * value
-    if len(d)==1:
-        return result.canonize()
-    return result
-
-def multiply_ADD_SYMBOL(lhs, rhs, cls):
-    if lhs.length()>1:
-        return newinstance(cls, MUL, {lhs:1, rhs: 1})
-    t, c = lhs.data.items()[0]
-    if rhs==t:
-        return newinstance(cls,ADD,{newinstance(cls, MUL, {rhs: 2}): c})
-    return newinstance(cls,ADD,{newinstance(cls, MUL, {rhs: 1, t:1}): c})
+generate_swapped_first_arguments(multiply_SYMBOL_MUL)
 
 def multiply_ADD_ADD(lhs, rhs, cls):
     if lhs.length()==rhs.length()==1:
@@ -855,43 +819,7 @@ def multiply_ADD_MUL(lhs, rhs, cls):
     result = result.canonize()
     return multiply_dict[result.head, NUMBER](result, newinstance(cls, NUMBER, c), cls)
 
-def multiply_MUL_NUMBER(lhs, rhs, cls):
-    value = rhs.data    
-    if value==1:
-        return lhs
-    if value==0:
-        return rhs
-    b = lhs.data.get(rhs)
-    if b is not None:
-        result = lhs.copy()
-        pairs = result.data
-        c = b + lhs.one_e
-        if c:
-            pairs[rhs] = c
-            return result
-        else:
-            del pairs[rhs]
-        if len(pairs)<=1:
-            return result.canonize()
-        return result
-    return newinstance(cls,ADD,{lhs:value})
-
-def multiply_MUL_SYMBOL(lhs, rhs, cls):
-    result = lhs.copy()
-    result._add_value(rhs, 1, 0)
-    return result.canonize()
-
-def multiply_MUL_ADD(lhs, rhs, cls):
-    result = lhs.copy()
-    if lhs.length()>1:
-        result._add_value(rhs, 1, 0)
-        return result.canonize()
-    t, c = rhs.data.items()[0]
-    result._add_value(t, 1, 0)
-    result = result.canonize()
-    return multiply_dict[result.head, NUMBER](result, newinstance(cls, NUMBER, c), cls)
-
-from collections import defaultdict
+generate_swapped_first_arguments(multiply_ADD_MUL)
 
 def multiply_MUL_MUL(lhs, rhs, cls):
     if lhs.length() < rhs.length():
@@ -919,6 +847,7 @@ def expand_NUMBER_ADD(lhs, rhs, cls):
     for t,c in lhs.data.iteritems():
         d[t] = c * value
     return result
+generate_swapped_first_arguments(expand_NUMBER_ADD)
 
 def expand_SYMBOL_ADD(lhs, rhs, cls):
     result = newinstance(cls,ADD,{})
@@ -926,26 +855,7 @@ def expand_SYMBOL_ADD(lhs, rhs, cls):
     for t,c in rhs.data.iteritems():
         d[t * lhs] = c
     return result
-
-def expand_ADD_NUMBER(lhs, rhs, cls):
-    value = rhs.data
-    if value==0:
-        return rhs
-    if value==1:
-        return lhs
-    result = newinstance(cls,ADD,{})
-    d = result.data
-    for t,c in lhs.data.iteritems():
-        d[t] = c * value
-    return result
-
-def expand_ADD_SYMBOL(lhs, rhs, cls):
-    result = newinstance(cls,ADD,{})
-    d = result.data
-    for t,c in lhs.data.iteritems():
-        t = multiply_dict[t.head, SYMBOL](t, rhs, cls)
-        d[t] = c
-    return result
+generate_swapped_first_arguments(expand_SYMBOL_ADD)
 
 def expand_ADD_ADD(lhs, rhs, cls):
     if lhs.length() > rhs.length():
@@ -976,12 +886,7 @@ def expand_ADD_MUL(lhs, rhs, cls):
         d[t * rhs] = c
     return result
 
-def expand_MUL_ADD(lhs, rhs, cls):
-    result = newinstance(cls,ADD,{})
-    d = result.data
-    for t,c in rhs.data.iteritems():
-        d[t * lhs] = c
-    return result
+generate_swapped_first_arguments(expand_ADD_MUL)
 
 def expand_ADD_INTPOW(lhs, m, cls):
     terms = lhs.data.items()
