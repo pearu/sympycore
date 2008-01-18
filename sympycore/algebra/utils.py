@@ -1,4 +1,6 @@
 
+__all__ = ['swap_first_arguments']
+
 import new
 def swap_first_arguments(func):
     """ Return a function that behaves like func but the
@@ -25,3 +27,18 @@ def swap_first_arguments(func):
                         )
     new_func = new.function(new_code, func.func_globals)
     return new_func
+
+def safe_swap_first_arguments(func):
+    """ Return a function that behaves like func but the
+    first arguments are swapped.
+    """
+    return lambda lhs, rhs, *args: func(rhs, lhs, *args)
+
+try:
+    def _foo(lhs, rhs, rest):
+        return lhs, rhs, rest
+    assert swap_first_arguments(_foo)(1,2,3)==(2,1,3)
+except Exception, msg:
+    print 'Using safe_swap_first_arguments since got: %s' % (msg)
+    swap_first_arguments = safe_swap_first_arguments
+    assert swap_first_arguments(_foo)(1,2,3)==(2,1,3)
