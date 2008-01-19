@@ -23,8 +23,9 @@ class StandardCommutativeAlgebra(CommutativeRingWithPairs):
 
     @classmethod
     def redirect_operation(cls, *args, **kws):
-        """ Default implementation of redirect_operation method
-        used as a callback when RedirectOperation exception is raised.
+        """
+        Here should be handled operations with 'active' number
+        such as extended numbers and floats.
         """
         callername = kws['redirect_operation']
         flag = True

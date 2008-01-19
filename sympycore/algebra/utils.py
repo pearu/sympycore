@@ -35,7 +35,8 @@ class RedirectOperation(Exception):
     If redirect_operation==None then no exception is raised.
     
     The caller should catch this exception and return
-      self.redirect_operation(redirect_operation, <caller arguments>)
+      self.redirect_operation(<caller arguments>,
+                              redirect_operation=redirect_operation)
     """
 
 def generate_swapped_first_arguments(func):
