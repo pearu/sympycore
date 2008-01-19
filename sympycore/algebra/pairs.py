@@ -59,8 +59,7 @@ class CommutativeRingWithPairs(BasicAlgebra):
         h = self._hash
         if h is None:
             data = self.data
-            if isinstance(data, dict):
-            #if type(data) is dict:
+            if type(data) is dict:
                 h = hash(frozenset(data.iteritems()))
             else:
                 h = hash(data)
@@ -410,12 +409,24 @@ class CommutativeRingWithPairs(BasicAlgebra):
     def __pos__(self):
         return self
 
-    def __add__(self, other):
+    def __add__(self, other, redirect_operation='__add__'):
         other = self.convert(other, False)
         if other is NotImplemented:
             return NotImplemented
-        return add_dict[self.head, other.head](self, other, self.__class__)
+        try:
+            return add_dict[self.head, other.head](self, other, self.__class__)
+        except RedirectOperation:
+            return self.redirect_operation(self, other, redirect_operation=redirect_operation)
 
+    def __radd__(self, other, redirect_operation='__radd__'):
+        other = self.convert(other, False)
+        if other is NotImplemented:
+            return NotImplemented
+        try:
+            return add_dict[other.head, self.head](other, self, other.__class__)
+        except RedirectOperation:
+            return self.redirect_operation(self, other, redirect_operation=redirect_operation)
+        
     def __mul__(self, other, redirect_operation='__mul__'):
         other = self.convert(other, False)
         if other is NotImplemented:
@@ -434,11 +445,6 @@ class CommutativeRingWithPairs(BasicAlgebra):
         except RedirectOperation:
             return self.redirect_operation(self, other, redirect_operation=redirect_operation)
 
-    def __radd__(self, other):
-        other = self.convert(other, False)
-        if other is NotImplemented:
-            return NotImplemented
-        return add_dict[other.head, self.head](other, self, other.__class__)
 
     def __lt__(self, other):
         return self.data < other

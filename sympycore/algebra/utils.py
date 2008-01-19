@@ -1,4 +1,6 @@
 
+import sys
+
 __all__ = ['generate_swapped_first_arguments','RedirectOperation']
 
 def get_object_by_name(name, default=None):

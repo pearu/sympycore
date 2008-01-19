@@ -29,20 +29,18 @@ class StandardCommutativeAlgebra(CommutativeRingWithPairs):
         """
         callername = kws['redirect_operation']
         flag = True
-        if callername=='__mul__':
+        if callername in ['__mul__','__add__']:
             lhs, rhs = args
-        elif callername=='__rmul__':
+        elif callername in ['__rmul__','__radd__']:
             rhs, lhs = args
         else:
             flag = False
         if flag:
+            # handle operations with undefined:
             if isinstance(rhs, cls) and rhs.head is NUMBER:
                 if rhs.data == undefined:
                     return rhs
-            if isinstance(lhs, cls) and lhs.head is NUMBER:
-                if lhs.data == undefined:
-                    return lhs
-            
+        # fallback to default:
         return getattr(cls, callername)(*args,
                                         **dict(redirect_operation='ignore_redirection'))            
 
