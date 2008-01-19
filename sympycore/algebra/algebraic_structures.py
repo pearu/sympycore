@@ -338,15 +338,20 @@ class BasicAlgebra(Basic):
           obj.subs(pattern, expr, wildcards=[..])
           obj.subs([(pattern1, expr1), (pattern2, expr2), ..], wildcards=[..])
         """
-        # XXX: incomplete
         if expr is None:
             r = self
             for item in pattern:
                 r = r.subs(item[0], item[1], wildcards=wildcards)
             return r
         if self.match(pattern, *wildcards) is not None:
-            return expr
-        return self
+            return self.convert(expr)
+        expr = self.convert(expr)
+        args = [a.subs(pattern, expr, wildcards=wildcards) for a in self.args]
+        return self.func(*args)
+
+class CommutativeRing:
+
+    pass
 
 from .primitive import PrimitiveAlgebra, NUMBER, SYMBOL
 
