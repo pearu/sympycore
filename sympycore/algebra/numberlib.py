@@ -112,57 +112,57 @@ class mpq(tuple):
             return tnew(mpq, (-p, q))
         return self
 
-    def __add__(self, other, check=isinstance, inttypes=inttypes):
+    def __add__(self, other):
         p, q = self
-        if check(other, inttypes):
+        if isinstance(other, inttypes):
             return mpq(p+q*other, q)
-        if check(other, mpq):
+        if isinstance(other, mpq):
             r, s = other
             return mpq(p*s+q*r, q*s)
         return NotImplemented
 
     __radd__ = __add__
 
-    def __sub__(self, other, check=isinstance, inttypes=inttypes):
+    def __sub__(self, other):
         p, q = self
-        if check(other, inttypes):
+        if isinstance(other, inttypes):
             return mpq(p-q*other, q)
-        if check(other, mpq):
+        if isinstance(other, mpq):
             r, s = other
             return mpq(p*s - q*r, q*s)
         return NotImplemented
 
-    def __rsub__(self, other, check=isinstance, inttypes=inttypes):
+    def __rsub__(self, other):
         p, q = self
-        if check(other, inttypes):
+        if isinstance(other, inttypes):
             return mpq(q*other-p, q)
         return NotImplemented
 
-    def __mul__(self, other, check=isinstance, inttypes=inttypes):
+    def __mul__(self, other):
         p, q = self
-        if check(other, inttypes):
+        if isinstance(other, inttypes):
             return mpq(p*other, q)
-        if check(other, mpq):
+        if isinstance(other, mpq):
             r, s = other
             return mpq(p*r, q*s)
         return NotImplemented
 
     __rmul__ = __mul__
 
-    def __div__(self, other, check=isinstance, inttypes=inttypes):
+    def __div__(self, other):
         p, q = self
-        if check(other, inttypes):
+        if isinstance(other, inttypes):
             if not other:
                 return cmp(p, 0) * oo
             return mpq(p, q*other)
-        if check(other, mpq):
+        if isinstance(other, mpq):
             r, s = other
             return mpq(p*s, q*r)
         return NotImplemented
 
-    def __rdiv__(self, other, check=isinstance, inttypes=inttypes):
+    def __rdiv__(self, other):
         p, q = self
-        if check(other, inttypes):
+        if isinstance(other, inttypes):
             return mpq(q*other, p)
         return NotImplemented
 
