@@ -12,6 +12,6 @@ def test_linear():
 
 def test_powers():
     assert Number(3) ** Number(-2) == Number(1,9)
+    assert Number(4) ** Number(1,2) == Number(2)
     assert str(Number(2) ** Number(1,2)) == "2**(1/2)"
-
 

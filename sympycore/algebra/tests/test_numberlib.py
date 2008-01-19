@@ -115,6 +115,27 @@ def test_extended_cmp():
     assert max(2, -oo, oo, 3) == oo
     assert min(2, -oo, oo, 3) == -oo
 
+def test_int_roots():
+    assert int_root(1,1) == (1, True)
+    assert int_root(0,1) == (0, True)
+    assert int_root(0,3) == (0, True)
+    assert int_root(10000, 1) == (10000, True)
+    assert int_root(4,2) == (2, True)
+    assert int_root(16,2) == (4, True)
+    assert int_root(26,2) == (5, False)
+    assert int_root(1234567**7, 7) == (1234567, True)
+    assert int_root(1234567**7+1, 7) == (1234567, False)
+    assert int_root(1234567**7-1, 7) == (1234566, False)
+    b = 25**1000
+    assert int_root(b, 1000) == (25, True)
+    assert int_root(b+1, 1000) == (25, False)
+    assert int_root(b-1, 1000) == (24, False)
+    c = 10**400
+    c2 = c**2
+    assert int_root(c2, 2) == (c, True)
+    assert int_root(c2+1, 2) == (c, False)
+    assert int_root(c2-1, 2) == (c-1, False)
+
 def test_powers():
     assert try_power(3, 2) == (9, None)
     assert try_power(3, -2) == (mpq(1, 9), None)
@@ -123,3 +144,8 @@ def test_powers():
     assert try_power(mpc(0, 1), 2) == (-1, None)
     assert try_power(mpc(-1,2), -2) == (mpc(mpq(-3,25), mpq(4,25)), None)
     assert try_power(2, mpq(1, 2)) == (1, (2, mpq(1, 2)))
+    assert try_power(4, mpq(1, 2)) == (2, None)
+    assert try_power(4, mpq(3, 2)) == (8, None)
+    assert try_power(4, mpq(-3, 2)) == (mpq(1,8), None)
+    assert try_power(-1, mpq(1, 2)) == (mpc(0, 1), None)
+    assert try_power(-729, mpq(1, 6)) == (mpc(0, 3), None)

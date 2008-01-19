@@ -38,8 +38,10 @@ Some issues:
 # Author: Fredrik Johansson
 # Created: January 2008
 
-__all__ = ['mpq', 'mpf', 'mpc', 'div', 'try_power', 'extended_number',
-           'nan', 'undefined', 'oo', 'moo', 'zoo']
+import math
+
+__all__ = ['mpq', 'mpf', 'mpc', 'div', 'int_root', 'try_power',
+    'extended_number', 'nan', 'undefined', 'oo', 'moo', 'zoo']
 
 from primitive import PrimitiveAlgebra, NUMBER, SYMBOL
 
@@ -557,6 +559,34 @@ def div(a, b):
         return mpq(1,b) * a
     return a / b
 
+def int_root(y, n):
+    """
+    Given integers y and n, return a tuple containing x = floor(y**(1/n))
+    and a boolean indicating whether x**n == y exactly.
+    """
+    if y < 0: raise ValueError, "y must not be negative"
+    if n < 1: raise ValueError, "n must be positive"
+    if y in (0, 1): return y, True
+    if n == 1: return y, True
+    # Get initial estimate for Newton's method. Care must be taken to
+    # avoid overflow
+    try:
+        guess = int(y ** (1./n))
+    except OverflowError:
+        try:
+            guess = int(math.exp(math.log(y)/n))
+        except OverflowError:
+            guess = 1 << int(math.log(y, 2)/n)
+    # Newton iteration
+    xprev, x = -1, guess
+    while abs(x - xprev) > 1:
+        t = x**(n-1)
+        xprev, x = x, x - (t*x-y)//(n*t)
+    # Compensate
+    while x**n > y:
+        x -= 1
+    return x, x**n == y
+
 def try_power(x, y):
     """
     Attempt to compute x**y where x and y must be of the types int,
@@ -580,4 +610,16 @@ def try_power(x, y):
         if not x: return oo, None
         if isinstance(x, inttypes): return mpq(1, x**(-y)), None
         if isinstance(x, (mpq, mpf, mpc)): return x**y, None
+    if isinstance(x, inttypes) and isinstance(y, mpq):
+        p, q = y
+        r, exact = int_root(abs(x), q)
+        if exact:
+            if p > 0:
+                g = r**p
+            else:
+                g = mpq(1, r**(-p))
+            if x > 0:
+                return g, None
+            else:
+                return mpc(0, g), None
     return 1, (x, y)
