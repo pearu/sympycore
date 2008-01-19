@@ -5,7 +5,9 @@ from .primitive import PrimitiveAlgebra, SYMBOL, NUMBER, ADD, MUL
 
 from .pairs import CommutativeRingWithPairs
 
-from .numberlib import mpq, mpf, mpc, try_power
+from .numberlib import mpq, mpf, mpc, try_power, extended_number, undefined
+
+algebra_numbers = (int, long, float, complex, mpq, mpf, mpc, extended_number)
 
 class StandardCommutativeAlgebra(CommutativeRingWithPairs):
     """ Represents an element of a symbolic algebra. The set of a
@@ -18,6 +20,45 @@ class StandardCommutativeAlgebra(CommutativeRingWithPairs):
 
     __slots__ = ['head', 'data', '_hash', 'one', 'zero']
     _hash = None
+
+    @classmethod
+    def redirect_operation(cls, *args, **kws):
+        """ Default implementation of redirect_operation method
+        used as a callback when RedirectOperation exception is raised.
+        """
+        callername = kws['redirect_operation']
+        flag = True
+        if callername=='__mul__':
+            lhs, rhs = args
+        elif callername=='__rmul__':
+            rhs, lhs = args
+        else:
+            flag = False
+        if flag:
+            if isinstance(rhs, cls) and rhs.head is NUMBER:
+                if rhs.data == undefined:
+                    return rhs
+            if isinstance(lhs, cls) and lhs.head is NUMBER:
+                if lhs.data == undefined:
+                    return lhs
+            
+        return getattr(cls, callername)(*args,
+                                        **dict(redirect_operation='ignore_redirection'))            
+
+            
+
+    @classmethod
+    def convert_coefficient(cls, obj, typeerror=True):
+        """ Convert obj to coefficient algebra.
+        """
+        if isinstance(obj, algebra_numbers):
+            return obj
+        if typeerror:
+            raise TypeError('%s.convert_coefficient: failed to convert %s instance'\
+                            ' to coefficient algebra, expected int|long object'\
+                            % (cls.__name__, obj.__class__.__name__))
+        else:
+            return NotImplemented
     
     @classmethod
     def Number(cls, num, denom=None):
@@ -63,5 +104,3 @@ I = StandardCommutativeAlgebra(mpc(0,1), head=NUMBER)
 
 StandardCommutativeAlgebra.one = one
 StandardCommutativeAlgebra.zero = zero
-StandardCommutativeAlgebra.algebra_class = StandardCommutativeAlgebra
-StandardCommutativeAlgebra.algebra_numbers = (int, long, float, mpq, mpf, mpc)

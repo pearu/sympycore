@@ -1,5 +1,42 @@
 
-__all__ = ['generate_swapped_first_arguments']
+__all__ = ['generate_swapped_first_arguments','RedirectOperation']
+
+def get_object_by_name(name, default=None):
+    """ Return object that is a value of a variable with name
+    in the local or parent namespaces. If variable is found
+    in parent namespaces then it is added to children
+    namespaces.
+    When no variable with name is found then return default
+    and add a variable only to the callers locals namespace. 
+    """
+    frame = sys._getframe(1)
+    frames = [frame]
+    while frame is not None:
+        obj = frame.f_locals.get(name, None)
+        if obj is not None:
+            for frame in frames:
+                frame.f_locals[name] = obj
+            return obj
+        if default is not None:
+            try:
+                _name = frame.f_locals['__name__']
+            except KeyError:
+                _name = None
+            if _name is not None and _name=='__main__':
+                obj = frames[0].f_locals[name] = default
+                return obj
+        frames.append(frame)
+        frame = frame.f_back
+    return default
+
+class RedirectOperation(Exception):
+    """ Raised in __nonzero__ methods when the callers
+    namespace contains a variable redirect_operation='caller name'.
+    If redirect_operation==None then no exception is raised.
+    
+    The caller should catch this exception and return
+      self.redirect_operation(redirect_operation, <caller arguments>)
+    """
 
 def generate_swapped_first_arguments(func):
     """ Creates a new function from func by swapping its

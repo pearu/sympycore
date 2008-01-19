@@ -43,7 +43,9 @@ import math
 __all__ = ['mpq', 'mpf', 'mpc', 'div', 'int_root', 'try_power',
     'extended_number', 'nan', 'undefined', 'oo', 'moo', 'zoo']
 
-from primitive import PrimitiveAlgebra, NUMBER, SYMBOL
+from .primitive import PrimitiveAlgebra, NUMBER, SYMBOL
+from .utils import get_object_by_name
+from .utils import RedirectOperation
 
 inttypes = (int, long)
 
@@ -467,6 +469,11 @@ class extended_number:
         if self.direction == -1: return '-oo'
         return "%s*oo" % self.direction
 
+    def __nonzero__(self):
+        if get_object_by_name('redirect_operation', 'ignore_redirection')=='ignore_redirection':
+            return True
+        raise RedirectOperation(self)
+
     def __abs__(self):
         if not self.infinite: return self
         return oo
@@ -523,6 +530,8 @@ class extended_number:
             if self.direction != other.direction:
                 return nan
             return extended_number(self.infinite*other.infinite, self.direction)
+        if not isinstance(other, numbertypes):
+            return NotImplemented
         return self
 
     __radd__ = __add__
@@ -536,9 +545,11 @@ class extended_number:
     def __mul__(self, other):
         if isinstance(other, extended_number):
             return extended_number(self.infinite*other.infinite,
-                as_direction(self.direction*other.direction))
+                                   as_direction(self.direction*other.direction))
+        if not isinstance(other, numbertypes):
+            return NotImplemented
         if not other:
-            return nan
+            return undefined
         return extended_number(self.infinite, as_direction(self.direction*other))
 
     __rmul__ = __mul__
@@ -548,6 +559,7 @@ undefined = nan = extended_number(0, 0)
 oo = extended_number(1, 1)
 moo = extended_number(1, -1)
 zoo = extended_number(1, 0)
+numbertypes = (int, long, float, complex, mpq, mpf, mpc, extended_number)
 
 
 #----------------------------------------------------------------------------#
@@ -575,10 +587,10 @@ def int_root(y, n):
     # Get initial estimate for Newton's method. Care must be taken to
     # avoid overflow
     try:
-        guess = int(y ** (1./n))
+        guess = int(y ** (1./n)+0.5)
     except OverflowError:
         try:
-            guess = int(math.exp(math.log(y)/n))
+            guess = int(math.exp(math.log(y)/n)+0.5)
         except OverflowError:
             guess = 1 << int(math.log(y, 2)/n)
     # Newton iteration
@@ -627,3 +639,5 @@ def try_power(x, y):
             else:
                 return mpc(0, g), None
     return 1, (x, y)
+
+

@@ -131,8 +131,10 @@ def test_int_roots():
     assert int_root(b, 1000) == (25, True)
     assert int_root(b+1, 1000) == (25, False)
     assert int_root(b-1, 1000) == (24, False)
+
     c = 10**400
     c2 = c**2
+
     assert int_root(c2, 2) == (c, True)
     assert int_root(c2+1, 2) == (c, False)
     assert int_root(c2-1, 2) == (c-1, False)

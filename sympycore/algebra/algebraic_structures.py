@@ -24,6 +24,15 @@ class BasicAlgebra(Basic):
       properties: args(self). func(self)
     """
 
+    @classmethod
+    def redirect_operation(cls, *args, **kws):
+        """ Default implementation of redirect_operation method
+        used as a callback when RedirectOperation exception is raised.
+        """
+        callername = kws['redirect_operation']
+        return getattr(cls, callername)(*args,
+                                        **dict(redirect_operation='ignore_redirection'))
+
     def __str__(self):
         return str(self.as_primitive())
 

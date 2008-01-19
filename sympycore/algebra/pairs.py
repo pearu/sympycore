@@ -9,7 +9,7 @@ from .algebraic_structures import BasicAlgebra
 from .primitive import PrimitiveAlgebra, ADD, MUL, SYMBOL, NUMBER, head_to_string
 from .numberlib import mpq
 from .utils import generate_swapped_first_arguments
-
+from .utils import RedirectOperation
 
 def newinstance(cls, head, data, new = object.__new__):
     o = new(cls)
@@ -416,21 +416,29 @@ class CommutativeRingWithPairs(BasicAlgebra):
             return NotImplemented
         return add_dict[self.head, other.head](self, other, self.__class__)
 
-    def __mul__(self, other):
+    def __mul__(self, other, redirect_operation='__mul__'):
         other = self.convert(other, False)
-        return multiply_dict[self.head, other.head](self, other, self.__class__)
+        if other is NotImplemented:
+            return NotImplemented
+        try:
+            return multiply_dict[self.head, other.head](self, other, self.__class__)
+        except RedirectOperation:
+            return self.redirect_operation(self, other, redirect_operation=redirect_operation)
+
+    def __rmul__(self, other, redirect_operation='__rmul__'):
+        other = self.convert(other, False)
+        if other is NotImplemented:
+            return NotImplemented
+        try:
+            return multiply_dict[other.head, self.head](other, self, other.__class__)
+        except RedirectOperation:
+            return self.redirect_operation(self, other, redirect_operation=redirect_operation)
 
     def __radd__(self, other):
         other = self.convert(other, False)
         if other is NotImplemented:
             return NotImplemented
         return add_dict[other.head, self.head](other, self, other.__class__)
-
-    def __rmul__(self, other):
-        other = self.convert(other, False)
-        if other is NotImplemented:
-            return NotImplemented
-        return multiply_dict[other.head, self.head](other, self, other.__class__)
 
     def __lt__(self, other):
         return self.data < other
