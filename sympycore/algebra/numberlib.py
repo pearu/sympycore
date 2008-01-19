@@ -467,6 +467,10 @@ class extended_number:
         if self.direction == -1: return '-oo'
         return "%s*oo" % self.direction
 
+    def __abs__(self):
+        if not self.infinite: return self
+        return oo
+
     def __eq__(self, other):
         if isinstance(other, extended_number):
             return self.infinite == other.infinite and \

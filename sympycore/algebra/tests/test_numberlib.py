@@ -71,7 +71,6 @@ def test_mpc():
     assert str(mpc(0,mpq(1,2))) == '(1/2)*I'
     assert mpc(0,1)**(-2) == -1
 
-
 def test_extended_numbers():
     assert 1*oo == oo
     assert -3*oo == -oo
@@ -92,6 +91,8 @@ def test_extended_numbers():
     assert 0*oo == nan
     assert 0*zoo == nan
     assert 0*nan == nan
+    assert abs(oo) == abs(-oo) == abs(zoo) == oo
+    assert abs(nan) == nan
 
 def test_extended_cmp():
     assert -oo < oo
