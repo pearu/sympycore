@@ -1055,7 +1055,18 @@ def generate_expand_data(n, m):
     """ Return power-coefficient dictionary of an expanded
     sum (A1 + A2 + .. + An)**m.
     """
-    ## 
+
+    # Generate binomial coefficients
+    if n == 2:
+        d = {ExponentsTuple((0, m)):1}
+        a = 1
+        for k in xrange(1, m+1):
+            a = (a * (m-k+1))//k
+            d[ExponentsTuple((k, m-k))] = a
+        return d
+
+    # Generate multinomial coefficients
+
     ## Consider polynomial
     ##   P(x) = sum_{i=0}^n p_i x^k
     ## and its m-th exponent
@@ -1066,7 +1077,7 @@ def generate_expand_data(n, m):
     ## Programming v.2, Addison Wesley, Reading, 1981;]:
     ##  a(m,k) = 1/(k p_0) sum_{i=1}^n p_i ((m+1)i-k) a(m,k-i),
     ## where a(m,0) = p_0^m.
-    
+
     symbols = [ExponentsTuple((0,)*i + (1,) +(0,)*(n-i-1)) for i in range(n)]
     s0 = symbols[0]
     p0 = [s/s0 for s in symbols]
