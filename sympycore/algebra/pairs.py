@@ -375,6 +375,8 @@ class CommutativeRingWithPairs(BasicAlgebra):
             else:
                 inplace_dict[MUL, head](result, t, 1, cls)
         result = result.canonize()
+        if not number:
+            return cls.zero
         if number==1:
             return result
         if result==1:
