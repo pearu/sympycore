@@ -177,3 +177,10 @@ def test_Mul():
     assert Mul(a,a**-1)==1
     #assert Mul(n,n**-1)==1
     
+def test_integrate():
+    x = Symbol('x')
+    y = Symbol('y')
+    assert Number(3).integrate(x) == 3*x
+    assert x.integrate(x) == x**2 / 2
+    assert (2*x).integrate(x) == x**2
+    assert (1 + 4*y*x + 3*x**2).integrate(x) == x + 2*y*x**2 + x**3

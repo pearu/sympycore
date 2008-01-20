@@ -10,6 +10,7 @@ from .primitive import PrimitiveAlgebra, ADD, MUL, SYMBOL, NUMBER, head_to_strin
 from .numberlib import mpq
 from .utils import generate_swapped_first_arguments
 from .utils import RedirectOperation
+from .utils import not_implemented
 
 def newinstance(cls, head, data, new = object.__new__):
     o = new(cls)
@@ -456,6 +457,41 @@ class CommutativeRingWithPairs(BasicAlgebra):
         return self.data >= other
     def __ne__(self, other):
         return not (self.data == other)
+
+    def integrate(self, x, integrator=not_implemented):
+        """
+        Attempt to calculate an antiderivative of self with respect to x.
+        This method is able to directly deal with expanded linear
+        combinations of constant powers of x (e.g. expanded polynomials).
+
+        Terms that cannot be handled directly are forwarded to
+        a user-defined function `integrator`.
+
+        TODO: identify nonconstant terms correctly
+        """
+        if self.head is SYMBOL:
+            if self == x:
+                return x**2 / 2
+            return self*x
+        if self.head is NUMBER:
+            return self*x
+        if self.head is MUL:
+            product = self.one
+            have_x = False
+            for b, e in self.data.items():
+                if b == x:
+                    if have_x:
+                        return integrator(self, x)
+                    product *= b**(e+1) / (e+1)
+                    have_x = True
+                else:
+                    product *= b
+            return product
+        if self.head is ADD:
+            return self.Add(*(coef*term.integrate(x, integrator) \
+                for term, coef in self.data.items()))
+        return integrator(self, x)
+
 
 CommutativeRingWithPairs.one = CommutativeRingWithPairs.Number(1)
 CommutativeRingWithPairs.zero = CommutativeRingWithPairs.Number(0)

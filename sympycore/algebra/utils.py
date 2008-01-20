@@ -41,6 +41,9 @@ class RedirectOperation(Exception):
                               redirect_operation=redirect_operation)
     """
 
+def not_implemented():
+    raise NotImplementedError
+
 def generate_swapped_first_arguments(func):
     """ Creates a new function from func by swapping its
     first arguments and parts of its name. For example, if
