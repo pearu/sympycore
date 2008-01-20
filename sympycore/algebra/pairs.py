@@ -87,7 +87,7 @@ class CommutativeRingWithPairs(BasicAlgebra):
         elif head in [ADD, MUL]:
             r.append(tab + '%s[' % (head_to_string[head]))
             for t,c in data.iteritems():
-                r.append(t.as_tree(tab=tab + ('  %s:' % (c))))
+                r.append(t.as_tree(tab=tab + ('  %s:' % (str(c)))))
             r.append(tab+']')
         else:
             raise NotImplementedError(`self, head`)
