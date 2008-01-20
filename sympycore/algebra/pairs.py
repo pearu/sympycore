@@ -850,6 +850,8 @@ def multiply_SYMBOL_ADD(lhs, rhs, cls):
     t, c = rhs.data.items()[0]
     if lhs==t:
         return newinstance(cls,ADD,{newinstance(cls, MUL, {lhs: 2}): c})
+    if t.head is MUL:
+        return newinstance(cls, ADD, {t * lhs: c})
     return newinstance(cls,ADD,{newinstance(cls, MUL, {lhs: 1, t:1}): c})
 
 generate_swapped_first_arguments(multiply_SYMBOL_ADD)
@@ -886,9 +888,9 @@ def multiply_ADD_ADD(lhs, rhs, cls):
         return newinstance(cls, MUL, {lhs:1, rhs:1})
 
 def multiply_ADD_MUL(lhs, rhs, cls):
-    result = rhs.copy()
-    pairs = result.data
     if lhs.length()>1:
+        result = rhs.copy()
+        pairs = result.data
         b = pairs.get(lhs)
         if b is None:
             pairs[lhs] = 1
@@ -902,17 +904,7 @@ def multiply_ADD_MUL(lhs, rhs, cls):
             return result.canonize()
         return result
     t, c = lhs.data.items()[0]
-    b = pairs.get(t)
-    if b is None:
-        pairs[t] = 1
-    else:
-        c = b + 1
-        if c:
-            pairs[t] = c
-        else:
-            del pairs[t]
-    result = result.canonize()
-    return multiply_dict[result.head, NUMBER](result, newinstance(cls, NUMBER, c), cls)
+    return multiply_dict[t.head, rhs.head](t, rhs, cls) * c
 
 generate_swapped_first_arguments(multiply_ADD_MUL)
 
