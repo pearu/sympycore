@@ -367,8 +367,11 @@ class CommutativeRingWithPairs(BasicAlgebra):
                 number = number * t.data
             elif head is ADD and len(t.data)==1:
                 t, c = t.data.items()[0]
-                inplace_dict[MUL, t.head](result, t, 1, cls)
-                number = number * c
+                if t.head is NUMBER:
+                    number = number * t * c
+                else:
+                    inplace_dict[MUL, t.head](result, t, 1, cls)
+                    number = number * c
             else:
                 inplace_dict[MUL, head](result, t, 1, cls)
         result = result.canonize()
@@ -867,7 +870,10 @@ def multiply_SYMBOL_ADD(lhs, rhs, cls):
     if lhs==t:
         return newinstance(cls,ADD,{newinstance(cls, MUL, {lhs: 2}): c})
     if t.head is MUL:
-        return newinstance(cls, ADD, {t * lhs: c})
+        t = t * lhs
+        if t.head is NUMBER:
+            return t * c
+        return newinstance(cls, ADD, {t: c})
     return newinstance(cls,ADD,{newinstance(cls, MUL, {lhs: 1, t:1}): c})
 
 generate_swapped_first_arguments(multiply_SYMBOL_ADD)
