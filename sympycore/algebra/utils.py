@@ -41,7 +41,7 @@ class RedirectOperation(Exception):
                               redirect_operation=redirect_operation)
     """
 
-def not_implemented():
+def not_implemented(*args, **kwargs):
     raise NotImplementedError
 
 def generate_swapped_first_arguments(func):
