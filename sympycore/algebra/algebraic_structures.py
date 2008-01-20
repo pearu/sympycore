@@ -36,6 +36,9 @@ class BasicAlgebra(Basic):
     def __str__(self):
         return str(self.as_primitive())
 
+    def as_tree(self, tab=''):
+        return self.as_primitive().as_tree(tab)
+
     @classmethod
     def convert(cls, obj, typeerror=True):
         """ Convert obj to algebra element.

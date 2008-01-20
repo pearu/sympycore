@@ -219,6 +219,18 @@ class PrimitiveAlgebra(BasicAlgebra):
             return head + l[0]
         return head.join(l)
 
+    def as_tree(self, tab=''):
+        r = []
+        head, rest = self.tree
+        if head in [SYMBOL, NUMBER]:
+            r.append(tab + '%s[%s]' % (head_to_string[head], rest))
+        else:
+            r.append(tab + '%s[' % (head_to_string[head]))
+            for t in rest:
+                r.append(t.as_tree(tab=tab + '  '))
+            r.append(tab+']')
+        return '\n'.join(r)
+
     def __eq__(self, other):
         if type(other) is PrimitiveAlgebra:
             return self.tree == other.tree

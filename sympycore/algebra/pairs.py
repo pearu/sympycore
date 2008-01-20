@@ -78,6 +78,21 @@ class CommutativeRingWithPairs(BasicAlgebra):
     def __repr__(self):
         return '%s(%r, head=%s)' % (self.__class__.__name__, self.data, head_to_string[self.head])
 
+    def as_tree(self, tab=''):
+        r = []
+        data = self.data
+        head = self.head
+        if head in [SYMBOL, NUMBER]:
+            r.append(tab + '%s[%s]' % (head_to_string[head], data))
+        elif head in [ADD, MUL]:
+            r.append(tab + '%s[' % (head_to_string[head]))
+            for t,c in data.iteritems():
+                r.append(t.as_tree(tab=tab + ('  %s:' % (c))))
+            r.append(tab+']')
+        else:
+            raise NotImplementedError(`self, head`)
+        return '\n'.join(r)
+
     @property
     def func(self):
         head = self.head
