@@ -75,11 +75,14 @@ class CommutativeRingWithPairs(BasicAlgebra):
             return newinstance(self.__class__, self.head, dict(self.data))
         return self
 
-    def __repr__(self):
-        return '%s(%r, head=%s)' % (self.__class__.__name__, self.data, head_to_string[self.head])
+    #def __repr__(self):
+    #    return '%s(%r, head=%s)' % (self.__class__.__name__, self.data, head_to_string[self.head])
 
-    def as_tree(self, tab=''):
-        r = []
+    def as_tree(self, tab='', level=0):
+        if level:
+            r = []
+        else:
+            r = [self.__class__.__name__+':']
         data = self.data
         head = self.head
         if head in [SYMBOL, NUMBER]:
@@ -87,7 +90,7 @@ class CommutativeRingWithPairs(BasicAlgebra):
         elif head in [ADD, MUL]:
             r.append(tab + '%s[' % (head_to_string[head]))
             for t,c in data.iteritems():
-                r.append(t.as_tree(tab=tab + ('  %s:' % (str(c)))))
+                r.append(t.as_tree(tab=tab + ('  %s:' % (str(c))), level=level+1))
             r.append(tab+']')
         else:
             raise NotImplementedError(`self, head`)
@@ -507,9 +510,9 @@ class CommutativeRingWithPairs(BasicAlgebra):
                 for term, coef in self.data.items()))
         return integrator(self, x)
 
-
-CommutativeRingWithPairs.one = CommutativeRingWithPairs.Number(1)
-CommutativeRingWithPairs.zero = CommutativeRingWithPairs.Number(0)
+A = CommutativeRingWithPairs
+A.one = A.Number(1)
+A.zero = A.Number(0)
 
 def iadd_ADD_NUMBER(lhs, rhs, one_c, cls):
     value = rhs.data * one_c

@@ -116,9 +116,9 @@ class PrimitiveAlgebra(BasicAlgebra):
         obj.tree = tree
         return obj
 
-    def __repr__(self):
-        return '%s(%r, head=%s)' % (self.__class__.__name__, self.tree[1],
-                                    head_to_string[self.tree[0]])
+    #def __repr__(self):
+    #    return '%s(%r, head=%s)' % (self.__class__.__name__, self.tree[1],
+    #                                head_to_string[self.tree[0]])
 
     @classmethod
     def convert(cls, obj):
@@ -219,15 +219,18 @@ class PrimitiveAlgebra(BasicAlgebra):
             return head + l[0]
         return head.join(l)
 
-    def as_tree(self, tab=''):
-        r = []
+    def as_tree(self, tab='', level=0):
+        if level:
+            r = []
+        else:
+            r = [self.__class__.__name__+':']
         head, rest = self.tree
         if head in [SYMBOL, NUMBER]:
             r.append(tab + '%s[%s]' % (head_to_string[head], rest))
         else:
             r.append(tab + '%s[' % (head_to_string[head]))
             for t in rest:
-                r.append(t.as_tree(tab=tab + '  '))
+                r.append(t.as_tree(tab=tab + '  ', level=level+1))
             r.append(tab+']')
         return '\n'.join(r)
 

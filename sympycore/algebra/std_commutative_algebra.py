@@ -97,9 +97,9 @@ class StandardCommutativeAlgebra(CommutativeRingWithPairs):
             return base
         return cls({base:exp}, head=MUL)
 
-one = StandardCommutativeAlgebra(1, head=NUMBER)
-zero = StandardCommutativeAlgebra(0, head=NUMBER)
-I = StandardCommutativeAlgebra(mpc(0,1), head=NUMBER)
-
-StandardCommutativeAlgebra.one = one
-StandardCommutativeAlgebra.zero = zero
+A = StandardCommutativeAlgebra
+one = A(1, head=NUMBER)
+zero = A(0, head=NUMBER)
+I = A(mpc(0,1), head=NUMBER)
+A.one = one
+A.zero = zero

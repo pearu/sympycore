@@ -36,8 +36,17 @@ class BasicAlgebra(Basic):
     def __str__(self):
         return str(self.as_primitive())
 
-    def as_tree(self, tab=''):
-        return self.as_primitive().as_tree(tab)
+    def __repr__(self):
+        return '%s(%r)' % (self.__class__.__name__, str(self))
+
+    def inspect(self):
+        """ Show the internal tree structure of the object.
+        """
+        print self.as_tree()
+        return
+
+    def as_tree(self, tab='', level=0):
+        return self.as_primitive().as_tree(tab,level)
 
     @classmethod
     def convert(cls, obj, typeerror=True):

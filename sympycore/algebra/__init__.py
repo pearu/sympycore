@@ -1,14 +1,12 @@
 
 from .algebraic_structures import BasicAlgebra
 from .primitive import PrimitiveAlgebra
-from .std_commutative_algebra import StandardCommutativeAlgebra, I
-#from .pairs import CommutativePairs
-
+from .pairs import CommutativeRingWithPairs
+from .std_commutative_algebra import I, A, StandardCommutativeAlgebra
 from .integers import Integers
 
-Symbol = StandardCommutativeAlgebra.Symbol
-Number = StandardCommutativeAlgebra.Number
-
+Symbol = A.Symbol
+Number = A.Number
 
 from numberlib import mpq, mpf, mpc, oo, moo, undefined, zoo
 # a temporary convenience
