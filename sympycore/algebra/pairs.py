@@ -394,6 +394,15 @@ class CommutativeRingWithPairs(BasicAlgebra):
             return cls.one
         if exponent==1 or cls.one==base:
             return base
+        if base.head is ADD and len(base.data)==1:
+            t,c = base.data.items()[0]
+            return t**exponent * newinstance(cls, NUMBER, c)**exponent
+        if base.head is MUL and isinstance(exponent, (int, long)):
+            d = {}
+            result = newinstance(cls, MUL, d)
+            for t,c in base.data.iteritems():
+                d[t] = c * exponent
+            return result
         return newinstance(cls, MUL, {base:exponent})
 
     @classmethod

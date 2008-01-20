@@ -3,7 +3,7 @@ from ..core import sympify, classes
 from .algebraic_structures import BasicAlgebra
 from .primitive import PrimitiveAlgebra, SYMBOL, NUMBER, ADD, MUL
 
-from .pairs import CommutativeRingWithPairs
+from .pairs import CommutativeRingWithPairs, newinstance
 
 from .numberlib import mpq, mpf, mpc, try_power, extended_number, undefined
 
@@ -95,6 +95,19 @@ class StandardCommutativeAlgebra(CommutativeRingWithPairs):
             return cls.one
         if exp == 1 or cls.one==base:
             return base
+        if base.head is ADD and len(base.data)==1:
+            t,c = base.data.items()[0]
+            return t**exp * newinstance(cls, NUMBER, c)**exp
+        if base.head is MUL:
+            e = exp
+            if isinstance(exp, cls) and exp.head is NUMBER:
+                e = exp.data
+            if isinstance(e, (int, long)):
+                d = {}
+                result = newinstance(cls, MUL, d)
+                for t,c in base.data.iteritems():
+                    d[t] = c * e
+                return result
         return cls({base:exp}, head=MUL)
 
 A = StandardCommutativeAlgebra
