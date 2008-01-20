@@ -79,7 +79,7 @@ class mpq(tuple):
         return "(%i/%i)" % self
 
     def __repr__(self):
-        return "mpq(%i, %i)" % (self[0], self[1])
+        return "mpq(%r, %r)" % (self[0], self[1])
 
     # not needed when __new__ normalizes to ints
     # __nonzero__
@@ -172,7 +172,7 @@ class mpq(tuple):
         if n >= 0:
             return mpq(p**n, q**n)
         else:
-            return mpq(q**n, p**n)
+            return mpq(q**-n, p**-n)
 
 
 #----------------------------------------------------------------------------#
@@ -624,8 +624,10 @@ def try_power(x, y):
     if isinstance(y, inttypes):
         if y >= 0: return x**y, None
         if not x: return oo, None
-        if isinstance(x, inttypes): return mpq(1, x**(-y)), None
-        if isinstance(x, (mpq, mpf, mpc)): return x**y, None
+        if isinstance(x, inttypes):
+            return mpq(1, x**(-y)), None
+        if isinstance(x, (mpq, mpf, mpc)):
+            return x**y, None
     if isinstance(x, inttypes) and isinstance(y, mpq):
         p, q = y
         r, exact = int_root(abs(x), q)

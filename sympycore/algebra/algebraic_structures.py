@@ -258,6 +258,8 @@ class BasicAlgebra(Basic):
         other = self.convert(other, False)
         if other is NotImplemented:
             return NotImplemented
+        if isinstance(other, (int, long)):
+            other = self.Number(other)
         return self.Mul(self, other ** (-1))
 
     def __rdiv__(self, other):
