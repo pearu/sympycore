@@ -18,6 +18,9 @@ def newinstance(cls, head, data, new = object.__new__):
     o.data = data
     return o
 
+def inspect(obj):
+    obj.inspect()
+
 class CommutativeRingWithPairs(BasicAlgebra):
     """ Contains generic methods to algebra classes that
     use Pairs.
@@ -362,6 +365,10 @@ class CommutativeRingWithPairs(BasicAlgebra):
             head = t.head
             if head is NUMBER:
                 number = number * t.data
+            elif head is ADD and len(t.data)==1:
+                t, c = t.data.items()[0]
+                inplace_dict[MUL, t.head](result, t, 1, cls)
+                number = number * c
             else:
                 inplace_dict[MUL, head](result, t, 1, cls)
         result = result.canonize()
@@ -600,6 +607,12 @@ def imul_MUL_SYMBOL(lhs, rhs, one_e, cls):
 
 def imul_MUL_ADD(lhs, rhs, one_e, cls):
     pairs = lhs.data
+    d = rhs.data
+    if len(d)==1:
+        t,c = d.items()[0]
+        inplace_dict[MUL, t.head](lhs, t, one_e, cls)
+        inplace_dict[MUL, NUMBER](lhs, newinstance(cls, NUMBER, c), one_e, cls)
+        return
     b = pairs.get(rhs)
     if b is None:
         pairs[rhs] = one_e
