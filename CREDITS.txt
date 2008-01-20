@@ -11,13 +11,13 @@ Credits
 * In January 2008 a new algebra package was introduced that increased
   the performance of the directadd5 test case four-fold. The basic
   design of the algebra package was developed by Pearu Peterson and
-  Fredrik Johannson.  Pearu implemented CommutativeRingWithPairs that
+  Fredrik Johansson.  Pearu implemented CommutativeRingWithPairs that
   is the computational base class to many algebras. Fredrik
   implemented an efficient numbers support (mpq, mpf, mpc,
   extended_number) that is one of the main factors for recent
   performance improvements. Fredrik implemented PrimitiveAlgebra class
-  that is used as an universal language between different
-  languages. Pearu added an expression parsing (based on the Python
+  that is used as a universal language between different
+  algebras. Pearu added an expression parsing (based on the Python
   compiler package) support to PrimitiveAlgebra.
 
 * Sympy Core uses the idea of Fredrik Johansson's research to carry
