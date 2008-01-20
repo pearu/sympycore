@@ -902,7 +902,7 @@ def multiply_ADD_ADD(lhs, rhs, cls):
         t2, c2 = rhs.data.items()[0]
         t = multiply_dict[t1.head, t2.head](t1, t2, cls)
         if t==lhs.one:
-            return c1*c2
+            return newinstance(cls, NUMBER, c1*c2)
         return newinstance(cls,ADD,{t: c1*c2})
     else:
         if lhs.data==rhs.data:
