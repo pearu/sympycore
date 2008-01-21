@@ -3,10 +3,11 @@
 # Created: January 2007
 
 import types
+from collections import defaultdict
 
 from ..core import classes
 from .algebraic_structures import BasicAlgebra
-from .primitive import PrimitiveAlgebra, ADD, MUL, SYMBOL, NUMBER, head_to_string
+from .primitive import PrimitiveAlgebra, ADD, MUL, SYMBOL, NUMBER, APPLY,head_to_string
 from .numberlib import mpq
 from .utils import generate_swapped_first_arguments
 from .utils import RedirectOperation
@@ -95,6 +96,8 @@ class CommutativeRingWithPairs(BasicAlgebra):
             for t,c in data.iteritems():
                 r.append(t.as_tree(tab=tab + ('  %s:' % (str(c))), level=level+1))
             r.append(tab+']')
+        elif callable(head):
+            r.append(tab + '%s[%s]' % (head, data))
         else:
             raise NotImplementedError(`self, head`)
         return '\n'.join(r)
@@ -105,14 +108,16 @@ class CommutativeRingWithPairs(BasicAlgebra):
         data = self.data
         if head is SYMBOL or head is NUMBER:
             return lambda : self
-        if head is ADD:
+        elif head is ADD:
             if len(data)>1:
                 return self.Add
             return self.Mul
-        if head is MUL:
+        elif head is MUL:
             if len(data)>1:
                 return self.Mul
             return self.Pow
+        elif callable(head):
+            return head
         raise NotImplementedError(`self, head`)
 
     @property
@@ -120,66 +125,58 @@ class CommutativeRingWithPairs(BasicAlgebra):
         head = self.head
         if head is SYMBOL or head is NUMBER:
             return []
-        if head is ADD:
+        elif head is ADD:
             if len(self.data)>1:
                 return self.as_Add_args()
             return self.as_Mul_args()
-        if head is MUL:
+        elif head is MUL:
             if len(self.data)>1:
                 return self.as_Mul_args()
             return self.as_Pow_args()
+        elif callable(head):
+            return (self.data,)
         raise NotImplementedError(`self, head`)
 
     def as_Add_args(self):
         head = self.head
         data = self.data
-        if head is SYMBOL or head is NUMBER or head is MUL:
-            return [self]
         if head is ADD:
             if len(data)==1:
                 return [self]
             return [t * c for t,c in data.iteritems()]
-        raise NotImplementedError(`self, head`)
+        return [self]
 
     def as_Mul_args(self):
         head = self.head
         data = self.data
-        if head is SYMBOL or head is NUMBER or head is ADD:
-            return [self]
         if head is MUL:
             if len(data)==1:
                 return [self]
             return [t ** c for t,c in data.iteritems()]
-        raise NotImplementedError(`self, head`)
+        return [self]
 
     def as_Pow_args(self):
         head = self.head
         data = self.data
-        if head is SYMBOL or head is NUMBER or head is ADD:
-            return [self, self.one_e]
         if head is MUL:
             if len(data)==1:
                 return data.items()[0]
             return [self, self.one_e] #XXX: improve me
-        raise NotImplementedError(`self, head`)
+        return [self, self.one_e]
 
     def as_Terms_args(self):
         head = self.head
-        if head is SYMBOL or head is MUL:
-            return [(self, self.one_c)]
         if head is NUMBER:
             return [(self.one, self.data)]
         if head is ADD:
             return self.data.items()
-        raise NotImplementedError(`self, head`)
+        return [(self, self.one_c)]
 
     def as_Factors_args(self):
         head = self.head
-        if head is SYMBOL or head is ADD or head is NUMBER:
-            return [(self, self.one_e)]
         if head is MUL:
             return self.data.items()
-        raise NotImplementedError(`self, head`)
+        return [(self, self.one_e)]
     
     def canonize(self):
         head = self.head
@@ -239,11 +236,6 @@ class CommutativeRingWithPairs(BasicAlgebra):
                 return l[0]
             r = PrimitiveAlgebra((MUL,tuple(l)))
             r.commutative_mul = True
-        elif head is SYMBOL:
-            data = self.data
-            if hasattr(data, 'as_primitive'):
-                return data.as_primitive()
-            r = PrimitiveAlgebra((SYMBOL, self.data))
         elif head is NUMBER:
             value = self.data
             if hasattr(value, 'as_primitive'):
@@ -252,13 +244,25 @@ class CommutativeRingWithPairs(BasicAlgebra):
                 r = -PrimitiveAlgebra((NUMBER, -value))
             else:
                 r = PrimitiveAlgebra((NUMBER, value))
+        elif head is SYMBOL:
+            data = self.data
+            if hasattr(data, 'as_primitive'):
+                return data.as_primitive()
+            r = PrimitiveAlgebra((SYMBOL, self.data))
+        elif callable(head):
+            data = self.data
+            if hasattr(data, 'as_primitive'):
+                return data.as_primitive()
+            r = PrimitiveAlgebra((APPLY, (self.head,self.data)))
         else:
-            raise TypeError(`self, head`)
+            data = self.data
+            if hasattr(data, 'as_primitive'):
+                return data.as_primitive()
+            r = PrimitiveAlgebra((SYMBOL, (self.head,self.data)))
         return r
 
     def expand(self):
-        return expand_dict[self.head](self, self.__class__)
-
+        return expand_dict1[self.head](self, self.__class__)
 
     def matches(pattern, expr, repl_dict={}, wild_expressions=[], wild_predicates=[]):
         r = BasicAlgebra.matches(pattern, expr, repl_dict, wild_expressions, wild_predicates)
@@ -352,7 +356,7 @@ class CommutativeRingWithPairs(BasicAlgebra):
         d = {}
         result = newinstance(cls, ADD, d)
         for t in seq:
-            inplace_dict[ADD, t.head](result, t, 1, cls)
+            inplace_ADD_dict[t.head](result, t, 1, cls)
         if len(d)<=1:
             return result.canonize()
         return result
@@ -363,7 +367,7 @@ class CommutativeRingWithPairs(BasicAlgebra):
         number = 1
         for t in seq:
             head = t.head
-            n = inplace_dict[MUL, head](result, t, 1, cls)
+            n = inplace_MUL_dict[head](result, t, 1, cls)
             if n is not None:
                 number = number * n
         result = result.canonize()
@@ -377,15 +381,15 @@ class CommutativeRingWithPairs(BasicAlgebra):
         if head is NUMBER:
             return newinstance(cls, NUMBER, result * number)
         if head is ADD:
-            return multiply_dict[head, NUMBER](result, newinstance(cls, NUMBER, number), cls)
+            return multiply_dict2[head][NUMBER](result, newinstance(cls, NUMBER, number), cls)
         return newinstance(cls, ADD, {result:number})
 
     @classmethod
     def Pow(cls, base, exponent):
         if isinstance(exponent, (int,long)):
-            return pow_dict[base.head](base, exponent, cls)
+            return pow_dict1[base.head](base, exponent, cls)
         if isinstance(exponent, cls) and exponent.head is NUMBER and isinstance(exponent.data, (int, long)):
-            return pow_dict[base.head](base, exponent.data, cls)
+            return pow_dict1[base.head](base, exponent.data, cls)
         return newinstance(cls, MUL, {base:exponent})
 
     @classmethod
@@ -393,7 +397,7 @@ class CommutativeRingWithPairs(BasicAlgebra):
         d = {}
         result = newinstance(cls, ADD, d)
         for t,c in seq:
-            inplace_dict[ADD, t.head](result, t, c, cls)
+            inplace_ADD_dict[t.head](result, t, c, cls)
         if len(d)<=1:
             return result.canonize()
         return result
@@ -405,7 +409,7 @@ class CommutativeRingWithPairs(BasicAlgebra):
         number = 1
         for t,c in seq:
             head = t.head
-            n = inplace_dict[MUL, head](result, t, c, cls)
+            n = inplace_MUL_dict[head](result, t, c, cls)
             if n is not None:
                 number = number * n
         if len(d)<=1:
@@ -436,7 +440,7 @@ class CommutativeRingWithPairs(BasicAlgebra):
         if other is NotImplemented:
             return NotImplemented
         try:
-            return add_dict[self.head, other.head](self, other, self.__class__)
+            return add_dict2[self.head][other.head](self, other, self.__class__)
         except RedirectOperation:
             return self.redirect_operation(self, other, redirect_operation=redirect_operation)
 
@@ -445,7 +449,7 @@ class CommutativeRingWithPairs(BasicAlgebra):
         if other is NotImplemented:
             return NotImplemented
         try:
-            return add_dict[other.head, self.head](other, self, other.__class__)
+            return add_dict2[other.head][self.head](other, self, other.__class__)
         except RedirectOperation:
             return self.redirect_operation(self, other, redirect_operation=redirect_operation)
         
@@ -454,7 +458,7 @@ class CommutativeRingWithPairs(BasicAlgebra):
         if other is NotImplemented:
             return NotImplemented
         try:
-            return multiply_dict[self.head, other.head](self, other, self.__class__)
+            return multiply_dict2[self.head][other.head](self, other, self.__class__)
         except RedirectOperation:
             return self.redirect_operation(self, other, redirect_operation=redirect_operation)
 
@@ -463,7 +467,7 @@ class CommutativeRingWithPairs(BasicAlgebra):
         if other is NotImplemented:
             return NotImplemented
         try:
-            return multiply_dict[other.head, self.head](other, self, other.__class__)
+            return multiply_dict2[other.head][self.head](other, self, other.__class__)
         except RedirectOperation:
             return self.redirect_operation(self, other, redirect_operation=redirect_operation)
 
@@ -553,7 +557,7 @@ def pow_ADD_int(lhs, rhs, cls):
     pairs = lhs.data
     if len(pairs)==1:
         t, c = pairs.items()[0]
-        return pow_dict[t.head](t, rhs, cls) * pow_coeff_int(c, rhs)
+        return pow_dict1[t.head](t, rhs, cls) * pow_coeff_int(c, rhs)
     return newinstance(cls, MUL, {lhs:rhs})
 
 def pow_MUL_int(lhs, rhs, cls):
@@ -566,14 +570,6 @@ def pow_MUL_int(lhs, rhs, cls):
     for t,c in lhs.pairs.iteritems():
         d[t] = c * rhs
     return r
-
-pow_dict = {
-    NUMBER: pow_NUMBER_int,
-    SYMBOL: pow_SYMBOL_int,
-    ADD: pow_ADD_int,
-    MUL: pow_MUL_int,
-    }
-
 
 def iadd_ADD_NUMBER(lhs, rhs, one_c, cls):
     value = rhs.data * one_c
@@ -654,7 +650,7 @@ def imul_MUL_ADD(lhs, rhs, one_e, cls):
     d = rhs.data
     if len(d)==1:
         t,c = d.items()[0]
-        inplace_dict[MUL, t.head](lhs, t, one_e, cls)
+        inplace_MUL_dict[t.head](lhs, t, one_e, cls)
         return c ** one_e
     b = pairs.get(rhs)
     if b is None:
@@ -687,7 +683,7 @@ def expand_ADD(obj, cls):
     result = newinstance(obj.__class__, ADD, d)
     for t,c in obj.data.iteritems():
         t = t.expand()
-        inplace_dict[ADD, t.head](result, t, c, cls)
+        inplace_ADD_dict[t.head](result, t, c, cls)
     if len(d)<=1:
         return result.canonize()
     return result
@@ -705,15 +701,12 @@ def expand_MUL(obj, cls):
         head = t.head
         if head is NUMBER:
             return t ** c
-        if head is SYMBOL:
-            return newinstance(cls, MUL, {t:c})
-        if head is MUL:
+        elif head is MUL:
             t._multiply_values(c, 1, 0)
             return t
-        if head is ADD:
+        elif head is ADD:
             return expand_ADD_INTPOW(t, c, cls)
-        else:
-            raise TypeError(`t, head`)
+        return newinstance(cls, MUL, {t:c})
     # split product into lhs * rhs:
     it = pairs.iteritems()
     t, c = it.next()
@@ -729,7 +722,7 @@ def expand_MUL(obj, cls):
             rhs = newinstance(cls, MUL, {t:c}).expand()
     else:
         rhs = newinstance(cls, MUL, dict(it)).expand()
-    return expand_dict[lhs.head, rhs.head](lhs, rhs, cls)
+    return expand_dict2[lhs.head][rhs.head](lhs, rhs, cls)
 
 
 ####################################################################
@@ -940,7 +933,7 @@ def multiply_ADD_ADD(lhs, rhs, cls):
     if lhs.length()==rhs.length()==1:
         t1, c1 = lhs.data.items()[0]
         t2, c2 = rhs.data.items()[0]
-        t = multiply_dict[t1.head, t2.head](t1, t2, cls)
+        t = multiply_dict[t1.head][t2.head](t1, t2, cls)
         if t==lhs.one:
             return newinstance(cls, NUMBER, c1*c2)
         return newinstance(cls,ADD,{t: c1*c2})
@@ -966,7 +959,7 @@ def multiply_ADD_MUL(lhs, rhs, cls):
             return result.canonize()
         return result
     t, c = lhs.data.items()[0]
-    return multiply_dict[t.head, rhs.head](t, rhs, cls) * c
+    return multiply_dict2[t.head][rhs.head](t, rhs, cls) * c
 
 generate_swapped_first_arguments(multiply_ADD_MUL)
 
@@ -1026,7 +1019,7 @@ def expand_ADD_ADD(lhs, rhs, cls):
     for t1, c1 in pairs1.iteritems():
         t1_head = t1.head
         for t2, c2 in pairs2.iteritems():
-            t = multiply_dict[t1_head, t2.head](t1, t2, cls)
+            t = multiply_dict2[t1_head][t2.head](t1, t2, cls)
             c = c1 * c2
             b = get(t)
             if b is None:
@@ -1070,78 +1063,121 @@ def expand_ADD_INTPOW(lhs, m, cls):
                 del d[t]
     return result
 
-inplace_dict = {
-    (ADD, NUMBER): iadd_ADD_NUMBER,
-    (ADD, SYMBOL): iadd_ADD_SYMBOL,
-    (ADD, ADD): iadd_ADD_ADD,
-    (ADD, MUL): iadd_ADD_MUL,
-    (MUL, NUMBER): imul_MUL_NUMBER,
-    (MUL, SYMBOL): imul_MUL_SYMBOL,
-    (MUL, ADD): imul_MUL_ADD,
-    (MUL, MUL): imul_MUL_MUL,
-    }
+# function maps:
 
-add_dict = {
-    (NUMBER, NUMBER): add_NUMBER_NUMBER,
-    (NUMBER, SYMBOL): add_NUMBER_SYMBOL,
-    (NUMBER, ADD): add_NUMBER_ADD,
-    (NUMBER, MUL): add_NUMBER_MUL,
-    (SYMBOL, NUMBER): add_SYMBOL_NUMBER,
-    (SYMBOL, SYMBOL): add_SYMBOL_SYMBOL,
-    (SYMBOL, ADD): add_SYMBOL_ADD,
-    (SYMBOL, MUL): add_SYMBOL_MUL,
-    (ADD, NUMBER): add_ADD_NUMBER,
-    (ADD, SYMBOL): add_ADD_SYMBOL,
-    (ADD, ADD): add_ADD_ADD,
-    (ADD, MUL): add_ADD_MUL,
-    (MUL, NUMBER): add_MUL_NUMBER,
-    (MUL, SYMBOL): add_MUL_SYMBOL,
-    (MUL, ADD): add_MUL_ADD,
-    (MUL, MUL): add_MUL_MUL,
-    }
+pow_dict1 = defaultdict(lambda: pow_SYMBOL_int,
+                        {NUMBER: pow_NUMBER_int,
+                         ADD: pow_ADD_int,
+                         MUL: pow_MUL_int
+                         })
 
-multiply_dict = {
-    (NUMBER, NUMBER): multiply_NUMBER_NUMBER,
-    (NUMBER, SYMBOL): multiply_NUMBER_SYMBOL,
-    (NUMBER, ADD): multiply_NUMBER_ADD,
-    (NUMBER, MUL): multiply_NUMBER_MUL,
-    (SYMBOL, NUMBER): multiply_SYMBOL_NUMBER,
-    (SYMBOL, SYMBOL): multiply_SYMBOL_SYMBOL,
-    (SYMBOL, ADD): multiply_SYMBOL_ADD,
-    (SYMBOL, MUL): multiply_SYMBOL_MUL,
-    (ADD, NUMBER): multiply_ADD_NUMBER,
-    (ADD, SYMBOL): multiply_ADD_SYMBOL,
-    (ADD, ADD): multiply_ADD_ADD,
-    (ADD, MUL): multiply_ADD_MUL,
-    (MUL, NUMBER): multiply_MUL_NUMBER,
-    (MUL, SYMBOL): multiply_MUL_SYMBOL,
-    (MUL, ADD): multiply_MUL_ADD,
-    (MUL, MUL): multiply_MUL_MUL,
-    }
+inplace_ADD_dict = defaultdict(lambda: iadd_ADD_SYMBOL,
+                               {NUMBER: iadd_ADD_NUMBER,
+                                ADD: iadd_ADD_ADD,
+                                MUL: iadd_ADD_MUL,
+                                })
 
-expand_dict = {
-    NUMBER: lambda obj, cls: obj,
-    SYMBOL: lambda obj, cls: obj,
-    ADD: expand_ADD,
-    MUL: expand_MUL,
-    (NUMBER, NUMBER): multiply_NUMBER_NUMBER,
-    (NUMBER, SYMBOL): multiply_NUMBER_SYMBOL,
-    (NUMBER, ADD): expand_NUMBER_ADD,
-    (NUMBER, MUL): multiply_NUMBER_MUL,
-    (SYMBOL, NUMBER): multiply_SYMBOL_NUMBER,
-    (SYMBOL, SYMBOL): multiply_SYMBOL_SYMBOL,
-    (SYMBOL, ADD): expand_SYMBOL_ADD,
-    (SYMBOL, MUL): multiply_SYMBOL_MUL,
-    (ADD, NUMBER): expand_ADD_NUMBER,
-    (ADD, SYMBOL): expand_ADD_SYMBOL,
-    (ADD, ADD): expand_ADD_ADD,
-    (ADD, MUL): expand_ADD_MUL,
-    (MUL, NUMBER): multiply_MUL_NUMBER,
-    (MUL, SYMBOL): multiply_MUL_SYMBOL,
-    (MUL, ADD): expand_MUL_ADD,
-    (MUL, MUL): multiply_MUL_MUL,
-    }
+inplace_MUL_dict = defaultdict(lambda: imul_MUL_SYMBOL,
+                               {NUMBER: imul_MUL_NUMBER,
+                                ADD: imul_MUL_ADD,
+                                MUL: imul_MUL_MUL,
+                                })
 
+expand_NUMBER_dict = defaultdict(lambda:multiply_NUMBER_SYMBOL,
+                                 {NUMBER: multiply_NUMBER_NUMBER,
+                                  ADD: expand_NUMBER_ADD,
+                                  MUL: multiply_NUMBER_MUL,
+                                  })
+
+expand_ADD_dict = defaultdict(lambda:expand_ADD_SYMBOL,
+                              {NUMBER: expand_ADD_NUMBER,
+                               ADD: expand_ADD_ADD,
+                               MUL: expand_ADD_MUL,
+                               })
+
+expand_MUL_dict = defaultdict(lambda:multiply_MUL_SYMBOL,
+                              {NUMBER: multiply_MUL_NUMBER,
+                               ADD: expand_MUL_ADD,
+                               MUL: multiply_MUL_MUL,
+                               })
+
+expand_SYMBOL_dict = defaultdict(lambda:multiply_SYMBOL_SYMBOL,
+                                 {NUMBER: multiply_SYMBOL_NUMBER,
+                                  ADD: expand_SYMBOL_ADD,
+                                  MUL: multiply_SYMBOL_MUL,
+                                  })
+
+expand_dict2 = defaultdict(lambda:expand_SYMBOL_dict,
+                           {NUMBER:expand_NUMBER_dict,
+                            ADD:expand_ADD_dict,
+                            MUL:expand_MUL_dict,
+                            })
+
+expand_dict1 = defaultdict(lambda: (lambda obj, cls: obj),
+                           {NUMBER: lambda obj, cls: obj,
+                            ADD: expand_ADD,
+                            MUL: expand_MUL,
+                            })
+
+mul_NUMBER_dict = defaultdict(lambda:multiply_NUMBER_SYMBOL,
+                              {NUMBER: multiply_NUMBER_NUMBER,
+                               ADD: multiply_NUMBER_ADD,
+                               MUL: multiply_NUMBER_MUL,
+                               })
+
+mul_ADD_dict = defaultdict(lambda:multiply_ADD_SYMBOL,
+                           {NUMBER: multiply_ADD_NUMBER,
+                            ADD: multiply_ADD_ADD,
+                            MUL: multiply_ADD_MUL,
+                            })
+
+mul_MUL_dict = defaultdict(lambda:multiply_MUL_SYMBOL,
+                           {NUMBER: multiply_MUL_NUMBER,
+                            ADD: multiply_MUL_ADD,
+                            MUL: multiply_MUL_MUL,
+                            })
+
+mul_SYMBOL_dict = defaultdict(lambda:multiply_SYMBOL_SYMBOL,
+                              {NUMBER: multiply_SYMBOL_NUMBER,
+                               ADD: multiply_SYMBOL_ADD,
+                               MUL: multiply_SYMBOL_MUL,
+                               })
+
+multiply_dict2 = defaultdict(lambda:mul_SYMBOL_dict,
+                             {NUMBER:mul_NUMBER_dict,
+                              ADD:mul_ADD_dict,
+                              MUL:mul_MUL_dict,
+                              })
+
+add_NUMBER_dict = defaultdict(lambda:add_NUMBER_SYMBOL,
+                              {NUMBER: add_NUMBER_NUMBER,
+                               ADD: add_NUMBER_ADD,
+                               MUL: add_NUMBER_MUL,
+                               })
+
+add_ADD_dict = defaultdict(lambda:add_ADD_SYMBOL,
+                           {NUMBER: add_ADD_NUMBER,
+                            ADD: add_ADD_ADD,
+                            MUL: add_ADD_MUL,
+                            })
+
+add_MUL_dict = defaultdict(lambda:add_MUL_SYMBOL,
+                           {NUMBER: add_MUL_NUMBER,
+                            ADD: add_MUL_ADD,
+                            MUL: add_MUL_MUL,
+                            })
+
+add_SYMBOL_dict = defaultdict(lambda:add_SYMBOL_SYMBOL,
+                              {NUMBER: add_SYMBOL_NUMBER,
+                               ADD: add_SYMBOL_ADD,
+                               MUL: add_SYMBOL_MUL,
+                               })
+
+add_dict2 = defaultdict(lambda:add_SYMBOL_dict,
+                        {NUMBER:add_NUMBER_dict,
+                         ADD:add_ADD_dict,
+                         MUL:add_MUL_dict,
+                         })
 
 ###
 
