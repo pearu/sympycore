@@ -363,17 +363,9 @@ class CommutativeRingWithPairs(BasicAlgebra):
         number = 1
         for t in seq:
             head = t.head
-            if head is NUMBER:
-                number = number * t.data
-            elif head is ADD and len(t.data)==1:
-                t, c = t.data.items()[0]
-                if t.head is NUMBER:
-                    number = number * t * c
-                else:
-                    inplace_dict[MUL, t.head](result, t, 1, cls)
-                    number = number * c
-            else:
-                inplace_dict[MUL, head](result, t, 1, cls)
+            n = inplace_dict[MUL, head](result, t, 1, cls)
+            if n is not None:
+                number = number * n
         result = result.canonize()
         if not number:
             return cls.zero
@@ -422,14 +414,9 @@ class CommutativeRingWithPairs(BasicAlgebra):
         number = 1
         for t,c in seq:
             head = t.head
-            if head is NUMBER:
-                number = number * t.data ** c
-            elif head is ADD and len(t.data)==1:
-                t1,c1 = t.data.items()[0]
-                inplace_dict[MUL, t1.head](result, t1, c, cls)
-                number = number * c1 ** c
-            else:
-                inplace_dict[MUL, head](result, t, c, cls)
+            n = inplace_dict[MUL, head](result, t, c, cls)
+            if n is not None:
+                number = number * n
         if len(d)<=1:
             return result.canonize() * number
         return result * number
@@ -598,17 +585,7 @@ def iadd_ADD_MUL(lhs, rhs, one_c, cls):
     return
 
 def imul_MUL_NUMBER(lhs, rhs, one_e, cls):
-    pairs = lhs.data
-    b = pairs.get(rhs)
-    if b is None:
-        pairs[rhs] = one_e
-    else:
-        c = b + one_e
-        if c:
-            pairs[rhs] = c
-        else:
-            del pairs[rhs]
-    return
+    return rhs.data ** one_e
 
 def imul_MUL_SYMBOL(lhs, rhs, one_e, cls):
     pairs = lhs.data
@@ -629,8 +606,7 @@ def imul_MUL_ADD(lhs, rhs, one_e, cls):
     if len(d)==1:
         t,c = d.items()[0]
         inplace_dict[MUL, t.head](lhs, t, one_e, cls)
-        inplace_dict[MUL, NUMBER](lhs, newinstance(cls, NUMBER, c), one_e, cls)
-        return
+        return c ** one_e
     b = pairs.get(rhs)
     if b is None:
         pairs[rhs] = one_e
