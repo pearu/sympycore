@@ -424,6 +424,10 @@ class CommutativeRingWithPairs(BasicAlgebra):
             head = t.head
             if head is NUMBER:
                 number = number * t.data ** c
+            elif head is ADD and len(t.data)==1:
+                t1,c1 = t.data.items()[0]
+                inplace_dict[MUL, t1.head](result, t1, c, cls)
+                number = number * c1 ** c
             else:
                 inplace_dict[MUL, head](result, t, c, cls)
         if len(d)<=1:
