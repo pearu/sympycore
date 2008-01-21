@@ -382,19 +382,10 @@ class CommutativeRingWithPairs(BasicAlgebra):
 
     @classmethod
     def Pow(cls, base, exponent):
-        if exponent==0:
-            return cls.one
-        if exponent==1 or cls.one==base:
-            return base
-        if base.head is ADD and len(base.data)==1:
-            t,c = base.data.items()[0]
-            return t**exponent * newinstance(cls, NUMBER, c)**exponent
-        if base.head is MUL and isinstance(exponent, (int, long)):
-            d = {}
-            result = newinstance(cls, MUL, d)
-            for t,c in base.data.iteritems():
-                d[t] = c * exponent
-            return result
+        if isinstance(exponent, (int,long)):
+            return pow_dict[base.head](base, exponent, cls)
+        if isinstance(exponent, cls) and exponent.head is NUMBER and isinstance(exponent.data, (int, long)):
+            return pow_dict[base.head](base, exponent.data, cls)
         return newinstance(cls, MUL, {base:exponent})
 
     @classmethod
@@ -525,6 +516,64 @@ class CommutativeRingWithPairs(BasicAlgebra):
 A = CommutativeRingWithPairs
 A.one = A.Number(1)
 A.zero = A.Number(0)
+
+def pow_coeff_int(lhs, rhs, cls):
+    if not rhs or lhs==1:
+        return cls.one
+    if rhs > 0:
+        return newinstance(cls, NUMBER, lhs ** rhs)
+    r = pow_coeff_int(lhs, -rhs, cls)
+    return newinstance(cls, MUL, {r:-1})
+
+def pow_NUMBER_int(lhs, rhs, cls):
+    if not rhs:
+        return cls.one
+    if rhs==1:
+        return lhs
+    value = lhs.data
+    if rhs > 0:
+        return newinstance(cls, NUMBER, value ** rhs)
+    if value==1:
+        return lhs
+    r = pow_NUMBER_int(lhs, -rhs, cls)
+    return newinstance(cls, MUL, {r:-1})
+
+def pow_SYMBOL_int(lhs, rhs, cls):
+    if not rhs:
+        return cls.one
+    if rhs==1:
+        return lhs
+    return newinstance(cls, MUL, {lhs:rhs})
+
+def pow_ADD_int(lhs, rhs, cls):
+    if not rhs:
+        return cls.one
+    if rhs==1:
+        return lhs
+    pairs = lhs.data
+    if len(pairs)==1:
+        t, c = pairs.items()[0]
+        return pow_dict[t.head](t, rhs, cls) * pow_coeff_int(c, rhs)
+    return newinstance(cls, MUL, {lhs:rhs})
+
+def pow_MUL_int(lhs, rhs, cls):
+    if not rhs:
+        return cls.one
+    if rhs==1:
+        return lhs
+    d = {}
+    r = newinstance(cls, MUL, d)
+    for t,c in lhs.pairs.iteritems():
+        d[t] = c * rhs
+    return r
+
+pow_dict = {
+    NUMBER: pow_NUMBER_int,
+    SYMBOL: pow_SYMBOL_int,
+    ADD: pow_ADD_int,
+    MUL: pow_MUL_int,
+    }
+
 
 def iadd_ADD_NUMBER(lhs, rhs, one_c, cls):
     value = rhs.data * one_c
