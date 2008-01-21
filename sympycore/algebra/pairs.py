@@ -483,6 +483,25 @@ class CommutativeRingWithPairs(BasicAlgebra):
     def __ne__(self, other):
         return not (self.data == other)
 
+    def diff(self, x):
+        head = self.head
+        if head is SYMBOL:
+            if self.data == x.data:
+                return self.one
+            return self.zero
+        if head is NUMBER:
+            return self.zero
+        if head is ADD:
+            return A.Terms(*((s.diff(x), c) for s, c in self.data.items()))
+        if head is MUL:
+            pairs = self.data.items()
+            L = len(pairs)
+            if L == 1:
+                b, e = pairs.pop()
+                if isinstance(e, (int, long)) or e.head is NUMBER:
+                    return e*b**(e-1) * b.diff(x)
+        raise NotImplementedError
+
     def integrate(self, x, integrator=not_implemented):
         """
         Attempt to calculate an antiderivative of self with respect to x.

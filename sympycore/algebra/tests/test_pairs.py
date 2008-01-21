@@ -176,7 +176,16 @@ def test_Mul():
     n = Number(2)
     assert Mul(a,a**-1)==1
     #assert Mul(n,n**-1)==1
-    
+
+def test_diff():
+    x = Symbol('x')
+    assert Number(2).diff(x) == 0
+    assert x.diff(x) == 1
+    assert (3*x).diff(x) == 3
+    assert (3*x+1).diff(x) == 3
+    assert (2*x**2 + x).diff(x) == 4*x + 1
+    assert (x**3).diff(x) == 3*x**2
+
 def test_integrate():
     x = Symbol('x')
     y = Symbol('y')
