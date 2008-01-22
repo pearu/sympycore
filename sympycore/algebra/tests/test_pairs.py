@@ -175,7 +175,7 @@ def test_Mul():
     b = Symbol('b')
     n = Number(2)
     assert Mul(a,a**-1)==1
-    #assert Mul(n,n**-1)==1
+    assert Mul(n,n**-1)==1
 
 def test_diff():
     x = Symbol('x')

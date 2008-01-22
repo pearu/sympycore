@@ -363,26 +363,17 @@ class CommutativeRingWithPairs(CommutativeRing):
 
     @classmethod
     def Mul(cls, *seq):
-        result = newinstance(cls, MUL,{})
+        d = {}
+        result = newinstance(cls, MUL, d)
         number = 1
         for t in seq:
             head = t.head
             n = inplace_MUL_dict[head](result, t, 1, cls)
             if n is not None:
                 number = number * n
-        result = result.canonize()
-        if not number:
-            return cls.zero
-        if number==1:
-            return result
-        if result==1:
-            return newinstance(cls, NUMBER, number)
-        head = result.head
-        if head is NUMBER:
-            return newinstance(cls, NUMBER, result * number)
-        if head is ADD:
-            return multiply_dict2[head][NUMBER](result, newinstance(cls, NUMBER, number), cls)
-        return newinstance(cls, ADD, {result:number})
+        if len(d)<=1:
+            result = result.canonize()
+        return multiply_dict2[result.head][NUMBER](result, newinstance(cls, NUMBER, number), cls)
 
     @classmethod
     def Pow(cls, base, exponent):
