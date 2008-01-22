@@ -641,6 +641,16 @@ def try_power(x, y):
 
     """
     if isinstance(x, extended_number) or isinstance(y, extended_number):
+        if x == undefined or y == undefined:
+            return undefined, []
+        if x.infinite and isinstance(y, (int, long, mpq, mpf)):
+            if y == 0: return undefined, []
+            if y < 0: return 0, []
+            if y > 0:
+                if not x.direction:
+                    return x, []
+                z, sym = try_power(x.direction, y)
+                return extended_number(1, z), sym
         raise NotImplementedError
     if isinstance(y, inttypes):
         if y >= 0: return x**y, []
