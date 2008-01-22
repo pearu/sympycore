@@ -83,7 +83,7 @@ class BasicAlgebra(Basic):
     def convert_exponent(cls, obj, typeerror=True):
         """ Convert obj to exponent algebra.
         """
-        if isinstance(obj, (int, long)):
+        if isinstance(obj, (int, long, cls)):
             return obj
         if typeerror:
             raise TypeError('%s.convert_exponent: failed to convert %s instance'\

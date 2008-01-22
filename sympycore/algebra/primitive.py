@@ -81,11 +81,16 @@ parentheses_map = {
 _is_name = re.compile(r'\A[a-zA-z_]\w*\Z').match
 _is_number = re.compile(r'\A\d+\Z').match
 
-head_order = [NUMBER, SYMBOL, POS, ADD, SUB, MOD, MUL, DIV, POW,
+head_order = [NUMBER, SYMBOL,
+              POS, ADD, SUB,
+              MOD, MUL, DIV, POW,
               NEG,
-              BOR, BXOR, BAND, INVERT, EQ, NE, LT, GT, LE, GE,
-              OR, AND, NOT, LAMBDA, TUPLE
+              BOR, BXOR, BAND, INVERT,
+              EQ, NE, LT, GT, LE, GE,
+              OR, AND, NOT,
+              LAMBDA, TUPLE
               ]
+
 def tree_sort(a, b):
     h1,h2 = a.tree[0], b.tree[0]
     c = cmp(head_order.index(h1), head_order.index(h2))
@@ -165,7 +170,10 @@ class PrimitiveAlgebra(BasicAlgebra):
         if head is APPLY:
             func = rest[0]
             args = rest[1:]
-            s = str(func)
+            if callable(func) and hasattr(func,'__name__'):
+                s = func.__name__
+            else:
+                s = str(func)
             if _is_name(s):
                 return '%s(%s)' % (s, ', '.join(map(str,args)))
             return '(%s)(%s)' % (s, ', '.join(map(str,args)))
