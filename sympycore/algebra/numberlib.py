@@ -99,6 +99,10 @@ class mpq(tuple):
         p, q = self
         return float(p) / q
 
+    def __int__(self):
+        p, q = self
+        return p // q
+
     def __neg__(self, tnew=tuple.__new__):
         p, q = self
         return tnew(mpq, (-p, q))
@@ -165,6 +169,12 @@ class mpq(tuple):
         if isinstance(other, inttypes):
             return mpq(q*other, p)
         return NotImplemented
+
+    def __floordiv__(a, b):
+        return int(a / b)
+
+    def __rfloordiv__(a, b):
+        return int(b / a)
 
     def __pow__(self, n):
         assert isinstance(n, inttypes)

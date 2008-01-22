@@ -25,6 +25,10 @@ def test_mpq():
     assert mpq(1234,15) < 83
     assert mpq(1234,15) > 82
     assert mpq(2,3) < mpq(3, 4)
+    assert mpq(27,3) // 4 == 2
+    assert mpq(-27,3) // 4 == -3
+    assert 4 // mpq(7,3) == 1
+    assert 4 // mpq(-7,3) == -2
 
 def test_mpf():
     assert mpf(2) != 3
