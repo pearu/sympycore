@@ -38,7 +38,7 @@ def get_pi_shift(arg, N):
         if len(arg.data) == 1:
             e, c = arg.data.items()[0]
             if e == pi:
-                c *= 12
+                c *= N
                 if isinstance(c, (int, long)):
                     return zero, c
         c = arg.data.get(pi)
