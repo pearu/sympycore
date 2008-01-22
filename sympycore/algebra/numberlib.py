@@ -89,10 +89,10 @@ class mpq(tuple):
     def __cmp__(self, other):
         p, q = self
         if isinstance(other, inttypes):
-            return p - q*other
+            return cmp(p - q*other, 0)
         if isinstance(other, mpq):
             r, s = other
-            return p*s - q*r
+            return cmp(p*s - q*r, 0)
         return NotImplemented
 
     def __float__(self):
