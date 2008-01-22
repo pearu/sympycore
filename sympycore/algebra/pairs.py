@@ -229,7 +229,9 @@ class CommutativeRingWithPairs(CommutativeRing):
                         return -args[0]
                 else:
                     args = [PrimitiveAlgebra(-args[0])] + map(PrimitiveAlgebra,args[1:])
-                r = -PrimitiveAlgebra((MUL,tuple(args)))
+                r = PrimitiveAlgebra((MUL,tuple(args)))
+                r.commutative_mul = True
+                r = -r
             else:
                 args = map(PrimitiveAlgebra, args)
                 r = PrimitiveAlgebra((MUL,tuple(args)))

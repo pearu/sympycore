@@ -82,7 +82,8 @@ _is_name = re.compile(r'\A[a-zA-z_]\w*\Z').match
 _is_number = re.compile(r'\A\d+\Z').match
 
 head_order = [NUMBER, SYMBOL,
-              POS, ADD, SUB,
+              POS, ADD,
+              SUB,
               MOD, MUL, DIV, POW,
               NEG,
               BOR, BXOR, BAND, INVERT,
@@ -92,15 +93,18 @@ head_order = [NUMBER, SYMBOL,
               ]
 
 def tree_sort(a, b):
-    h1,h2 = a.tree[0], b.tree[0]
+    h1, h2 = a.tree[0], b.tree[0]
     c = cmp(head_order.index(h1), head_order.index(h2))
-    if c: return c
+    if c:
+        return c
     t1,t2 = a.tree[1], b.tree[1]
     if h1 is SYMBOL or h1 is NUMBER or callable(h1):
         return cmp(t1, t2)
     c = cmp(len(t1), len(t2))
     if c: return c
-    for i1,i2 in zip(t1,t2):
+    l1 = sorted(t1, cmp=tree_sort)
+    l2 = sorted(t2, cmp=tree_sort)
+    for i1,i2 in zip(l1,l2):
         c = tree_sort(i1, i2)
         if c: return c
     return 0
@@ -223,6 +227,7 @@ class PrimitiveAlgebra(BasicAlgebra):
                 l.append('(%s)' % s)
             else:
                 l.append(s)
+
         if len(l)==1: # unary operation
             return head + l[0]
         return head.join(l)

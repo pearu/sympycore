@@ -433,6 +433,26 @@ def test_mul_pow():
     assert str(m1**m)==str('a**(2*a*b)')
     assert str(m1**m1)==str('a**(2*a**2)')
 
+
+def test_expand():
+    x,y,z = map(Symbol, 'xyz')
+    assert ((x+y)**2).expand()==x**2+y**2+2*x*y
+    assert str(((x+y)**2).expand())=='2*x*y + x**2 + y**2'
+    assert ((x-y)**2).expand()==x**2+y**2-2*x*y
+    assert ((x+y)**3).expand()==x**3+y**3+3*x**2*y+3*x*y**2
+    assert ((x-y)**3).expand()==x**3-y**3-3*x**2*y+3*x*y**2
+    assert ((x+y)**3).expand()==-((-x-y)**3).expand()
+    assert str((x*(x+y)).expand())=='x*y + x**2'
+    assert str(((x+y)*x).expand())=='x*y + x**2'
+    
+    assert str(((x+y+z)**2).expand())=='2*x*y + 2*x*z + 2*y*z + x**2 + y**2 + z**2'
+    assert str(((x+y+z)**3).expand())==\
+           '3*x*y**2 + 3*x*z**2 + 3*y*x**2 + 3*y*z**2 + 3*z*x**2 + 3*z*y**2 + 6*x*y*z + x**3 + y**3 + z**3'
+
+    assert str(((2*x+y)**2).expand())=='4*x**2 + 4*x*y + y**2'
+    assert str(((2*x-y)**2).expand())=='4*x**2 + y**2 - 4*x*y'
+
+
 def test_diff():
     x = Symbol('x')
     assert Number(2).diff(x) == 0
