@@ -176,6 +176,18 @@ class mpq(tuple):
     def __rfloordiv__(a, b):
         return int(b / a)
 
+    def __mod__(a, b):
+        return a - (a//b)*b
+
+    def __rmod__(a, b):
+        return b - (b//a)*a
+
+    def __divmod__(a, b):
+        return (a-a%b)/b, a%b
+
+    def __rdivmod__(a, b):
+        return (b-b%a)/a, b%a
+
     def __pow__(self, n):
         assert isinstance(n, inttypes)
         p, q = self
