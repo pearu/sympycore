@@ -378,10 +378,21 @@ class CommutativeRingWithPairs(CommutativeRing):
         return multiply_dict2[result.head][NUMBER](result, newinstance(cls, NUMBER, number), cls)
 
     @classmethod
-    def Pow(cls, base, exponent):
-        if isinstance(exponent, (int,long)):
-            return pow_dict1[base.head](base, exponent, cls)
-        return pow_dict2[base.head][exponent.head](base, exponent, cls)
+    def npower(cls, base, exp):
+        return pow_coeff_int(base, exp, cls)
+
+    @classmethod
+    def Pow(cls, base, exp):
+        if isinstance(exp, cls):
+            if exp.head is NUMBER:
+                exp = exp.data
+            else:
+                return pow_dict2[base.head][exp.head](base, exp, cls)
+        if base.head is NUMBER:
+            return cls.npower(base.data, exp)
+        if isinstance(exp, (int,long)):
+            return pow_dict1[base.head](base, exp, cls)
+        return pow_dict2[base.head][NUMBER](base, newinstance(cls, NUMBER, exp), cls)
 
     @classmethod
     def Terms(cls, *seq):

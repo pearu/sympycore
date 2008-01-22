@@ -219,6 +219,12 @@ class BasicAlgebra(Basic):
 class CommutativeRing(BasicAlgebra):
 
     @classmethod
+    def npower(cls, base, exp):
+        """ Compute the power base ** exp where base, exp are numbers.
+        """
+        raise NotImplementedError('%s must define classmethod npower' % (cls.__name__))
+    
+    @classmethod
     def Add(cls, *seq):
         """ Compute sum over seq containing algebra elements.
         """

@@ -484,7 +484,6 @@ def test_expand():
 
     assert str(((x+y)*(x+y+z)).expand())=='x*z + y*z + 2*x*y + x**2 + y**2'
     assert str(((x+y+z)*(x+y)).expand())=='x*z + y*z + 2*x*y + x**2 + y**2'
-
     assert str(((1/x+x)*x).expand())=='1 + x**2'
     assert str((x**2*(1/x+x)**2).expand())=='1 + 2*x**2 + x**4'
 

@@ -7,7 +7,7 @@ from .pairs import CommutativeRingWithPairs, newinstance
 
 from .numberlib import mpq, mpf, mpc, try_power, extended_number, undefined
 
-algebra_numbers = (int, long, float, complex, mpq, mpf, mpc, extended_number)
+algebra_numbers = (int, long, mpq, mpf, mpc, extended_number)
 
 class StandardCommutativeAlgebra(CommutativeRingWithPairs):
     """ Represents an element of a symbolic algebra. The set of a
@@ -50,11 +50,43 @@ class StandardCommutativeAlgebra(CommutativeRingWithPairs):
     def convert_coefficient(cls, obj, typeerror=True):
         """ Convert obj to coefficient algebra.
         """
+        if isinstance(obj, float):
+            return mpf(obj)
+        if isinstance(obj, complex):
+            return mpc(mpf(obj.real), mpf(obj.imag))
         if isinstance(obj, algebra_numbers):
             return obj
         if typeerror:
             raise TypeError('%s.convert_coefficient: failed to convert %s instance'\
                             ' to coefficient algebra, expected int|long object'\
+                            % (cls.__name__, obj.__class__.__name__))
+        else:
+            return NotImplemented
+
+    @classmethod
+    def convert_exponent(cls, obj, typeerror=True):
+        """ Convert obj to exponent algebra.
+        """
+        if isinstance(obj, cls):
+            return obj
+        if isinstance(obj, algebra_numbers):
+            return obj
+        if isinstance(obj, complex):
+            return mpc(mpf(obj.real), mpf(obj.imag))
+        if isinstance(obj, algebra_numbers):
+            return obj
+
+        # parse algebra expression from string:
+        if isinstance(obj, (str, unicode)):
+            obj = PrimitiveAlgebra(obj)
+
+        # convert from another algebra:
+        if isinstance(obj, BasicAlgebra):
+            return obj.as_algebra(cls)
+        
+        if typeerror:
+            raise TypeError('%s.convert_exponent: failed to convert %s instance'\
+                            ' to exponent algebra, expected int|long object'\
                             % (cls.__name__, obj.__class__.__name__))
         else:
             return NotImplemented
@@ -70,42 +102,12 @@ class StandardCommutativeAlgebra(CommutativeRingWithPairs):
         return cls(obj, head=SYMBOL)
 
     @classmethod
-    def convert_exponent(cls, obj, *args):
-        if isinstance(obj, cls):
-            return obj
-        return cls(obj)
-
-    @classmethod
-    def Pow(cls, base, exp):
-        if exp is -1 and base.head is NUMBER:
-            # fast path for division
-            return cls(try_power(base.data, -1)[0], head=NUMBER)
-        N = cls.Number
-        exp = cls.convert(exp)
-        if base.head is NUMBER and exp.head is NUMBER:
-            num, sym = try_power(base.data, exp.data)
-            if not sym:
-                return N(num)
-            sym = dict([(N(b), N(e)) for b, e in sym])
-            return N(num) * cls(sym, head=MUL)
-        if exp == 0:
-            return cls.one
-        if exp == 1 or cls.one==base:
-            return base
-        if base.head is ADD and len(base.data)==1:
-            t,c = base.data.items()[0]
-            return t**exp * newinstance(cls, NUMBER, c)**exp
-        if base.head is MUL:
-            e = exp
-            if isinstance(exp, cls) and exp.head is NUMBER:
-                e = exp.data
-            if isinstance(e, (int, long)):
-                d = {}
-                result = newinstance(cls, MUL, d)
-                for t,c in base.data.iteritems():
-                    d[t] = c * e
-                return result
-        return cls({base:exp}, head=MUL)
+    def npower(cls, base, exp):
+        num, sym = try_power(base, exp)
+        if not sym:
+            return newinstance(cls, NUMBER, num)
+        d = dict([(newinstance(cls, NUMBER, b), e) for b, e in sym])
+        return newinstance(cls, MUL, d) * num
 
 A = StandardCommutativeAlgebra
 one = A(1, head=NUMBER)
