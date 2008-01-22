@@ -451,7 +451,42 @@ def test_expand():
 
     assert str(((2*x+y)**2).expand())=='4*x**2 + 4*x*y + y**2'
     assert str(((2*x-y)**2).expand())=='4*x**2 + y**2 - 4*x*y'
+    assert str(((x+y)**2-x**2-y**2).expand())=='2*x*y'
+    assert str((((x+y)**2-x**2-y**2)*(x*y)).expand())=='2*x**2*y**2'
+    assert str(((x*y)*((x+y)**2-x**2-y**2)).expand())=='2*x**2*y**2'
+    assert str(((3*x*y)*((x+y)**2-x**2-y**2)).expand())=='6*x**2*y**2'
+    assert str(((1/x)*((x+y)**2-x**2-y**2)).expand())=='2*y'
+    assert str(((3/x)*((x+y)**2-x**2-y**2)).expand())=='6*y'
+    assert str(((x**2)*((x+y)**2-x**2-y**2)).expand())=='2*y*x**3'
+    assert str((((x+y)**2-x**2-y**2)*(x**2)).expand())=='2*y*x**3'
+    two = ((x+y)**2-x**2-y**2)/x/y
+    assert str((two).expand())=='2'
+    assert str((two*x).expand())=='2*x'
+    assert str((two*(2*x)).expand())=='4*x'
+    assert str((two*(x+y)).expand())=='2*x + 2*y'
+    assert str((x*two).expand())=='2*x'
+    assert str(((x-y)*two).expand())=='2*x - 2*y'
 
+    two_y = ((x+y)**2-x**2-y**2)/x
+    assert str((two_y).expand())=='2*y'
+    assert str((two_y*x).expand())=='2*x*y'
+    assert str((two_y*(2*x)).expand())=='4*x*y'
+    assert str((two_y*(x+y)).expand())=='2*y**2 + 2*x*y'
+    assert str((x*two_y).expand())=='2*x*y'
+    assert str(((x-y)*two_y).expand())=='2*x*y - 2*y**2'
+
+    x2 = ((x+y)**2-x**2-y**2)/y*x/2
+    assert str((x2).expand())=='x**2'
+    assert str((2*x2).expand())=='2*x**2'
+    assert str((x*x2).expand())=='x**3'
+    assert str((x**2*x2).expand())=='x**4'
+    assert str((y*x2).expand())=='y*x**2'
+
+    assert str(((x+y)*(x+y+z)).expand())=='x*z + y*z + 2*x*y + x**2 + y**2'
+    assert str(((x+y+z)*(x+y)).expand())=='x*z + y*z + 2*x*y + x**2 + y**2'
+
+    assert str(((1/x+x)*x).expand())=='1 + x**2'
+    assert str((x**2*(1/x+x)**2).expand())=='1 + 2*x**2 + x**4'
 
 def test_diff():
     x = Symbol('x')

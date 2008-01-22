@@ -1003,17 +1003,12 @@ def multiply_SYMBOL_SYMBOL(lhs, rhs, cls):
     return newinstance(cls, MUL, {lhs:1, rhs:1})
 
 def multiply_SYMBOL_ADD(lhs, rhs, cls):
-    if rhs.length()>1:
-        return newinstance(cls, MUL, {lhs:1, rhs: 1})
-    t, c = rhs.data.items()[0]
-    if lhs==t:
-        return newinstance(cls,ADD,{newinstance(cls, MUL, {lhs: 2}): c})
-    if t.head is MUL:
-        t = t * lhs
-        if t.head is NUMBER:
-            return t * c
-        return newinstance(cls, ADD, {t: c})
-    return newinstance(cls,ADD,{newinstance(cls, MUL, {lhs: 1, t:1}): c})
+    if rhs.length()==1:
+        t, c = rhs.data.items()[0]
+        if lhs==t:
+            return newinstance(cls,ADD,{newinstance(cls, MUL, {lhs: 2}): c})
+        return multiply_dict2[lhs.head][t.head](lhs, t, cls) * c
+    return newinstance(cls, MUL, {lhs:1, rhs: 1})
 
 generate_swapped_first_arguments(multiply_SYMBOL_ADD)
 
@@ -1040,7 +1035,7 @@ def multiply_ADD_ADD(lhs, rhs, cls):
         t1, c1 = lhs.data.items()[0]
         t2, c2 = rhs.data.items()[0]
         t = multiply_dict2[t1.head][t2.head](t1, t2, cls)
-        if t==lhs.one:
+        if t==cls.one:
             return newinstance(cls, NUMBER, c1*c2)
         return newinstance(cls,ADD,{t: c1*c2})
     else:
@@ -1049,23 +1044,23 @@ def multiply_ADD_ADD(lhs, rhs, cls):
         return newinstance(cls, MUL, {lhs:1, rhs:1})
 
 def multiply_ADD_MUL(lhs, rhs, cls):
-    if lhs.length()>1:
-        result = rhs.copy()
-        pairs = result.data
-        b = pairs.get(lhs)
-        if b is None:
-            pairs[lhs] = 1
+    if lhs.length()==1:
+        t, c = lhs.data.items()[0]
+        return multiply_dict2[t.head][rhs.head](t, rhs, cls) * c
+    result = rhs.copy()
+    pairs = result.data
+    b = pairs.get(lhs)
+    if b is None:
+        pairs[lhs] = 1
+    else:
+        c = b + 1
+        if c:
+            pairs[lhs] = c
         else:
-            c = b + 1
-            if c:
-                pairs[lhs] = c
-            else:
-                del pairs[lhs]
-        if len(pairs)<=1:
-            return result.canonize()
-        return result
-    t, c = lhs.data.items()[0]
-    return multiply_dict2[t.head][rhs.head](t, rhs, cls) * c
+            del pairs[lhs]
+    if len(pairs)<=1:
+        return result.canonize()
+    return result
 
 generate_swapped_first_arguments(multiply_ADD_MUL)
 
@@ -1141,10 +1136,16 @@ def expand_ADD_ADD(lhs, rhs, cls):
     return result
 
 def expand_ADD_MUL(lhs, rhs, cls):
+    pairs = lhs.data
+    if len(pairs)==1:
+        t,c = pairs.items()[0]
+        return expand_dict2[t.head][rhs.head](t, rhs, cls) * cls.convert(c)
     d = {}
     result = newinstance(cls, ADD, d)
-    for t,c in lhs.data.iteritems():
+    for t,c in pairs.iteritems():
         d[t * rhs] = c
+    if len(d)<=1:
+        return result.canonize()
     return result
 
 generate_swapped_first_arguments(expand_ADD_MUL)
@@ -1157,7 +1158,10 @@ def expand_ADD_INTPOW(lhs, m, cls):
     get = d.get
     for exps, c in data.iteritems():
         t, n = exps.apply_to_terms(terms)
-        t = newinstance(cls, MUL, dict(t)).canonize()
+        t = cls.Factors(*t)
+        if t.head is NUMBER:
+            n = t * n
+            t = cls.one
         b = get(t)
         if b is None:
             d[t] = n * c
