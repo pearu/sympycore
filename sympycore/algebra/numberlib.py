@@ -632,24 +632,23 @@ def try_power(x, y):
 
       z, symbolic
 
-    where z is a number (i.e. a complex rational) and symbolic is
-    either None (if z is the exact answer) or a pair (b, e) representing
-    the symbolic product b**e. For example, this function should return:
+    where z is a number (i.e. a complex rational) and symbolic is a list
+    of (b, e) pairs representing symbolic factors b**e.
 
-      try_power(3, 2) --> (9, None)
-      try_power(2, 1/2) --> (1, (2, 1/2))
-      try_power(45, 1/2) --> (3, (5, 1/2))
+      try_power(3, 2) --> (9, [])
+      try_power(2, 1/2) --> (1, [(2, 1/2)])
+      try_power(45, 1/2) --> (3, [(5, 1/2)])
 
     """
     if isinstance(x, extended_number) or isinstance(y, extended_number):
         raise NotImplementedError
     if isinstance(y, inttypes):
-        if y >= 0: return x**y, None
-        if not x: return oo, None
+        if y >= 0: return x**y, []
+        if not x: return oo, []
         if isinstance(x, inttypes):
-            return mpq(1, x**(-y)), None
+            return mpq(1, x**(-y)), []
         if isinstance(x, (mpq, mpf, mpc)):
-            return x**y, None
+            return x**y, []
     if isinstance(x, inttypes) and isinstance(y, mpq):
         p, q = y
         r, exact = int_root(abs(x), q)
@@ -659,9 +658,15 @@ def try_power(x, y):
             else:
                 g = mpq(1, r**(-p))
             if x > 0:
-                return g, None
+                return g, []
             else:
-                return mpc(0, g), None
-    return 1, (x, y)
+                return mpc(0, g), []
+    if isinstance(x, mpq) and isinstance(y, mpq):
+        a, b = x
+        r, rsym = try_power(a, y)
+        s, ssym = try_power(b, y)
+        ssym = [(b, -e) for b, e in ssym]
+        return (div(r,s), rsym + ssym)
+    return 1, [(x, y)]
 
 

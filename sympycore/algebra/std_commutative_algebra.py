@@ -86,11 +86,8 @@ class StandardCommutativeAlgebra(CommutativeRingWithPairs):
             num, sym = try_power(base.data, exp.data)
             if not sym:
                 return N(num)
-            base, exp = sym
-            sym = cls({N(base):N(exp)}, head=MUL)
-            if num == 1:
-                return sym
-            return cls({sym:N(num)}, head=ADD)
+            sym = dict([(N(b), N(e)) for b, e in sym])
+            return N(num) * cls(sym, head=MUL)
         if exp == 0:
             return cls.one
         if exp == 1 or cls.one==base:
