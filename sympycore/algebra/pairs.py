@@ -572,9 +572,14 @@ def pow_MUL_int(lhs, rhs, cls):
         return cls.one
     if rhs==1:
         return lhs
+    pairs = lhs.data
+    if len(pairs)==1:
+        t, c = pairs.items()[0]
+        if isinstance(c, (int, long)):
+            return pow_dict1[t.head](t, c*rhs, cls)
     d = {}
     r = newinstance(cls, MUL, d)
-    for t,c in lhs.pairs.iteritems():
+    for t,c in pairs.iteritems():
         d[t] = c * rhs
     return r
 
@@ -604,12 +609,11 @@ def pow_ADD_NUMBER(lhs, rhs, cls):
     return newinstance(cls, MUL, {lhs:rhs})
 
 def pow_ADD_ADD(lhs, rhs, cls):
-    pairs = rhs.data
+    pairs = lhs.data
     if len(pairs)==1:
-        t,c = pairs.items()[0]
-        if isinstance(c, (int, long)):
-            lhs = pow_dict2[lhs.head][t.head](lhs, t, cls)
-            rhs = cls.convert(c)
+        t, c = pairs.items()[0]
+        c = cls.convert(c)
+        return c**rhs * t**rhs
     return newinstance(cls, MUL, {lhs:rhs})
 
 def pow_ADD_MUL(lhs, rhs, cls):
@@ -624,18 +628,31 @@ def pow_MUL_NUMBER(lhs, rhs, cls):
     return newinstance(cls, MUL, {lhs:rhs})
 
 def pow_MUL_ADD(lhs, rhs, cls):
-    pairs = rhs.data
+    pairs = lhs.data
     if len(pairs)==1:
         t,c = pairs.items()[0]
-        if isinstance(c, (int, long)):
-            lhs = pow_dict2[lhs.head][t.head](lhs, t, cls)
-            rhs = cls.convert(c)
+        lhs = t
+        c = cls.convert(c)
+        rhs = multiply_dict2[NUMBER][rhs.head](c, rhs, cls)
     return newinstance(cls, MUL, {lhs:rhs})
 
 def pow_MUL_MUL(lhs, rhs, cls):
+    pairs = lhs.data
+    if len(pairs)==1:
+        t, c = pairs.items()[0]
+        if isinstance(c, (int, long)):
+            lhs = t
+            c = cls.convert(c)
+            rhs = multiply_dict2[NUMBER][rhs.head](c, rhs, cls)
     return newinstance(cls, MUL, {lhs:rhs})
 
 def pow_MUL_SYMBOL(lhs, rhs, cls):
+    pairs = lhs.data
+    if len(pairs)==1:
+        t, c = pairs.items()[0]
+        if isinstance(c, (int, long)):
+            lhs = pow_dict2[t.head][rhs.head](t, rhs, cls)
+            rhs = cls.convert(c)
     return newinstance(cls, MUL, {lhs:rhs})
 
 def pow_SYMBOL_NUMBER(lhs, rhs, cls):
