@@ -6,8 +6,8 @@ import types
 from collections import defaultdict
 
 from ..core import classes
-from .algebraic_structures import BasicAlgebra
-from .primitive import PrimitiveAlgebra, ADD, MUL, SYMBOL, NUMBER, APPLY,head_to_string
+from .algebraic_structures import CommutativeRing
+from .primitive import PrimitiveAlgebra, ADD, MUL, SYMBOL, NUMBER, APPLY, head_to_string
 from .numberlib import mpq
 from .utils import generate_swapped_first_arguments
 from .utils import RedirectOperation
@@ -22,9 +22,9 @@ def newinstance(cls, head, data, new = object.__new__):
 def inspect(obj):
     obj.inspect()
 
-class CommutativeRingWithPairs(BasicAlgebra):
-    """ Contains generic methods to algebra classes that
-    use Pairs.
+class CommutativeRingWithPairs(CommutativeRing):
+    """ Implementation of a commutative ring where sums and products
+    are represented as dictionaries of pairs.
     """
     __slots__ = ['head', 'data', '_hash']
     one_c = 1   # one element of coefficient algebra
@@ -264,8 +264,8 @@ class CommutativeRingWithPairs(BasicAlgebra):
     def expand(self):
         return expand_dict1[self.head](self, self.__class__)
 
-    def matches(pattern, expr, repl_dict={}, wild_expressions=[], wild_predicates=[]):
-        r = BasicAlgebra.matches(pattern, expr, repl_dict, wild_expressions, wild_predicates)
+    def _matches_needs_revision(pattern, expr, repl_dict={}, wild_expressions=[], wild_predicates=[]):
+        r = CommutativeRing.matches(pattern, expr, repl_dict, wild_expressions, wild_predicates)
         head = pattern.head
         if r is not None or head is NUMBER:
             return r

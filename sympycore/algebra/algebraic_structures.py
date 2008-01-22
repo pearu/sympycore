@@ -145,6 +145,79 @@ class BasicAlgebra(Basic):
         """
         raise NotImplementedError('%s must define classmethod Number' % (cls.__name__))
 
+    def match(self, pattern, *wildcards):
+        """
+        Pattern matching.
+
+        Return None when expression (self) does not match
+        with pattern. Otherwise return a dictionary such that
+
+          pattern.subs_dict(self.match(pattern, *wildcards)) == self
+
+        Don't redefine this method, redefine matches(..) method instead.
+
+        See:
+          http://wiki.sympy.org/wiki/Generic_interface#Pattern_matching
+        """
+        pattern = self.convert(pattern)
+        wild_expressions = []
+        wild_predicates = []
+        for w in wildcards:
+            if type(w) in [list, tuple]:
+                assert len(w)==2,`w`
+                s, func = w
+            else:
+                s, func = w, True
+            s = self.convert(s)
+            assert s.head==SYMBOL,`s`
+            wild_expressions.append(s)
+            wild_predicates.append(func)
+        return pattern.matches(self, {}, wild_expressions, wild_predicates)
+
+    def matches(pattern, expr, repl_dict={}, wild_expressions=[], wild_predicates=[]):
+        # check if pattern has a match and return it provided that
+        # the match matches with expr:
+        v = repl_dict.get(pattern)
+        if v is not None:
+            if v==expr:
+                return repl_dict
+            return
+        # check if pattern matches with expr:
+        if pattern==expr:
+            return repl_dict
+        # check if pattern is a wild expression
+        if pattern in wild_expressions:
+            if expr in wild_expressions:
+                # wilds do not match other wilds
+                return
+            # wild pattern matches with expr only if predicate(expr) returns True
+            predicate = wild_predicates[wild_expressions.index(pattern)]
+            if (isinstance(predicate, bool) and predicate) or predicate(expr):
+                repl_dict = repl_dict.copy()
+                repl_dict[pattern] = expr
+                return repl_dict
+        return
+
+    def subs(self, pattern, expr=None, wildcards=[]):
+        """ Substitute subexpressions matching pattern with expr.
+        
+        There are two usage forms:
+          obj.subs(pattern, expr, wildcards=[..])
+          obj.subs([(pattern1, expr1), (pattern2, expr2), ..], wildcards=[..])
+        """
+        if expr is None:
+            r = self
+            for item in pattern:
+                r = r.subs(item[0], item[1], wildcards=wildcards)
+            return r
+        if self.match(pattern, *wildcards) is not None:
+            return self.convert(expr)
+        expr = self.convert(expr)
+        args = [a.subs(pattern, expr, wildcards=wildcards) for a in self.args]
+        return self.func(*args)
+
+class CommutativeRing(BasicAlgebra):
+
     @classmethod
     def Add(cls, *seq):
         """ Compute sum over seq containing algebra elements.
@@ -260,25 +333,25 @@ class BasicAlgebra(Basic):
             return NotImplemented
         if isinstance(other, (int, long)):
             other = self.Number(other)
-        return self.Mul(self, other ** (-1))
+        return self * other ** (-1)
 
     def __rdiv__(self, other):
         other = self.convert(other, False)
         if other is NotImplemented:
             return NotImplemented
-        return self.Mul(other, self ** (-1))
+        return other * self ** (-1)
 
     def __truediv__(self, other):
         other = self.convert(other, False)
         if other is NotImplemented:
             return NotImplemented
-        return self.Mul(self, other ** (-1))
+        return self * other ** (-1)
 
     def __rtruediv__(self, other):
         other = self.convert(other, False)
         if other is NotImplemented:
             return NotImplemented
-        return self.Mul(other, self ** (-1))
+        return other * self ** (-1)
 
     def __pow__(self, other):
         other = self.convert_exponent(other, False)
@@ -291,81 +364,6 @@ class BasicAlgebra(Basic):
         if other is NotImplemented:
             return NotImplemented
         return self.Pow(other,  self.convert_exponent(self))
-
-    def match(self, pattern, *wildcards):
-        """
-        Pattern matching.
-
-        Return None when expression (self) does not match
-        with pattern. Otherwise return a dictionary such that
-
-          pattern.subs_dict(self.match(pattern, *wildcards)) == self
-
-        Don't redefine this method, redefine matches(..) method instead.
-
-        See:
-          http://wiki.sympy.org/wiki/Generic_interface#Pattern_matching
-        """
-        pattern = self.convert(pattern)
-        wild_expressions = []
-        wild_predicates = []
-        for w in wildcards:
-            if type(w) in [list, tuple]:
-                assert len(w)==2,`w`
-                s, func = w
-            else:
-                s, func = w, True
-            s = self.convert(s)
-            assert s.head==SYMBOL,`s`
-            wild_expressions.append(s)
-            wild_predicates.append(func)
-        return pattern.matches(self, {}, wild_expressions, wild_predicates)
-
-    def matches(pattern, expr, repl_dict={}, wild_expressions=[], wild_predicates=[]):
-        # check if pattern has a match and return it provided that
-        # the match matches with expr:
-        v = repl_dict.get(pattern)
-        if v is not None:
-            if v==expr:
-                return repl_dict
-            return
-        # check if pattern matches with expr:
-        if pattern==expr:
-            return repl_dict
-        # check if pattern is a wild expression
-        if pattern in wild_expressions:
-            if expr in wild_expressions:
-                # wilds do not match other wilds
-                return
-            # wild pattern matches with expr only if predicate(expr) returns True
-            predicate = wild_predicates[wild_expressions.index(pattern)]
-            if (isinstance(predicate, bool) and predicate) or predicate(expr):
-                repl_dict = repl_dict.copy()
-                repl_dict[pattern] = expr
-                return repl_dict
-        return
-
-    def subs(self, pattern, expr=None, wildcards=[]):
-        """ Substitute subexpressions matching pattern with expr.
-        
-        There are two usage forms:
-          obj.subs(pattern, expr, wildcards=[..])
-          obj.subs([(pattern1, expr1), (pattern2, expr2), ..], wildcards=[..])
-        """
-        if expr is None:
-            r = self
-            for item in pattern:
-                r = r.subs(item[0], item[1], wildcards=wildcards)
-            return r
-        if self.match(pattern, *wildcards) is not None:
-            return self.convert(expr)
-        expr = self.convert(expr)
-        args = [a.subs(pattern, expr, wildcards=wildcards) for a in self.args]
-        return self.func(*args)
-
-class CommutativeRing:
-
-    pass
 
 from .primitive import PrimitiveAlgebra, NUMBER, SYMBOL
 

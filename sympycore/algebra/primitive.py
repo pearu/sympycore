@@ -91,7 +91,7 @@ def tree_sort(a, b):
     c = cmp(head_order.index(h1), head_order.index(h2))
     if c: return c
     t1,t2 = a.tree[1], b.tree[1]
-    if h1 is SYMBOL or h1 is NUMBER:
+    if h1 is SYMBOL or h1 is NUMBER or callable(h1):
         return cmp(t1, t2)
     c = cmp(len(t1), len(t2))
     if c: return c
