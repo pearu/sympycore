@@ -93,26 +93,28 @@ head_order = [NUMBER, SYMBOL, APPLY,
               ]
 
 def tree_sort(a, b):
-    h1, h2 = a.tree[0], b.tree[0]
-    if callable(h1):
-        if callable(h2):
-            c = cmp(h1, h2)
+    if callable(a):
+        if callable(b):
+            return cmp(a,b)
         else:
-            c = cmp(head_order.index(APPLY), head_order.index(h2))
-    elif callable(h2):
-        c = cmp(head_order.index(h1), head_order.index(APPLY))
-    else:
-        c = cmp(head_order.index(h1), head_order.index(h2))
+            return cmp(head_order.index(APPLY), head_order.index(b.tree[0]))
+    elif callable(b):
+        return cmp(head_order.index(a.tree[0]), head_order.index(APPLY))
+    h1 = a.tree[0]
+    h2 = b.tree[0]
+    c = cmp(head_order.index(h1), head_order.index(h2))
     if c:
         return c
     t1,t2 = a.tree[1], b.tree[1]
-    if h1 is SYMBOL or h1 is NUMBER or callable(h1):
+    if h1 is SYMBOL or h1 is NUMBER or h1 is APPLY:
         return cmp(t1, t2)
     c = cmp(len(t1), len(t2))
-    if c: return c
-    l1 = sorted(t1, cmp=tree_sort)
-    l2 = sorted(t2, cmp=tree_sort)
-    for i1,i2 in zip(l1,l2):
+    if c:
+        return c
+    if h1 in [ADD, MUL]:
+        t1 = sorted(t1, cmp=tree_sort)
+        t2 = sorted(t2, cmp=tree_sort)
+    for i1,i2 in zip(t1,t2):
         c = tree_sort(i1, i2)
         if c: return c
     return 0
