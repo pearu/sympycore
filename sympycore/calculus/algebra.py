@@ -1,12 +1,11 @@
 
-
 from ..core import classes
-from .algebraic_structures import BasicAlgebra
-from .primitive import PrimitiveAlgebra, SYMBOL, NUMBER, ADD, MUL
+from ..basealgebra import BasicAlgebra
+from ..basealgebra.primitive import PrimitiveAlgebra, SYMBOL, NUMBER, ADD, MUL
 
-from .pairs import CommutativeRingWithPairs, newinstance
+from ..basealgebra.pairs import CommutativeRingWithPairs, newinstance
 
-from .numberlib import mpq, mpf, mpc, try_power, extended_number, undefined
+from ..arithmetic.numbers import mpq, mpf, mpc, try_power, extended_number, undefined
 
 algebra_numbers = (int, long, mpq, mpf, mpc, extended_number)
 

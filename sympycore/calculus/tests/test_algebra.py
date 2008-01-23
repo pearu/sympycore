@@ -1,4 +1,5 @@
-from sympycore.algebra import *
+from sympycore.calculus import *
+A = Calculus
 
 x = Symbol('x')
 

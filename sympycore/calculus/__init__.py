@@ -1,4 +1,9 @@
 
-from operator import D, FD, AD, Derivative, FDerivative, Integral, At
+from .algebra import Calculus, I
 
-__all__ = ['D', 'FD','AD','Derivative', 'FDerivative','Integral','At']
+Symbol = Calculus.Symbol
+Number = Calculus.Number
+
+Add = lambda *args: Calculus.Add(*map(Calculus.convert, args))
+Mul = lambda *args: Calculus.Mul(*map(Calculus.convert, args))
+Pow = lambda *args: Calculus.Pow(*map(Calculus.convert, args))
