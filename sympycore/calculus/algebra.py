@@ -6,6 +6,7 @@ from ..basealgebra.primitive import PrimitiveAlgebra, SYMBOL, NUMBER, ADD, MUL
 from ..basealgebra.pairs import CommutativeRingWithPairs, newinstance
 
 from ..arithmetic.numbers import Fraction, Float, Complex, try_power, ExtendedNumber, undefined
+from ..arithmetic.numbers import oo as numbers_oo
 
 algebra_numbers = (int, long, Fraction, Float, Complex, ExtendedNumber)
 
@@ -124,3 +125,4 @@ zero = A(0, head=NUMBER)
 I = A(Complex(0,1), head=NUMBER)
 A.one = one
 A.zero = zero
+oo = A(numbers_oo, head=NUMBER)

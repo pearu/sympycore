@@ -1,4 +1,4 @@
-from ..algebra import (A, NUMBER, ADD, MUL, SYMBOL)
+from ..algebra import A, oo, undefined, NUMBER, ADD, MUL, SYMBOL
 
 class Function(object):
     pass
@@ -11,8 +11,31 @@ one = A(1)
 sqrt2 = A('2**(1/2)')
 sqrt3 = A('3**(1/2)')
 
+#---------------------------------------------------------------------------#
+#                                  Exponentials                             #
+#---------------------------------------------------------------------------#
+
 pi = A('pi', head=Constant)
 E = A('E', head=Constant)
+
+class exp(Function):
+    def __new__(cls, arg):
+        if not isinstance(arg, A):
+            arg = A.convert(arg)
+        return A.Pow(E, arg)
+
+class log(Function):
+    def __new__(cls, arg, base=E):
+        if not isinstance(arg, A):
+            arg = A.convert(arg)
+        if arg.head is NUMBER:
+            if arg == zero: return -oo
+            if arg == one: return zero
+            if arg == oo: return oo
+            if arg == undefined: return undefined
+        if arg == E:
+            return one
+        return A(arg, head=cls)
 
 #---------------------------------------------------------------------------#
 #                          Trigonometric functions                          #
