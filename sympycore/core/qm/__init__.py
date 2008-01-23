@@ -1,2 +1,0 @@
-
-from qm import qm
