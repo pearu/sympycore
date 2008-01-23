@@ -1358,7 +1358,7 @@ def generate_expand_data(n, m):
     """ Return power-coefficient dictionary of an expanded
     sum (A1 + A2 + .. + An)**m.
     """
-    from ..arithmetic.numberlib import mpq
+    from ..arithmetic.numbers import mpq
 
     # Generate binomial coefficients
     if n == 2:

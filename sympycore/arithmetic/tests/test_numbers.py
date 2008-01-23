@@ -1,4 +1,4 @@
-from sympycore.algebra.numberlib import *
+from sympycore.arithmetic.numbers import *
 
 def test_mpq():
     assert mpq(1) == 1

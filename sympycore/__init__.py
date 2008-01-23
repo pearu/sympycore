@@ -1,5 +1,6 @@
 from .core import Basic, classes
 from basealgebra import *
+from arithmetic import *
 
 # expose predefined objects to sympy namespace
 #for _n,_v in objects.iterNameValue():

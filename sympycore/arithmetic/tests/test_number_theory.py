@@ -1,4 +1,4 @@
-from sympycore.algebra.number_theory import *
+from sympycore.arithmetic.number_theory import *
 
 def test_factorial():
     assert factorial(0) == 1
