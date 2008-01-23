@@ -3,15 +3,18 @@
 # Created: January 2008
 
 from ..basealgebra.primitive import PrimitiveAlgebra, ADD, POW, MUL, NUMBER, SYMBOL
-
 from ..basealgebra import BasicAlgebra
+from ..arithmetic.numbers import div
 
 class UnivariatePolynomial(BasicAlgebra):
 
-    def __new__(cls, coefs=[], symbol='x'):
+    def __new__(cls, coefs=[], symbol='x', coerce_input=True):
         obj = object.__new__(cls)
         coefs = coefs or [0]
-        obj.coefs = tuple(map(obj.coerce_coef, coefs))
+        if coerce_input:
+            obj.coefs = tuple(map(cls.convert_coef, coefs))
+        else:
+            obj.coefs = tuple(coefs)
         obj.symbol = symbol
         while obj.coefs and not obj.coefs[-1]:
             obj.coefs = obj.coefs[:-1]
@@ -19,7 +22,7 @@ class UnivariatePolynomial(BasicAlgebra):
         return obj
 
     @classmethod
-    def coerce_coef(cls, x):
+    def convert_coef(cls, x):
         # permit anything by default
         return x
 
@@ -68,13 +71,13 @@ class UnivariatePolynomial(BasicAlgebra):
                 xp *= x
             return p
         else:
-            y = self.__class__.coerce_coef(0)
+            y = self.__class__.convert_coef(0)
             for c in reversed(self.coefs):
                 y = y*x+c
             return y
 
     def __neg__(self):
-        return self.__class__([-c for c in self.coefs], self.symbol)
+        return self.__class__([-c for c in self.coefs], self.symbol, False)
 
     def __add__(self, other):
         if not isinstance(other, UnivariatePolynomial):
@@ -86,7 +89,7 @@ class UnivariatePolynomial(BasicAlgebra):
             coefs += self.coefs[other.degree+1:]
         else:
             coefs += other.coefs[self.degree+1:]
-        return self.__class__(coefs, self.symbol)
+        return self.__class__(coefs, self.symbol, False)
 
     __radd__ = __add__
 
@@ -99,21 +102,24 @@ class UnivariatePolynomial(BasicAlgebra):
     def __mul__(self, other):
         if not isinstance(other, UnivariatePolynomial):
             try:
-                other = self.coerce_coef(other)
+                other = self.convert_coef(other)
                 coefs = [other*c for c in self.coefs]
-                return self.__class__(coefs, self.symbol)
+                return self.__class__(coefs, self.symbol, False)
             except:
                 pass
             return NotImplemented
-        p = [self.coerce_coef(0)] * (len(self.coefs)+len(other.coefs))
+        if self.symbol != other.symbol:
+            return NotImplemented
+        p = [self.convert_coef(0)] * (len(self.coefs)+len(other.coefs))
         for i, c in enumerate(self.coefs):
             for j, d in enumerate(other.coefs):
                 p[i+j] += c*d
-        return self.__class__(p)
+        return self.__class__(p, self.symbol, False)
 
     __rmul__ = __mul__
 
     def __pow__(self, n):
+        # TODO: Miller's algorithm
         assert isinstance(n, int) and n >= 0
         if n == 0: return self.__class__([1])
         if n == 1: return self
@@ -121,7 +127,6 @@ class UnivariatePolynomial(BasicAlgebra):
         if n & 1 == 1: return self*((self*self)**(n//2))
 
     def __divmod__(self, other):
-        # XXX: should convert to rationals when coefficients are ints
         if isinstance(other, UnivariatePolynomial):
             if self.symbol != other.symbol:
                 return NotImplemented
@@ -134,7 +139,7 @@ class UnivariatePolynomial(BasicAlgebra):
             r = list(u)
             q = [0] * (len(r)+1)
             for k in range(n-nv, -1, -1):
-                q[k] = r[nv+k] / v[nv]
+                q[k] = div(r[nv+k], v[nv])
                 for j in range(nv+k-1, k-1, -1):
                     r[j] -= q[k]*v[j-k]
             for j in range(nv, n+1, 1):
@@ -143,7 +148,8 @@ class UnivariatePolynomial(BasicAlgebra):
         else:
             if other == 0:
                 raise ZeroDivisionError, "polynomial division"
-            q = self.__class__([c/other for c in self.coefs], self.symbol)
+            rec = div(1, other)
+            q = self.__class__([c*rec for c in self.coefs], self.symbol)
             r = self.__class__(self.symbol)
             return q, r
 
@@ -157,7 +163,7 @@ class UnivariatePolynomial(BasicAlgebra):
 
     def diff(self):
         return self.__class__([c*(k+1) for k, c in enumerate(self.coefs[1:])],
-            self.symbol)
+            self.symbol, False)
 
 
 poly = UnivariatePolynomial
