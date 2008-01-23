@@ -5,9 +5,9 @@ from ..basealgebra.primitive import PrimitiveAlgebra, SYMBOL, NUMBER, ADD, MUL
 
 from ..basealgebra.pairs import CommutativeRingWithPairs, newinstance
 
-from ..arithmetic.numbers import mpq, mpf, mpc, try_power, extended_number, undefined
+from ..arithmetic.numbers import Fraction, Float, Complex, try_power, ExtendedNumber, undefined
 
-algebra_numbers = (int, long, mpq, mpf, mpc, extended_number)
+algebra_numbers = (int, long, Fraction, Float, Complex, ExtendedNumber)
 
 class Calculus(CommutativeRingWithPairs):
     """ Represents an element of a symbolic algebra. The set of a
@@ -60,9 +60,9 @@ class Calculus(CommutativeRingWithPairs):
         """ Convert obj to coefficient algebra.
         """
         if isinstance(obj, float):
-            return mpf(obj)
+            return Float(obj)
         if isinstance(obj, complex):
-            return mpc(mpf(obj.real), mpf(obj.imag))
+            return Complex(Float(obj.real), Float(obj.imag))
         if isinstance(obj, algebra_numbers):
             return obj
         if typeerror:
@@ -81,7 +81,7 @@ class Calculus(CommutativeRingWithPairs):
         if isinstance(obj, algebra_numbers):
             return obj
         if isinstance(obj, complex):
-            return mpc(mpf(obj.real), mpf(obj.imag))
+            return Complex(Float(obj.real), Float(obj.imag))
         if isinstance(obj, algebra_numbers):
             return obj
 
@@ -104,7 +104,7 @@ class Calculus(CommutativeRingWithPairs):
     def Number(cls, num, denom=None):
         if denom is None:
             return cls(num, head=NUMBER)
-        return cls(mpq(num, denom), head=NUMBER)
+        return cls(Fraction(num, denom), head=NUMBER)
 
     @classmethod
     def Symbol(cls, obj):
@@ -121,6 +121,6 @@ class Calculus(CommutativeRingWithPairs):
 A = Calculus
 one = A(1, head=NUMBER)
 zero = A(0, head=NUMBER)
-I = A(mpc(0,1), head=NUMBER)
+I = A(Complex(0,1), head=NUMBER)
 A.one = one
 A.zero = zero

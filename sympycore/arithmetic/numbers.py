@@ -10,8 +10,8 @@ when they become integer-valued, and we want complex numbers to
 normalize back to their real parts when the imaginary parts disappear.
 This means code like
 
-    a = mpq(2)
-    b = mpq(3)
+    a = Fraction(2)
+    b = Fraction(3)
     a / b
 
 should not be expected to work. Instead, the div() function can be used
@@ -22,8 +22,8 @@ Powers, except when the exponent is a positive integer, should be
 computed with the try_power() function which detects when the result is
 not exact.
 
-In addition to the number types mpq (rationals), mpf (floats) and mpc
-(complexes), the extended_number type can be used to represent infinities
+In addition to the number types Fraction (rationals), Float (floats) and Complex
+(complexes), the ExtendedNumber type can be used to represent infinities
 and indeterminate/undefined (nan) results.
 
 Some issues:
@@ -40,8 +40,8 @@ Some issues:
 
 import math
 
-__all__ = ['mpq', 'mpf', 'mpc', 'div', 'int_root', 'try_power',
-    'extended_number', 'nan', 'undefined', 'oo', 'moo', 'zoo']
+__all__ = ['Fraction', 'Float', 'Complex', 'div', 'int_root', 'try_power',
+    'ExtendedNumber', 'nan', 'undefined', 'oo', 'moo', 'zoo']
 
 from ..basealgebra.primitive import PrimitiveAlgebra, NUMBER, SYMBOL
 from ..basealgebra.utils import get_object_by_name
@@ -55,7 +55,7 @@ inttypes = (int, long)
 #                                                                            #
 #----------------------------------------------------------------------------#
 
-class mpq(tuple):
+class Fraction(tuple):
     __slots__ = []
     
     def __new__(cls, p, q=1, tnew=tuple.__new__):
@@ -79,7 +79,7 @@ class mpq(tuple):
         return "(%i/%i)" % self
 
     def __repr__(self):
-        return "mpq(%r, %r)" % (self[0], self[1])
+        return "Fraction(%r, %r)" % (self[0], self[1])
 
     # not needed when __new__ normalizes to ints
     # __nonzero__
@@ -90,7 +90,7 @@ class mpq(tuple):
         p, q = self
         if isinstance(other, inttypes):
             return cmp(p - q*other, 0)
-        if isinstance(other, mpq):
+        if isinstance(other, Fraction):
             r, s = other
             return cmp(p*s - q*r, 0)
         return NotImplemented
@@ -105,7 +105,7 @@ class mpq(tuple):
 
     def __neg__(self, tnew=tuple.__new__):
         p, q = self
-        return tnew(mpq, (-p, q))
+        return tnew(Fraction, (-p, q))
 
     def __pos__(self):
         return self
@@ -113,16 +113,16 @@ class mpq(tuple):
     def __abs__(self, tnew=tuple.__new__):
         p, q = self
         if p < 0:
-            return tnew(mpq, (-p, q))
+            return tnew(Fraction, (-p, q))
         return self
 
     def __add__(self, other):
         p, q = self
         if isinstance(other, inttypes):
-            return mpq(p+q*other, q)
-        if isinstance(other, mpq):
+            return Fraction(p+q*other, q)
+        if isinstance(other, Fraction):
             r, s = other
-            return mpq(p*s+q*r, q*s)
+            return Fraction(p*s+q*r, q*s)
         return NotImplemented
 
     __radd__ = __add__
@@ -130,25 +130,25 @@ class mpq(tuple):
     def __sub__(self, other):
         p, q = self
         if isinstance(other, inttypes):
-            return mpq(p-q*other, q)
-        if isinstance(other, mpq):
+            return Fraction(p-q*other, q)
+        if isinstance(other, Fraction):
             r, s = other
-            return mpq(p*s - q*r, q*s)
+            return Fraction(p*s - q*r, q*s)
         return NotImplemented
 
     def __rsub__(self, other):
         p, q = self
         if isinstance(other, inttypes):
-            return mpq(q*other-p, q)
+            return Fraction(q*other-p, q)
         return NotImplemented
 
     def __mul__(self, other):
         p, q = self
         if isinstance(other, inttypes):
-            return mpq(p*other, q)
-        if isinstance(other, mpq):
+            return Fraction(p*other, q)
+        if isinstance(other, Fraction):
             r, s = other
-            return mpq(p*r, q*s)
+            return Fraction(p*r, q*s)
         return NotImplemented
 
     __rmul__ = __mul__
@@ -158,16 +158,16 @@ class mpq(tuple):
         if isinstance(other, inttypes):
             if not other:
                 return cmp(p, 0) * oo
-            return mpq(p, q*other)
-        if isinstance(other, mpq):
+            return Fraction(p, q*other)
+        if isinstance(other, Fraction):
             r, s = other
-            return mpq(p*s, q*r)
+            return Fraction(p*s, q*r)
         return NotImplemented
 
     def __rdiv__(self, other):
         p, q = self
         if isinstance(other, inttypes):
-            return mpq(q*other, p)
+            return Fraction(q*other, p)
         return NotImplemented
 
     def __floordiv__(a, b):
@@ -192,9 +192,9 @@ class mpq(tuple):
         assert isinstance(n, inttypes)
         p, q = self
         if n >= 0:
-            return mpq(p**n, q**n)
+            return Fraction(p**n, q**n)
         else:
-            return mpq(q**-n, p**-n)
+            return Fraction(q**-n, p**-n)
 
 
 #----------------------------------------------------------------------------#
@@ -209,7 +209,7 @@ from mpmath.lib import from_int, from_rational, to_str, fadd, fsub, fmul, \
 
 rounding = round_half_even
 
-class mpf(object):
+class Float(object):
 
     __slots__ = ['val', 'prec']
 
@@ -220,11 +220,11 @@ class mpf(object):
         self.val = val
 
     def convert(self, x):
-        if isinstance(x, mpf):
+        if isinstance(x, Float):
             return x.val
         if isinstance(x, inttypes):
             return from_int(x, self.prec, rounding)
-        if isinstance(x, mpq):
+        if isinstance(x, Fraction):
             return from_rational(x[0], x[1], self.prec, rounding)
         if isinstance(x, float):
             return from_float(x, self.prec, rounding)
@@ -236,13 +236,13 @@ class mpf(object):
         return to_str(self.val, int((self.prec/3.33) - 3))
 
     def __repr__(self):
-        return "mpf(%s)" % to_str(self.val, int((self.prec/3.33)))
+        return "Float(%s)" % to_str(self.val, int((self.prec/3.33)))
 
     def __int__(self): return to_int(self.val)
     def __float__(self): return to_float(self.val)
     def __hash__(self): return fhash(self.val)
     def __pos__(self): return self
-    def __neg__(self): return mpf(fneg(self.val), self.prec)
+    def __neg__(self): return Float(fneg(self.val), self.prec)
 
     # XXX: these should handle rationals exactly
     def __eq__(self, other):
@@ -261,7 +261,7 @@ class mpf(object):
         other = self.convert(other)
         if other is NotImplemented:
             return other
-        return mpf(fadd(self.val, other, self.prec, rounding), self.prec)
+        return Float(fadd(self.val, other, self.prec, rounding), self.prec)
 
     __radd__ = __add__
 
@@ -269,19 +269,19 @@ class mpf(object):
         other = self.convert(other)
         if other is NotImplemented:
             return other
-        return mpf(fsub(self.val, other, self.prec, rounding), self.prec)
+        return Float(fsub(self.val, other, self.prec, rounding), self.prec)
 
     def __rsub__(self, other):
         other = self.convert(other)
         if other is NotImplemented:
             return other
-        return mpf(fsub(other, self.val, self.prec, rounding), self.prec)
+        return Float(fsub(other, self.val, self.prec, rounding), self.prec)
 
     def __mul__(self, other):
         other = self.convert(other)
         if other is NotImplemented:
             return other
-        return mpf(fmul(self.val, other, self.prec, rounding), self.prec)
+        return Float(fmul(self.val, other, self.prec, rounding), self.prec)
 
     __rmul__ = __mul__
 
@@ -290,19 +290,19 @@ class mpf(object):
         other = self.convert(other)
         if other is NotImplemented:
             return other
-        return mpf(fdiv(self.val, other, self.prec, rounding), self.prec)
+        return Float(fdiv(self.val, other, self.prec, rounding), self.prec)
 
     def __rdiv__(self, other):
         # XXX: check for divide by zero
         other = self.convert(other)
         if other is NotImplemented:
             return other
-        return mpf(fdiv(other, self.val, self.prec, rounding), self.prec)
+        return Float(fdiv(other, self.val, self.prec, rounding), self.prec)
 
     def __pow__(self, n):
         # XXX: check for divide by zero
         assert isinstance(n, inttypes)
-        return mpf(fpow(self.val, n, self.prec, rounding))
+        return Float(fpow(self.val, n, self.prec, rounding))
 
 
 #----------------------------------------------------------------------------#
@@ -312,25 +312,25 @@ class mpf(object):
 #----------------------------------------------------------------------------#
 
 def innerstr(x):
-    if isinstance(x, mpq):
+    if isinstance(x, Fraction):
         return "%s/%s" % x
     return str(x)
 
 
-class mpc(object):
+class Complex(object):
 
     __slots__ = ['real', 'imag']
 
     def __new__(cls, real, imag=0):
         if not imag:
             return real
-        self = object.__new__(mpc)
+        self = object.__new__(Complex)
         self.real = real
         self.imag = imag
         return self
 
     def __repr__(self):
-        return "mpc(%r, %r)" % (self.real, self.imag)
+        return "Complex(%r, %r)" % (self.real, self.imag)
 
     def __hash__(self):
         return hash((self.real, self.imag))
@@ -358,7 +358,7 @@ class mpc(object):
             ni = PrimitiveAlgebra(-self.imag)
         else:
             i = PrimitiveAlgebra(self.imag)
-        I = PrimitiveAlgebra(mpc(0,1), head=NUMBER)
+        I = PrimitiveAlgebra(Complex(0,1), head=NUMBER)
         if not re:
             if im == 1: return I
             if im == -1: return -I
@@ -371,30 +371,30 @@ class mpc(object):
             return r + i * I
     
     def __eq__(self, other):
-        if isinstance(other, mpc):
+        if isinstance(other, Complex):
             return self.real == other.real and self.imag == other.imag
         if isinstance(other, complex):
             return self.real, self.imag == self.convert(other)
         return False
 
     def convert(self, x):
-        if isinstance(x, mpc):
+        if isinstance(x, Complex):
             return x.real, x.imag
         if isinstance(x, complex):
-            return mpc(mpf(x.real), mpf(x.imag))
-        if isinstance(x, extended_number):
+            return Complex(Float(x.real), Float(x.imag))
+        if isinstance(x, ExtendedNumber):
             return NotImplemented, 0
         return x, 0
 
     def __pos__(self): return self
-    def __neg__(self): return mpc(-self.real, -self.imag)
+    def __neg__(self): return Complex(-self.real, -self.imag)
 
     def __add__(self, other):
         a, b = self.real, self.imag
         c, d = self.convert(other)
         if c is NotImplemented:
             return c
-        return mpc(a+c, b+d)
+        return Complex(a+c, b+d)
 
     __radd__ = __add__
 
@@ -403,21 +403,21 @@ class mpc(object):
         c, d = self.convert(other)
         if c is NotImplemented:
             return c
-        return mpc(a-c, b-d)
+        return Complex(a-c, b-d)
 
     def __rsub__(self, other):
         a, b = self.real, self.imag
         c, d = self.convert(other)
         if c is NotImplemented:
             return c
-        return mpc(c-a, d-b)
+        return Complex(c-a, d-b)
 
     def __mul__(self, other):
         a, b = self.real, self.imag
         c, d = self.convert(other)
         if c is NotImplemented:
             return c
-        return mpc(a*c-b*d, b*c+a*d)
+        return Complex(a*c-b*d, b*c+a*d)
 
     __rmul__ = __mul__
 
@@ -429,7 +429,7 @@ class mpc(object):
         mag = c*c + d*d
         re = div(a*c+b*d, mag)
         im = div(b*c-a*d, mag)
-        return mpc(re, im)
+        return Complex(re, im)
 
     def __rdiv__(self, other):
         c, d = self.real, self.imag
@@ -439,7 +439,7 @@ class mpc(object):
         mag = c*c + d*d
         re = div(a*c+b*d, mag)
         im = div(b*c-a*d, mag)
-        return mpc(re, im)
+        return Complex(re, im)
 
     def __pow__(self, n):
         assert isinstance(n, (int, long))
@@ -452,9 +452,9 @@ class mpc(object):
         if not a:
             case = n % 4
             if case == 0: return b**n
-            if case == 1: return mpc(0, b**n)
+            if case == 1: return Complex(0, b**n)
             if case == 2: return -(b**n)
-            if case == 3: return mpc(0, -b**n)
+            if case == 3: return Complex(0, -b**n)
         c, d = 1, 0
         while n:
             if n & 1:
@@ -462,7 +462,7 @@ class mpc(object):
                 n -= 1
             a, b = a*a-b*b, 2*a*b
             n //= 2
-        return mpc(c, d)
+        return Complex(c, d)
 
 
 #----------------------------------------------------------------------------#
@@ -472,13 +472,13 @@ class mpc(object):
 #----------------------------------------------------------------------------#
 
 def as_direction(x):
-    if isinstance(x, (mpc, complex)):
-        return mpc(cmp(x.real, 0), cmp(x.imag, 0))
+    if isinstance(x, (Complex, complex)):
+        return Complex(cmp(x.real, 0), cmp(x.imag, 0))
     return cmp(x, 0)
 
 cmp_error = "no ordering relation is defined for complex numbers"
 
-class extended_number:
+class ExtendedNumber:
 
     def __init__(self, infinite, direction):
         self.infinite = infinite
@@ -501,7 +501,7 @@ class extended_number:
         return oo
 
     def __eq__(self, other):
-        if isinstance(other, extended_number):
+        if isinstance(other, ExtendedNumber):
             return self.infinite == other.infinite and \
                 self.direction == other.direction
         return False
@@ -511,11 +511,11 @@ class extended_number:
             return False
         if self.direction not in (1, -1):
             raise TypeError(cmp_error)
-        if isinstance(other, extended_number):
+        if isinstance(other, ExtendedNumber):
             if other.direction not in (1, -1):
                 raise TypeError(cmp_error)
             return (self.direction, other.direction) == (-1, 1)
-        if isinstance(other, (complex, mpc)):
+        if isinstance(other, (complex, Complex)):
             raise TypeError(cmp_error)
         return self.direction == -1
 
@@ -524,11 +524,11 @@ class extended_number:
             return False
         if self.direction not in (1, -1):
             raise TypeError(cmp_error)
-        if isinstance(other, extended_number):
+        if isinstance(other, ExtendedNumber):
             if other.direction not in (1, -1):
                 raise TypeError(cmp_error)
             return (self.direction, other.direction) == (1, -1)
-        if isinstance(other, (complex, mpc)):
+        if isinstance(other, (complex, Complex)):
             raise TypeError(cmp_error)
         return self.direction == 1
 
@@ -539,19 +539,19 @@ class extended_number:
         return self == other or self.__gt__(other)
 
     def __hash__(self):
-        return hash(('extended_number', infinite, direction))
+        return hash(('ExtendedNumber', infinite, direction))
 
     def __neg__(self):
-        return extended_number(self.infinite, -self.direction)
+        return ExtendedNumber(self.infinite, -self.direction)
 
     def __pos__(self):
         return self
 
     def __add__(self, other):
-        if isinstance(other, extended_number):
+        if isinstance(other, ExtendedNumber):
             if self.direction != other.direction:
                 return nan
-            return extended_number(self.infinite*other.infinite, self.direction)
+            return ExtendedNumber(self.infinite*other.infinite, self.direction)
         if not isinstance(other, numbertypes):
             return NotImplemented
         return self
@@ -565,23 +565,23 @@ class extended_number:
         return (-self) + other
 
     def __mul__(self, other):
-        if isinstance(other, extended_number):
-            return extended_number(self.infinite*other.infinite,
+        if isinstance(other, ExtendedNumber):
+            return ExtendedNumber(self.infinite*other.infinite,
                                    as_direction(self.direction*other.direction))
         if not isinstance(other, numbertypes):
             return NotImplemented
         if not other:
             return undefined
-        return extended_number(self.infinite, as_direction(self.direction*other))
+        return ExtendedNumber(self.infinite, as_direction(self.direction*other))
 
     __rmul__ = __mul__
 
 
-undefined = nan = extended_number(0, 0)
-oo = extended_number(1, 1)
-moo = extended_number(1, -1)
-zoo = extended_number(1, 0)
-numbertypes = (int, long, float, complex, mpq, mpf, mpc, extended_number)
+undefined = nan = ExtendedNumber(0, 0)
+oo = ExtendedNumber(1, 1)
+moo = ExtendedNumber(1, -1)
+zoo = ExtendedNumber(1, 0)
+numbertypes = (int, long, float, complex, Fraction, Float, Complex, ExtendedNumber)
 
 
 #----------------------------------------------------------------------------#
@@ -594,7 +594,7 @@ def div(a, b):
     """Safely compute a/b (if a or b is an integer, this function makes sure
     to convert it to a rational)."""
     if isinstance(b, inttypes):
-        return mpq(1,b) * a
+        return Fraction(1,b) * a
     return a / b
 
 def int_root(y, n):
@@ -628,7 +628,7 @@ def int_root(y, n):
 def try_power(x, y):
     """
     Attempt to compute x**y where x and y must be of the types int,
-    long, mpq, mpf, mpc or extended_number. The function returns
+    long, Fraction, Float, Complex or ExtendedNumber. The function returns
 
       z, symbolic
 
@@ -640,38 +640,38 @@ def try_power(x, y):
       try_power(45, 1/2) --> (3, [(5, 1/2)])
 
     """
-    if isinstance(x, extended_number) or isinstance(y, extended_number):
+    if isinstance(x, ExtendedNumber) or isinstance(y, ExtendedNumber):
         if x == undefined or y == undefined:
             return undefined, []
-        if x.infinite and isinstance(y, (int, long, mpq, mpf)):
+        if x.infinite and isinstance(y, (int, long, Fraction, Float)):
             if y == 0: return undefined, []
             if y < 0: return 0, []
             if y > 0:
                 if not x.direction:
                     return x, []
                 z, sym = try_power(x.direction, y)
-                return extended_number(1, z), sym
+                return ExtendedNumber(1, z), sym
         raise NotImplementedError
     if isinstance(y, inttypes):
         if y >= 0: return x**y, []
         if not x: return oo, []
         if isinstance(x, inttypes):
-            return mpq(1, x**(-y)), []
-        if isinstance(x, (mpq, mpf, mpc)):
+            return Fraction(1, x**(-y)), []
+        if isinstance(x, (Fraction, Float, Complex)):
             return x**y, []
-    if isinstance(x, inttypes) and isinstance(y, mpq):
+    if isinstance(x, inttypes) and isinstance(y, Fraction):
         p, q = y
         r, exact = int_root(abs(x), q)
         if exact:
             if p > 0:
                 g = r**p
             else:
-                g = mpq(1, r**(-p))
+                g = Fraction(1, r**(-p))
             if x > 0:
                 return g, []
             else:
-                return mpc(0, g), []
-    if isinstance(x, mpq) and isinstance(y, mpq):
+                return Complex(0, g), []
+    if isinstance(x, Fraction) and isinstance(y, Fraction):
         a, b = x
         r, rsym = try_power(a, y)
         s, ssym = try_power(b, y)

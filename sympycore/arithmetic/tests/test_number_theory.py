@@ -1,5 +1,7 @@
 from sympycore.arithmetic.number_theory import *
 
+mpq = Fraction
+
 def test_factorial():
     assert factorial(0) == 1
     assert factorial(1) == 1

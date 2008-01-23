@@ -1,6 +1,10 @@
 from sympycore.arithmetic.numbers import *
 
-def test_mpq():
+mpq = Fraction
+mpf = Float
+mpc = Complex
+
+def test_Fraction():
     assert mpq(1) == 1
     assert mpq(1,1) == 1
     assert mpq(1,2) != 1

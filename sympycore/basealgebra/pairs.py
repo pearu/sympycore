@@ -1359,7 +1359,7 @@ def generate_expand_data(n, m):
     """ Return power-coefficient dictionary of an expanded
     sum (A1 + A2 + .. + An)**m.
     """
-    from ..arithmetic.numbers import mpq
+    from ..arithmetic.numbers import Fraction
 
     # Generate binomial coefficients
     if n == 2:
@@ -1398,7 +1398,7 @@ def generate_expand_data(n, m):
                 t = p0[i]
                 for t2, c2 in l[k-i]:
                     tt = t2 * t
-                    cc = mpq(nn * c2, k)
+                    cc = Fraction(nn * c2, k)
                     b = d_get(tt)
                     if b is None:
                         d[tt] = cc
