@@ -2,7 +2,7 @@
 from .algebraic_structures import BasicAlgebra
 from .primitive import PrimitiveAlgebra
 from .pairs import CommutativeRingWithPairs
-from .std_commutative_algebra import I, A, StandardCommutativeAlgebra
+from .std_commutative_algebra import I, A, Calculus
 from .integers import Integers
 
 Symbol = A.Symbol

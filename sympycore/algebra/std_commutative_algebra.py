@@ -9,13 +9,13 @@ from .numberlib import mpq, mpf, mpc, try_power, extended_number, undefined
 
 algebra_numbers = (int, long, mpq, mpf, mpc, extended_number)
 
-class StandardCommutativeAlgebra(CommutativeRingWithPairs):
+class Calculus(CommutativeRingWithPairs):
     """ Represents an element of a symbolic algebra. The set of a
     symbolic algebra is a set of expressions. There are four kinds of
     expressions: Symbolic, SymbolicNumber, SymbolicTerms,
     SymbolicFactors.
 
-    StandardCommutativeAlgebra basically models the structure of SymPy.
+    Calculus basically models the structure of SymPy.
     """
 
     __slots__ = ['head', 'data', '_hash', 'one', 'zero']
@@ -109,7 +109,7 @@ class StandardCommutativeAlgebra(CommutativeRingWithPairs):
         d = dict([(newinstance(cls, NUMBER, b), e) for b, e in sym])
         return newinstance(cls, MUL, d) * num
 
-A = StandardCommutativeAlgebra
+A = Calculus
 one = A(1, head=NUMBER)
 zero = A(0, head=NUMBER)
 I = A(mpc(0,1), head=NUMBER)
