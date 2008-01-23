@@ -1,5 +1,5 @@
-from sympycore.algebra import A
-from sympycore.algebra.elementary_functions import sin, cos, tan, cot, pi
+from sympycore.calculus import Calculus as A
+from sympycore.calculus.functions.elementary import sin, cos, tan, cot, pi
 
 def test_trig_values():
     sqrt2 = A('2**(1/2)')

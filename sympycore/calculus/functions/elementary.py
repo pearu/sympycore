@@ -1,5 +1,4 @@
-from sympycore.algebra.std_commutative_algebra import (A, NUMBER,
-    ADD, MUL, SYMBOL)
+from ..algebra import (A, NUMBER, ADD, MUL, SYMBOL)
 
 class Function(object):
     pass
