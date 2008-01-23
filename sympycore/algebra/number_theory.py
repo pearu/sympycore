@@ -11,7 +11,8 @@ def factorial(n, memo=[1, 1]):
     while k <= n:
         p *= k
         k += 1
-        memo.append(p)
+        if k < 100:
+            memo.append(p)
     return p
 
 def gcd(*args):

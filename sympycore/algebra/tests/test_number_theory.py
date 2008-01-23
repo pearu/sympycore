@@ -7,6 +7,7 @@ def test_factorial():
     assert factorial(10) == 3628800
     # Verify that memoization didn't cause trouble
     assert factorial(10) == 3628800
+    assert factorial(130) % 1009 == 926
 
 def test_gcd():
     assert gcd() == 0
