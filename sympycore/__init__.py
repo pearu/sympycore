@@ -1,8 +1,8 @@
 from .core import Basic, classes
 
 # expose predefined objects to sympy namespace
-for _n,_v in objects.iterNameValue():
-    exec '%s = _v' % _n
+#for _n,_v in objects.iterNameValue():
+#    exec '%s = _v' % _n
 
 def profile_expr(expr):
     import sys
