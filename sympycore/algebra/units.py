@@ -10,20 +10,6 @@ class Unit(CommutativeRingWithPairs):
     Elements of the units algebra are unit symbols.
     Coefficients of the units algebra are Calculus instances.
     """
-    @classmethod
-    def convert_coefficient(cls, obj, typeerror=True):
-        """ Convert obj to coefficient algebra.
-        """
-        if isinstance(obj, algebra_numbers):
-            obj = newinstance(Calculus, NUMBER, obj)
-        if isinstance(obj, Calculus):
-            return newinstance(cls, NUMBER, obj)
-        if typeerror:
-            raise TypeError('%s.convert_coefficient: failed to convert %s instance'\
-                            ' to coefficient algebra, expected int|long object'\
-                            % (cls.__name__, obj.__class__.__name__))
-        else:
-            return NotImplemented        
 
     def as_algebra(self, cls):
         """ Convert algebra to another algebra.
