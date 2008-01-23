@@ -1,5 +1,6 @@
 
-from ..core import sympify, classes
+
+from ..core import classes
 from .algebraic_structures import BasicAlgebra
 from .primitive import PrimitiveAlgebra, SYMBOL, NUMBER, ADD, MUL
 
@@ -20,6 +21,15 @@ class Calculus(CommutativeRingWithPairs):
 
     __slots__ = ['head', 'data', '_hash', 'one', 'zero']
     _hash = None
+
+    def as_algebra(self, cls):
+        """ Convert algebra to another algebra.
+        """
+        if cls is classes.PrimitiveAlgebra:
+            return self.as_primitive()
+        if cls is classes.Unit:
+            return newinstance(cls, NUMBER, self)
+        return self.as_primitive().as_algebra(cls)
 
     @classmethod
     def redirect_operation(cls, *args, **kws):

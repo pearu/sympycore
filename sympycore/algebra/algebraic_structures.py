@@ -1,5 +1,5 @@
 
-from ..core import Basic
+from ..core import Basic, classes
 
 class BasicAlgebra(Basic):
     """ Represents an element of an algebraic structure.
