@@ -255,7 +255,9 @@ class CommutativeRingWithPairs(CommutativeRing):
                 return data.as_primitive()
             return PrimitiveAlgebra((SYMBOL, self.data))
         elif callable(head):
-            return PrimitiveAlgebra((APPLY, (self.head, self.data)))
+            func = PrimitiveAlgebra((SYMBOL, head.__name__))
+            args = self.data.as_primitive()
+            return PrimitiveAlgebra((APPLY, (func, args)))
         else:
             data = self.data
             if hasattr(data, 'as_primitive'):
@@ -482,12 +484,12 @@ class CommutativeRingWithPairs(CommutativeRing):
     def __ge__(self, other):
         return self.data >= other
     def __ne__(self, other):
-        return not (self.data == other)
+        return not (self == other)
 
     def diff(self, x):
         head = self.head
         if head is SYMBOL:
-            if self.data == x.data:
+            if self == x:
                 return self.one
             return self.zero
         if head is NUMBER:
@@ -886,7 +888,7 @@ def add_NUMBER_MUL(lhs, rhs, cls):
 generate_swapped_first_arguments(add_NUMBER_MUL)
 
 def add_SYMBOL_SYMBOL(lhs, rhs, cls):
-    if lhs.data==rhs.data:
+    if lhs == rhs:
         return newinstance(cls,ADD,{lhs: 2})
     return newinstance(cls,ADD,{lhs: 1, rhs: 1})
 
@@ -1009,7 +1011,7 @@ def multiply_NUMBER_MUL(lhs, rhs, cls):
 generate_swapped_first_arguments(multiply_NUMBER_MUL)
 
 def multiply_SYMBOL_SYMBOL(lhs, rhs, cls):
-    if lhs.data==rhs.data:
+    if lhs==rhs:
         return newinstance(cls, MUL, {lhs:2})
     return newinstance(cls, MUL, {lhs:1, rhs:1})
 
