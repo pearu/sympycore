@@ -6,9 +6,10 @@ if sys.platform=='win32':
 else:
     from time import time as clock
 
-from sympycore import *
+from sympycore import profile_expr
 
 def time1(n=1):
+    from sympycore import Symbol
     x,y,z = map(Symbol,'xyz')
     e1 = ((x+y+z)**20).expand()
     e2 = ((x+y)**19).expand()
@@ -22,7 +23,7 @@ def time1(n=1):
     return 100 / (t2-t1)
 
 def time2(n=1):
-    from sympycore import Symbol, Number
+    from sympy import Symbol
     x,y,z = map(Symbol,'xyz')
     e1 = ((x+y+z)**20).expand()
     e2 = ((x+y)**19).expand()
@@ -40,7 +41,7 @@ def time3(n=1):
     import swiginac
     x,y,z = map(swiginac.symbol,'xyz')
     e1 = ((x+y+z)**20).expand()
-    e2 = ((x+y+z)**21).expand()
+    e2 = ((x+y)**19).expand()
     expr = e1 * e2
     #expr = ((x+y+z)**20) * ((x+y)**19)
     t1 = clock()
@@ -53,11 +54,11 @@ def time3(n=1):
 
 def timing():
     t1 = time1()
-    t2 = time2()
+    t2 = time3()
     return t1, t2, t1/t2
 
 print timing()
 print timing()
 print timing()
 
-profile_expr('time2(1)')
+profile_expr('time1(1)')
