@@ -17,10 +17,7 @@ class BasicAlgebra(Basic):
       convert_exponent(cls, obj, typeerror=True)
       as_primitive(self)
       as_algebra(self, cls)
-      Symbol(cls, obj), Number(cls, obj), Add(cls, *seq), Mul(cls, *seq),
-      Pow(cls, base, exponent), Terms(cls, *seq), Factors(cls, *seq)
-      as_Add_args(self), as_Mul_args(self), as_Pow_args(self),
-      as_Terms_args(self), as_Factors_args(self)
+
       properties: args(self). func(self)
     """
 
@@ -224,6 +221,5 @@ class BasicAlgebra(Basic):
                 a = a.subs(pattern, expr, wildcards=wildcards)
             args.append(a)
         return self.func(*args)
-
 
 from .primitive import SYMBOL

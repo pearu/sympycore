@@ -1,9 +1,11 @@
+#
+# Created January 2008 by Fredrik Johansson
+#
+
 from ..algebra import A, oo, undefined, NUMBER, ADD, MUL, SYMBOL
+from ..constants import const_pi, const_E
 
 class Function(object):
-    pass
-
-class Constant(object):
     pass
 
 zero = A(0)
@@ -14,9 +16,8 @@ sqrt3 = A('3**(1/2)')
 #---------------------------------------------------------------------------#
 #                                  Exponentials                             #
 #---------------------------------------------------------------------------#
-
-pi = A('pi', head=Constant)
-E = A('E', head=Constant)
+pi = const_pi.as_algebra(A)
+E = const_E.as_algebra(A)
 
 class exp(Function):
     def __new__(cls, arg):

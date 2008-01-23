@@ -1,6 +1,6 @@
 
 from .algebra import Calculus, I
-from .functions import sin, cos, tan, cot, pi
+from .functions import sin, cos, tan, cot, pi, E
 
 Symbol = Calculus.Symbol
 Number = Calculus.Number

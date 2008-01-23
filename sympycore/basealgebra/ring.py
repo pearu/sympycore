@@ -2,6 +2,16 @@
 from .algebra import BasicAlgebra
 
 class CommutativeRing(BasicAlgebra):
+    """ Base class to commutative rings.
+
+    Derived classes may redefine the following methods:
+    
+      Symbol(cls, obj), Number(cls, obj), Add(cls, *seq), Mul(cls, *seq),
+      Pow(cls, base, exponent), Terms(cls, *seq), Factors(cls, *seq)
+      as_Add_args(self), as_Mul_args(self), as_Pow_args(self),
+      as_Terms_args(self), as_Factors_args(self)
+    """
+
 
     @classmethod
     def npower(cls, base, exp):

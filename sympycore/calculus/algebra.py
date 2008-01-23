@@ -1,3 +1,6 @@
+#
+# Created January 2008 by Pearu Peterson
+#
 
 from ..core import classes
 from ..basealgebra import BasicAlgebra

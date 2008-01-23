@@ -243,9 +243,13 @@ class CommutativeRingWithPairs(CommutativeRing):
                 return data.as_primitive()
             return PrimitiveAlgebra((SYMBOL, self.data))
         elif callable(head):
-            func = head
-            args = self.data.as_primitive() # XXX: need support for multiple arguments
-            return PrimitiveAlgebra((APPLY, (func, args)))
+            data = self.data
+            # XXX: need support for multiple arguments
+            if hasattr(data, 'as_primitive'):
+                args = data.as_primitive()
+            else:
+                args = PrimitiveAlgebra(data)
+            return PrimitiveAlgebra((APPLY, (head, args)))
         else:
             data = self.data
             if hasattr(data, 'as_primitive'):

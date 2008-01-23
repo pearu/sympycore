@@ -1,2 +1,2 @@
 
-from .elementary import sin, cos, tan, cot, pi
+from .elementary import sin, cos, tan, cot, pi, E
