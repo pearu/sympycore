@@ -41,15 +41,6 @@ class CommutativeRingWithPairs(CommutativeRing):
             data = dict(data)
         return newinstance(cls, head, data)
 
-    def length(self):
-        """ Return the number of pairs (if applicable).
-        """
-        # we don't define __len__ in order to avoid implementing sequence protocol
-        # that will by misused by numpy.array
-        if self.head in [ADD, MUL]:
-            return len(self.data)
-        raise TypeError('.length(): unexpected head value: %r' % (self.head))
-
     def __eq__(self, other):
         if self is other:
             return True
@@ -915,7 +906,7 @@ def add_SYMBOL_MUL(lhs, rhs, cls):
 generate_swapped_first_arguments(add_SYMBOL_MUL)
 
 def add_ADD_ADD(lhs, rhs, cls):
-    if lhs.length() < rhs.length():
+    if len(lhs.data) < len(rhs.data):
         rhs, lhs = lhs, rhs
     result = lhs.copy()
     pairs = result.data
@@ -1015,8 +1006,9 @@ def multiply_SYMBOL_SYMBOL(lhs, rhs, cls):
     return newinstance(cls, MUL, {lhs:1, rhs:1})
 
 def multiply_SYMBOL_ADD(lhs, rhs, cls):
-    if rhs.length()==1:
-        t, c = rhs.data.items()[0]
+    pairs = rhs.data
+    if len(pairs)==1:
+        t, c = pairs.items()[0]
         if lhs==t:
             return newinstance(cls,ADD,{newinstance(cls, MUL, {lhs: 2}): c})
         return multiply_dict2[lhs.head][t.head](lhs, t, cls) * c
@@ -1043,21 +1035,24 @@ def multiply_SYMBOL_MUL(lhs, rhs, cls):
 generate_swapped_first_arguments(multiply_SYMBOL_MUL)
 
 def multiply_ADD_ADD(lhs, rhs, cls):
-    if lhs.length()==rhs.length()==1:
-        t1, c1 = lhs.data.items()[0]
-        t2, c2 = rhs.data.items()[0]
+    ldata = lhs.data
+    rdata = rhs.data
+    if len(ldata)==len(rdata)==1:
+        t1, c1 = ldata.items()[0]
+        t2, c2 = rdata.items()[0]
         t = multiply_dict2[t1.head][t2.head](t1, t2, cls)
         if t==cls.one:
             return newinstance(cls, NUMBER, c1*c2)
         return newinstance(cls,ADD,{t: c1*c2})
     else:
-        if lhs.data==rhs.data:
+        if ldata==rdata:
             return newinstance(cls, MUL, {lhs:2})
         return newinstance(cls, MUL, {lhs:1, rhs:1})
 
 def multiply_ADD_MUL(lhs, rhs, cls):
-    if lhs.length()==1:
-        t, c = lhs.data.items()[0]
+    ldata = lhs.data
+    if len(ldata)==1:
+        t, c = ldata.items()[0]
         return multiply_dict2[t.head][rhs.head](t, rhs, cls) * c
     result = rhs.copy()
     pairs = result.data
@@ -1077,12 +1072,15 @@ def multiply_ADD_MUL(lhs, rhs, cls):
 generate_swapped_first_arguments(multiply_ADD_MUL)
 
 def multiply_MUL_MUL(lhs, rhs, cls):
-    if lhs.length() < rhs.length():
+    ldata = lhs.data
+    rdata = rhs.data
+    if len(ldata) < len(rdata):
         rhs, lhs = lhs, rhs
-    result = newinstance(cls, MUL, dict(lhs.data))
+        ldata, rdata = rdata, ldata
+    result = newinstance(cls, MUL, dict(ldata))
     pairs = result.data
     get = pairs.get
-    for t,c in rhs.data.iteritems():
+    for t,c in rdata.iteritems():
         b = get(t)
         if b is None:
             pairs[t] = c
@@ -1122,17 +1120,18 @@ def expand_SYMBOL_ADD(lhs, rhs, cls):
 generate_swapped_first_arguments(expand_SYMBOL_ADD)
 
 def expand_ADD_ADD(lhs, rhs, cls):
-    if lhs.length() > rhs.length():
-        lhs, rhs = rhs, lhs
-    d = {}
-    result = newinstance(cls, ADD, d)
     pairs1 = lhs.data
     pairs2 = rhs.data
+    if len(pairs1) < len(pairs2):
+        lhs, rhs = rhs, lhs
+        pairs1, pairs2 = pairs2, pairs1
+    d = {}
+    result = newinstance(cls, ADD, d)
     get = d.get
     for t1, c1 in pairs1.iteritems():
-        t1_head = t1.head
+        mdict = multiply_dict2[t1.head]
         for t2, c2 in pairs2.iteritems():
-            t = multiply_dict2[t1_head][t2.head](t1, t2, cls)
+            t = mdict[t2.head](t1, t2, cls)
             c = c1 * c2
             b = get(t)
             if b is None:

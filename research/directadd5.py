@@ -237,83 +237,14 @@ def time1():
     t2 = clock()
     return 100 / (t2-t1)
 
-def time2():
-    x = sympy.Symbol('x')
-    y = sympy.Symbol('y')
-    z = sympy.Symbol('z')
-    a = sympy.Rational(1,2)
-    b = sympy.Rational(3,4)
-    c = sympy.Rational(5,6)
-    A = a*x + b*y + c*z
-    B = b*x + c*y + a*z
-    t1 = clock()
-    n = 1000
-    while n:
-        3*(a*x+b*y+c*z)
-        #A + B
-        #x + y
-        #a + b
-        #a * b
-        n -= 1
-    t2 = clock()
-    return 100 / (t2-t1)
-
-def time3(n=1000):
-    x = sympy.Symbol('x').as_sexpr()
-    y = sympy.Symbol('y').as_sexpr()
-    z = sympy.Symbol('z').as_sexpr()
-    a = sympy.Rational(1,2).as_sexpr()
-    b = sympy.Rational(3,4).as_sexpr()
-    c = sympy.Rational(5,6).as_sexpr()
-    tre = sympy.Integer(3).as_sexpr()
-    from sympycore.arithmetic.sexpr import s_add, s_mul
-    t1 = clock()
-    while n:
-        s_mul(s_add(s_mul(a,x),s_add(s_mul(b,y),s_mul(c,z))),tre)
-        #3*(a*x+b*y+c*z)
-        #A + B
-        #x + y
-        #a + b
-        #a * b
-        n -= 1
-    t2 = clock()
-    return 100 / (t2-t1)
-
-def time4(n=1000):
-    x = sympy.as_ae('x')
-    y = sympy.as_ae('y')
-    z = sympy.as_ae('z')
-    a = sympy.AlgebraicExpression(sympy.NUMBER,sympy.Rational(1,2))
-    b = sympy.AlgebraicExpression(sympy.NUMBER,sympy.Rational(3,4))
-    c = sympy.AlgebraicExpression(sympy.NUMBER,sympy.Rational(5,6))
-    #a = sympy.AlgebraicExpression(sympy.NUMBER,rational(1,2))
-    #b = sympy.AlgebraicExpression(sympy.NUMBER,rational(3,4))
-    #c = sympy.AlgebraicExpression(sympy.NUMBER,rational(5,6))
-    #a = sympy.AlgebraicExpression(sympy.NUMBER,gmpy.mpq(1,2))
-    #b =  sympy.AlgebraicExpression(sympy.NUMBER,gmpy.mpq(3,4))
-    #c =  sympy.AlgebraicExpression(sympy.NUMBER,gmpy.mpq(5,6))
-    A = a*x + b*y + c*z
-    B = b*x + c*y + a*z
-    t1 = clock()
-    while n:
-        3*(a*x+b*y+c*z)
-        #A + B
-        #x + y
-        #a + b
-        #a * b
-        n -= 1
-    t2 = clock()
-    return 100 / (t2-t1)
-
-
-def time5(n=1000):
-    Symbol = sympy.algebra.Symbol
-    Number = sympy.algebra.Number
+def time2(n=1000):
+    Symbol = sympy.Symbol
+    Number = sympy.Number
     x = Symbol('x')
     y = Symbol('y')
     z = Symbol('z')
     a = Number(1,2)
-    b = Number(2,3)
+    b = Number(3,4)
     c = Number(4,5)
     A = a*x + b*y + c*z
     B = b*x + c*y + a*z
@@ -331,7 +262,7 @@ def time5(n=1000):
 
 def timing():
     t1 = time1()
-    t2 = time5()
+    t2 = time2()
     return t1, t2, t1/t2
 
 print "without psyco"
@@ -341,7 +272,7 @@ print timing()
 
 from sympycore import profile_expr
 
-profile_expr('time5(1000)')
+profile_expr('time2(1000)')
 
 try:
     import psyco

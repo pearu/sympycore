@@ -22,8 +22,8 @@ def time1(n=1):
     return 100 / (t2-t1)
 
 def time2(n=1):
-    from sympycore.algebra import Integers, Symbol, Number
-    x,y,z = map(Integers.Symbol,'xyz')
+    from sympycore import Symbol, Number
+    x,y,z = map(Symbol,'xyz')
     e1 = ((x+y+z)**20).expand()
     e2 = ((x+y)**19).expand()
     expr = e1 * e2
