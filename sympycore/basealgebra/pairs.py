@@ -528,7 +528,7 @@ class CommutativeRingWithPairs(CommutativeRing):
             return product
         if self.head is ADD:
             return self.Add(*(coef*term.integrate(x, integrator) \
-                for term, coef in self.data.items()))
+                              for term, coef in self.data.iteritems()))
         return integrator(self, x)
 
 A = CommutativeRingWithPairs

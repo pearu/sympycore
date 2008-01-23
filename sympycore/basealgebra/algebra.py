@@ -217,7 +217,12 @@ class BasicAlgebra(Basic):
         if self.match(pattern, *wildcards) is not None:
             return self.convert(expr)
         expr = self.convert(expr)
-        args = [a.subs(pattern, expr, wildcards=wildcards) for a in self.args]
+        args = []
+        cls = type(self)
+        for a in self.args:
+            if isinstance(a, cls):
+                a = a.subs(pattern, expr, wildcards=wildcards)
+            args.append(a)
         return self.func(*args)
 
 
