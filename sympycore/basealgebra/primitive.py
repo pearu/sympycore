@@ -121,6 +121,8 @@ def tree_sort(a, b):
 
 class PrimitiveAlgebra(BasicAlgebra):
 
+    __slots__ = ['tree']
+
     commutative_add = None
     commutative_mul = None
     disable_sorting = None
