@@ -81,7 +81,7 @@ parentheses_map = {
 _is_name = re.compile(r'\A[a-zA-z_]\w*\Z').match
 _is_number = re.compile(r'\A\d+\Z').match
 
-head_order = [NUMBER, SYMBOL,
+head_order = [NUMBER, SYMBOL, APPLY,
               POS, ADD,
               SUB,
               MOD, MUL, DIV, POW,
@@ -94,7 +94,15 @@ head_order = [NUMBER, SYMBOL,
 
 def tree_sort(a, b):
     h1, h2 = a.tree[0], b.tree[0]
-    c = cmp(head_order.index(h1), head_order.index(h2))
+    if callable(h1):
+        if callable(h2):
+            c = cmp(h1, h2)
+        else:
+            c = cmp(head_order.index(APPLY), head_order.index(h2))
+    elif callable(h2):
+        c = cmp(head_order.index(h1), head_order.index(APPLY))
+    else:
+        c = cmp(head_order.index(h1), head_order.index(h2))
     if c:
         return c
     t1,t2 = a.tree[1], b.tree[1]
