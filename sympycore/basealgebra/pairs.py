@@ -8,9 +8,7 @@ from collections import defaultdict
 from ..core import classes
 from .ring import CommutativeRing
 from .primitive import PrimitiveAlgebra, ADD, MUL, SYMBOL, NUMBER, APPLY, POW, head_to_string
-from .utils import generate_swapped_first_arguments
-from .utils import RedirectOperation
-from .utils import not_implemented
+from .utils import generate_swapped_first_arguments, RedirectOperation
 
 def newinstance(cls, head, data, new = object.__new__):
     o = new(cls)
@@ -495,7 +493,7 @@ class CommutativeRingWithPairs(CommutativeRing):
                     return e*b**(e-1) * b.diff(x)
         raise NotImplementedError
 
-    def integrate(self, x, integrator=not_implemented):
+    def integrate(self, x, integrator=None):
         """
         Attempt to calculate an antiderivative of self with respect to x.
         This method is able to directly deal with expanded linear
@@ -515,9 +513,13 @@ class CommutativeRingWithPairs(CommutativeRing):
         if self.head is MUL:
             product = self.one
             have_x = False
-            for b, e in self.data.items():
+            for b, e in self.data.iteritems():
                 if b == x:
                     if have_x:
+                        if integrator is None:
+                            raise NotImplementedError \
+                                  ("Don't know how to integrate(%s, %s)"
+                                   % (self, x))
                         return integrator(self, x)
                     product *= b**(e+1) / (e+1)
                     have_x = True

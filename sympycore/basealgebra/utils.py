@@ -1,7 +1,8 @@
 
 import sys
 
-__all__ = ['generate_swapped_first_arguments','RedirectOperation']
+__all__ = ['generate_swapped_first_arguments', 'RedirectOperation',
+           'get_object_by_name']
 
 def get_object_by_name(name, default=None):
     """ Return object that is a value of a variable with name
@@ -41,8 +42,6 @@ class RedirectOperation(Exception):
                               redirect_operation=redirect_operation)
     """
 
-def not_implemented(*args, **kwargs):
-    raise NotImplementedError
 
 def generate_swapped_first_arguments(func):
     """ Creates a new function from func by swapping its

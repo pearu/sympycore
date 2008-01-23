@@ -106,8 +106,8 @@ class BasicAlgebra(Basic):
             return NotImplemented
 
     def as_primitve(self):
-        raise NotImplementedError('%s must define as_primitive method'\
-                                  % (self.__class__.__name__))
+        raise NotImplementedError('%s must define as_primitive method' #pragma NO COVER
+                                  % (self.__class__.__name__))         #pragma NO COVER
 
     def as_algebra(self, cls):
         """ Convert algebra to another algebra.
@@ -125,25 +125,29 @@ class BasicAlgebra(Basic):
     def func(self):
         """ Returns a callable such that self.func(*self.args) == self.
         """
-        raise NotImplementedError('%s must define property func' % (cls.__name__))
+        raise NotImplementedError('%s must define property func'      #pragma NO COVER
+                                  % (cls.__name__))                   #pragma NO COVER
 
     @property
     def args(self):
         """ Returns a sequence such that self.func(*self.args) == self.
         """
-        raise NotImplementedError('%s must define property args' % (cls.__name__))
+        raise NotImplementedError('%s must define property args'      #pragma NO COVER
+                                  % (cls.__name__))                   #pragma NO COVER
 
     @classmethod
     def Symbol(cls, obj):
         """ Construct algebra symbol directly from obj.
         """
-        raise NotImplementedError('%s must define classmethod Symbol' % (cls.__name__))
+        raise NotImplementedError('%s must define classmethod Symbol' #pragma NO COVER
+                                  % (cls.__name__))                   #pragma NO COVER
 
     @classmethod
     def Number(cls, num, denom=None):
         """ Construct algebra number directly from obj.
         """
-        raise NotImplementedError('%s must define classmethod Number' % (cls.__name__))
+        raise NotImplementedError('%s must define classmethod Number' #pragma NO COVER
+                                  % (cls.__name__))                   #pragma NO COVER
 
     def match(self, pattern, *wildcards):
         """
