@@ -1,4 +1,4 @@
-from numberlib import *
+from .numbers import mpq, mpc, mpf
 
 def factorial(n, memo=[1, 1]):
     """Return n factorial (for integers n >= 0 only)."""

@@ -43,9 +43,9 @@ import math
 __all__ = ['mpq', 'mpf', 'mpc', 'div', 'int_root', 'try_power',
     'extended_number', 'nan', 'undefined', 'oo', 'moo', 'zoo']
 
-from .primitive import PrimitiveAlgebra, NUMBER, SYMBOL
-from .utils import get_object_by_name
-from .utils import RedirectOperation
+from ..basealgebra.primitive import PrimitiveAlgebra, NUMBER, SYMBOL
+from ..basealgebra.utils import get_object_by_name
+from ..basealgebra.utils import RedirectOperation
 
 inttypes = (int, long)
 
