@@ -123,6 +123,7 @@ class PrimitiveAlgebra(BasicAlgebra):
 
     commutative_add = None
     commutative_mul = None
+    disable_sorting = None
 
     def __new__(cls, tree, head=None):
         if head is None:
@@ -197,9 +198,12 @@ class PrimitiveAlgebra(BasicAlgebra):
             return 'lambda %s: %s' % (str(args)[1:-1], body)
         if head is TUPLE:
             return '(%s)' % (', '.join(map(str,rest)))
+        if len(rest)>100:
+            self.disable_sorting = True
         if head is ADD:
             if self.commutative_add:
-                rest = sorted(rest, cmp=tree_sort)
+                if not self.disable_sorting:
+                    rest = sorted(rest, cmp=tree_sort)
             r = ''
             for t in rest:
                 h = t.tree[0]
@@ -222,7 +226,8 @@ class PrimitiveAlgebra(BasicAlgebra):
                 r += sign + s
             return r
         if head is MUL and self.commutative_mul:
-            rest = sorted(rest, cmp=tree_sort)
+            if not self.disable_sorting:
+                rest = sorted(rest, cmp=tree_sort)
         l = []
         for t in rest:
             h = t.tree[0]
