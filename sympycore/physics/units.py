@@ -1,8 +1,8 @@
 from ..core import classes
 
-from .primitive import NUMBER
-from .std_commutative_algebra import Calculus, algebra_numbers
-from .pairs import CommutativeRingWithPairs, newinstance
+from ..basealgebra.primitive import NUMBER
+from ..calculus.algebra import Calculus, algebra_numbers
+from ..basealgebra.pairs import CommutativeRingWithPairs, newinstance
 
 class Unit(CommutativeRingWithPairs):
     """ Represents an algebra of physical units.

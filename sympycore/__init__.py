@@ -3,15 +3,12 @@ from basealgebra import *
 from arithmetic import *
 from calculus import *
 from polynomials import *
-
-# expose predefined objects to sympy namespace
-#for _n,_v in objects.iterNameValue():
-#    exec '%s = _v' % _n
+from physics import *
 
 def profile_expr(expr):
     import sys
     import hotshot, hotshot.stats
-    prof = hotshot.Profile("/tmp/stones.prof")
+    prof = hotshot.Profile("/tmp/sympycore_stones.prof")
     frame = sys._getframe(1)
     g = frame.f_globals
     l = frame.f_locals
@@ -19,7 +16,7 @@ def profile_expr(expr):
         exec expr in g,l
     prof.runcall(foo)
     prof.close()
-    stats = hotshot.stats.load("/tmp/stones.prof")
+    stats = hotshot.stats.load("/tmp/sympycore_stones.prof")
     stats.strip_dirs()
     stats.sort_stats('time','calls','time')
     stats.print_stats(40)
