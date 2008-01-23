@@ -2,9 +2,9 @@
 # Author: Fredrik Johansson
 # Created: January 2007
 
-from .primitive import PrimitiveAlgebra, ADD, POW, MUL, NUMBER, SYMBOL
+from ..basealgebra.primitive import PrimitiveAlgebra, ADD, POW, MUL, NUMBER, SYMBOL
 
-from .algebraic_structures import BasicAlgebra
+from ..basealgebra import BasicAlgebra
 
 class UnivariatePolynomial(BasicAlgebra):
 
@@ -162,4 +162,3 @@ class UnivariatePolynomial(BasicAlgebra):
 
 poly = UnivariatePolynomial
 
-x = poly([0, 1])

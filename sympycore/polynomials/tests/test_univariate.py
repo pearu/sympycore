@@ -1,4 +1,4 @@
-from sympycore.algebra.polynomials import *
+from sympycore.polynomials import *
 
 def test_polynomials():
     x = poly([0, 1])
