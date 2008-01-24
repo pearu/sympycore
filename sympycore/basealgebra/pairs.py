@@ -1086,6 +1086,7 @@ def multiply_MUL_MUL(lhs, rhs, cls):
     result = newinstance(cls, MUL, dict(ldata))
     pairs = result.data
     get = pairs.get
+    number = 1
     for t,c in rdata.iteritems():
         b = get(t)
         if b is None:
@@ -1093,12 +1094,24 @@ def multiply_MUL_MUL(lhs, rhs, cls):
         else:
             c = b + c
             if c:
-                pairs[t] = c
+                if t.head is NUMBER:
+                    r = t**c
+                    if r.head is NUMBER:
+                        number = number * r
+                        del pairs[t]
+                    else:
+                        pairs[t] = c
+                else:
+                    pairs[t] = c
             else:
                 del pairs[t]
+    if number==1:
+        if len(pairs)<=1:
+            return result.canonize()
+        return result
     if len(pairs)<=1:
-        return result.canonize()
-    return result
+        return result.canonize() * number
+    return result * number
 
 def expand_NUMBER_ADD(lhs, rhs, cls):
     value = lhs.data
