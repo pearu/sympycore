@@ -455,6 +455,18 @@ class Complex(object):
             if case == 1: return Complex(0, b**n)
             if case == 2: return -(b**n)
             if case == 3: return Complex(0, -b**n)
+        m = 1
+        if isinstance(a, Fraction):
+            if isinstance(b, Fraction):
+                m = (a[1] * b[1]) ** n
+                a, b = a[0]*b[1], a[1]*b[0]
+            elif isinstance(b, inttypes):
+                m = a[1] ** n
+                a, b = a[0], a[1]*b
+        elif isinstance(b, Fraction):
+            if isinstance(a, inttypes):
+                m = b[1] ** n
+                a, b = a*b[1], b[0]
         c, d = 1, 0
         while n:
             if n & 1:
@@ -462,8 +474,9 @@ class Complex(object):
                 n -= 1
             a, b = a*a-b*b, 2*a*b
             n //= 2
-        return Complex(c, d)
-
+        if m==1:
+            return Complex(c, d)
+        return Complex(div(c, m), div(d, m))
 
 #----------------------------------------------------------------------------#
 #                                                                            #
