@@ -10,6 +10,7 @@ from ..basealgebra.pairs import CommutativeRingWithPairs, newinstance
 
 from ..arithmetic.numbers import Fraction, Float, Complex, try_power, ExtendedNumber, undefined
 from ..arithmetic.numbers import oo as numbers_oo
+from ..arithmetic.evalf import evalf
 
 algebra_numbers = (int, long, Fraction, Float, Complex, ExtendedNumber)
 
@@ -121,6 +122,10 @@ class Calculus(CommutativeRingWithPairs):
             return newinstance(cls, NUMBER, num)
         d = dict([(newinstance(cls, NUMBER, b), e) for b, e in sym])
         return newinstance(cls, MUL, d) * num
+
+    def evalf(self, n=15):
+        return self.Number(evalf(self, n))
+
 
 A = Calculus
 one = A(1, head=NUMBER)

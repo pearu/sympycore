@@ -205,7 +205,7 @@ class Fraction(tuple):
 
 from mpmath.lib import from_int, from_rational, to_str, fadd, fsub, fmul, \
   round_half_even, from_float, to_float, to_int, fpow, from_str, feq, \
-  fhash, fcmp, fdiv
+  fhash, fcmp, fdiv, fabs, fcabs
 
 rounding = round_half_even
 
@@ -243,6 +243,7 @@ class Float(object):
     def __hash__(self): return fhash(self.val)
     def __pos__(self): return self
     def __neg__(self): return Float(fneg(self.val), self.prec)
+    def __abs__(self): return Float(fabs(self.val), self.prec)
 
     # XXX: these should handle rationals exactly
     def __eq__(self, other):
@@ -388,6 +389,14 @@ class Complex(object):
 
     def __pos__(self): return self
     def __neg__(self): return Complex(-self.real, -self.imag)
+
+    def __abs__(self):
+        if not self.real:
+            return abs(self.imag)
+        if isinstance(self.real, Float) and isinstance(self.imag, Float):
+            return Float(fcabs(self.real.val, self.imag.val,
+                self.real.prec, rounding), self.real.prec)
+        raise NotImplementedError
 
     def __add__(self, other):
         a, b = self.real, self.imag

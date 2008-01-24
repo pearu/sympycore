@@ -10,6 +10,7 @@ class Function(object):
 
 zero = A(0)
 one = A(1)
+half = one/2
 sqrt2 = A('2**(1/2)')
 sqrt3 = A('3**(1/2)')
 
@@ -18,6 +19,12 @@ sqrt3 = A('3**(1/2)')
 #---------------------------------------------------------------------------#
 pi = const_pi.as_algebra(A)
 E = const_E.as_algebra(A)
+
+class sqrt(Function):
+    def __new__(cls, arg):
+        if not isinstance(arg, A):
+            arg = A.convert(arg)
+        return A.Pow(arg, half)
 
 class exp(Function):
     def __new__(cls, arg):
