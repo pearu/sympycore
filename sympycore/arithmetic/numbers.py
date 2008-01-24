@@ -303,7 +303,7 @@ class Float(object):
     def __pow__(self, n):
         # XXX: check for divide by zero
         assert isinstance(n, inttypes)
-        return Float(fpow(self.val, n, self.prec, rounding))
+        return Float(fpow(self.val, n, self.prec, rounding), self.prec)
 
 
 #----------------------------------------------------------------------------#
