@@ -45,6 +45,7 @@ def test_mpf():
     assert mpf(3) * mpf(4) == 12
     assert mpf(3) + mpf(4) == mpf(7)
     assert mpf(3) - mpf(4) == -1
+    assert -mpf(3) == -3
     assert 4*mpf(3) == 12
     assert mpf(3)*4 == 12
     assert 2+mpf(5) == 7
