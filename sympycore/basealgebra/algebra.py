@@ -211,9 +211,9 @@ class BasicAlgebra(Basic):
             for item in pattern:
                 r = r.subs(item[0], item[1], wildcards=wildcards)
             return r
-        if self.match(pattern, *wildcards) is not None:
-            return self.convert(expr)
         expr = self.convert(expr)
+        if self==pattern:
+            return expr
         args = []
         cls = type(self)
         for a in self.args:
