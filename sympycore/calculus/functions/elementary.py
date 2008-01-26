@@ -36,6 +36,8 @@ class exp(Function):
 
 class log(Function):
     def __new__(cls, arg, base=E):
+        if base != E:
+            return cls(arg) / cls(base)
         if not isinstance(arg, A):
             arg = A.convert(arg)
         if arg.head is NUMBER:

@@ -561,7 +561,7 @@ class ExtendedNumber:
         return self == other or self.__gt__(other)
 
     def __hash__(self):
-        return hash(('ExtendedNumber', infinite, direction))
+        return hash(('ExtendedNumber', self.infinite, self.direction))
 
     def __neg__(self):
         return ExtendedNumber(self.infinite, -self.direction)

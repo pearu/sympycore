@@ -8,6 +8,8 @@ def test_exp_log():
     assert log(0) == -oo
     assert log(1) == 0
     assert log(oo) == oo
+    assert log(2,3) == log(2)/log(3)
+    assert log(0,3) == (-oo)/log(3)
 
 def test_trig_values():
     sqrt2 = A('2**(1/2)')
