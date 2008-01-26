@@ -1,5 +1,5 @@
 
-from .algebra import Calculus, I, integrate, oo
+from .algebra import Calculus, I, integrate, oo, undefined
 from .functions import exp, log, sqrt, sin, cos, tan, cot, pi, E
 
 Symbol = Calculus.Symbol

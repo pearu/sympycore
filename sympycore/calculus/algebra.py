@@ -35,6 +35,31 @@ class Calculus(CommutativeRingWithPairs):
             return newinstance(cls, NUMBER, self)
         return self.as_primitive().as_algebra(cls)
 
+    def canonize(self):
+        head = self.head
+        if head is ADD:
+            pairs = self.data
+            if not pairs:
+                return self.zero
+            if len(pairs)==1:
+                t, c = pairs.items()[0]
+                if c==1:
+                    return t
+                if self.one==t or c==undefined:
+                    return self.convert(c)
+        elif head is MUL:
+            pairs = self.data
+            pairs.pop(self.one, None)
+            if not pairs:
+                return self.one
+            if len(pairs)==1:
+                t, c = pairs.items()[0]
+                if c==1:
+                    return t
+                if self.one==t:
+                    return t
+        return self
+
     @classmethod
     def redirect_operation(cls, *args, **kws):
         """
@@ -56,7 +81,7 @@ class Calculus(CommutativeRingWithPairs):
                     return rhs
         # fallback to default:
         return getattr(cls, callername)(*args,
-                                        **dict(redirect_operation='ignore_redirection'))            
+                                        **dict(redirect_operation='ignore_redirection'))
 
             
 
@@ -132,6 +157,14 @@ class Calculus(CommutativeRingWithPairs):
     def evalf(self, n=15):
         return self.Number(evalf(self, n))
 
+    def __eq__(self, other):
+        if self is other:
+            return True
+        if other.__class__ is self.__class__:
+            return self.head is other.head and self.data == other.data
+        if self.head is NUMBER and isinstance(other, algebra_numbers):
+            return self.data == other
+        return False
 
 A = Calculus
 one = A(1, head=NUMBER)

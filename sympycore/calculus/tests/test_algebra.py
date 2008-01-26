@@ -2,7 +2,7 @@ from sympycore.calculus import *
 A = Calculus
 
 x = Symbol('x')
-y = Symbol('x')
+y = Symbol('y')
 
 def test_linear():
     assert x + x == 2*x
@@ -28,4 +28,5 @@ def test_has_symbol():
 
 def test_subs():
     assert (oo*x + oo*y).subs(y,x) == oo*x
-    #assert (oo*x + oo*y).subs(y,-x) == undefined
+    assert (oo*x + oo*y).subs(y,-x) == undefined
+

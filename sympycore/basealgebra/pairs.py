@@ -1092,17 +1092,15 @@ generate_swapped_first_arguments(multiply_NUMBER_SYMBOL)
 
 def multiply_NUMBER_ADD(lhs, rhs, cls):
     value = lhs.data
-    if value:
-        if value==1:
-            return rhs
-        d = {}
-        result = newinstance(cls, ADD, d)
-        for t,c in rhs.data.iteritems():
-            d[t] = c * value
-        if len(d)<=1:
-            return result.canonize()
-        return result
-    return lhs
+    if value==1:
+        return rhs
+    d = {}
+    result = newinstance(cls, ADD, d)
+    for t,c in rhs.data.iteritems():
+        d[t] = c * value
+    if len(d)<=1:
+        return result.canonize()
+    return result
 
 generate_swapped_first_arguments(multiply_NUMBER_ADD)
 
