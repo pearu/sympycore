@@ -25,3 +25,7 @@ def test_powers():
 def test_has_symbol():
     assert (1 + cos(1+2**x)).has_symbol(x)
     assert (y + cos(1+2**x)).symbols == set([x, y])
+
+def test_subs():
+    assert (oo*x + oo*y).subs(y,x) == oo*x
+    #assert (oo*x + oo*y).subs(y,-x) == undefined

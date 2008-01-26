@@ -598,6 +598,18 @@ class ExtendedNumber:
 
     __rmul__ = __mul__
 
+    def __pow__(self, n):
+        z, symbolic = try_power(self, n)
+        if not symbolic:
+            return z
+        raise NotImplementedError
+
+    def __rpow__(self, n):
+        z, symbolic = try_power(n, self)
+        if not symbolic:
+            return z
+        raise NotImplementedError
+
 
 undefined = nan = ExtendedNumber(0, 0)
 oo = ExtendedNumber(1, 1)
