@@ -129,6 +129,12 @@ class TrigonometricFunction(Function):
         else:
             return A(arg, head=cls)
 
+    @classmethod
+    def derivative(cls, arg):
+        """ Return derivative function of cls at arg.
+        """
+        raise NotImplementedError
+
 class sin(TrigonometricFunction):
     parity = 'odd'
     period = 2
@@ -136,12 +142,20 @@ class sin(TrigonometricFunction):
     def eval_direct(cls, m):
         return sine_table[m % 24]
 
+    @classmethod
+    def derivative(cls, arg):
+        return cos(arg)
+
 class cos(TrigonometricFunction):
     parity = 'even'
     period = 2
     @classmethod
     def eval_direct(cls, m):
         return sine_table[(m+6) % 24]
+
+    @classmethod
+    def derivative(cls, arg):
+        return -sin(arg)
 
 class tan(TrigonometricFunction):
     parity = 'odd'

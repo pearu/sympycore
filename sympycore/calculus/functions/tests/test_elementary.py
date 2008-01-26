@@ -65,3 +65,9 @@ def test_trig_symmetry():
     assert cos(pi/2+x) == -sin(x)
     assert tan(pi/2+x) == -cot(x)
     assert cot(pi/2+x) == -tan(x)
+
+def test_trig_diff():
+    x = A('x')
+    assert sin(x).diff(x) == cos(x)
+    assert cos(x).diff(x) == -sin(x)
+    assert sin(2*x).diff(x) == 2*cos(x)

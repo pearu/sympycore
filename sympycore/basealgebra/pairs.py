@@ -544,7 +544,9 @@ class CommutativeRingWithPairs(CommutativeRing):
                 b, e = pairs.pop()
                 if isinstance(e, (int, long)) or e.head is NUMBER:
                     return e*b**(e-1) * b.diff(x)
-        raise NotImplementedError
+        if callable(head) and hasattr(head, 'derivative'):
+            return head.derivative(self.data) * self.data.diff(x)
+        raise NotImplementedError(`self, x`)
 
     @staticmethod
     def _integrator(e, x):
