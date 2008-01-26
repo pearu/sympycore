@@ -77,3 +77,6 @@ def test_trig_diff():
 
     assert log(x).diff(x) == 1/x
     assert exp(x).diff(x) == exp(x)
+
+
+    assert (x*sin(x)).diff(x) == x*cos(x) + sin(x)

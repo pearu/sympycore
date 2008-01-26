@@ -538,10 +538,9 @@ class CommutativeRingWithPairs(CommutativeRing):
         if head is ADD:
             return A.Terms(*((s.diff(x), c) for s, c in self.data.items()))
         if head is MUL:
-            pairs = self.data.items()
-            L = len(pairs)
-            if L == 1:
-                b, e = pairs.pop()
+            pairs = self.data
+            if len(pairs)==1:
+                b, e = pairs.items()[0]
                 db = b.diff(x)
                 if isinstance(e, (int, long)) or e.head is NUMBER:
                     de = 0
@@ -552,6 +551,16 @@ class CommutativeRingWithPairs(CommutativeRing):
                 if db==0:
                     return self * self.Log(b) * de
                 return self * (self.Log(b) * de + db * e/b)
+            args = self.as_Mul_args()
+            terms = []
+            Mul = self.Mul
+            for i in xrange(len(args)):
+                dt = args[i].diff(x)
+                if dt==0:
+                    continue
+                terms.append(Mul(*(args[:i]+[dt]+args[i+1:])))
+            return self.Add(*terms)
+
         if callable(head) and hasattr(head, 'derivative'):
             return head.derivative(self.data) * self.data.diff(x)
         raise NotImplementedError(`self, x`)
