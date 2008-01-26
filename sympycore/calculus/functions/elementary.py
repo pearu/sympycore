@@ -4,9 +4,7 @@
 
 from ..algebra import A, oo, undefined, NUMBER, ADD, MUL, SYMBOL
 from ..constants import const_pi, const_E
-
-class Function(object):
-    pass
+from ..function import Function
 
 zero = A(0)
 one = A(1)
@@ -32,6 +30,10 @@ class exp(Function):
             arg = A.convert(arg)
         return A.Pow(E, arg)
 
+    @classmethod
+    def derivative(cls, arg):
+        return exp(arg)
+
 class log(Function):
     def __new__(cls, arg, base=E):
         if not isinstance(arg, A):
@@ -44,6 +46,10 @@ class log(Function):
         if arg == E:
             return one
         return A(arg, head=cls)
+
+    @classmethod
+    def derivative(cls, arg):
+        return 1/arg
 
 #---------------------------------------------------------------------------#
 #                          Trigonometric functions                          #
@@ -129,12 +135,6 @@ class TrigonometricFunction(Function):
         else:
             return A(arg, head=cls)
 
-    @classmethod
-    def derivative(cls, arg):
-        """ Return derivative function of cls at arg.
-        """
-        raise NotImplementedError
-
 class sin(TrigonometricFunction):
     parity = 'odd'
     period = 2
@@ -168,6 +168,10 @@ class tan(TrigonometricFunction):
             return
         return a / b
 
+    @classmethod
+    def derivative(cls, arg):
+        return 1+tan(arg)**2
+
 class cot(TrigonometricFunction):
     parity = 'odd'
     period = 1
@@ -178,6 +182,10 @@ class cot(TrigonometricFunction):
         if a == None or b == None:
             return
         return b / a
+
+    @classmethod
+    def derivative(cls, arg):
+        return -(1+cot(arg)**2)
 
 # pi/2-x symmetry
 conjugates = {

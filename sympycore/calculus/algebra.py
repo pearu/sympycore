@@ -116,6 +116,12 @@ class Calculus(CommutativeRingWithPairs):
         return cls(obj, head=SYMBOL)
 
     @classmethod
+    def Log(cls, arg, base=None):
+        if base is None:
+            return classes.log(arg)
+        return classes.log(arg)/classes.log(base)
+
+    @classmethod
     def npower(cls, base, exp):
         num, sym = try_power(base, exp)
         if not sym:

@@ -70,4 +70,10 @@ def test_trig_diff():
     x = A('x')
     assert sin(x).diff(x) == cos(x)
     assert cos(x).diff(x) == -sin(x)
-    assert sin(2*x).diff(x) == 2*cos(x)
+    assert sin(2*x).diff(x) == 2*cos(2*x)
+
+    assert tan(x).diff(x) == 1+tan(x)**2
+    assert cot(x).diff(x) == -1-cot(x)**2
+
+    assert log(x).diff(x) == 1/x
+    assert exp(x).diff(x) == exp(x)

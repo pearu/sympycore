@@ -65,6 +65,15 @@ class CommutativeRing(BasicAlgebra):
                                   % (cls.__name__))                    #pragma NO COVER
 
     @classmethod
+    def Log(cls, arg, base=None):
+        """ Compute logarithm of arg in base.
+        Argument arg must be an element of exponent algebra and base
+        is an element of an algebra.
+        """
+        raise NotImplementedError('%s must define classmethod Pow'     #pragma NO COVER
+                                  % (cls.__name__))                    #pragma NO COVER
+
+    @classmethod
     def Terms(cls, *seq):
         """ Compute sum over seq containing pairs (element, coefficient).
         elements must belong to algebra.
