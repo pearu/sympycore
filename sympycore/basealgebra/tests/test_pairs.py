@@ -519,6 +519,8 @@ def test_integrate():
     assert Number(3).integrate(x) == 3*x
     assert x.integrate(x) == x**2 / 2
     assert (2*x).integrate(x) == x**2
+    assert (x*y).integrate(x) == y * x**2 / 2
+    assert (x*y**2).integrate(x) == y**2 * x**2 / 2
     r1 = (1 + 4*y*x + 3*x**2).integrate(x)
     r2 = x + 4*Number(2)**-1*y*x**2 + x**3
     assert r1 == r2

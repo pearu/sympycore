@@ -577,7 +577,7 @@ class CommutativeRingWithPairs(CommutativeRing):
                 elif b.has_symbol(x):
                     return integrator(self, x)
                 else:
-                    product *= b
+                    product *= b**e
             return product
         if self.head is ADD:
             return self.Add(*(coef*term.integrate(x, integrator) \
