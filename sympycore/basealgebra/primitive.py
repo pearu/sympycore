@@ -95,7 +95,7 @@ head_order = [NUMBER, SYMBOL, APPLY,
 def tree_sort(a, b):
     if callable(a):
         if callable(b):
-            return cmp(a,b)
+            return cmp(str(a),str(b))
         else:
             return cmp(head_order.index(APPLY), head_order.index(b.tree[0]))
     elif callable(b):

@@ -7,7 +7,7 @@ from collections import defaultdict
 
 from ..core import classes
 from .ring import CommutativeRing
-from .primitive import PrimitiveAlgebra, ADD, MUL, SYMBOL, NUMBER, APPLY, POW, head_to_string
+from .primitive import PrimitiveAlgebra, ADD, MUL, SYMBOL, NUMBER, APPLY, POW, TUPLE, head_to_string
 from .utils import generate_swapped_first_arguments, RedirectOperation
 
 def newinstance(cls, head, data, new = object.__new__):
@@ -18,6 +18,13 @@ def newinstance(cls, head, data, new = object.__new__):
 
 def inspect(obj):
     obj.inspect()
+
+def partial_derivative(func, n):
+    dname = '%s_%s' % (func.__name__, n)
+    def dfunc(*args):
+        raise NotImplementedError('%s%s' % (dname, str(args)))
+    dfunc.__name__ = dname
+    return dfunc
 
 class CommutativeRingWithPairs(CommutativeRing):
     """ Implementation of a commutative ring where sums and products
@@ -126,7 +133,10 @@ class CommutativeRingWithPairs(CommutativeRing):
                 return self.as_Mul_args()
             return self.as_Pow_args()
         elif callable(head):
-            return (self.data,)
+            data = self.data
+            if type(data) is tuple:
+                return data
+            return data,
         raise NotImplementedError(`self, head`)
 
     def as_Add_args(self):
@@ -249,10 +259,12 @@ class CommutativeRingWithPairs(CommutativeRing):
             data = self.data
             # XXX: need support for multiple arguments
             if hasattr(data, 'as_primitive'):
-                args = data.as_primitive()
+                args = data.as_primitive(),
+            elif isinstance(data, tuple):
+                args = tuple(map(PrimitiveAlgebra, data))
             else:
-                args = PrimitiveAlgebra(data)
-            return PrimitiveAlgebra((APPLY, (head, args)))
+                args = PrimitiveAlgebra(data),
+            return PrimitiveAlgebra((APPLY, (head,)+args))
         else:
             data = self.data
             if hasattr(data, 'as_primitive'):
@@ -568,9 +580,35 @@ class CommutativeRingWithPairs(CommutativeRing):
                     continue
                 terms.append(Mul(*(args[:i]+[dt]+args[i+1:])))
             return self.Add(*terms)
-        if callable(head) and hasattr(head, 'derivative'):
-            #XXX: multivariate diff support
-            return head.derivative(self.data) * self.data.diff(x)
+        if callable(head):
+            data = self.data
+            cls = self.__class__
+            if hasattr(head, 'derivative'):
+                derivative = head.derivative
+                if type(derivative) is tuple:
+                    terms = []
+                    for df, arg in zip(derivative, data):
+                        da = arg.diff(x)
+                        if da==0:
+                            continue
+                        terms.append(df(*data) * da)
+                    return self.Add(*terms)
+                return derivative(data) * data.diff(x)
+            if type(data) is tuple:
+                terms = []
+                for i,arg in enumerate(data):
+                    da = arg.diff(x)
+                    if da==0:
+                        continue
+                    df = newinstance(cls, partial_derivative(head, i+1), data)
+                    terms.append(df * da)
+                return self.Add(*terms)
+            da = data.diff(x)
+            if da==0:
+                return da
+            df = newinstance(cls, partial_derivative(head, 1), data)
+            return df * da
+
         if not self.has(x):
             return self.zero
         raise NotImplementedError(`self, x`)

@@ -248,6 +248,7 @@ class CommutativeRing(BasicAlgebra):
         if hasattr(func, 'derivative'):
             if len(args)==1:
                 return func.derivative(args[0]) * args[0].diff(x)
+            # XXX: multivariate function support, see diff method in pairs.py
         raise NotImplementedError(`self, x`)
 
 from .primitive import NUMBER
