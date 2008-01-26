@@ -2,6 +2,7 @@ from sympycore.calculus import *
 A = Calculus
 
 x = Symbol('x')
+y = Symbol('x')
 
 def test_linear():
     assert x + x == 2*x
@@ -20,3 +21,7 @@ def test_powers():
     assert A('4/9') ** A('1/2') == A('2/3')
     assert A('4/7') ** A('1/2') == A('7**(-1/2)')*2
     assert A('7/4') ** A('1/2') == A('7**(1/2)')/2
+
+def test_has_symbol():
+    assert (1 + cos(1+2**x)).has_symbol(x)
+    assert (y + cos(1+2**x)).symbols == set([x, y])

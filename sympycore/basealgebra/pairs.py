@@ -478,6 +478,48 @@ class CommutativeRingWithPairs(CommutativeRing):
     def __ne__(self, other):
         return not (self == other)
 
+    _symbols = None
+
+    @property
+    def symbols_data(self):
+        _symbols = self._symbols
+        if _symbols is None:
+            _symbols = set()
+            head = self.head
+            if head is SYMBOL:
+                _symbols = set([self.data])
+            elif head is NUMBER:
+                pass
+            elif head is ADD:
+                for k in self.data:
+                    _symbols |= k.symbols_data
+            elif head is MUL:
+                cls = self.__class__
+                for k, c in self.data.iteritems():
+                    _symbols |= k.symbols_data
+                    if isinstance(c, cls):
+                        _symbols |= c.symbols_data
+            else:
+                for arg in self.args:
+                    _symbols |= arg.symbols_data
+            self._symbols = _symbols
+        return _symbols
+
+    @property
+    def symbols(self):
+        return set([self.Symbol(d) for d in self.symbols_data])
+
+    def has_symbol_data(self, data):
+        return data in self.symbols_data
+
+    def has_symbol(self, symbol):
+        return symbol.data in self.symbols_data
+
+    def has(self, subexpr):
+        if not subexpr.head is SYMBOL:
+            raise NotImplementedError
+        return self.has_symbol(subexpr)
+
     def diff(self, x):
         head = self.head
         if head is SYMBOL:
@@ -497,6 +539,11 @@ class CommutativeRingWithPairs(CommutativeRing):
                     return e*b**(e-1) * b.diff(x)
         raise NotImplementedError
 
+    @staticmethod
+    def _integrator(e, x):
+        raise NotImplementedError("Don't know how to integrate(%s, %s)" % \
+            (e, x))
+
     def integrate(self, x, integrator=None):
         """
         Attempt to calculate an antiderivative of self with respect to x.
@@ -505,28 +552,30 @@ class CommutativeRingWithPairs(CommutativeRing):
 
         Terms that cannot be handled directly are forwarded to
         a user-defined function `integrator`.
-
-        TODO: identify nonconstant terms correctly
         """
+        if not self.has_symbol(x):
+            return self*x
         if self.head is SYMBOL:
-            if self == x:
-                return x**2 / 2
-            return self*x
-        if self.head is NUMBER:
-            return self*x
+            return x**2 / 2
+        if integrator is None:
+            integrator = self._integrator
         if self.head is MUL:
             product = self.one
             have_x = False
             for b, e in self.data.iteritems():
+                # We don't know how to do exponentials yet
+                if isinstance(e, self.__class__) and e.has_symbol(x):
+                    return integrator(self, x)
                 if b == x:
                     if have_x:
-                        if integrator is None:
-                            raise NotImplementedError \
-                                  ("Don't know how to integrate(%s, %s)"
-                                   % (self, x))
                         return integrator(self, x)
                     product *= b**(e+1) / (e+1)
                     have_x = True
+                # Cases like (x+y)*x could still be handled by expanding,
+                # but this may cause infinite recursion if implemented
+                # directly here
+                elif b.has_symbol(x):
+                    return integrator(self, x)
                 else:
                     product *= b
             return product

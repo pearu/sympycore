@@ -496,12 +496,36 @@ def test_diff():
     assert (2*x**2 + x).diff(x) == 4*x + 1
     assert (x**3).diff(x) == 3*x**2
 
+def test_has_symbol():
+    x, y = map(Symbol, 'xy')
+    assert (3+x+2**y).symbols_data == set(['x', 'y'])
+    assert (3+x+2**y).symbols == set([x, y])
+    assert x.has_symbol(x)
+    assert y.has_symbol(y)
+    assert not x.has_symbol(y)
+    assert (1+x).has_symbol(x)
+    assert not (1+x).has_symbol(y)
+    assert (3*x).has_symbol(x)
+    assert not (3*x).has_symbol(y)
+    assert (3*x*y).has_symbol(x)
+    assert (3*x*y).has_symbol(y)
+    assert (x**2).has_symbol(x)
+    assert (2**x).has_symbol(x)
+    assert (2**(1+3*x)).has_symbol(x)
+    assert (y + 2**(1+3*x)).has_symbol(x)
+
 def test_integrate():
-    x = Symbol('x')
-    y = Symbol('y')
+    x, y = map(Symbol, 'xy')
     assert Number(3).integrate(x) == 3*x
     assert x.integrate(x) == x**2 / 2
     assert (2*x).integrate(x) == x**2
     r1 = (1 + 4*y*x + 3*x**2).integrate(x)
     r2 = x + 4*Number(2)**-1*y*x**2 + x**3
     assert r1 == r2
+    failures = [x**x, x**(1+y+5**x), 1/(2+x), x/(2+3*x+5), (3*x+2*y)*x]
+    for f in failures:
+        try:
+            f.integrate(x)
+            assert 0, ("integration of %s expected to fail" % f)
+        except NotImplementedError:
+            pass
