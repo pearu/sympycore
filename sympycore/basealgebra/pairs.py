@@ -1097,7 +1097,9 @@ def multiply_NUMBER_ADD(lhs, rhs, cls):
     d = {}
     result = newinstance(cls, ADD, d)
     for t,c in rhs.data.iteritems():
-        d[t] = c * value
+        c = c * value
+        if c:
+            d[t] = c
     if len(d)<=1:
         return result.canonize()
     return result

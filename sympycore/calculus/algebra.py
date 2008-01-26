@@ -68,10 +68,8 @@ class Calculus(CommutativeRingWithPairs):
         """
         callername = kws['redirect_operation']
         flag = True
-        if callername in ['__mul__','__add__']:
+        if callername in ['__mul__','__add__','__rmul__','__radd__']:
             lhs, rhs = args
-        elif callername in ['__rmul__','__radd__']:
-            rhs, lhs = args
         else:
             flag = False
         if flag:
