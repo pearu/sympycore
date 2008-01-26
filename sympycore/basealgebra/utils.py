@@ -1,4 +1,5 @@
 
+import os
 import sys
 
 __all__ = ['generate_swapped_first_arguments', 'RedirectOperation',
@@ -42,6 +43,7 @@ class RedirectOperation(Exception):
                               redirect_operation=redirect_operation)
     """
 
+sympycore_dir = os.path.abspath(os.path.join(os.path.dirname(__file__),'..','..'))
 
 def generate_swapped_first_arguments(func):
     """ Creates a new function from func by swapping its
@@ -61,6 +63,8 @@ def generate_swapped_first_arguments(func):
     
     """
     fn = func.func_code.co_filename
+    if not os.path.isabs(fn):
+        fn = os.path.join(sympycore_dir, fn)
     if fn.endswith('.pyc'):
         fn = fn[:-1]
     fl = func.func_code.co_firstlineno
