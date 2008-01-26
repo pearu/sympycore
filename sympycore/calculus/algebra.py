@@ -134,3 +134,6 @@ I = A(Complex(0,1), head=NUMBER)
 A.one = one
 A.zero = zero
 oo = A(numbers_oo, head=NUMBER)
+
+def integrate(expr, x):
+    return Calculus(expr).integrate(x)
