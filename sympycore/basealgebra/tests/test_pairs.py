@@ -498,7 +498,7 @@ def test_diff():
 
 def test_has_symbol():
     x, y = map(Symbol, 'xy')
-    assert (3+x+2**y).symbols_data == set(['x', 'y'])
+    assert (3+x+2**y)._get_symbols_data() == set(['x', 'y'])
     assert (3+x+2**y).symbols == set([x, y])
     assert x.has_symbol(x)
     assert y.has_symbol(y)

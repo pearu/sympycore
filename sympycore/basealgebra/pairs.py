@@ -23,13 +23,16 @@ class CommutativeRingWithPairs(CommutativeRing):
     """ Implementation of a commutative ring where sums and products
     are represented as dictionaries of pairs.
     """
-    __slots__ = ['head', 'data', '_hash', '_symbols']
+    __slots__ = ['head', 'data', '_hash', '_symbols', '_symbols_data']
     one_c = 1   # one element of coefficient algebra
     one_e = 1   # one element of exponent algebra
     zero_c = 0  # zero element of coefficient algebra
     zero_e = 0  # zero element of exponent algebra
 
     _hash = None
+    _symbols = None
+    _symbols_data = None
+    
     def __new__(cls, data, head=None):
         if head is None:
             if isinstance(data, cls):
@@ -478,47 +481,48 @@ class CommutativeRingWithPairs(CommutativeRing):
     def __ne__(self, other):
         return not (self == other)
 
-    _symbols = None
-
-    @property
-    def symbols_data(self):
-        _symbols = self._symbols
-        if _symbols is None:
-            _symbols = set()
+    def _get_symbols_data(self):
+        _symbols_data = self._symbols_data
+        if _symbols_data is None:
             head = self.head
             if head is SYMBOL:
-                _symbols = set([self.data])
+                _symbols_data = set([self.data])
             elif head is NUMBER:
-                pass
+                _symbols_data = set()
             elif head is ADD:
+                _symbols_data = set()
                 for k in self.data:
-                    _symbols |= k.symbols_data
+                    _symbols_data |= k._get_symbols_data()
             elif head is MUL:
+                _symbols_data = set()
                 cls = self.__class__
                 for k, c in self.data.iteritems():
-                    _symbols |= k.symbols_data
+                    _symbols_data |= k._get_symbols_data()
                     if isinstance(c, cls):
-                        _symbols |= c.symbols_data
+                        _symbols_data |= c._get_symbols_data()
             else:
+                _symbols_data = set()
                 for arg in self.args:
-                    _symbols |= arg.symbols_data
-            self._symbols = _symbols
-        return _symbols
+                    _symbols_data |= arg._get_symbols_data()
+            self._symbols_data = _symbols_data
+        return _symbols_data
 
     @property
     def symbols(self):
-        return set([self.Symbol(d) for d in self.symbols_data])
-
-    def has_symbol_data(self, data):
-        return data in self.symbols_data
+        symbols = self._symbols
+        if symbols is None:
+            cls = self.__class__
+            symbols = self._symbols = set([newinstance(cls, SYMBOL, d) for d in self._get_symbols_data()])
+        return symbols
 
     def has_symbol(self, symbol):
-        return symbol.data in self.symbols_data
+        return symbol.data in self._get_symbols_data()
 
     def has(self, subexpr):
-        if not subexpr.head is SYMBOL:
-            raise NotImplementedError
-        return self.has_symbol(subexpr)
+        subexpr = self.convert(subexpr)
+        if subexpr.head is SYMBOL:
+            return subexpr.data in self._get_symbols_data()
+        raise NotImplementedError('%s.has(%r)' % (self.__class__.__name__, subexpr))
 
     def diff(self, x):
         head = self.head
