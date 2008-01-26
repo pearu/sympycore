@@ -11,7 +11,8 @@ class CommutativeRing(BasicAlgebra):
       as_Add_args(self), as_Mul_args(self), as_Pow_args(self),
       as_Terms_args(self), as_Factors_args(self)
     """
-
+    __slots__ = ['_symbols']
+    _symbols = None
 
     @classmethod
     def npower(cls, base, exp):
@@ -19,6 +20,23 @@ class CommutativeRing(BasicAlgebra):
         """
         raise NotImplementedError('%s must define classmethod npower' #pragma NO COVER
                                   % (cls.__name__))                   #pragma NO COVER
+
+    @property
+    def symbols(self):
+        """ Return a set of atomic subexpressions in a symbolic object.
+        """
+        symbols = self._symbols
+        if symbols is None:
+
+            args = self.args
+            if args:
+                symbols = set()
+                for arg in args:
+                    symbols |= arg.symbols
+            else:
+                symbols = set([self])
+            self._symbols = symbols
+        return symbols
     
     @classmethod
     def Add(cls, *seq):

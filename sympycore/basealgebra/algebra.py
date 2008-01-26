@@ -211,6 +211,7 @@ class BasicAlgebra(Basic):
             for item in pattern:
                 r = r.subs(item[0], item[1], wildcards=wildcards)
             return r
+        pattern = self.convert(pattern)
         expr = self.convert(expr)
         if self==pattern:
             return expr
