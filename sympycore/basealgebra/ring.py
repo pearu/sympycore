@@ -27,7 +27,6 @@ class CommutativeRing(BasicAlgebra):
         """
         symbols = self._symbols
         if symbols is None:
-
             args = self.args
             if args:
                 symbols = set()
@@ -37,6 +36,10 @@ class CommutativeRing(BasicAlgebra):
                 symbols = set([self])
             self._symbols = symbols
         return symbols
+
+    def has(self, obj):
+        obj = self.convert(obj)
+        return obj in self.symbols
     
     @classmethod
     def Add(cls, *seq):
