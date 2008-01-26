@@ -200,3 +200,54 @@ class CommutativeRing(BasicAlgebra):
         if other is NotImplemented:
             return NotImplemented
         return self.Pow(other,  self.convert_exponent(self))
+
+    @classmethod
+    def Add_derivative(cls, args, x):
+        return cls.Add(*[a.diff(x) for a in args])
+
+    @classmethod
+    def Mul_derivative(cls, args, x):
+        terms = []
+        Mul = cls.Mul
+        for i in range(len(args)):
+            da = args[i].diff(x)
+            if da==0:
+                continue
+            terms.append(Mul(*(args[:i]+[da]+args[i+1:])))
+        return cls.Add(*terms)
+
+    @classmethod
+    def Pow_derivative(cls, (b, e), x):
+        if isinstance(e, (int, long)):
+            de = 0
+        else:
+            de = e.diff(x)
+        db = b.diff(x)
+        if de==0:
+            return b**(e-1) * db * e
+        if db==0:
+            return (b**e) * cls.Log(b) * de
+        return (b**e) * (cls.Log(b) * de + db * e/b)
+
+    def diff(self, x):
+        x = self.convert(x)
+        if not self.has_symbol(x):
+            return self.zero
+        args = self.args
+        if not args:
+            if self==x:
+                return self.one
+            return self.zero
+        func = self.func
+        if func==self.Add:
+            return self.Add_derivative(args, x)
+        if func==self.Mul:
+            return self.Mul_derivative(args, x)
+        if func==self.Pow:
+            return self.Pow_derivative(args, x)
+        if hasattr(func, 'derivative'):
+            if len(args)==1:
+                return func.derivative(args[0]) * args[0].diff(x)
+        raise NotImplementedError(`self, x`)
+
+from .primitive import NUMBER

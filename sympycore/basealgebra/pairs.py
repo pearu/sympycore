@@ -536,7 +536,7 @@ class CommutativeRingWithPairs(CommutativeRing):
         if not self.has(x):
             return self.zero
         if head is ADD:
-            return self.Terms(*((s.diff(x), c) for s, c in self.data.items()))
+            return self.Terms(*((s.diff(x), c) for s, c in self.data.iteritems()))
         if head is MUL:
             pairs = self.data
             if len(pairs)==1:
