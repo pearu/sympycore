@@ -525,12 +525,15 @@ class CommutativeRingWithPairs(CommutativeRing):
         raise NotImplementedError('%s.has(%r)' % (self.__class__.__name__, subexpr))
 
     def diff(self, x):
+        x = self.convert(x)
+        assert x.head is SYMBOL,`x`
+
         head = self.head
         if head is SYMBOL:
-            if self == x:
+            if self.data == x.data:
                 return self.one
             return self.zero
-        if head is NUMBER:
+        if not self.has(x):
             return self.zero
         if head is ADD:
             return A.Terms(*((s.diff(x), c) for s, c in self.data.items()))
