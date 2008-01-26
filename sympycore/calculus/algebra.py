@@ -8,7 +8,8 @@ from ..basealgebra.primitive import PrimitiveAlgebra, SYMBOL, NUMBER, ADD, MUL
 
 from ..basealgebra.pairs import CommutativeRingWithPairs, newinstance
 
-from ..arithmetic.numbers import Fraction, Float, Complex, try_power, ExtendedNumber, undefined
+from ..arithmetic.numbers import Fraction, Float, Complex, try_power, ExtendedNumber
+from ..arithmetic.numbers import undefined as numbers_undefined
 from ..arithmetic.numbers import oo as numbers_oo
 from ..arithmetic.evalf import evalf
 
@@ -45,7 +46,7 @@ class Calculus(CommutativeRingWithPairs):
                 t, c = pairs.items()[0]
                 if c==1:
                     return t
-                if self.one==t or c==undefined:
+                if self.one==t or c==numbers_undefined:
                     return self.convert(c)
         elif head is MUL:
             pairs = self.data
@@ -75,8 +76,12 @@ class Calculus(CommutativeRingWithPairs):
         if flag:
             # handle operations with undefined:
             if isinstance(rhs, cls) and rhs.head is NUMBER:
-                if rhs.data == undefined:
+                if rhs.data == numbers_undefined:
                     return rhs
+            if isinstance(lhs, cls) and lhs.head is NUMBER:
+                if lhs.data == numbers_undefined:
+                    return lhs
+
         # fallback to default:
         return getattr(cls, callername)(*args,
                                         **dict(redirect_operation='ignore_redirection'))
@@ -171,6 +176,7 @@ I = A(Complex(0,1), head=NUMBER)
 A.one = one
 A.zero = zero
 oo = A(numbers_oo, head=NUMBER)
+undefined = A(numbers_undefined, head=NUMBER)
 
 def integrate(expr, x):
     return Calculus(expr).integrate(x)
