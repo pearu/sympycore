@@ -527,17 +527,26 @@ class CommutativeRingWithPairs(CommutativeRing):
     def diff(self, x):
         x = self.convert(x)
         assert x.head is SYMBOL,`x`
-
         head = self.head
         if head is SYMBOL:
             if self.data == x.data:
                 return self.one
             return self.zero
-        if not self.has(x):
-            return self.zero
         if head is ADD:
-            return self.Terms(*((s.diff(x), c) for s, c in self.data.iteritems()))
+            pairs = self.data
+            if len(pairs)==1:
+                t, c = pairs.items()[0]
+                return t.diff(x) * c
+            cls = self.__class__
+            result = newinstance(cls, ADD, {})
+            for t, c in pairs.iteritems():
+                dt = t.diff(x)
+                inplace_ADD_dict[dt.head](result, dt, c, cls)
+            if len(result.data)<=1:
+                return result.canonize()
+            return result
         if head is MUL:
+            Mul = self.Mul
             pairs = self.data
             if len(pairs)==1:
                 b, e = pairs.items()[0]
@@ -548,21 +557,22 @@ class CommutativeRingWithPairs(CommutativeRing):
                     de = e.diff(x)
                 if de==0:
                     return b**(e-1) * db * e
-                if db==0:
-                    return self * self.Log(b) * de
-                return self * (self.Log(b) * de + db * e/b)
+                elif db==0:
+                    return self * de * self.Log(b)
+                return self * (de * self.Log(b) + db * e/b)
             args = self.as_Mul_args()
             terms = []
-            Mul = self.Mul
             for i in xrange(len(args)):
                 dt = args[i].diff(x)
                 if dt==0:
                     continue
                 terms.append(Mul(*(args[:i]+[dt]+args[i+1:])))
             return self.Add(*terms)
-
         if callable(head) and hasattr(head, 'derivative'):
+            #XXX: multivariate diff support
             return head.derivative(self.data) * self.data.diff(x)
+        if not self.has(x):
+            return self.zero
         raise NotImplementedError(`self, x`)
 
     @staticmethod
