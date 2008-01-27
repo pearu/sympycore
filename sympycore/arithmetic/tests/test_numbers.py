@@ -159,7 +159,7 @@ def test_int_roots():
 def test_powers():
     assert try_power(3, 2) == (9, [])
     assert try_power(3, -2) == (mpq(1, 9), [])
-    assert try_power(0, -1) == (oo, [])
+    assert try_power(0, -1) == (zoo, [])
     assert try_power(0, 0) == (1, [])
     assert try_power(mpq(1,2), 0) == (1, [])
     assert try_power(mpc(0, 1), 2) == (-1, [])

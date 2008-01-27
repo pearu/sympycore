@@ -603,9 +603,9 @@ class ExtendedNumber:
 
     def __add__(self, other):
         if isinstance(other, ExtendedNumber):
-            if self.direction != other.direction:
-                return ExtendedNumber.get_undefined()
-            return ExtendedNumber(self.infinite*other.infinite, self.direction)
+            if self.direction and other.direction and  self.direction == other.direction:
+                return ExtendedNumber(self.infinite*other.infinite, self.direction)
+            return ExtendedNumber.get_undefined()
         if not isinstance(other, numbertypes):
             return NotImplemented
         return self
@@ -754,59 +754,53 @@ def try_power(x, y):
     if isinstance(y, ExtendedNumber) and y.is_undefined:
         return y, []
     if isinstance(x, ExtendedNumber):
-        if isinstance(y, (int, long, Fraction, Float)):
+        if isinstance(y, realtypes):
             if y == 0:
-                # oo ** 0
                 return 1, []
             if y < 0:
-                # oo ** -1
                 return 0, []
             if y > 0:
-                # oo ** 2
                 if not x.direction: # zoo ** 2
                     return x, []
                 z, sym = try_power(x.direction, y)
                 return ExtendedNumber(1, z), sym
+            raise NotImplementedError('try_power(%r, %r)' % (x,y))
         if isinstance(y, ExtendedNumber):
-            # (z+-oo) ** (z+-oo)
             if y.direction < 0:
-                # (z+-oo)**(-oo)
                 return 0, []
-            # (z+-oo) ** (z+oo)
             if y.direction > 0:
-                if x.direction < 0: # (-oo)**oo
-                    return ExtendedNumber.get_undefined(), []
                 if x.direction > 0: # oo**oo
                     return ExtendedNumber.get_oo(), []
-            # (z+-oo) * zoo
+                return ExtendedNumber.get_zoo(), []
+            return ExtendedNumber.get_undefined(), []
         raise NotImplementedError('try_power(%r, %r)' % (x,y))
     if isinstance(y, ExtendedNumber):
         if isinstance(x, realtypes):
             if y.direction > 0:
                 # x**(oo)
-                if x<=-1:
+                if x<-1:
+                    return ExtendedNumber.get_zoo(), []
+                if x==-1:
                     return ExtendedNumber.get_undefined(), []
                 if x<1:
                     return 0,[]
                 if x>1:
                     return ExtendedNumber.get_oo(), []
+                raise NotImplementedError('try_power(%r, %r)' % (x,y))
             if y.direction < 0:
                 # x**(-oo)
                 if x<-1 or x>1:
                     return 0,[]
-                if x>0:
-                    return ExtendedNumber.get_oo(), []
-                return ExtendedNumber.get_undefined(), []
-            # x**(zoo)
-            if x<-1 or x>1:
+                if x==-1:
+                    return ExtendedNumber.get_undefined(), []
                 return ExtendedNumber.get_zoo(), []
-            if x<1 and x>-1:
-                return 0, []
             return ExtendedNumber.get_undefined(), []
         raise NotImplementedError('try_power(%r, %r)' % (x,y))
     if isinstance(y, inttypes):
-        if y >= 0: return x**y, []
-        if not x: return ExtendedNumber.get_oo(), []
+        if y >= 0:
+            return x**y, []
+        if not x:
+            return ExtendedNumber.get_zoo(), []
         if isinstance(x, inttypes):
             return Fraction(1, x**(-y)), []
         if isinstance(x, (Fraction, Float, Complex)):
