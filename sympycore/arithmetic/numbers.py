@@ -806,17 +806,25 @@ def try_power(x, y):
         if isinstance(x, (Fraction, Float, Complex)):
             return x**y, []
     if isinstance(x, inttypes) and isinstance(y, Fraction):
-        p, q = y
-        r, exact = int_root(abs(x), q)
-        if exact:
-            if p > 0:
-                g = r**p
+        if x < 0:
+            if x==-1:
+                p, q = y
+                if q==2:
+                    return Complex(0, 1)**p, []
+                return 1, [(x,y)]
             else:
-                g = Fraction(1, r**(-p))
-            if x > 0:
+                z, sym = try_power(-x, y)
+                z1, sym1 = try_power(-1, y)
+                return z * z1, sym+sym1
+        else:
+            p, q = y
+            r, exact = int_root(x, q)
+            if exact:
+                if p > 0:
+                    g = r**p
+                else:
+                    g = Fraction(1, r**(-p))
                 return g, []
-            else:
-                return Complex(0, g), []
     if isinstance(x, Fraction) and isinstance(y, Fraction):
         a, b = x
         r, rsym = try_power(a, y)

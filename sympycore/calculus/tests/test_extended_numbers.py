@@ -76,7 +76,7 @@ def test_moo_optable():
     assert moo ** zero == one
     assert moo ** half == I*oo
     assert moo ** one == moo
-    assert moo ** onehalf == I*oo
+    assert moo ** onehalf == -I*oo
     assert moo ** two == oo
     assert moo ** oo == zoo
     assert moo ** zoo == undefined
