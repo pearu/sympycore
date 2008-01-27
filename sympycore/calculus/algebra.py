@@ -9,8 +9,6 @@ from ..basealgebra.primitive import PrimitiveAlgebra, SYMBOL, NUMBER, ADD, MUL
 from ..basealgebra.pairs import CommutativeRingWithPairs, newinstance
 
 from ..arithmetic.numbers import Fraction, Float, Complex, try_power, ExtendedNumber
-from ..arithmetic.numbers import undefined as numbers_undefined
-from ..arithmetic.numbers import oo as numbers_oo
 from ..arithmetic.evalf import evalf
 
 algebra_numbers = (int, long, Fraction, Float, Complex, ExtendedNumber)
@@ -46,7 +44,7 @@ class Calculus(CommutativeRingWithPairs):
                 t, c = pairs.items()[0]
                 if c==1:
                     return t
-                if self.one==t or c==numbers_undefined:
+                if self.one==t or (isinstance(c, ExtendedNumber) and c.is_undefined):
                     return self.convert(c)
         elif head is MUL:
             pairs = self.data
@@ -75,12 +73,8 @@ class Calculus(CommutativeRingWithPairs):
             flag = False
         if flag:
             # handle operations with undefined:
-            if isinstance(rhs, cls) and rhs.head is NUMBER:
-                if rhs.data == numbers_undefined:
-                    return rhs
-            if isinstance(lhs, cls) and lhs.head is NUMBER:
-                if lhs.data == numbers_undefined:
-                    return lhs
+            if rhs==undefined or lhs==undefined:
+                return undefined
 
         # fallback to default:
         return getattr(cls, callername)(*args,
@@ -172,11 +166,14 @@ class Calculus(CommutativeRingWithPairs):
 A = Calculus
 one = A(1, head=NUMBER)
 zero = A(0, head=NUMBER)
-I = A(Complex(0,1), head=NUMBER)
 A.one = one
 A.zero = zero
-oo = A(numbers_oo, head=NUMBER)
-undefined = A(numbers_undefined, head=NUMBER)
+
+I = A(Complex(0,1), head=NUMBER)
+oo = A(ExtendedNumber.get_oo(), head=NUMBER)
+moo = A(ExtendedNumber.get_moo(), head=NUMBER)
+zoo = A(ExtendedNumber.get_zoo(), head=NUMBER)
+undefined = A(ExtendedNumber.get_undefined(), head=NUMBER)
 
 def integrate(expr, x):
     return Calculus(expr).integrate(x)

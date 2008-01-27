@@ -41,7 +41,7 @@ Some issues:
 import math
 
 __all__ = ['Fraction', 'Float', 'Complex', 'div', 'int_root', 'try_power',
-    'ExtendedNumber', 'nan', 'undefined', 'oo', 'moo', 'zoo']
+           'ExtendedNumber']
 
 from ..basealgebra.primitive import PrimitiveAlgebra, NUMBER, SYMBOL
 from ..basealgebra.utils import get_object_by_name
@@ -157,7 +157,7 @@ class Fraction(tuple):
         p, q = self
         if isinstance(other, inttypes):
             if not other:
-                return cmp(p, 0) * oo
+                return cmp(p, 0) * ExtendedNumber.get_oo()
             return Fraction(p, q*other)
         if isinstance(other, Fraction):
             r, s = other
@@ -520,7 +520,7 @@ class ExtendedNumber:
 
     def __abs__(self):
         if not self.infinite: return self
-        return oo
+        return self.get_oo()
 
     def __eq__(self, other):
         if isinstance(other, ExtendedNumber):
@@ -572,7 +572,7 @@ class ExtendedNumber:
     def __add__(self, other):
         if isinstance(other, ExtendedNumber):
             if self.direction != other.direction:
-                return nan
+                return ExtendedNumber.get_undefined()
             return ExtendedNumber(self.infinite*other.infinite, self.direction)
         if not isinstance(other, numbertypes):
             return NotImplemented
@@ -593,7 +593,7 @@ class ExtendedNumber:
         if not isinstance(other, numbertypes):
             return NotImplemented
         if not other:
-            return undefined
+            return ExtendedNumber.get_undefined()
         return ExtendedNumber(self.infinite, as_direction(self.direction*other))
 
     __rmul__ = __mul__
@@ -610,13 +610,39 @@ class ExtendedNumber:
             return z
         raise NotImplementedError
 
+    @classmethod
+    def get_oo(cls):
+        return cls(1,1)
 
-undefined = nan = ExtendedNumber(0, 0)
-oo = ExtendedNumber(1, 1)
-moo = ExtendedNumber(1, -1)
-zoo = ExtendedNumber(1, 0)
+    @classmethod
+    def get_moo(cls):
+        return cls(1,-1)
+
+    @classmethod
+    def get_zoo(cls):
+        return cls(1,0)
+
+    @classmethod
+    def get_undefined(cls):
+        return cls(0,0)
+
+    @property
+    def is_oo(self):
+        return (self.infinite, self.direction)==(1,1)
+
+    @property
+    def is_moo(self):
+        return (self.infinite, self.direction)==(1,-1)
+
+    @property
+    def is_zoo(self):
+        return (self.infinite, self.direction)==(1,0)
+
+    @property
+    def is_undefined(self):
+        return (self.infinite, self.direction)==(0,0)
+
 numbertypes = (int, long, float, complex, Fraction, Float, Complex, ExtendedNumber)
-
 
 #----------------------------------------------------------------------------#
 #                                                                            #
@@ -674,11 +700,13 @@ def try_power(x, y):
       try_power(45, 1/2) --> (3, [(5, 1/2)])
 
     """
-    if isinstance(x, ExtendedNumber) or isinstance(y, ExtendedNumber):
-        if x == undefined or y == undefined:
-            return undefined, []
+    if isinstance(x, ExtendedNumber) and x.is_undefined:
+        return x, []
+    if isinstance(y, ExtendedNumber) and y.is_undefined:
+        return y, []
+    if isinstance(x, ExtendedNumber):
         if x.infinite and isinstance(y, (int, long, Fraction, Float)):
-            if y == 0: return undefined, []
+            if y == 0: return ExtendedNumber.get_undefined(), []
             if y < 0: return 0, []
             if y > 0:
                 if not x.direction:
@@ -688,7 +716,7 @@ def try_power(x, y):
         raise NotImplementedError
     if isinstance(y, inttypes):
         if y >= 0: return x**y, []
-        if not x: return oo, []
+        if not x: return ExtendedNumber.get_oo(), []
         if isinstance(x, inttypes):
             return Fraction(1, x**(-y)), []
         if isinstance(x, (Fraction, Float, Complex)):

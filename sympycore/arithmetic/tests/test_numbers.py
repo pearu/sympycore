@@ -3,6 +3,10 @@ from sympycore.arithmetic.numbers import *
 mpq = Fraction
 mpf = Float
 mpc = Complex
+oo = ExtendedNumber.get_oo()
+moo = ExtendedNumber.get_moo()
+zoo = ExtendedNumber.get_zoo()
+nan = undefined = ExtendedNumber.get_undefined()
 
 def test_Fraction():
     assert mpq(1) == 1
