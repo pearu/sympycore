@@ -118,6 +118,10 @@ class BasicAlgebra(Basic):
             return self.as_primitive()
         return self.as_primitive().as_algebra(cls)
 
+    @classmethod
+    def get_predefined_symbols(cls, name):
+        return
+
     @property
     def func(self):
         """ Returns a callable such that self.func(*self.args) == self.

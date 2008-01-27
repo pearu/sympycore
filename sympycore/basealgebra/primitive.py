@@ -160,6 +160,9 @@ class PrimitiveAlgebra(BasicAlgebra):
         if head is NUMBER:
             return cls(rest, head=NUMBER)
         if head is SYMBOL:
+            r = cls.get_predefined_symbols(rest)
+            if r is not None:
+                return r
             return cls(rest, head=SYMBOL)
         if head is ADD:
             return cls.Add(*[r.as_algebra(cls) for r in rest])
@@ -175,7 +178,13 @@ class PrimitiveAlgebra(BasicAlgebra):
             return -(rest[0].as_algebra(cls))
         if head is POS:
             return +(rest[0].as_algebra(cls))
-        raise NotImplementedError('as_algebra(%s): %s' % (cls, self))
+        if head is APPLY:
+            func = rest[0].as_algebra(cls)
+            args = [a.as_algebra(cls) for a in rest[1:]]
+            if callable(func):
+                return func(*args)
+            print `func, args`
+        raise NotImplementedError('as_algebra(%s): %s, head=%s' % (cls, self, head_to_string[head]))
 
     def __str__(self):
         head, rest = self.tree

@@ -34,6 +34,14 @@ class Calculus(CommutativeRingWithPairs):
             return newinstance(cls, NUMBER, self)
         return self.as_primitive().as_algebra(cls)
 
+    defined_functions = {}
+
+    @classmethod
+    def get_predefined_symbols(cls, name):
+        if name=='I':
+            return I
+        return cls.defined_functions.get(name)
+    
     def canonize(self):
         head = self.head
         if head is ADD:
