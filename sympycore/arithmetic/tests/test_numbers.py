@@ -177,7 +177,7 @@ def test_powers():
     assert try_power(mpq(7,4), mpq(1,2)) == (mpq(1, 2), [(7, mpq(1, 2))])
     assert try_power(oo, 1) == (oo, [])
     assert try_power(oo, 3) == (oo, [])
-    assert try_power(oo, 0) == (undefined, [])
+    assert try_power(oo, 0) == (1, [])
     assert try_power(oo, -1) == (0, [])
     assert try_power(oo, -3) == (0, [])
     assert try_power(oo, mpq(-2,3)) == (0, [])
