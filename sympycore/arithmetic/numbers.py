@@ -688,6 +688,7 @@ class ExtendedNumber:
 
 numbertypes = (int, long, float, complex, Fraction, Float, Complex, ExtendedNumber)
 realtypes = (int, long, float, Fraction, Float)
+complextypes = (complex, Complex)
 
 #----------------------------------------------------------------------------#
 #                                                                            #
@@ -757,24 +758,23 @@ def try_power(x, y):
         if isinstance(y, realtypes):
             if y == 0:
                 return 1, []
-            if y < 0:
+            elif y < 0:
                 return 0, []
-            if y > 0:
+            elif y > 0:
                 if not x.direction: # zoo ** 2
                     return x, []
                 z, sym = try_power(x.direction, y)
                 return ExtendedNumber(1, z), sym
-            raise NotImplementedError('try_power(%r, %r)' % (x,y))
-        if isinstance(y, ExtendedNumber):
+        elif isinstance(y, ExtendedNumber):
             if y.direction < 0:
                 return 0, []
-            if y.direction > 0:
+            elif y.direction > 0:
                 if x.direction > 0: # oo**oo
                     return ExtendedNumber.get_oo(), []
                 return ExtendedNumber.get_zoo(), []
-            return ExtendedNumber.get_undefined(), []
-        raise NotImplementedError('try_power(%r, %r)' % (x,y))
-    if isinstance(y, ExtendedNumber):
+            else:
+                return ExtendedNumber.get_undefined(), []
+    elif isinstance(y, ExtendedNumber):
         if isinstance(x, realtypes):
             if y.direction > 0:
                 # x**(oo)
@@ -786,26 +786,28 @@ def try_power(x, y):
                     return 0,[]
                 if x>1:
                     return ExtendedNumber.get_oo(), []
-                raise NotImplementedError('try_power(%r, %r)' % (x,y))
-            if y.direction < 0:
+            elif y.direction < 0:
                 # x**(-oo)
                 if x<-1 or x>1:
                     return 0,[]
                 if x==-1:
                     return ExtendedNumber.get_undefined(), []
                 return ExtendedNumber.get_zoo(), []
-            return ExtendedNumber.get_undefined(), []
-        raise NotImplementedError('try_power(%r, %r)' % (x,y))
-    if isinstance(y, inttypes):
+            else:
+                return ExtendedNumber.get_undefined(), []
+        elif isinstance(x, complextypes):
+            #XXX: handle pure imaginary powers
+            pass
+    elif isinstance(y, inttypes):
         if y >= 0:
             return x**y, []
-        if not x:
+        elif not x:
             return ExtendedNumber.get_zoo(), []
-        if isinstance(x, inttypes):
+        elif isinstance(x, inttypes):
             return Fraction(1, x**(-y)), []
-        if isinstance(x, (Fraction, Float, Complex)):
+        elif isinstance(x, (Fraction, Float, Complex)):
             return x**y, []
-    if isinstance(x, inttypes) and isinstance(y, Fraction):
+    elif isinstance(x, inttypes) and isinstance(y, Fraction):
         if x < 0:
             if x==-1:
                 p, q = y
@@ -825,7 +827,7 @@ def try_power(x, y):
                 else:
                     g = Fraction(1, r**(-p))
                 return g, []
-    if isinstance(x, Fraction) and isinstance(y, Fraction):
+    elif isinstance(x, Fraction) and isinstance(y, Fraction):
         a, b = x
         r, rsym = try_power(a, y)
         s, ssym = try_power(b, y)
