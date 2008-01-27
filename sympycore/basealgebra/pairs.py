@@ -245,7 +245,7 @@ class CommutativeRingWithPairs(CommutativeRing):
             value = self.data
             if hasattr(value, 'as_primitive'):
                 return value.as_primitive()
-            if value<0:
+            if isinstance(value, (int, long, float)) and value<0:
                 r = -PrimitiveAlgebra((NUMBER, -value))
             else:
                 r = PrimitiveAlgebra((NUMBER, value))
