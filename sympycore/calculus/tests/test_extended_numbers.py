@@ -186,3 +186,223 @@ def test_zero_optable():
     assert zero ** moo == undefined
     assert zero ** oo == zero
     assert zero ** undefined == undefined
+
+def test_half_optable():
+    assert half + moo == moo
+    assert half + oo == oo
+    assert half + undefined == undefined
+
+    assert half - moo == oo
+    assert half - oo == moo
+    assert half - undefined == undefined
+
+    assert half * moo == moo
+    assert half * oo == oo
+    assert half * undefined == undefined
+
+    assert half / moo == zero
+    assert half / zero == oo
+    assert half / oo == zero
+    assert half / undefined == undefined
+
+    assert half ** moo == oo
+    assert half ** oo == zero
+    assert half ** undefined == undefined
+
+def test_one_optable():
+    assert one + moo == moo
+    assert one + oo == oo
+    assert one + undefined == undefined
+
+    assert one - moo == oo
+    assert one - oo == moo
+    assert one - undefined == undefined
+
+    assert one * moo == moo
+    assert one * oo == oo
+    assert one * undefined == undefined
+
+    assert one / moo == zero
+    assert one / zero == oo
+    assert one / oo == zero
+    assert one / undefined == undefined
+
+    assert one ** moo == one
+    assert one ** oo == one
+    assert one ** undefined == one
+
+def test_onehalf_optable():
+    assert onehalf + moo == moo
+    assert onehalf + oo == oo
+    assert onehalf + undefined == undefined
+
+    assert onehalf - moo == oo
+    assert onehalf - oo == moo
+    assert onehalf - undefined == undefined
+
+    assert onehalf * moo == moo
+    assert onehalf * oo == oo
+    assert onehalf * undefined == undefined
+
+    assert onehalf / moo == zero
+    assert onehalf / zero == oo
+    assert onehalf / oo == zero
+    assert onehalf / undefined == undefined
+
+    assert onehalf ** moo == zero
+    assert onehalf ** oo == oo
+    assert onehalf ** undefined == undefined
+
+def test_two_optable():
+    assert two + moo == moo
+    assert two + oo == oo
+    assert two + undefined == undefined
+
+    assert two - moo == oo
+    assert two - oo == moo
+    assert two - undefined == undefined
+
+    assert two * moo == moo
+    assert two * oo == oo
+    assert two * undefined == undefined
+
+    assert two / moo == zero
+    assert two / zero == oo
+    assert two / oo == zero
+    assert two / undefined == undefined
+
+    assert two ** moo == zero
+    assert two ** oo == oo
+    assert two ** undefined == undefined
+
+def test_oo_optable():
+    assert oo + moo == undefined
+    assert oo + mtwo == oo
+    assert oo + monehalf == oo
+    assert oo + mone == oo
+    assert oo + mhalf == oo
+    assert oo + zero == oo
+    assert oo + half == oo
+    assert oo + one == oo
+    assert oo + onehalf == oo
+    assert oo + two == oo
+    assert oo + oo == oo
+    assert oo + undefined == undefined
+
+    assert oo - moo == oo
+    assert oo - mtwo == oo
+    assert oo - monehalf == oo
+    assert oo - mone == oo
+    assert oo - mhalf == oo
+    assert oo - zero == oo
+    assert oo - half == oo
+    assert oo - one == oo
+    assert oo - onehalf == oo
+    assert oo - two == oo
+    assert oo - oo == undefined
+    assert oo - undefined == undefined
+
+    assert oo * moo == moo
+    assert oo * mtwo == moo
+    assert oo * monehalf == moo
+    assert oo * mone == moo
+    assert oo * mhalf == moo
+    assert oo * zero == undefined
+    assert oo * half == oo
+    assert oo * one == oo
+    assert oo * onehalf == oo
+    assert oo * two == oo
+    assert oo * oo == oo
+    assert oo * undefined == undefined
+
+    assert oo / moo == undefined
+    assert oo / mtwo == moo
+    assert oo / monehalf == moo
+    assert oo / mone == moo
+    assert oo / mhalf == moo
+    assert oo / zero == oo
+    assert oo / half == oo
+    assert oo / one == oo
+    assert oo / onehalf == oo
+    assert oo / two == oo
+    assert oo / oo == undefined
+    assert oo / undefined == undefined
+
+    assert oo ** moo == zero
+    assert oo ** mtwo == zero
+    assert oo ** monehalf == zero
+    assert oo ** mone == zero
+    assert oo ** mhalf == zero
+    assert oo ** zero == one
+    assert oo ** half == oo
+    assert oo ** one == oo
+    assert oo ** onehalf == oo
+    assert oo ** two == oo
+    assert oo ** oo == oo
+    assert oo ** undefined == undefined
+
+def test_undefined_optable():
+    assert undefined + moo == undefined
+    assert undefined + mtwo == undefined
+    assert undefined + monehalf == undefined
+    assert undefined + mone == undefined
+    assert undefined + mhalf == undefined
+    assert undefined + zero == undefined
+    assert undefined + half == undefined
+    assert undefined + one == undefined
+    assert undefined + onehalf == undefined
+    assert undefined + two == undefined
+    assert undefined + oo == undefined
+    assert undefined + undefined == undefined
+
+    assert undefined - moo == undefined
+    assert undefined - mtwo == undefined
+    assert undefined - monehalf == undefined
+    assert undefined - mone == undefined
+    assert undefined - mhalf == undefined
+    assert undefined - zero == undefined
+    assert undefined - half == undefined
+    assert undefined - one == undefined
+    assert undefined - onehalf == undefined
+    assert undefined - two == undefined
+    assert undefined - oo == undefined
+    assert undefined - undefined == undefined
+
+    assert undefined * moo == undefined
+    assert undefined * mtwo == undefined
+    assert undefined * monehalf == undefined
+    assert undefined * mone == undefined
+    assert undefined * mhalf == undefined
+    assert undefined * zero == undefined
+    assert undefined * half == undefined
+    assert undefined * one == undefined
+    assert undefined * onehalf == undefined
+    assert undefined * two == undefined
+    assert undefined * oo == undefined
+    assert undefined * undefined == undefined
+
+    assert undefined / moo == undefined
+    assert undefined / mtwo == undefined
+    assert undefined / monehalf == undefined
+    assert undefined / mone == undefined
+    assert undefined / mhalf == undefined
+    assert undefined / zero == undefined
+    assert undefined / half == undefined
+    assert undefined / one == undefined
+    assert undefined / onehalf == undefined
+    assert undefined / two == undefined
+    assert undefined / oo == undefined
+    assert undefined / undefined == undefined
+
+    assert undefined ** moo == undefined
+    assert undefined ** mtwo == undefined
+    assert undefined ** monehalf == undefined
+    assert undefined ** mone == undefined
+    assert undefined ** mhalf == undefined
+    assert undefined ** zero == one
+    assert undefined ** half == undefined
+    assert undefined ** one == undefined
+    assert undefined ** onehalf == undefined
+    assert undefined ** two == undefined
+    assert undefined ** oo == undefined
+    assert undefined ** undefined == undefined

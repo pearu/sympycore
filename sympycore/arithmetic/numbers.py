@@ -765,7 +765,13 @@ def try_power(x, y):
                 if x>0:
                     return ExtendedNumber.get_oo(), []
                 return ExtendedNumber.get_undefined(), []
-                    
+            # x**(zoo)
+            if x<-1 or x>1:
+                return ExtendedNumber.get_zoo(), []
+            if x<1 and x>-1:
+                return 0, []
+            return ExtendedNumber.get_undefined(), []
+        raise NotImplementedError('try_power(%r, %r)' % (x,y))
     if isinstance(y, inttypes):
         if y >= 0: return x**y, []
         if not x: return ExtendedNumber.get_oo(), []
