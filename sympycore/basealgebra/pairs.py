@@ -26,6 +26,8 @@ def partial_derivative(func, n):
     dfunc.__name__ = dname
     return dfunc
 
+inttypes = (int, long)
+
 class CommutativeRingWithPairs(CommutativeRing):
     """ Implementation of a commutative ring where sums and products
     are represented as dictionaries of pairs.
@@ -54,7 +56,7 @@ class CommutativeRingWithPairs(CommutativeRing):
             return True
         if other.__class__ is self.__class__:
             return self.head is other.head and self.data == other.data
-        if self.head is NUMBER and isinstance(other, (int, long)):
+        if self.head is NUMBER and isinstance(other, inttypes):
             return self.data == other
         return False
 
@@ -70,7 +72,7 @@ class CommutativeRingWithPairs(CommutativeRing):
         return h
 
     def __nonzero__(self):
-        return self.head is not NUMBER or self.data!=0
+        return self.head is not NUMBER or not (self.data==0)
 
     def copy(self):
         if self.head in [ADD, MUL]:
@@ -399,7 +401,7 @@ class CommutativeRingWithPairs(CommutativeRing):
                 return pow_dict2[base.head][exp.head](base, exp, cls)
         if base.head is NUMBER:
             return cls.npower(base.data, exp)
-        if isinstance(exp, (int,long)):
+        if isinstance(exp, inttypes):
             return pow_dict1[base.head](base, exp, cls)
         return pow_dict2[base.head][NUMBER](base, newinstance(cls, NUMBER, exp), cls)
 
@@ -539,76 +541,16 @@ class CommutativeRingWithPairs(CommutativeRing):
     def diff(self, x):
         x = self.convert(x)
         assert x.head is SYMBOL,`x`
-        head = self.head
-        if head is SYMBOL:
-            if self.data == x.data:
-                return self.one
-            return self.zero
-        if head is ADD:
-            pairs = self.data
-            if len(pairs)==1:
-                t, c = pairs.items()[0]
-                return t.diff(x) * c
-            cls = self.__class__
-            result = newinstance(cls, ADD, {})
-            for t, c in pairs.iteritems():
-                dt = t.diff(x)
-                inplace_ADD_dict[dt.head](result, dt, c, cls)
-            if len(result.data)<=1:
-                return result.canonize()
-            return result
-        if head is MUL:
-            Mul = self.Mul
-            pairs = self.data
-            if len(pairs)==1:
-                b, e = pairs.items()[0]
-                db = b.diff(x)
-                if isinstance(e, (int, long)) or e.head is NUMBER:
-                    de = 0
-                else:
-                    de = e.diff(x)
-                if de==0:
-                    return b**(e-1) * db * e
-                elif db==0:
-                    return self * de * self.Log(b)
-                return self * (de * self.Log(b) + db * e/b)
-            args = self.as_Mul_args()
-            terms = []
-            for i in xrange(len(args)):
-                dt = args[i].diff(x)
-                if dt==0:
-                    continue
-                terms.append(Mul(*(args[:i]+[dt]+args[i+1:])))
-            return self.Add(*terms)
-        if callable(head):
-            data = self.data
-            cls = self.__class__
-            if hasattr(head, 'derivative'):
-                derivative = head.derivative
-                if type(derivative) is tuple:
-                    terms = []
-                    for df, arg in zip(derivative, data):
-                        da = arg.diff(x)
-                        if da==0:
-                            continue
-                        terms.append(df(*data) * da)
-                    return self.Add(*terms)
-                return derivative(data) * data.diff(x)
-            if type(data) is tuple:
-                terms = []
-                for i,arg in enumerate(data):
-                    da = arg.diff(x)
-                    if da==0:
-                        continue
-                    df = newinstance(cls, partial_derivative(head, i+1), data)
-                    terms.append(df * da)
-                return self.Add(*terms)
-            da = data.diff(x)
-            if da==0:
-                return da
-            df = newinstance(cls, partial_derivative(head, 1), data)
-            return df * da
+        return self._diff(x)
 
+    def _diff(self, x):
+        head = self.head
+        cls = self.__class__
+        if callable(head):
+            return diff_callable_SYMBOL(self, x, cls)
+        func = diff_SYMBOL_dict.get(head)
+        if func is not None:
+            return func(self, x, cls)
         if not self.has(x):
             return self.zero
         raise NotImplementedError(`self, x`)
@@ -657,6 +599,118 @@ class CommutativeRingWithPairs(CommutativeRing):
             return self.Add(*(coef*term.integrate(x, integrator) \
                               for term, coef in self.data.iteritems()))
         return integrator(self, x)
+
+def diff_callable_SYMBOL(expr, x, cls):
+    head = expr.head
+    data = expr.data
+    if hasattr(head, 'derivative'):
+        derivative = head.derivative
+        if type(derivative) is tuple:
+            terms = []
+            for df, arg in zip(derivative, data):
+                da = arg._diff(x)
+                if da==0:
+                    continue
+                terms.append(df(*data) * da)
+            return cls.Add(*terms)
+        darg = data._diff(x)
+        if darg:
+            return derivative(data) * darg
+        return cls.zero
+    if type(data) is tuple:
+        terms = []
+        for i,arg in enumerate(data):
+            da = arg._diff(x)
+            if da==0:
+                continue
+            df = newinstance(cls, partial_derivative(head, i+1), data)
+            terms.append(df * da)
+        return cls.Add(*terms)
+    da = data._diff(x)
+    if da==0:
+        return da
+    df = newinstance(cls, partial_derivative(head, 1), data)
+    return df * da    
+
+def diff_NUMBER_SYMBOL(expr, x, cls):
+    return cls.zero
+
+def diff_SYMBOL_SYMBOL(expr, x, cls):
+    if expr.data == x.data:
+        return cls.one
+    return cls.zero
+
+def diff_ADD_SYMBOL(expr, x, cls):
+    pairs = expr.data
+    if len(pairs)==1:
+        t, c = pairs.items()[0]
+        return t._diff(x) * c
+    d = {}
+    result = newinstance(cls, ADD, d)
+    for t, c in pairs.iteritems():
+        dt = t._diff(x)
+        if dt:
+            inplace_ADD_dict[dt.head](result, dt, c, cls)
+    if len(d)<=1:
+        return result.canonize()
+    return result
+
+def diff_FACTOR_SYMBOL(base, exp, x, cls):
+    db = base._diff(x)
+    de = exp._diff(x)
+    if not de:
+        expr = newinstance(cls, MUL, {base:exp-1})
+        return expr * db * exp
+    expr = newinstance(cls, MUL, {base:exp})
+    if not db:
+        return expr * de * cls.Log(base)
+    return expr * (cls.Log(base) * de + exp * base**-1 * db)
+
+def diff_MUL_SYMBOL(expr, x, cls):
+    pairs = expr.data
+    n = len(pairs)
+    if n==1:
+        b, e = pairs.items()[0]
+        if isinstance(e, inttypes):
+            db = b._diff(x)
+            if db:
+                return b**(e-1) * (db*e)
+            return cls.zero
+        return diff_FACTOR_SYMBOL(b, e, x, cls)
+    
+    args = pairs.items()
+    d = {}
+    result = newinstance(cls, ADD, d)
+    for i in xrange(n):
+        b, e = args[i]
+        if isinstance(e, inttypes):
+            db = b._diff(x)
+            if db:
+                dt = b**(e-1) * (db*e)
+            else:
+                continue
+        else:
+            dt = diff_FACTOR_SYMBOL(b, e, x, cls)
+        if not dt:
+            continue
+        d1 = {}
+        t = newinstance(cls, MUL, d1)
+        d1.update(args[:i])
+        d1.update(args[i+1:])
+        inplace_MUL_dict[dt.head](t, dt, 1, cls)
+        if len(d1)<=1:
+            t = t.canonize()
+        inplace_ADD_dict[t.head](result, t, 1, cls)
+    if len(d)<=1:
+        return result.canonize()
+    return result
+
+diff_SYMBOL_dict = {
+    NUMBER: diff_NUMBER_SYMBOL,
+    SYMBOL: diff_SYMBOL_SYMBOL,
+    ADD: diff_ADD_SYMBOL,
+    MUL: diff_MUL_SYMBOL,
+    }
 
 A = CommutativeRingWithPairs
 A.one = A.Number(1)
@@ -709,7 +763,7 @@ def pow_MUL_int(lhs, rhs, cls):
     pairs = lhs.data
     if len(pairs)==1:
         t, c = pairs.items()[0]
-        if isinstance(c, (int, long)):
+        if isinstance(c, inttypes):
             return pow_dict1[t.head](t, c*rhs, cls)
     d = {}
     r = newinstance(cls, MUL, d)
@@ -718,7 +772,7 @@ def pow_MUL_int(lhs, rhs, cls):
     return r
 
 def pow_NUMBER_NUMBER(lhs, rhs, cls):
-    if isinstance(rhs.data, (int, long)):
+    if isinstance(rhs.data, inttypes):
         return pow_NUMBER_int(lhs, rhs.data, cls)
     return newinstance(cls, MUL, {lhs:rhs})
 
@@ -726,7 +780,7 @@ def pow_NUMBER_ADD(lhs, rhs, cls):
     pairs = rhs.data
     if len(pairs)==1:
         t,c = pairs.items()[0]
-        if isinstance(c, (int, long)):
+        if isinstance(c, inttypes):
             lhs = pow_NUMBER_int(lhs, c, cls)
             rhs = t
     return newinstance(cls, MUL, {lhs:rhs})
@@ -738,7 +792,7 @@ def pow_NUMBER_SYMBOL(lhs, rhs, cls):
     return newinstance(cls, MUL, {lhs:rhs})
 
 def pow_ADD_NUMBER(lhs, rhs, cls):
-    if isinstance(rhs.data, (int, long)):
+    if isinstance(rhs.data, inttypes):
         return pow_ADD_int(lhs, rhs.data, cls)
     return newinstance(cls, MUL, {lhs:rhs})
 
@@ -757,7 +811,7 @@ def pow_ADD_SYMBOL(lhs, rhs, cls):
     return newinstance(cls, MUL, {lhs:rhs})
 
 def pow_MUL_NUMBER(lhs, rhs, cls):
-    if isinstance(rhs.data, (int, long)):
+    if isinstance(rhs.data, inttypes):
         return pow_MUL_int(lhs, rhs.data, cls)
     return newinstance(cls, MUL, {lhs:rhs})
 
@@ -774,7 +828,7 @@ def pow_MUL_MUL(lhs, rhs, cls):
     pairs = lhs.data
     if len(pairs)==1:
         t, c = pairs.items()[0]
-        if isinstance(c, (int, long)):
+        if isinstance(c, inttypes):
             lhs = t
             c = cls.convert(c)
             rhs = multiply_dict2[NUMBER][rhs.head](c, rhs, cls)
@@ -784,13 +838,13 @@ def pow_MUL_SYMBOL(lhs, rhs, cls):
     pairs = lhs.data
     if len(pairs)==1:
         t, c = pairs.items()[0]
-        if isinstance(c, (int, long)):
+        if isinstance(c, inttypes):
             lhs = pow_dict2[t.head][rhs.head](t, rhs, cls)
             rhs = cls.convert(c)
     return newinstance(cls, MUL, {lhs:rhs})
 
 def pow_SYMBOL_NUMBER(lhs, rhs, cls):
-    if isinstance(rhs.data, (int, long)):
+    if isinstance(rhs.data, inttypes):
         return pow_SYMBOL_int(lhs, rhs.data, cls)
     return newinstance(cls, MUL, {lhs:rhs})
 
@@ -798,7 +852,7 @@ def pow_SYMBOL_ADD(lhs, rhs, cls):
     pairs = rhs.data
     if len(pairs)==1:
         t,c = pairs.items()[0]
-        if isinstance(c, (int, long)):
+        if isinstance(c, inttypes):
             lhs = pow_dict2[lhs.head][t.head](lhs, t, cls)
             rhs = cls.convert(c)
     return newinstance(cls, MUL, {lhs:rhs})
