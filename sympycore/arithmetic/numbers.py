@@ -205,7 +205,7 @@ class Fraction(tuple):
 
 from mpmath.lib import from_int, from_rational, to_str, fadd, fsub, fmul, \
   round_half_even, from_float, to_float, to_int, fpow, from_str, feq, \
-  fhash, fcmp, fdiv, fabs, fcabs, fneg
+  fhash, fcmp, fdiv, fabs, fcabs, fneg, fnan
 
 rounding = round_half_even
 
@@ -257,6 +257,38 @@ class Float(object):
         if other is NotImplemented:
             return other
         return fcmp(self.val, other)
+
+    def __lt__(self, other):
+        other = self.convert(other)
+        if other is NotImplemented:
+            return other
+        if self.val[0]=='nan' or other[0]=='nan':
+            return False
+        return fcmp(self.val, other) < 0
+
+    def __le__(self, other):
+        other = self.convert(other)
+        if other is NotImplemented:
+            return other
+        if self.val[0]=='nan' or other[0]=='nan':
+            return False
+        return fcmp(self.val, other) <=0
+
+    def __gt__(self, other):
+        other = self.convert(other)
+        if other is NotImplemented:
+            return other
+        if self.val[0]=='nan' or other[0]=='nan':
+            return False
+        return fcmp(self.val, other) > 0
+
+    def __ge__(self, other):
+        other = self.convert(other)
+        if other is NotImplemented:
+            return other
+        if self.val[0]=='nan' or other[0]=='nan':
+            return False
+        return fcmp(self.val, other) >=0
 
     def __add__(self, other):
         other = self.convert(other)
@@ -511,7 +543,7 @@ class ExtendedNumber:
         if not self.direction: return 'zoo'
         if self.direction == 1: return 'oo'
         if self.direction == -1: return '-oo'
-        return "%s*oo" % self.direction
+        return "(%s)*oo" % self.direction
 
     def __nonzero__(self):
         if get_object_by_name('redirect_operation', 'ignore_redirection')=='ignore_redirection':

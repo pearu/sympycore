@@ -147,9 +147,10 @@ class Calculus(CommutativeRingWithPairs):
 
     @classmethod
     def Log(cls, arg, base=None):
+        log = cls.defined_functions['log']
         if base is None:
-            return classes.log(arg)
-        return classes.log(arg)/classes.log(base)
+            return log(arg)
+        return log(arg)/log(base)
 
     @classmethod
     def npower(cls, base, exp):

@@ -1,4 +1,4 @@
-from .numbers import Float, Complex
+from .numbers import Float, Complex, ExtendedNumber
 
 import math
 import cmath
@@ -25,7 +25,7 @@ def f_header(symbols):
 def convert_mpmath(expr):
     s = str(expr)
     s = quote_numbers(s, "mpf(%s)")
-    s = replace_names(s, { 'I':'j', 'E':'e', 'oo':'inf'})
+    s = replace_names(s, { 'I':'j', 'E':'e', 'oo':'inf','undefined':'nan'})
     return s
 
 def compile_mpmath(symbols, expr):
