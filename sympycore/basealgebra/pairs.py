@@ -541,19 +541,19 @@ class CommutativeRingWithPairs(CommutativeRing):
     def diff(self, x):
         x = self.convert(x)
         assert x.head is SYMBOL,`x`
-        return self._diff(x)
+        return self._diff(x.data, self.zero, self.__class__)
 
-    def _diff(self, x):
+    def _diff(self, x, zero, cls):
         head = self.head
-        cls = self.__class__
-        if callable(head):
-            return diff_callable_SYMBOL(self, x, cls)
-        func = diff_SYMBOL_dict.get(head)
-        if func is not None:
-            return func(self, x, cls)
-        if not self.has(x):
-            return self.zero
-        raise NotImplementedError(`self, x`)
+        if head is NUMBER:
+            return zero
+        elif head is SYMBOL:
+            if self.data == x:
+                return cls.one
+            return zero
+        elif callable(head):
+            return diff_callable_SYMBOL(self, x, zero, cls)
+        return diff_SYMBOL_dict[head](self, x, zero, cls)
 
     @staticmethod
     def _integrator(e, x):
@@ -600,7 +600,7 @@ class CommutativeRingWithPairs(CommutativeRing):
                               for term, coef in self.data.iteritems()))
         return integrator(self, x)
 
-def diff_callable_SYMBOL(expr, x, cls):
+def diff_callable_SYMBOL(expr, x, zero, cls):
     head = expr.head
     data = expr.data
     if hasattr(head, 'derivative'):
@@ -608,99 +608,114 @@ def diff_callable_SYMBOL(expr, x, cls):
         if type(derivative) is tuple:
             terms = []
             for df, arg in zip(derivative, data):
-                da = arg._diff(x)
-                if da==0:
+                da = arg._diff(x, zero, cls)
+                if da is zero:
                     continue
                 terms.append(df(*data) * da)
             return cls.Add(*terms)
-        darg = data._diff(x)
-        if darg:
-            return derivative(data) * darg
-        return cls.zero
+        darg = data._diff(x, zero, cls)
+        if darg is zero:
+            return zero
+        return derivative(data) * darg
     if type(data) is tuple:
         terms = []
         for i,arg in enumerate(data):
-            da = arg._diff(x)
-            if da==0:
+            da = arg._diff(x, zero, cls)
+            if da is zero:
                 continue
             df = newinstance(cls, partial_derivative(head, i+1), data)
             terms.append(df * da)
         return cls.Add(*terms)
-    da = data._diff(x)
-    if da==0:
+    da = data._diff(x, zero, cls)
+    if da is zero:
         return da
     df = newinstance(cls, partial_derivative(head, 1), data)
     return df * da    
 
-def diff_NUMBER_SYMBOL(expr, x, cls):
-    return cls.zero
+def diff_NUMBER_SYMBOL(expr, x, zero, cls):
+    return zero
 
-def diff_SYMBOL_SYMBOL(expr, x, cls):
-    if expr.data == x.data:
+def diff_SYMBOL_SYMBOL(expr, x, zero, cls):
+    if expr.data == x:
         return cls.one
-    return cls.zero
+    return zero
 
-def diff_ADD_SYMBOL(expr, x, cls):
+def diff_ADD_SYMBOL(expr, x, zero, cls):
     pairs = expr.data
     if len(pairs)==1:
         t, c = pairs.items()[0]
-        return t._diff(x) * c
+        dt = t._diff(x, zero, cls)
+        if c is 1:
+            return dt
+        return dt * c
     d = {}
     result = newinstance(cls, ADD, d)
     for t, c in pairs.iteritems():
-        dt = t._diff(x)
-        if dt:
-            inplace_ADD_dict[dt.head](result, dt, c, cls)
+        dt = t._diff(x, zero, cls)
+        if dt is zero:
+            continue
+        inplace_ADD_dict[dt.head](result, dt, c, cls)
     if len(d)<=1:
         return result.canonize()
     return result
 
-def diff_FACTOR_SYMBOL(base, exp, x, cls):
-    db = base._diff(x)
-    de = exp._diff(x)
-    if not de:
-        expr = newinstance(cls, MUL, {base:exp-1})
-        return expr * db * exp
-    expr = newinstance(cls, MUL, {base:exp})
-    if not db:
-        return expr * de * cls.Log(base)
-    return expr * (cls.Log(base) * de + exp * base**-1 * db)
+def diff_FACTOR_SYMBOL(expr, base, exp, x, zero, log, cls):
+    db = base._diff(x, zero, cls)
+    if isinstance(exp, inttypes):
+        if exp is 1:
+            return db
+        if exp is 2:
+            return base * db * exp
+        expr2 = newinstance(cls, MUL, {base:exp-1})
+        return expr2 * db * exp
 
-def diff_MUL_SYMBOL(expr, x, cls):
+    de = exp._diff(x, zero, cls)
+    if de is zero:
+        expr2 = newinstance(cls, MUL, {base:exp-1})
+        return expr2 * db * exp
+    if expr is None:
+        expr = newinstance(cls, MUL, {base:exp})
+    if db is zero:
+        return expr * de * log(base)
+    return expr * (de * log(base) + exp * newinstance(cls, MUL, {base:-1}) * db)
+
+def diff_MUL_SYMBOL(expr, x, zero, cls):
     pairs = expr.data
     n = len(pairs)
-    if n==1:
-        b, e = pairs.items()[0]
-        if isinstance(e, inttypes):
-            db = b._diff(x)
-            if db:
-                return b**(e-1) * (db*e)
-            return cls.zero
-        return diff_FACTOR_SYMBOL(b, e, x, cls)
-    
     args = pairs.items()
+    log = cls.Log
+    if n==1:
+        b, e = args[0]
+        return diff_FACTOR_SYMBOL(None, b, e, x, zero, log, cls)
+    if n==2:
+        b1, e1 = args[0]
+        b2, e2 = args[1]
+        if e1 is 1:
+            t1 = b1
+        else:
+            t1 = b1 ** e1
+        if e2 is 1:
+            t2 = b2
+        else:
+            t2 = b2 ** e2
+        dt1 = diff_FACTOR_SYMBOL(t1, b1, e1, x, zero, log, cls)
+        dt2 = diff_FACTOR_SYMBOL(t2, b2, e2, x, zero, log, cls)
+        return t1 * dt2 + t2 * dt1
     d = {}
     result = newinstance(cls, ADD, d)
     for i in xrange(n):
         b, e = args[i]
-        if isinstance(e, inttypes):
-            db = b._diff(x)
-            if db:
-                dt = b**(e-1) * (db*e)
-            else:
-                continue
-        else:
-            dt = diff_FACTOR_SYMBOL(b, e, x, cls)
-        if not dt:
+        dt = diff_FACTOR_SYMBOL(None, b, e, x, zero, log, cls)
+        if dt is zero:
             continue
-        d1 = {}
+        d1 = dict(args[:i]+args[i+1:])
         t = newinstance(cls, MUL, d1)
-        d1.update(args[:i])
-        d1.update(args[i+1:])
-        inplace_MUL_dict[dt.head](t, dt, 1, cls)
+        n = inplace_MUL_dict[dt.head](t, dt, 1, cls)
         if len(d1)<=1:
             t = t.canonize()
-        inplace_ADD_dict[t.head](result, t, 1, cls)
+        if n is None:
+            n = 1
+        inplace_ADD_dict[t.head](result, t, n, cls)
     if len(d)<=1:
         return result.canonize()
     return result
