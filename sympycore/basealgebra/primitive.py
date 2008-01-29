@@ -121,11 +121,13 @@ def tree_sort(a, b):
 
 class PrimitiveAlgebra(BasicAlgebra):
 
-    __slots__ = ['tree']
+    __slots__ = ['tree', '_str']
 
     commutative_add = None
     commutative_mul = None
     disable_sorting = None
+
+    _str = None
 
     def __new__(cls, tree, head=None):
         if head is None:
@@ -187,6 +189,12 @@ class PrimitiveAlgebra(BasicAlgebra):
         raise NotImplementedError('as_algebra(%s): %s, head=%s' % (cls, self, head_to_string[head]))
 
     def __str__(self):
+        s = self._str
+        if s is None:
+            self._str = s = self._compute_str()
+        return s
+
+    def _compute_str(self):
         head, rest = self.tree
         if head is SYMBOL or head is NUMBER:
             s = str(rest)

@@ -6,6 +6,7 @@ import types
 from collections import defaultdict
 
 from ..core import classes
+from .algebra import BasicAlgebra
 from .ring import CommutativeRing
 from .primitive import PrimitiveAlgebra, ADD, MUL, SYMBOL, NUMBER, APPLY, POW, TUPLE, head_to_string
 from .utils import generate_swapped_first_arguments, RedirectOperation
@@ -32,7 +33,7 @@ class CommutativeRingWithPairs(CommutativeRing):
     """ Implementation of a commutative ring where sums and products
     are represented as dictionaries of pairs.
     """
-    __slots__ = ['head', 'data', '_hash', '_symbols', '_symbols_data']
+    __slots__ = ['head', 'data', '_hash', '_symbols', '_symbols_data', '_primitive', '_str_value']
     one_c = 1   # one element of coefficient algebra
     one_e = 1   # one element of exponent algebra
     zero_c = 0  # zero element of coefficient algebra
@@ -41,6 +42,8 @@ class CommutativeRingWithPairs(CommutativeRing):
     _hash = None
     _symbols = None
     _symbols_data = None
+    _primitive = None
+    _str_value = None
     
     def __new__(cls, data, head=None):
         if head is None:
@@ -101,6 +104,39 @@ class CommutativeRingWithPairs(CommutativeRing):
         else:
             raise NotImplementedError(`self, head`)
         return '\n'.join(r)
+
+    def _tostr_needs_work(self, parent=None):
+        head = self.head
+        if head is SYMBOL:
+            return str(self.data)
+        if head is NUMBER:
+            value = self.data
+            if isinstance(value, BasicAlgebra):
+                return '((%s))' % (value)
+            return str(value)
+        if head is ADD:
+            l = []
+            one = self.one
+            for t,c in self.data.iteritems():
+                if c is 1:
+                    l.append(t.tostr(self))
+                elif t is one:
+                    l.append(str(c))
+                else:
+                    l.append('%s*%s' % (c, t.tostr(self)))
+            return head.join(l)
+        if head is MUL:
+            l = []
+            one = self.one
+            for t,c in self.data.iteritems():
+                if c is 1:
+                    l.append(t.tostr(self))
+                else:
+                    l.append('%s**%s' % (c, t.tostr(self)))
+            return head.join(l)
+        if callable(head):
+            pass
+        raise NotImplementedError
 
     @property
     def func(self):
@@ -217,19 +253,22 @@ class CommutativeRingWithPairs(CommutativeRing):
         return self
 
     def as_primitive(self):
+        primitive = self._primitive
+        if primitive is not None:
+            return primitive
         head = self.head
         func = self.func
         args = self.args
         if func==self.Add:
             r = PrimitiveAlgebra((ADD,tuple(map(PrimitiveAlgebra, args))))
             r.commutative_add = True
-            return r
-        if func==self.Mul:
+        elif func==self.Mul:
             if args[0].head is NUMBER and args[0].data < 0:
                 if args[0].data==-1:
                     args = map(PrimitiveAlgebra,args[1:])
                     if len(args)==1:
-                        return -args[0]
+                        self._primitive = r = -args[0]
+                        return r
                 else:
                     args = [PrimitiveAlgebra(-args[0])] + map(PrimitiveAlgebra,args[1:])
                 r = PrimitiveAlgebra((MUL,tuple(args)))
@@ -239,24 +278,22 @@ class CommutativeRingWithPairs(CommutativeRing):
                 args = map(PrimitiveAlgebra, args)
                 r = PrimitiveAlgebra((MUL,tuple(args)))
             r.commutative_mul = True
-            return r
-        if func==self.Pow:
+        elif func==self.Pow:
             r = PrimitiveAlgebra((POW, tuple(map(PrimitiveAlgebra, args))))
-            return r
-        if head is NUMBER:
+        elif head is NUMBER:
             value = self.data
             if hasattr(value, 'as_primitive'):
-                return value.as_primitive()
-            if isinstance(value, (int, long, float)) and value<0:
+                r = value.as_primitive()
+            elif isinstance(value, (int, long, float)) and value<0:
                 r = -PrimitiveAlgebra((NUMBER, -value))
             else:
                 r = PrimitiveAlgebra((NUMBER, value))
-            return r
         elif head is SYMBOL:
             data = self.data
             if hasattr(data, 'as_primitive'):
-                return data.as_primitive()
-            return PrimitiveAlgebra((SYMBOL, self.data))
+                r = data.as_primitive()
+            else:
+                r = PrimitiveAlgebra((SYMBOL, self.data))
         elif callable(head):
             data = self.data
             # XXX: need support for multiple arguments
@@ -266,13 +303,15 @@ class CommutativeRingWithPairs(CommutativeRing):
                 args = tuple(map(PrimitiveAlgebra, data))
             else:
                 args = PrimitiveAlgebra(data),
-            return PrimitiveAlgebra((APPLY, (head,)+args))
+            r = PrimitiveAlgebra((APPLY, (head,)+args))
         else:
             data = self.data
             if hasattr(data, 'as_primitive'):
-                return data.as_primitive()
-            return PrimitiveAlgebra((SYMBOL, (self.head,self.data)))
-
+                r = data.as_primitive()
+            else:
+                r = PrimitiveAlgebra((SYMBOL, (self.head,self.data)))
+        self._primitive = r
+        return r
 
     def expand(self):
         return expand_dict1[self.head](self, self.__class__)

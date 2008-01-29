@@ -20,6 +20,9 @@ class BasicAlgebra(Basic):
 
       properties: args(self). func(self)
     """
+    __slots__ = ['_str_value']
+
+    _str_value = None
 
     @classmethod
     def redirect_operation(cls, *args, **kws):
@@ -31,7 +34,10 @@ class BasicAlgebra(Basic):
                                         **dict(redirect_operation='ignore_redirection'))
 
     def __str__(self):
-        return str(self.as_primitive())
+        s = self._str_value
+        if s is None:
+            s = self._str_value = str(self.as_primitive())
+        return s
 
     def __repr__(self):
         return '%s(%r)' % (self.__class__.__name__, str(self))
