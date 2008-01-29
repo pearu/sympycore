@@ -201,34 +201,6 @@ class CommutativeRing(BasicAlgebra):
             return NotImplemented
         return self.Pow(other,  self.convert_exponent(self))
 
-    @classmethod
-    def Add_derivative(cls, args, x):
-        return cls.Add(*[a.diff(x) for a in args])
-
-    @classmethod
-    def Mul_derivative(cls, args, x):
-        terms = []
-        Mul = cls.Mul
-        for i in range(len(args)):
-            da = args[i].diff(x)
-            if da==0:
-                continue
-            terms.append(Mul(*(args[:i]+[da]+args[i+1:])))
-        return cls.Add(*terms)
-
-    @classmethod
-    def Pow_derivative(cls, (b, e), x):
-        if isinstance(e, (int, long)):
-            de = 0
-        else:
-            de = e.diff(x)
-        db = b.diff(x)
-        if de==0:
-            return b**(e-1) * db * e
-        if db==0:
-            return (b**e) * cls.Log(b) * de
-        return (b**e) * (cls.Log(b) * de + db * e/b)
-
     def diff(self, x):
         """ Return derivative of the expression with respect to x.
         """

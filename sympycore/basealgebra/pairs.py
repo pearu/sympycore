@@ -540,23 +540,19 @@ class CommutativeRingWithPairs(CommutativeRing):
 
     def _subs(self, subexpr, newexpr):
         head = self.head
+
         if head is subexpr.head:
             if self.data == subexpr.data:
                 return newexpr
+
         if head is SYMBOL or head is NUMBER:
             return self
-        if callable(head):
-            args = self.data
-            if type(args) is tuple:
-                args = [a._subs(subexpr, newexpr) for a in args]
-            else:
-                args = args._subs(subexpr, newexpr),
-            return head(*args)
+            
         cls = self.__class__
-        d = {}
-        result = newinstance(cls, head, d)
 
         if head is ADD:
+            d = {}
+            result = newinstance(cls, head, d)
             for t,c in self.data.iteritems():
                 r = t._subs(subexpr, newexpr)
                 inplace_ADD_dict[r.head](result, r, c, cls)
@@ -564,7 +560,9 @@ class CommutativeRingWithPairs(CommutativeRing):
                 return result.canonize()
             return result
 
-        if head is MUL:
+        elif head is MUL:
+            d = {}
+            result = newinstance(cls, head, d)
             num = 1
             for t,c in self.data.iteritems():
                 r = t._subs(subexpr, newexpr)
@@ -575,9 +573,17 @@ class CommutativeRingWithPairs(CommutativeRing):
                 result = result.canonize()
             if num is 1:
                 return result
-            return result * n
+            return result * num
 
-        raise NotImplementedError(`self, subexpr, newexpr`)
+        elif callable(head):
+            args = self.data
+            if type(args) is tuple:
+                args = [a._subs(subexpr, newexpr) for a in args]
+                return head(*args)
+            else:
+                return head(args._subs(subexpr, newexpr))
+
+        raise NotImplementedError(`self`)
 
     def _diff(self, x, zero, cls):
         head = self.head
