@@ -538,10 +538,46 @@ class CommutativeRingWithPairs(CommutativeRing):
             return subexpr.data in self._get_symbols_data()
         raise NotImplementedError('%s.has(%r)' % (self.__class__.__name__, subexpr))
 
-    def diff(self, x):
-        x = self.convert(x)
-        assert x.head is SYMBOL,`x`
-        return self._diff(x.data, self.zero, self.__class__)
+    def _subs(self, subexpr, newexpr):
+        head = self.head
+        if head is subexpr.head:
+            if self.data == subexpr.data:
+                return newexpr
+        if head is SYMBOL or head is NUMBER:
+            return self
+        if callable(head):
+            args = self.data
+            if type(args) is tuple:
+                args = [a._subs(subexpr, newexpr) for a in args]
+            else:
+                args = args._subs(subexpr, newexpr),
+            return head(*args)
+        cls = self.__class__
+        d = {}
+        result = newinstance(cls, head, d)
+
+        if head is ADD:
+            for t,c in self.data.iteritems():
+                r = t._subs(subexpr, newexpr)
+                inplace_ADD_dict[r.head](result, r, c, cls)
+            if len(d)<=1:
+                return result.canonize()
+            return result
+
+        if head is MUL:
+            num = 1
+            for t,c in self.data.iteritems():
+                r = t._subs(subexpr, newexpr)
+                n = inplace_MUL_dict[r.head](result, r, c, cls)
+                if n is not None:
+                    num = num * n
+            if len(d)<=1:
+                result = result.canonize()
+            if num is 1:
+                return result
+            return result * n
+
+        raise NotImplementedError(`self, subexpr, newexpr`)
 
     def _diff(self, x, zero, cls):
         head = self.head
@@ -599,6 +635,7 @@ class CommutativeRingWithPairs(CommutativeRing):
             return self.Add(*(coef*term.integrate(x, integrator) \
                               for term, coef in self.data.iteritems()))
         return integrator(self, x)
+
 
 def diff_callable_SYMBOL(expr, x, zero, cls):
     head = expr.head

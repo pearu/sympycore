@@ -230,25 +230,15 @@ class CommutativeRing(BasicAlgebra):
         return (b**e) * (cls.Log(b) * de + db * e/b)
 
     def diff(self, x):
+        """ Return derivative of the expression with respect to x.
+        """
         x = self.convert(x)
-        if not self.has_symbol(x):
-            return self.zero
-        args = self.args
-        if not args:
-            if self==x:
-                return self.one
-            return self.zero
-        func = self.func
-        if func==self.Add:
-            return self.Add_derivative(args, x)
-        if func==self.Mul:
-            return self.Mul_derivative(args, x)
-        if func==self.Pow:
-            return self.Pow_derivative(args, x)
-        if hasattr(func, 'derivative'):
-            if len(args)==1:
-                return func.derivative(args[0]) * args[0].diff(x)
-            # XXX: multivariate function support, see diff method in pairs.py
-        raise NotImplementedError(`self, x`)
+        assert x.head is SYMBOL,`x`
+        return self._diff(x.data, self.zero, self.__class__)
 
-from .primitive import NUMBER
+    def _diff(self, x):
+        raise NotImplementedError('%s must define _diff method'     #pragma NO COVER
+                                  % (self.__class__.__name__))      #pragma NO COVER
+
+
+from .primitive import NUMBER, SYMBOL

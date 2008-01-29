@@ -203,28 +203,23 @@ class BasicAlgebra(Basic):
                 return repl_dict
         return
 
-    def subs(self, pattern, expr=None, wildcards=[]):
-        """ Substitute subexpressions matching pattern with expr.
+    def subs(self, subexpr, newexpr=None):
+        """ Substitute a sub-expression with new expression.
         
         There are two usage forms:
-          obj.subs(pattern, expr, wildcards=[..])
-          obj.subs([(pattern1, expr1), (pattern2, expr2), ..], wildcards=[..])
+          obj.subs(subexpr, newexpr)
+          obj.subs([(subexpr1, newexpr1), (subexpr2, newexpr2), ..])
         """
-        if expr is None:
+        convert = self.convert
+        if newexpr is None:
             r = self
-            for item in pattern:
-                r = r.subs(item[0], item[1], wildcards=wildcards)
+            for s,n in subexpr:
+                r = r._subs(convert(s), convert(n))
             return r
-        pattern = self.convert(pattern)
-        expr = self.convert(expr)
-        if self==pattern:
-            return expr
-        args = []
-        cls = type(self)
-        for a in self.args:
-            if isinstance(a, cls):
-                a = a.subs(pattern, expr, wildcards=wildcards)
-            args.append(a)
-        return self.func(*args)
+        return self._subs(convert(subexpr), convert(newexpr))
+
+    def _subs(self, subexpr, newexpr):
+        raise NotImplementedError('%s must define _subs method'     #pragma NO COVER
+                                  % (self.__class__.__name__))      #pragma NO COVER
 
 from .primitive import SYMBOL
