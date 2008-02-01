@@ -464,9 +464,14 @@ class CommutativeRingWithPairs(CommutativeRing):
             n = inplace_MUL_dict[head](result, t, c, cls)
             if n is not None:
                 number = number * n
-        if len(d)<=1:
-            return result.canonize() * number
-        return result * number
+        if number == 1:
+            if len(d)<=1:
+                return result.canonize()
+            return result
+        else:
+            if len(d)<=1:
+                return result.canonize() * number
+            return result * number
 
     def __int__(self):
         assert self.head is NUMBER,`self`
