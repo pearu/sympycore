@@ -34,7 +34,7 @@ class CommutativeRingWithPairs(CommutativeRing):
     """ Implementation of a commutative ring where sums and products
     are represented as dictionaries of pairs.
     """
-    __slots__ = ['head', 'data', '_hash', '_symbols', '_symbols_data', '_primitive', '_str_value']
+    __slots__ = ['head', 'data', '_hash', '_symbols', '_symbols_data']
     one_c = 1   # one element of coefficient algebra
     one_e = 1   # one element of exponent algebra
     zero_c = 0  # zero element of coefficient algebra
@@ -43,8 +43,6 @@ class CommutativeRingWithPairs(CommutativeRing):
     _hash = None
     _symbols = None
     _symbols_data = None
-    _primitive = None
-    _str_value = None
     
     def __new__(cls, data, head=None):
         if head is None:
@@ -343,9 +341,6 @@ class CommutativeRingWithPairs(CommutativeRing):
         return self
 
     def as_primitive(self):
-        primitive = self._primitive
-        if primitive is not None:
-            return primitive
         head = self.head
         func = self.func
         args = self.args
@@ -386,7 +381,6 @@ class CommutativeRingWithPairs(CommutativeRing):
                 r = PrimitiveAlgebra((SYMBOL, self.data))
         elif callable(head):
             data = self.data
-            # XXX: need support for multiple arguments
             if hasattr(data, 'as_primitive'):
                 args = data.as_primitive(),
             elif isinstance(data, tuple):
@@ -400,7 +394,6 @@ class CommutativeRingWithPairs(CommutativeRing):
                 r = data.as_primitive()
             else:
                 r = PrimitiveAlgebra((SYMBOL, (self.head,self.data)))
-        self._primitive = r
         return r
 
     def expand(self):

@@ -201,14 +201,33 @@ class CommutativeRing(BasicAlgebra):
             return NotImplemented
         return self.Pow(other,  self.convert_exponent(self))
 
-    def diff(self, x):
-        """ Return derivative of the expression with respect to x.
+    def diff(self, *symbols):
+        """ Return derivative of the expression with respect to symbols.
+        Examples:
+          expr.diff(x,y) - 2nd derivative with respect to x and y
+          expr.diff(x,4) is equivalent to expr.diff(x,x,x,x).
         """
-        x = self.convert(x)
-        assert x.head is SYMBOL,`x`
-        return self._diff(x.data, self.zero, self.__class__)
+        last_x = None
+        result = self
+        zero = self.zero
+        cls = self.__class__
+        for x in symbols:
+            if isinstance(x, (int, long)):
+                if last_x is None:
+                    raise TypeError('diff: the first argument must be a symbol')
+                m,x = x,last_x
+                assert m>=0,`m,symbols`
+                for i in xrange(m-1):
+                    result = result._diff(x.data, zero, cls)
+            else:
+                x = self.convert(x)
+                if x.head is not SYMBOL:
+                    raise TypeError('diff: expected symbol but')
+                last_x = x
+                result = result._diff(x.data, zero, cls)
+        return result
 
-    def _diff(self, x):
+    def _diff(self, x, zero, cls):
         raise NotImplementedError('%s must define _diff method'     #pragma NO COVER
                                   % (self.__class__.__name__))      #pragma NO COVER
 
