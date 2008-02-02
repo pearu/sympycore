@@ -425,7 +425,10 @@ class CommutativeRingWithPairs(CommutativeRing):
                 number = number * n
         if len(d)<=1:
             result = result.canonize()
-        return multiply_dict2[result.head][NUMBER](result, newinstance(cls, NUMBER, number), cls)
+        if number is 1:
+            return result
+        number = newinstance(cls, NUMBER, number)
+        return mul_NUMBER_dict[result.head](number, result, cls)
 
     @classmethod
     def npower(cls, base, exp):
@@ -464,13 +467,11 @@ class CommutativeRingWithPairs(CommutativeRing):
             n = inplace_MUL_dict[head](result, t, c, cls)
             if n is not None:
                 number = number * n
-        if number == 1:
-            if len(d)<=1:
-                return result.canonize()
+        if len(d)<=1:
+            result = result.canonize()
+        if number is 1:
             return result
         else:
-            if len(d)<=1:
-                return result.canonize() * number
             return result * number
 
     def __int__(self):
@@ -923,7 +924,7 @@ def pow_MUL_ADD(lhs, rhs, cls):
         t,c = pairs.items()[0]
         lhs = t
         c = cls.convert(c)
-        rhs = multiply_dict2[NUMBER][rhs.head](c, rhs, cls)
+        rhs = mul_NUMBER_dict[rhs.head](c, rhs, cls)
     return newinstance(cls, MUL, {lhs:rhs})
 
 def pow_MUL_MUL(lhs, rhs, cls):
@@ -933,7 +934,7 @@ def pow_MUL_MUL(lhs, rhs, cls):
         if isinstance(c, inttypes):
             lhs = t
             c = cls.convert(c)
-            rhs = multiply_dict2[NUMBER][rhs.head](c, rhs, cls)
+            rhs = mul_NUMBER_dict[rhs.head](c, rhs, cls)
     return newinstance(cls, MUL, {lhs:rhs})
 
 def pow_MUL_SYMBOL(lhs, rhs, cls):
@@ -1362,8 +1363,8 @@ def multiply_MUL_MUL(lhs, rhs, cls):
     if len(ldata) < len(rdata):
         rhs, lhs = lhs, rhs
         ldata, rdata = rdata, ldata
-    result = newinstance(cls, MUL, dict(ldata))
-    pairs = result.data
+    pairs = dict(ldata)
+    result = newinstance(cls, MUL, pairs)
     get = pairs.get
     number = 1
     for t,c in rdata.iteritems():
@@ -1384,12 +1385,10 @@ def multiply_MUL_MUL(lhs, rhs, cls):
                     pairs[t] = c
             else:
                 del pairs[t]
-    if number==1:
-        if len(pairs)<=1:
-            return result.canonize()
-        return result
     if len(pairs)<=1:
-        return result.canonize() * number
+        result = result.canonize()
+    if number==1:
+        return result
     return result * number
 
 def expand_NUMBER_ADD(lhs, rhs, cls):
@@ -1465,12 +1464,14 @@ def expand_ADD_INTPOW(lhs, m, cls):
     d = {}
     result = newinstance(cls, ADD, d)
     get = d.get
+    Factors = cls.Factors
+    one = cls.one
     for exps, c in data.iteritems():
         t, n = exps.apply_to_terms(terms)
-        t = cls.Factors(*t)
+        t = Factors(*t)
         if t.head is NUMBER:
             n = t * n
-            t = cls.one
+            t = one
         b = get(t)
         if b is None:
             d[t] = n * c
