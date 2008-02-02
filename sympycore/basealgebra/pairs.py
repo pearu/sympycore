@@ -1430,7 +1430,6 @@ def multiply_ADD_ADD(lhs, rhs, cls):
     else:
         if ldata==rdata:
             return newinstance(cls, MUL, {lhs:2})
-        print lhs, rhs
         return newinstance(cls, MUL, {lhs:1, rhs:1})
 
 def multiply_ADD_MUL(lhs, rhs, cls):
