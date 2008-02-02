@@ -43,6 +43,7 @@ import math
 __all__ = ['Fraction', 'Float', 'Complex', 'div', 'int_root', 'try_power',
            'ExtendedNumber']
 
+from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_NUMBER
 from ..basealgebra.primitive import PrimitiveAlgebra, NUMBER, SYMBOL
 from ..basealgebra.utils import get_object_by_name
 from ..basealgebra.utils import RedirectOperation
@@ -74,6 +75,11 @@ class Fraction(tuple):
         if p<0:
             return -(PrimitiveAlgebra(-p, head=NUMBER) / PrimitiveAlgebra(q, head=NUMBER))
         return PrimitiveAlgebra(p, head=NUMBER) / PrimitiveAlgebra(q, head=NUMBER)
+
+    def to_str_data(self,sort=True):
+        if self[0]<0:
+            return str_ADD, '%s/%s' % (self)
+        return str_PRODUCT, '%s/%s' % (self)
 
     def __str__(self):
         return "(%i/%i)" % self
@@ -232,6 +238,11 @@ class Float(object):
             return from_str(x, self.prec, rounding)
         return NotImplemented
 
+    def to_str_data(self,sort=True):
+        if self<0:
+            return str_ADD, str(self)
+        return str_NUMBER, str(self)
+
     def __str__(self):
         return to_str(self.val, int((self.prec/3.33) - 3))
 
@@ -367,6 +378,19 @@ class Complex(object):
 
     def __hash__(self):
         return hash((self.real, self.imag))
+
+    def to_str_data(self,sort=True):
+        re, im = self.real, self.imag
+        if not re:
+            if im == 1: return str_SYMBOL,"I"
+            if im == -1: return str_SUM, "-I"
+            return str_PRODUCT, str(self.imag) + "*I"
+        restr = innerstr(self.real)
+        if im == 1: return str_SUM, "%s + I" % restr
+        if im == -1: return str_SUM, "%s - I" % restr
+        if im > 0: return str_SUM, "%s + %s*I" % (restr, innerstr(self.imag))
+        if im < 0: return str_SUM, "%s - %s*I" % (restr, innerstr(-self.imag))
+        raise NotImplementedError(`self`)
 
     def __str__(self):
         re, im = self.real, self.imag
@@ -544,6 +568,13 @@ class ExtendedNumber:
         if self.direction == 1: return 'oo'
         if self.direction == -1: return '-oo'
         return "(%s)*oo" % self.direction
+
+    def to_str_data(self,sort=True):
+        if not self.infinite: return str_SYMBOL, 'undefined'
+        if not self.direction: return str_SYMBOL, 'zoo'
+        if self.direction == 1: return str_SYMBOL, 'oo'
+        if self.direction == -1: return str_SUM, '-oo'
+        return str_PRODUCT, "(%s)*oo" % self.direction
 
     def __nonzero__(self):
         if get_object_by_name('redirect_operation', 'ignore_redirection')=='ignore_redirection':

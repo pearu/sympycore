@@ -6,6 +6,7 @@ import types
 from collections import defaultdict
 
 from ..core import classes
+from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_NUMBER
 from .algebra import BasicAlgebra
 from .ring import CommutativeRing
 from .primitive import PrimitiveAlgebra, ADD, MUL, SYMBOL, NUMBER, APPLY, POW, TUPLE, head_to_string
@@ -105,38 +106,127 @@ class CommutativeRingWithPairs(CommutativeRing):
             raise NotImplementedError(`self, head`)
         return '\n'.join(r)
 
-    def _tostr_needs_work(self, parent=None):
+    @classmethod
+    def coefficient_to_str_data(cls, obj, sort=True):
+        if isinstance(obj, inttypes):
+            if obj < 0:
+                return str_SUM, str(obj)
+            return str_NUMBER, str(obj)
+        if hasattr(obj, 'to_str_data'):
+            return obj.to_str_data(sort)
+        raise NotImplementedError('%s.coefficient_to_str_data(%r)' % (cls.__name__, obj))
+
+    @classmethod
+    def exponent_to_str_data(cls, obj, sort=True):
+        if isinstance(obj, inttypes):
+            if obj < 0:
+                return str_SUM, str(obj)
+            return str_NUMBER, str(obj)
+        if hasattr(obj, 'to_str_data'):
+            return obj.to_str_data(sort)
+        raise NotImplementedError('%s.exponent_to_str_data(%r)' % (cls.__name__, obj))
+
+    @classmethod
+    def callable_to_str_data(cls, obj, sort=True):
+        if isinstance(obj, BasicAlgebra):
+            return obj.to_str_data(sort=True)
+        if hasattr(obj, '__name__'):
+            return str_SYMBOL, obj.__name__
+        return str_SYMBOL, str(obj)
+
+    def __str__(self):
+        return self.to_str_data()[1]
+
+    def to_str_data(self, sort=True):
         head = self.head
-        if head is SYMBOL:
-            return str(self.data)
+        one = self.one
+        cls = self.__class__
         if head is NUMBER:
-            value = self.data
-            if isinstance(value, BasicAlgebra):
-                return '((%s))' % (value)
-            return str(value)
+            return cls.coefficient_to_str_data(self.data, sort)
         if head is ADD:
-            l = []
-            one = self.one
-            for t,c in self.data.iteritems():
-                if c is 1:
-                    l.append(t.tostr(self))
-                elif t is one:
-                    l.append(str(c))
+            pos_dict = {}
+            neg_dict = {}
+            for t, c in self.data.iteritems():
+                if c<0:
+                    d = neg_dict
+                    c = -c
                 else:
-                    l.append('%s*%s' % (c, t.tostr(self)))
-            return head.join(l)
+                    d = pos_dict
+                h1, s1 = cls.coefficient_to_str_data(c, sort)
+                h2, s2 = t.to_str_data(sort)
+                if t is one:
+                    h, s = h1, s1
+                elif c==1:
+                    h, s = h2, s2
+                else:
+                    if h1 > str_PRODUCT:
+                        s1 = '(%s)' % (s1)
+                    if h2 > str_PRODUCT:
+                        s2 = '(%s)' % (s2)
+                    s = '%s*%s' % (s1,s2)
+                    h = str_PRODUCT
+                l = d.get(h)
+                if l is None:
+                    l = d[h] = []
+                l.append(s)
+            if sort:
+                r1 = []
+                for k in sorted(pos_dict):
+                    r1 += sorted(pos_dict[k])
+                r2 = []
+                for k in sorted(neg_dict):
+                    r2 += sorted(neg_dict[k])
+            else:
+                r1 = reduce(lambda x,y:x+y, pos_dict.values(),[])
+                r2 = reduce(lambda x,y:x+y, neg_dict.values(),[])
+            if r1:
+                if r2:
+                    return str_SUM, (' + '.join(r1)) + ' - ' + (' - '.join(r2))
+                if len(r1)>1:
+                    return str_SUM, (' + '.join(r1))
+                h,l = pos_dict.items()[0]
+                return h, l[0]
+            return str_SUM, '-' + (' - '.join(r2))
         if head is MUL:
-            l = []
-            one = self.one
-            for t,c in self.data.iteritems():
-                if c is 1:
-                    l.append(t.tostr(self))
+            d = {}
+            for t, c in self.data.iteritems():
+                h1, s1 = t.to_str_data(sort)
+                h2, s2 = cls.exponent_to_str_data(c, sort)
+                if c==1:
+                    if h1 > str_POWER:
+                        s1 = '(%s)' % (s1)
+                    h, s = h1, s1
                 else:
-                    l.append('%s**%s' % (c, t.tostr(self)))
-            return head.join(l)
+                    if h1 >= str_POWER:
+                        s1 = '(%s)' % (s1)
+                    if h2 >= str_POWER:
+                        s2 = '(%s)' % (s2)
+                    s = '%s**%s' % (s1, s2)
+                    h = str_POWER
+                l = d.get(h)
+                if l is None:
+                    l = d[h] = []
+                l.append(s)
+            if sort:
+                r1 = []
+                for k in sorted(d):
+                    r1 += sorted(d[k])
+            else:
+                r1 = reduce(lambda x,y:x+y, d.values(),[])
+            if len(r1)>1:
+                return str_PRODUCT, '*'.join(r1)
+            h, l = d.items()[0]
+            return h, l[0]
         if callable(head):
-            pass
-        raise NotImplementedError
+            h1, s1 = cls.callable_to_str_data(head, sort)
+            if h1 > str_APPLY:
+                s1 = '(%s)' % (s1)
+            args = self.data
+            if type(args) is not tuple:
+                args = args,
+            s2 = ', '.join([a.to_str_data(sort)[1] for a in args])
+            return str_APPLY, '%s(%s)' % (s1, s2)
+        return str_SYMBOL, str(self.data)
 
     @property
     def func(self):
@@ -1323,16 +1413,24 @@ generate_swapped_first_arguments(multiply_SYMBOL_MUL)
 def multiply_ADD_ADD(lhs, rhs, cls):
     ldata = lhs.data
     rdata = rhs.data
-    if len(ldata)==len(rdata)==1:
+    if len(ldata)==1:
         t1, c1 = ldata.items()[0]
+        if len(rdata)==1:
+            t2, c2 = rdata.items()[0]
+            t = multiply_dict2[t1.head][t2.head](t1, t2, cls)
+            if t==cls.one:
+                return newinstance(cls, NUMBER, c1*c2)
+            return newinstance(cls,ADD,{t: c1*c2})
+        r = newinstance(cls, MUL, {t1:1, rhs:1})
+        return newinstance(cls, ADD, {r: c1})
+    elif len(rdata)==1:
         t2, c2 = rdata.items()[0]
-        t = multiply_dict2[t1.head][t2.head](t1, t2, cls)
-        if t==cls.one:
-            return newinstance(cls, NUMBER, c1*c2)
-        return newinstance(cls,ADD,{t: c1*c2})
+        r = newinstance(cls, MUL, {t2:1, lhs:1})
+        return newinstance(cls, ADD, {r: c2})
     else:
         if ldata==rdata:
             return newinstance(cls, MUL, {lhs:2})
+        print lhs, rhs
         return newinstance(cls, MUL, {lhs:1, rhs:1})
 
 def multiply_ADD_MUL(lhs, rhs, cls):

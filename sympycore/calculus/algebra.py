@@ -172,6 +172,7 @@ class Calculus(CommutativeRingWithPairs):
             return self.data == other
         return False
 
+
 A = Calculus
 one = A(1, head=NUMBER)
 zero = A(0, head=NUMBER)
