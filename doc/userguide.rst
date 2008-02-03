@@ -1,11 +1,14 @@
 .. -*- rest -*-
+.. To verify examples, use command ``python run_doctest.py``
+.. To produce HTML file, use command ``rst2html userguide.rst html/userguide.html``
+.. To produce PDF file, use command ``rst2latex userguide.rst userguide.tex; pdflatex userguide.tex``
 
 =====================
 SympyCore Users Guide
 =====================
 
 :Authors:
-  `Pearu Peterson`
+  `Pearu Peterson <pearu.peterson@gmail.com>`_
 
 :Created:
   January 2008
@@ -20,7 +23,7 @@ and easy to extend Computer Algebra System model for Python.
 SympyCore projects home page is http://sympycore.googlecode.com/.
 
 Editorial notes:
-  This document is written in http://docutils.sourceforge.net/rst.html
+- This document is written in `reStructuredText <http://docutils.sourceforge.net/rst.html>`_ format.
 
 
 Getting Started
