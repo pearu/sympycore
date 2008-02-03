@@ -32,11 +32,11 @@ To use SympyCore from Python, one needs to import the ``sympycore`` package::
 
 The ``sympycore`` package provides ``Symbol`` and ``Number`` functions to
 construct symbolic objects and numbers. By default, the symbolic
-objects represent the elements of ``Calculus`` algebra -- a commutative
+objects are the elements of ``Calculus`` algebra -- a commutative
 ring of symbolic expressions where exponent algebra is also ``Calculus``
 algebra.
 
->>> x = Symbol('x)
+>>> x = Symbol('x')
 >>> n = Number(2,5)
 >>> x+n
 Calculus('x + 2/5')
@@ -45,7 +45,7 @@ To construct expression from a string, use the corresponding algebra
 class, for example,
 
 >>> Calculus('x+y+1/4 + x**2')+x
-Calculus('y + 2*x + 1/4 + x**2')
+Calculus('y + x**2 + 1/4 + 2*x')
 
 XXX: need more examples on elementaty operations.
 
@@ -208,11 +208,11 @@ described below.
   >>> print expr.as_tree()
   Calculus:
   ADD[
-  -1:SYMBOL[x]
-  1:MUL[
-  1: 3:SYMBOL[y]
-  1:]
-  2:NUMBER[1]
+    -1:SYMBOL[x]
+    1:MUL[
+    1:  3:SYMBOL[y]
+    1:]
+    2:NUMBER[1]
   ]
 
   where the first line shows the name of a algebra class following the
@@ -270,21 +270,21 @@ generic ones are described below.
   >>> print expr.as_tree()
   Calculus:
   ADD[
-  -1:SYMBOL[x]
-  2:NUMBER[1]
+    -1:SYMBOL[x]
+    2:NUMBER[1]
   ]
   >>> print expr.as_algebra(PrimitiveAlgebra).as_tree()
   PrimitiveAlgebra:
   ADD[
-  NEG[
-  SYMBOL[x]
-  ]
-  NUMBER[2]
+    NEG[
+      SYMBOL[x]
+    ]
+    NUMBER[2]
   ]
   >>> print expr.as_algebra(CommutativeRingWithPairs).as_tree()
   CommutativeRingWithPairs:
   ADD[
-  -1:SYMBOL[x]
-  2:NUMBER[1]
+    -1:SYMBOL[x]
+    2:NUMBER[1]
   ]
 

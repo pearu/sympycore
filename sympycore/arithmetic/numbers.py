@@ -78,7 +78,7 @@ class Fraction(tuple):
 
     def to_str_data(self,sort=True):
         if self[0]<0:
-            return str_ADD, '%s/%s' % (self)
+            return str_SUM, '%s/%s' % (self)
         return str_PRODUCT, '%s/%s' % (self)
 
     def __str__(self):
@@ -240,7 +240,7 @@ class Float(object):
 
     def to_str_data(self,sort=True):
         if self<0:
-            return str_ADD, str(self)
+            return str_SUM, str(self)
         return str_NUMBER, str(self)
 
     def __str__(self):
