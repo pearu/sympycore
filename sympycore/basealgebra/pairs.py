@@ -7,10 +7,13 @@ from collections import defaultdict
 
 from ..core import classes
 from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_NUMBER
+from ..utils import ADD, MUL, SYMBOL, NUMBER, APPLY, POW, TUPLE, head_to_string
+
+from .utils import generate_swapped_first_arguments, RedirectOperation
 from .algebra import BasicAlgebra
 from .ring import CommutativeRing
-from .primitive import PrimitiveAlgebra, ADD, MUL, SYMBOL, NUMBER, APPLY, POW, TUPLE, head_to_string
-from .utils import generate_swapped_first_arguments, RedirectOperation
+from .primitive import PrimitiveAlgebra
+
 
 def newinstance(cls, head, data, new = object.__new__):
     o = new(cls)

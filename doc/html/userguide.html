@@ -329,7 +329,12 @@ ul.auto-toc {
 <li><a class="reference" href="#integration" id="id15" name="id15">Integration</a></li>
 </ul>
 </li>
-<li><a class="reference" href="#commutative-ring-implementation" id="id16" name="id16">Commutative ring implementation</a></li>
+<li><a class="reference" href="#commutative-ring-implementation" id="id16" name="id16">Commutative ring implementation</a><ul>
+<li><a class="reference" href="#defining-functions-for-commutativeringwithpairs" id="id17" name="id17">Defining functions for <tt class="docutils literal"><span class="pre">CommutativeRingWithPairs</span></tt></a></li>
+</ul>
+</li>
+<li><a class="reference" href="#calculus" id="id18" name="id18">Calculus</a></li>
+<li><a class="reference" href="#arithemetics" id="id19" name="id19">Arithemetics</a></li>
 </ul>
 </div>
 <div class="section">
@@ -729,6 +734,106 @@ For example,</p>
 <h1><a class="toc-backref" href="#id16" id="commutative-ring-implementation" name="commutative-ring-implementation">Commutative ring implementation</a></h1>
 <p>Commutative ring operations are implemented in the class
 <tt class="docutils literal"><span class="pre">CommutativeRingWithPairs</span></tt> (derived from <tt class="docutils literal"><span class="pre">CommutativeRing</span></tt>).</p>
+<p>The class <tt class="docutils literal"><span class="pre">CommutativeRingWithPairs</span></tt> holds two attributes, <tt class="docutils literal"><span class="pre">head</span></tt>
+and <tt class="docutils literal"><span class="pre">data</span></tt>. The attribute <tt class="docutils literal"><span class="pre">head</span></tt> defines the meaning of the
+attribute <tt class="docutils literal"><span class="pre">data</span></tt> content:</p>
+<ol class="arabic simple">
+<li>If <tt class="docutils literal"><span class="pre">&lt;obj&gt;.head==SYMBOL</span></tt> then <tt class="docutils literal"><span class="pre">&lt;obj&gt;.data</span></tt> is treated as an element
+of the ring. Usually <tt class="docutils literal"><span class="pre">&lt;obj&gt;.data</span></tt> is a Python string object but
+in general it can be any hashable Python object.</li>
+<li>If <tt class="docutils literal"><span class="pre">&lt;obj&gt;.head==NUMBER</span></tt> then <tt class="docutils literal"><span class="pre">&lt;obj&gt;.data</span></tt> is treated as a
+number element of the ring, that is, an element that can be
+represented as <em>one * n</em> where <em>one</em> is unit element of the ring
+and <em>n</em> is a number saved in <tt class="docutils literal"><span class="pre">&lt;obj&gt;.data</span></tt>. Usually <tt class="docutils literal"><span class="pre">&lt;obj&gt;.data</span></tt>
+is a Python <tt class="docutils literal"><span class="pre">int</span></tt>, <tt class="docutils literal"><span class="pre">long</span></tt>, <tt class="docutils literal"><span class="pre">float</span></tt>, <tt class="docutils literal"><span class="pre">complex</span></tt> object but it
+can be also any other number-like object that supports arithmetic
+operations with Python numbers. An examples are <tt class="docutils literal"><span class="pre">Fraction</span></tt>,
+<tt class="docutils literal"><span class="pre">Float</span></tt>, <tt class="docutils literal"><span class="pre">Complex</span></tt> classes defined in <tt class="docutils literal"><span class="pre">sympycore.arithmetic</span></tt>
+package.</li>
+<li>If <tt class="docutils literal"><span class="pre">&lt;obj&gt;.head==ADD</span></tt> then <tt class="docutils literal"><span class="pre">&lt;obj&gt;.data</span></tt> contains a Python
+dictionary holding the pairs <tt class="docutils literal"><span class="pre">(&lt;ring</span> <span class="pre">element&gt;,</span> <span class="pre">&lt;coefficient&gt;)</span></tt>.
+The values of <tt class="docutils literal"><span class="pre">&lt;coefficients&gt;</span></tt> can be Python numbers or
+number-like objects or elements of some other ring (for example,
+see <tt class="docutils literal"><span class="pre">Unit</span></tt> class where the coefficients are <tt class="docutils literal"><span class="pre">Calculus</span></tt>
+instances). For example, if <tt class="docutils literal"><span class="pre">&lt;obj&gt;.data</span></tt> is <tt class="docutils literal"><span class="pre">{x:2,</span> <span class="pre">y:1}</span></tt> then
+<tt class="docutils literal"><span class="pre">&lt;obj&gt;</span></tt> represents an expression <em>y + 2*x</em>.</li>
+<li>If <tt class="docutils literal"><span class="pre">&lt;obj&gt;.head==MUL</span></tt> then <tt class="docutils literal"><span class="pre">&lt;obj&gt;.data</span></tt> contains a Python
+dictionary holding the pairs <tt class="docutils literal"><span class="pre">(&lt;ring</span> <span class="pre">element&gt;,</span> <span class="pre">&lt;exponent&gt;)</span></tt>.  The
+values of <tt class="docutils literal"><span class="pre">&lt;coefficients&gt;</span></tt> can be Python numbers of number-like
+objects or elements of some ring (for exapmle, see <tt class="docutils literal"><span class="pre">Calculus</span></tt>
+class where the exponents can also be <tt class="docutils literal"><span class="pre">Calculus</span></tt> instances).</li>
+<li>If <tt class="docutils literal"><span class="pre">callable(&lt;obj&gt;.head)</span></tt> then <tt class="docutils literal"><span class="pre">&lt;obj&gt;</span></tt> represents an applied
+function where <tt class="docutils literal"><span class="pre">&lt;obj&gt;.head</span></tt> contains a callable object that
+performs evaluation and <tt class="docutils literal"><span class="pre">&lt;obj&gt;.data</span></tt> contains an argument
+instance (for example, an instance of some algebra elements)
+or a Python <tt class="docutils literal"><span class="pre">tuple</span></tt> containing argument instances.</li>
+</ol>
+<p>The constants <tt class="docutils literal"><span class="pre">SYMBOL</span></tt>, <tt class="docutils literal"><span class="pre">NUMBER</span></tt>, <tt class="docutils literal"><span class="pre">ADD</span></tt>, <tt class="docutils literal"><span class="pre">MUL</span></tt> are defined
+in <tt class="docutils literal"><span class="pre">sympycore/utils.py</span></tt>.</p>
+<p>For example,</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; from sympycore.utils import head_to_string
+&gt;&gt;&gt; head_to_string[x.head]
+'SYMBOL'
+&gt;&gt;&gt; x.data
+'x'
+&gt;&gt;&gt; head_to_string[(x+y).head]
+'ADD'
+&gt;&gt;&gt; (x+y).data == {x:1,y:1}
+True
+&gt;&gt;&gt; head_to_string[(x**y).head]
+'MUL'
+&gt;&gt;&gt; (x**y).data
+{Calculus('x'): Calculus('y')}
+&gt;&gt;&gt; sin(x).head
+&lt;class 'sympycore.calculus.functions.elementary.sin'&gt;
+&gt;&gt;&gt; sin(x).data
+Calculus('x')
+</pre>
+<div class="section">
+<h2><a class="toc-backref" href="#id17" id="defining-functions-for-commutativeringwithpairs" name="defining-functions-for-commutativeringwithpairs">Defining functions for <tt class="docutils literal"><span class="pre">CommutativeRingWithPairs</span></tt></a></h2>
+<p>The representation of an applied function within the class
+<tt class="docutils literal"><span class="pre">CommutativeRingWithPairs</span></tt> can hold any Python callable object that
+satisfies the following basic condition: it must return an instance of
+a algebra class. The instance may represent an evaluated result of
+applying the function to its arguments, or when evaluation is not
+possible, then it return <tt class="docutils literal"><span class="pre">&lt;algebra</span> <span class="pre">class&gt;(&lt;arguments&gt;,</span>
+<span class="pre">head=&lt;callable&gt;)</span></tt>.</p>
+<p>For example, let us define a customized sinus function:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; def mysin(x):
+...     if x==0:
+...         return x
+...     return Calculus(x, head=mysin)
+...
+&gt;&gt;&gt; mysin(0)
+0
+&gt;&gt;&gt; print mysin(x+y)
+mysin(x + y)
+</pre>
+</div>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id18" id="calculus" name="calculus">Calculus</a></h1>
+<p>The default algebra of symbolic expressions with commutative ring
+operations is represented by the <tt class="docutils literal"><span class="pre">Calculus</span></tt> class (derived from
+<tt class="docutils literal"><span class="pre">CommutativeAlgebraWithPairs</span></tt>). The <tt class="docutils literal"><span class="pre">Calculus</span></tt> class can handle
+rational numbers represented by the <tt class="docutils literal"><span class="pre">Fraction</span></tt> class, multi-precision
+floating point numbers represented by the <tt class="docutils literal"><span class="pre">Float</span></tt> class, and
+rational complex numbers represented by the <tt class="docutils literal"><span class="pre">Complex</span></tt> class.</p>
+<p>The <tt class="docutils literal"><span class="pre">sympycore.calculus.functions</span></tt> package defines the following
+symbolic functions: <tt class="docutils literal"><span class="pre">sqrt</span></tt>, <tt class="docutils literal"><span class="pre">exp</span></tt>, <tt class="docutils literal"><span class="pre">log</span></tt>, <tt class="docutils literal"><span class="pre">sin</span></tt>, <tt class="docutils literal"><span class="pre">cos</span></tt>,
+<tt class="docutils literal"><span class="pre">tan</span></tt>, <tt class="docutils literal"><span class="pre">cot</span></tt>. It also provides <tt class="docutils literal"><span class="pre">Calculus</span></tt> based interfaces to
+constants <tt class="docutils literal"><span class="pre">E</span></tt>, <tt class="docutils literal"><span class="pre">pi</span></tt>, and symbols <tt class="docutils literal"><span class="pre">I</span></tt>, <tt class="docutils literal"><span class="pre">oo</span></tt>, <tt class="docutils literal"><span class="pre">moo</span></tt>, <tt class="docutils literal"><span class="pre">zoo</span></tt>,
+<tt class="docutils literal"><span class="pre">undefined</span></tt>.</p>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id19" id="arithemetics" name="arithemetics">Arithemetics</a></h1>
+<p>The <tt class="docutils literal"><span class="pre">sympycore.arithmetic</span></tt> package is not an algebra package but it
+implements fractions, multi-precision floating point numbers, rational
+complex numbers, and extended numbers. In addition, it implements
+various algorithms from number theory and provides methods to compute
+the values of constants like pi and Eulers number, etc.</p>
 </div>
 </div>
 </body>

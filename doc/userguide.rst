@@ -409,3 +409,114 @@ Commutative ring implementation
 
 Commutative ring operations are implemented in the class
 ``CommutativeRingWithPairs`` (derived from ``CommutativeRing``).
+
+The class ``CommutativeRingWithPairs`` holds two attributes, ``head``
+and ``data``. The attribute ``head`` defines the meaning of the
+attribute ``data`` content:
+
+1. If ``<obj>.head==SYMBOL`` then ``<obj>.data`` is treated as an element
+   of the ring. Usually ``<obj>.data`` is a Python string object but
+   in general it can be any hashable Python object.
+
+#. If ``<obj>.head==NUMBER`` then ``<obj>.data`` is treated as a
+   number element of the ring, that is, an element that can be
+   represented as *one \* n* where *one* is unit element of the ring
+   and *n* is a number saved in ``<obj>.data``. Usually ``<obj>.data``
+   is a Python ``int``, ``long``, ``float``, ``complex`` object but it
+   can be also any other number-like object that supports arithmetic
+   operations with Python numbers. An examples are ``Fraction``,
+   ``Float``, ``Complex`` classes defined in ``sympycore.arithmetic``
+   package.
+
+#. If ``<obj>.head==ADD`` then ``<obj>.data`` contains a Python
+   dictionary holding the pairs ``(<ring element>, <coefficient>)``.
+   The values of ``<coefficients>`` can be Python numbers or
+   number-like objects or elements of some other ring (for example,
+   see ``Unit`` class where the coefficients are ``Calculus``
+   instances). For example, if ``<obj>.data`` is ``{x:2, y:1}`` then
+   ``<obj>`` represents an expression *y + 2\*x*.
+
+#. If ``<obj>.head==MUL`` then ``<obj>.data`` contains a Python
+   dictionary holding the pairs ``(<ring element>, <exponent>)``.  The
+   values of ``<coefficients>`` can be Python numbers of number-like
+   objects or elements of some ring (for exapmle, see ``Calculus``
+   class where the exponents can also be ``Calculus`` instances).
+
+#. If ``callable(<obj>.head)`` then ``<obj>`` represents an applied
+   function where ``<obj>.head`` contains a callable object that
+   performs evaluation and ``<obj>.data`` contains an argument
+   instance (for example, an instance of some algebra elements)
+   or a Python ``tuple`` containing argument instances.
+
+The constants ``SYMBOL``, ``NUMBER``, ``ADD``, ``MUL`` are defined
+in ``sympycore/utils.py``.
+
+For example,
+
+>>> from sympycore.utils import head_to_string
+>>> head_to_string[x.head]
+'SYMBOL'
+>>> x.data
+'x'
+>>> head_to_string[(x+y).head]
+'ADD'
+>>> (x+y).data == {x:1,y:1}
+True
+>>> head_to_string[(x**y).head]
+'MUL'
+>>> (x**y).data
+{Calculus('x'): Calculus('y')}
+>>> sin(x).head
+<class 'sympycore.calculus.functions.elementary.sin'>
+>>> sin(x).data
+Calculus('x')
+
+
+Defining functions for ``CommutativeRingWithPairs``
+---------------------------------------------------
+
+The representation of an applied function within the class
+``CommutativeRingWithPairs`` can hold any Python callable object that
+satisfies the following basic condition: it must return an instance of
+a algebra class. The instance may represent an evaluated result of
+applying the function to its arguments, or when evaluation is not
+possible, then it return ``<algebra class>(<arguments>,
+head=<callable>)``.
+
+For example, let us define a customized sinus function:
+
+>>> def mysin(x):
+...     if x==0:
+...         return x
+...     return Calculus(x, head=mysin)
+... 
+>>> mysin(0)
+0
+>>> print mysin(x+y)
+mysin(x + y)
+
+
+Calculus
+========
+
+The default algebra of symbolic expressions with commutative ring
+operations is represented by the ``Calculus`` class (derived from
+``CommutativeAlgebraWithPairs``). The ``Calculus`` class can handle
+rational numbers represented by the ``Fraction`` class, multi-precision
+floating point numbers represented by the ``Float`` class, and
+rational complex numbers represented by the ``Complex`` class.
+
+The ``sympycore.calculus.functions`` package defines the following
+symbolic functions: ``sqrt``, ``exp``, ``log``, ``sin``, ``cos``,
+``tan``, ``cot``. It also provides ``Calculus`` based interfaces to 
+constants ``E``, ``pi``, and symbols ``I``, ``oo``, ``moo``, ``zoo``,
+``undefined``.
+
+Arithemetics
+============
+
+The ``sympycore.arithmetic`` package is not an algebra package but it
+implements fractions, multi-precision floating point numbers, rational
+complex numbers, and extended numbers. In addition, it implements
+various algorithms from number theory and provides methods to compute
+the values of constants like pi and Eulers number, etc.

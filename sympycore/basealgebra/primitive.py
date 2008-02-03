@@ -6,45 +6,9 @@ import compiler
 from compiler import ast
 
 from .algebra import BasicAlgebra
-
-OR = intern(' or ')
-AND = intern(' and ')
-NOT = intern('not ')
-
-LT = intern('<')
-LE = intern('<=')
-GT = intern('>')
-GE = intern('>=')
-EQ = intern('==')
-NE = intern('!=')
-
-BAND = intern('&')
-BOR = intern('|')
-BXOR = intern('^')
-INVERT = intern('~')
-
-POS = intern('+')
-NEG = intern('-')
-ADD = intern(' + ')
-SUB = intern(' - ')
-MOD = intern('%')
-MUL = intern('*')
-DIV = intern('/')
-POW = intern('**')
-
-NUMBER = intern('N')
-SYMBOL = intern('S')
-APPLY = intern('A')
-TUPLE = intern('T')
-LAMBDA = intern('L')
-
-head_to_string = {\
-    OR:'OR', AND:'AND', NOT:'NOT',
-    LT:'LT', LE:'LE', GT:'GT', GE:'GE', NE:'NE',
-    BAND:'BAND', BOR:'BOR', BXOR:'BXOR', INVERT:'INVERT',
-    POS:'POS', NEG:'NEG', ADD:'ADD', SUB:'SUB', MOD:'MOD', MUL:'MUL', DIV:'DIV', POW:'POW',
-    NUMBER:'NUMBER', SYMBOL:'SYMBOL', APPLY:'APPLY', TUPLE:'TUPLE', LAMBDA:'LAMBDA',
-    }
+from ..utils import (OR, AND, NOT, LT, LE, GT, GE, EQ, NE, BAND, BOR, BXOR,
+                     INVERT, POS, NEG, ADD, SUB, MOD, MUL, DIV, POW,
+                     NUMBER, SYMBOL, APPLY, TUPLE, LAMBDA, head_to_string)
 
 # XXX: Unimplemented expression parts:
 # XXX: LeftShift, RightShift, List*, Subscript, Slice, KeyWord, GetAttr, Ellipsis

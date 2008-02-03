@@ -202,7 +202,6 @@ class BasicAlgebra(Basic):
             else:
                 s, func = w, True
             s = self.convert(s)
-            assert s.head==SYMBOL,`s`
             wild_expressions.append(s)
             wild_predicates.append(func)
         if wild_expressions:
@@ -307,4 +306,3 @@ class BasicAlgebra(Basic):
         raise NotImplementedError('%s must define _subs method'     #pragma NO COVER
                                   % (self.__class__.__name__))      #pragma NO COVER
 
-from .primitive import SYMBOL
