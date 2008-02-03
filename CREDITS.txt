@@ -3,7 +3,12 @@ Introduction
 
 This file collects the notes for credits, acknowledgments, and used
 third-party software of the Sympy Core project in chronological
-reversed order.
+reversed order. 
+
+[OBSOLETE] means that the most recent version of sympycore does not
+use the particular part of the contribution anymore. Nevertheless, the
+contribution had importance in the development of sympycore to its
+current stage.
 
 Credits
 -------
@@ -18,10 +23,12 @@ Credits
   performance improvements. Fredrik implemented PrimitiveAlgebra class
   that is used as a universal language between different
   algebras. Pearu added an expression parsing (based on the Python
-  compiler package) support to PrimitiveAlgebra.
+  compiler package) support to PrimitiveAlgebra. Fredrik became an
+  author of sympycore package.
 
-* Sympy Core uses the idea of Fredrik Johansson's research to carry
-  out arithmetic operations using s-expression like structures. See
+* [OBSOLETE] Sympy Core uses the idea of Fredrik Johansson's research
+  to carry out arithmetic operations using s-expression like
+  structures. See
 
     http://sympycore.googlecode.com/svn/trunk/research/directadd5.py
 
@@ -30,30 +37,23 @@ Credits
   considerable performance improvement in terms of creating new
   symbolic expressions and performing arithmetic operations.
 
-* Sympy Core uses the proof-of-concept by Kirill Smelkov
+* [OBSOLETE] Sympy Core uses the proof-of-concept by Kirill Smelkov
 
     http://code.google.com/p/sympy/issues/detail?id=440
 
   (see comment #10) for using Python AST structures to parse strings
   and create symbolic expressions from them. The idea with added
-  features was implemented in sympycore by Pearu.
+  features was implemented in sympycore by Pearu. 
 
-* The code of Sympy Core is based on the development of the
+* [OBSOLETE] The code of Sympy Core is based on the development of the
   sympy-sandbox branch of the SymPy project SVN repository. The branch
   as well as subsequent development of the sympycore package is
-  carried out by Pearu Peterson during the year 2007.
+  carried out solely by Pearu Peterson during the year 2007.
 
 * The Sympy Core project started by Pearu Peterson is closely related
-  to the SymPy project
+  to the SymPy project: http://sympy.googlecode.com/.
+  See http://wiki.sympy.org/wiki/Contributors/ for SymPy credits.
 
-    http://sympy.googlecode.com/
-
-  which was established by Ondrej Certik in autumn 2006.
-
-  The Sympy Core tries to provide an efficient, robust, and complete
-  implementations of the core part of a Computer Algebra System for
-  Python and it is the aim of this project that the SymPy project will
-  use sympycore for that in future.  
 
 Third-party software
 --------------------
@@ -70,7 +70,7 @@ Sympy Core includes the following third-party software:
   In the recent development of sympycore the user is assumed to use
   globally installed mpmath 0.6 or newer version.
 
-* qm module (v0.1) developed by Robert Dick:
+* [OBSOLETE] qm module (v0.1) developed by Robert Dick:
 
     http://ziyang.ece.northwestern.edu/~dickrp/python/mods.html
 
