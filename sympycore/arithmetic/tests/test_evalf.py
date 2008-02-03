@@ -1,8 +1,8 @@
 from sympycore.arithmetic.evalf import *
+from sympycore.arithmetic.evalf import mpmath
 from sympycore.calculus import Symbol, I, Number, exp, sin, cos, E, pi
 import math
 import cmath
-import mpmath
 
 def test_evalf():
     expr1 = Number(1)/3

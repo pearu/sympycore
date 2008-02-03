@@ -2,8 +2,8 @@ from .numbers import Float, Complex, ExtendedNumber
 
 import math
 import cmath
-import mpmath
 import re
+import mpmath
 
 int_pattern = re.compile('\d+')
 

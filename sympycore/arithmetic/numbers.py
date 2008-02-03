@@ -209,7 +209,7 @@ class Fraction(tuple):
 #                                                                            #
 #----------------------------------------------------------------------------#
 
-from mpmath.lib import from_int, from_rational, to_str, fadd, fsub, fmul, \
+from .mpmath.lib import from_int, from_rational, to_str, fadd, fsub, fmul, \
   round_half_even, from_float, to_float, to_int, fpow, from_str, feq, \
   fhash, fcmp, fdiv, fabs, fcabs, fneg, fnan
 
