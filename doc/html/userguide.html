@@ -307,8 +307,33 @@ ul.auto-toc {
 <!-- To verify examples, use command ``python run_doctest.py`` -->
 <!-- To produce HTML file, use command ``rst2html userguide.rst html/userguide.html`` -->
 <!-- To produce PDF file, use command ``rst2latex userguide.rst userguide.tex; pdflatex userguide.tex`` -->
+<div class="contents topic">
+<p class="topic-title first"><a id="contents" name="contents">Contents</a></p>
+<ul class="simple">
+<li><a class="reference" href="#introduction" id="id1" name="id1">Introduction</a></li>
+<li><a class="reference" href="#getting-started" id="id2" name="id2">Getting Started</a></li>
+<li><a class="reference" href="#the-cas-model" id="id3" name="id3">The CAS model</a></li>
+<li><a class="reference" href="#package-structure" id="id4" name="id4">Package structure</a></li>
+<li><a class="reference" href="#basic-methods" id="id5" name="id5">Basic methods</a><ul>
+<li><a class="reference" href="#output-methods" id="id6" name="id6">Output methods</a></li>
+<li><a class="reference" href="#conversation-methods" id="id7" name="id7">Conversation methods</a></li>
+<li><a class="reference" href="#substitution-of-expressions" id="id8" name="id8">Substitution of expressions</a></li>
+<li><a class="reference" href="#pattern-matching" id="id9" name="id9">Pattern matching</a></li>
+<li><a class="reference" href="#checking-for-atomic-objects" id="id10" name="id10">Checking for atomic objects</a></li>
+</ul>
+</li>
+<li><a class="reference" href="#primitive-algebra" id="id11" name="id11">Primitive algebra</a></li>
+<li><a class="reference" href="#commutative-ring" id="id12" name="id12">Commutative ring</a><ul>
+<li><a class="reference" href="#operations" id="id13" name="id13">Operations</a></li>
+<li><a class="reference" href="#differentation" id="id14" name="id14">Differentation</a></li>
+<li><a class="reference" href="#integration" id="id15" name="id15">Integration</a></li>
+</ul>
+</li>
+<li><a class="reference" href="#commutative-ring-implementation" id="id16" name="id16">Commutative ring implementation</a></li>
+</ul>
+</div>
 <div class="section">
-<h1><a id="introduction" name="introduction">Introduction</a></h1>
+<h1><a class="toc-backref" href="#id1" id="introduction" name="introduction">Introduction</a></h1>
 <p>The aim of the SympyCore project is to develop a robust, consistent,
 and easy to extend Computer Algebra System model for Python.</p>
 <p>SympyCore projects home page is <a class="reference" href="http://sympycore.googlecode.com/">http://sympycore.googlecode.com/</a>.</p>
@@ -316,7 +341,7 @@ and easy to extend Computer Algebra System model for Python.</p>
 - This document is written in <a class="reference" href="http://docutils.sourceforge.net/rst.html">reStructuredText</a> format.</p>
 </div>
 <div class="section">
-<h1><a id="getting-started" name="getting-started">Getting Started</a></h1>
+<h1><a class="toc-backref" href="#id2" id="getting-started" name="getting-started">Getting Started</a></h1>
 <p>To use SympyCore from Python, one needs to import the <tt class="docutils literal"><span class="pre">sympycore</span></tt> package:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; from sympycore import *
@@ -331,6 +356,7 @@ algebra.</p>
 &gt;&gt;&gt; n = Number(2,5)
 &gt;&gt;&gt; x+n
 Calculus('x + 2/5')
+&gt;&gt;&gt; x,y,v,w=map(Symbol,'xyvw')
 </pre>
 <p>To construct expression from a string, use the corresponding algebra
 class, for example,</p>
@@ -341,7 +367,7 @@ Calculus('y + x**2 + 1/4 + 2*x')
 <p>XXX: need more examples on elementaty operations.</p>
 </div>
 <div class="section">
-<h1><a id="the-cas-model" name="the-cas-model">The CAS model</a></h1>
+<h1><a class="toc-backref" href="#id3" id="the-cas-model" name="the-cas-model">The CAS model</a></h1>
 <p>Symbolic expressions represent mathematical concepts like numbers,
 constants, variables, functions, operators, and various relations
 between them. Symbolic objects, on the other hand, represent symbolic
@@ -400,7 +426,7 @@ Calculus('a + b**2 - 3/4')
 </pre>
 </div>
 <div class="section">
-<h1><a id="sympycore-package-structure" name="sympycore-package-structure">SympyCore package structure</a></h1>
+<h1><a class="toc-backref" href="#id4" id="package-structure" name="package-structure">Package structure</a></h1>
 <p>SympyCore project provides a python package <tt class="docutils literal"><span class="pre">sympycore</span></tt> that consists of
 several modules and subpackages:</p>
 <ol class="arabic">
@@ -456,20 +482,24 @@ the algebras of polynomials with symbols, univariate polynomials in
 see [section on polynomials].</p>
 </li>
 </ol>
+</div>
 <div class="section">
-<h2><a id="generic-informational-and-transformational-methods" name="generic-informational-and-transformational-methods">Generic informational and transformational methods</a></h2>
+<h1><a class="toc-backref" href="#id5" id="basic-methods" name="basic-methods">Basic methods</a></h1>
 <p>In <tt class="docutils literal"><span class="pre">sympycore</span></tt> all symbolic objects are assumed to be immutable. So, the
 manipulation of symbolic objects means creating new symbolic objects
 from the parts of existing ones.</p>
 <p>There are many methods that can be used to retrive information and
 subexpressions from a symbolic object. The most generic method is to
-use attribute pair of func and args as described above. However, many
-such methods are also algebra specific, for example, classes of
-commutative rings have methods like <tt class="docutils literal"><span class="pre">as_Add_args</span></tt>, <tt class="docutils literal"><span class="pre">as_Mul_args</span></tt>
-etc for retriving operands and <tt class="docutils literal"><span class="pre">Add</span></tt>, <tt class="docutils literal"><span class="pre">Mul</span></tt>, etc for constructing
-new symbolic objects. For more information, see sections describing
-particular algebra classes. The generic informational methods are
-described below.</p>
+use attribute pair of <tt class="docutils literal"><span class="pre">func</span></tt> and <tt class="docutils literal"><span class="pre">args</span></tt> as described
+above. However, many such methods are also algebra specific, for
+example, classes of commutative rings have methods like
+<tt class="docutils literal"><span class="pre">as_Add_args</span></tt>, <tt class="docutils literal"><span class="pre">as_Mul_args</span></tt>, etc for retriving the operands of
+operations and <tt class="docutils literal"><span class="pre">Add</span></tt>, <tt class="docutils literal"><span class="pre">Mul</span></tt>, etc for constructing new symbolic
+objects representing addition, multiplication, etc operations. For
+more information about such methods, see sections describing the
+particular algebra classes.</p>
+<div class="section">
+<h2><a class="toc-backref" href="#id6" id="output-methods" name="output-methods">Output methods</a></h2>
 <dl class="docutils">
 <dt><tt class="docutils literal"><span class="pre">str(&lt;symbolic</span> <span class="pre">object&gt;)</span></tt></dt>
 <dd><p class="first">return a nice string representation of the symbolic object. For example,</p>
@@ -508,32 +538,10 @@ represented the coefficients and exponents of the example
 subexpressions.</p>
 </dd>
 </dl>
-<p>There are also methods that create new symbolic objects from existing
-ones. For example, substitutions, computing derivatives, integrals,
-etc are such methods and they also can be algebra specific. The
-generic ones are described below.</p>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id7" id="conversation-methods" name="conversation-methods">Conversation methods</a></h2>
 <dl class="docutils">
-<dt><tt class="docutils literal"><span class="pre">&lt;symbolic</span> <span class="pre">object&gt;.subs(&lt;subexpression&gt;,</span> <span class="pre">&lt;newexpression&gt;)</span></tt></dt>
-<dd><p class="first">return a copy of <tt class="docutils literal"><span class="pre">&lt;symbolic</span> <span class="pre">object&gt;</span></tt> with all occurances of
-<tt class="docutils literal"><span class="pre">&lt;subexpression&gt;</span></tt> replaced with <tt class="docutils literal"><span class="pre">&lt;newexpression&gt;</span></tt>. For example,</p>
-<pre class="last doctest-block">
-&gt;&gt;&gt; expr = Calculus('-x + 2+y**3')
-&gt;&gt;&gt; expr
-Calculus('2 + y**3 - x')
-&gt;&gt;&gt; expr.subs('y', '2*z')
-Calculus('2 + 8*z**3 - x')
-</pre>
-</dd>
-<dt><tt class="docutils literal"><span class="pre">&lt;symbolic</span> <span class="pre">object&gt;.subs([(&lt;subexpr1&gt;,</span> <span class="pre">&lt;newexpr1&gt;),</span> <span class="pre">(&lt;subexpr2&gt;,</span> <span class="pre">&lt;newexpr2&gt;),</span> <span class="pre">...])</span></tt></dt>
-<dd><p class="first">is equivalent to <tt class="docutils literal"><span class="pre">&lt;symbolic</span> <span class="pre">object&gt;.subs(&lt;subexp1&gt;,</span>
-<span class="pre">&lt;newexpr1&gt;).subs(&lt;subexpr2&gt;,</span> <span class="pre">&lt;newexpr2&gt;).subs</span></tt>. For example,</p>
-<pre class="last doctest-block">
-&gt;&gt;&gt; expr
-Calculus('2 + y**3 - x')
-&gt;&gt;&gt; expr.subs([('y', '2*z'),('z', 2)])
-Calculus('66 - x')
-</pre>
-</dd>
 <dt><tt class="docutils literal"><span class="pre">&lt;symbolic</span> <span class="pre">object&gt;.as_primitive()</span></tt></dt>
 <dd><p class="first">return symbolic object as an instance of <tt class="docutils literal"><span class="pre">PrimitiveAlgebra</span></tt> class. All
 algebra classes must implement <tt class="docutils literal"><span class="pre">as_primitive</span></tt> method as this allows
@@ -581,6 +589,146 @@ ADD[
 </dd>
 </dl>
 </div>
+<div class="section">
+<h2><a class="toc-backref" href="#id8" id="substitution-of-expressions" name="substitution-of-expressions">Substitution of expressions</a></h2>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">&lt;symbolic</span> <span class="pre">object&gt;.subs(&lt;sub-expr&gt;,</span> <span class="pre">&lt;new-expr&gt;)</span></tt></dt>
+<dd><p class="first">return a copy of <tt class="docutils literal"><span class="pre">&lt;symbolic</span> <span class="pre">object&gt;</span></tt> with all occurances of
+<tt class="docutils literal"><span class="pre">&lt;sub-expr&gt;</span></tt> replaced with <tt class="docutils literal"><span class="pre">&lt;new-expr&gt;</span></tt>. For example,</p>
+<pre class="last doctest-block">
+&gt;&gt;&gt; expr = Calculus('-x + 2+y**3')
+&gt;&gt;&gt; expr
+Calculus('2 + y**3 - x')
+&gt;&gt;&gt; expr.subs('y', '2*z')
+Calculus('2 + 8*z**3 - x')
+</pre>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">&lt;symbolic</span> <span class="pre">object&gt;.subs([(&lt;subexpr1&gt;,</span> <span class="pre">&lt;newexpr1&gt;),</span> <span class="pre">(&lt;subexpr2&gt;,</span> <span class="pre">&lt;newexpr2&gt;),</span> <span class="pre">...])</span></tt></dt>
+<dd><p class="first">is equivalent to <tt class="docutils literal"><span class="pre">&lt;symbolic</span> <span class="pre">object&gt;.subs(&lt;subexp1&gt;,</span>
+<span class="pre">&lt;newexpr1&gt;).subs(&lt;subexpr2&gt;,</span> <span class="pre">&lt;newexpr2&gt;).subs</span></tt>. For example,</p>
+<pre class="last doctest-block">
+&gt;&gt;&gt; expr
+Calculus('2 + y**3 - x')
+&gt;&gt;&gt; expr.subs([('y', '2*z'),('z', 2)])
+Calculus('66 - x')
+</pre>
+</dd>
+</dl>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id9" id="pattern-matching" name="pattern-matching">Pattern matching</a></h2>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">&lt;symbolic</span> <span class="pre">object&gt;.match(&lt;pattern-expr&gt;</span> <span class="pre">[,</span> <span class="pre">&lt;wildcard1&gt;,</span> <span class="pre">&lt;wildcard2&gt;</span> <span class="pre">...])</span></tt></dt>
+<dd><p class="first">check if the give symbolic object matches given pattern. Pattern
+expression may contain wild symbols that match arbitrary
+expressions, the <tt class="docutils literal"><span class="pre">wildcard</span></tt> must be then the corresponding
+symbol. Wild symbols can be matched also conditionally, then the
+<tt class="docutils literal"><span class="pre">&lt;wildcard&gt;</span></tt> argument must be a tuple <tt class="docutils literal"><span class="pre">(&lt;wild-symbol&gt;,</span> <span class="pre">&lt;predicate&gt;)</span></tt>,
+where <tt class="docutils literal"><span class="pre">&lt;predicate&gt;</span></tt> is a single-argument function returning <tt class="docutils literal"><span class="pre">True</span></tt> if
+wild symbol matches the expression in argument. If the match is not
+found then the method returns. Otherwise it will return a dictionary
+object such that the following condition holds:</p>
+<pre class="literal-block">
+pattern.subs(expr.match(pattern, ...).items()) == expr
+</pre>
+<p>For example,</p>
+<pre class="last doctest-block">
+&gt;&gt;&gt; expr = 3*x + 4*y
+&gt;&gt;&gt; pattern = v*x + w*y
+&gt;&gt;&gt; d = expr.match(pattern, v, w)
+&gt;&gt;&gt; print 'v=',d.get(v)
+v= 3
+&gt;&gt;&gt; print 'w=',d.get(w)
+w= 4
+&gt;&gt;&gt; pattern.subs(d.items())==expr
+True
+</pre>
+</dd>
+</dl>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id10" id="checking-for-atomic-objects" name="checking-for-atomic-objects">Checking for atomic objects</a></h2>
+<p>A symbolic object is atomic if <tt class="docutils literal"><span class="pre">&lt;symbolic</span> <span class="pre">object&gt;.args</span> <span class="pre">==</span> <span class="pre">()</span></tt>.</p>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">&lt;symbolic</span> <span class="pre">object&gt;.symbols</span></tt></dt>
+<dd>is a property that holds a set of all atomic symbols in the given
+symbolic expression.</dd>
+<dt><tt class="docutils literal"><span class="pre">&lt;symbolic</span> <span class="pre">object&gt;.has(&lt;symbol&gt;)</span></tt></dt>
+<dd>returns <tt class="docutils literal"><span class="pre">True</span></tt> if the symbolic expression contains <tt class="docutils literal"><span class="pre">&lt;symbol&gt;</span></tt>.</dd>
+</dl>
+</div>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id11" id="primitive-algebra" name="primitive-algebra">Primitive algebra</a></h1>
+<p>XXX: explain <tt class="docutils literal"><span class="pre">PrimitiveAlgebra</span></tt> class.</p>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id12" id="commutative-ring" name="commutative-ring">Commutative ring</a></h1>
+<p>In SympyCore a commutative ring is represented by an abstract class
+<tt class="docutils literal"><span class="pre">CommutativeRing</span></tt>.  The <tt class="docutils literal"><span class="pre">CommutativeRing</span></tt> class defines support
+for addition, substraction, multiplication, division, and
+exponentiation operations.</p>
+<div class="section">
+<h2><a class="toc-backref" href="#id13" id="operations" name="operations">Operations</a></h2>
+<p>Classes deriving from <tt class="docutils literal"><span class="pre">CommutativeRing</span></tt> must define a number of
+method pairs <tt class="docutils literal"><span class="pre">(Operation,</span> <span class="pre">as_Operation_args)</span></tt> that satisfy the
+following condition:</p>
+<pre class="literal-block">
+cls.Operation(*obj.as_Operation_args()) == obj
+</pre>
+<p>Here <tt class="docutils literal"><span class="pre">Operation</span></tt> can be <tt class="docutils literal"><span class="pre">Add</span></tt>, <tt class="docutils literal"><span class="pre">Mul</span></tt>, <tt class="docutils literal"><span class="pre">Terms</span></tt>, <tt class="docutils literal"><span class="pre">Factors</span></tt>,
+<tt class="docutils literal"><span class="pre">Pow</span></tt>, <tt class="docutils literal"><span class="pre">Log</span></tt>. For example,</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; print map(str, (2*x+y).as_Add_args())
+['y', '2*x']
+&gt;&gt;&gt; print map(str, (2*x+y).as_Mul_args())
+['y + 2*x']
+&gt;&gt;&gt; print map(str, (2*x+y).as_Pow_args())
+['y + 2*x', '1']
+&gt;&gt;&gt; print (2*x+y).as_Terms_args()
+[(Calculus('y'), 1), (Calculus('x'), 2)]
+</pre>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id14" id="differentation" name="differentation">Differentation</a></h2>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">&lt;symbolic</span> <span class="pre">object&gt;.diff(*symbols)</span></tt></dt>
+<dd><p class="first">return a derivative of symbolic expression with respect to given
+symbols. The diff methods argument can also be a positive integer
+after some symbol argument. Then the derivative is computed given
+number of times with respect to the last symbol.
+For example,</p>
+<pre class="last doctest-block">
+&gt;&gt;&gt; print sin(x*y).diff(x)
+y*cos(x*y)
+&gt;&gt;&gt; print sin(x*y).diff(x,y)
+cos(x*y) - x*y*sin(x*y)
+&gt;&gt;&gt; print sin(x*y).diff(x,4)
+sin(x*y)*y**4
+</pre>
+</dd>
+</dl>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id15" id="integration" name="integration">Integration</a></h2>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">&lt;symbolic</span> <span class="pre">object&gt;.integrate(&lt;symbol&gt;,</span> <span class="pre">integrator=None)</span></tt></dt>
+<dd><p class="first">return an antiderivative of a symbolic expression with respect to
+<tt class="docutils literal"><span class="pre">&lt;symbol&gt;</span></tt>.
+For example,</p>
+<pre class="last doctest-block">
+&gt;&gt;&gt; from sympycore import *
+&gt;&gt;&gt; print (x**2 + x*y).integrate(x)
+1/2*y*x**2 + 1/3*x**3
+</pre>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id16" id="commutative-ring-implementation" name="commutative-ring-implementation">Commutative ring implementation</a></h1>
+<p>Commutative ring operations are implemented in the class
+<tt class="docutils literal"><span class="pre">CommutativeRingWithPairs</span></tt> (derived from <tt class="docutils literal"><span class="pre">CommutativeRing</span></tt>).</p>
 </div>
 </div>
 </body>

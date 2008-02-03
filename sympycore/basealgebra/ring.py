@@ -21,26 +21,6 @@ class CommutativeRing(BasicAlgebra):
         raise NotImplementedError('%s must define classmethod npower' #pragma NO COVER
                                   % (cls.__name__))                   #pragma NO COVER
 
-    @property
-    def symbols(self):
-        """ Return a set of atomic subexpressions in a symbolic object.
-        """
-        symbols = self._symbols
-        if symbols is None:
-            args = self.args
-            if args:
-                symbols = set()
-                for arg in args:
-                    symbols |= arg.symbols
-            else:
-                symbols = set([self])
-            self._symbols = symbols
-        return symbols
-
-    def has(self, obj):
-        convert = self.convert
-        return convert(obj) in self.symbols
-    
     @classmethod
     def Add(cls, *seq):
         """ Compute sum over seq containing algebra elements.
@@ -107,6 +87,12 @@ class CommutativeRing(BasicAlgebra):
         """ Return a 2-tuple such that Pow(*self.as_Pow_args()) == self
         """
         raise NotImplementedError('%s must define method as_Pow_args'  #pragma NO COVER
+                                  % (self.__class__.__name__))         #pragma NO COVER
+
+    def as_Log_args(self):
+        """ Return a 2-tuple such that Log(*self.as_Log_args()) == self
+        """
+        raise NotImplementedError('%s must define method as_Log_args'  #pragma NO COVER
                                   % (self.__class__.__name__))         #pragma NO COVER
 
     def as_Terms_args(self):
@@ -231,6 +217,24 @@ class CommutativeRing(BasicAlgebra):
         raise NotImplementedError('%s must define _diff method'     #pragma NO COVER
                                   % (self.__class__.__name__))      #pragma NO COVER
 
+
+    def integrate(self, x, integrator=None):
+        """
+        Attempt to calculate an antiderivative of self with respect to x.
+
+        Terms that cannot be handled directly are forwarded to
+        a user-defined function `integrator`.
+        """
+        x = self.convert(x)
+        return self._integrate(x, integrator)
+
+    def _integrate(self, x, integrator):
+        if not self.has(x):
+            return self * x
+        if self==x:
+            return x**2/2
+        raise NotImplementedError('%s must define _integrate method' #pragma NO COVER
+                                  % (self.__class__.__name__))       #pragma NO COVER
 
     def _matches(pattern, expr, repl_dict, wild_info):
         pfunc = pattern.func

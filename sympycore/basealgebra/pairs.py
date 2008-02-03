@@ -651,7 +651,7 @@ class CommutativeRingWithPairs(CommutativeRing):
         raise NotImplementedError("Don't know how to integrate(%s, %s)" % \
             (e, x))
 
-    def integrate(self, x, integrator=None):
+    def _integrate(self, x, integrator=None):
         """
         Attempt to calculate an antiderivative of self with respect to x.
         This method is able to directly deal with expanded linear
@@ -662,7 +662,7 @@ class CommutativeRingWithPairs(CommutativeRing):
         """
         if not self.has_symbol(x):
             return self*x
-        if self.head is SYMBOL:
+        if self == x:
             return x**2 / 2
         if integrator is None:
             integrator = self._integrator
@@ -687,7 +687,7 @@ class CommutativeRingWithPairs(CommutativeRing):
                     product *= b**e
             return product
         if self.head is ADD:
-            return self.Add(*(coef*term.integrate(x, integrator) \
+            return self.Add(*(coef*term._integrate(x, integrator) \
                               for term, coef in self.data.iteritems()))
         return integrator(self, x)
 

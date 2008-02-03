@@ -14,6 +14,8 @@ SympyCore Users Guide
   January 2008
 
 
+.. contents::
+
 Introduction
 ============
 
@@ -43,6 +45,7 @@ algebra.
 >>> n = Number(2,5)
 >>> x+n
 Calculus('x + 2/5')
+>>> x,y,v,w=map(Symbol,'xyvw')
 
 To construct expression from a string, use the corresponding algebra
 class, for example,
@@ -116,8 +119,8 @@ Calculus('a + b**2 - 3/4')
 >>> Calculus('a-3/4+b**2').args
 [Calculus('a'), Calculus('-3/4'), Calculus('b**2')]
 
-SympyCore package structure 
-===========================
+Package structure 
+=================
 
 SympyCore project provides a python package ``sympycore`` that consists of
 several modules and subpackages:
@@ -172,8 +175,9 @@ several modules and subpackages:
    (coefficients:exponents) form, respectively. For more information,
    see [section on polynomials].
 
-Generic informational and transformational methods
---------------------------------------------------
+
+Basic methods
+=============
 
 In ``sympycore`` all symbolic objects are assumed to be immutable. So, the
 manipulation of symbolic objects means creating new symbolic objects
@@ -181,13 +185,18 @@ from the parts of existing ones.
 
 There are many methods that can be used to retrive information and
 subexpressions from a symbolic object. The most generic method is to
-use attribute pair of func and args as described above. However, many
-such methods are also algebra specific, for example, classes of
-commutative rings have methods like ``as_Add_args``, ``as_Mul_args``
-etc for retriving operands and ``Add``, ``Mul``, etc for constructing
-new symbolic objects. For more information, see sections describing
-particular algebra classes. The generic informational methods are
-described below.
+use attribute pair of ``func`` and ``args`` as described
+above. However, many such methods are also algebra specific, for
+example, classes of commutative rings have methods like
+``as_Add_args``, ``as_Mul_args``, etc for retriving the operands of
+operations and ``Add``, ``Mul``, etc for constructing new symbolic
+objects representing addition, multiplication, etc operations. For
+more information about such methods, see sections describing the
+particular algebra classes. 
+
+
+Output methods
+--------------
 
 ``str(<symbolic object>)``
   return a nice string representation of the symbolic object. For example,
@@ -223,30 +232,8 @@ described below.
   represented the coefficients and exponents of the example
   subexpressions.
 
-
-There are also methods that create new symbolic objects from existing
-ones. For example, substitutions, computing derivatives, integrals,
-etc are such methods and they also can be algebra specific. The
-generic ones are described below.
-
-``<symbolic object>.subs(<subexpression>, <newexpression>)``
-  return a copy of ``<symbolic object>`` with all occurances of
-  ``<subexpression>`` replaced with ``<newexpression>``. For example,
-
-  >>> expr = Calculus('-x + 2+y**3')
-  >>> expr
-  Calculus('2 + y**3 - x')
-  >>> expr.subs('y', '2*z')
-  Calculus('2 + 8*z**3 - x')
-
-``<symbolic object>.subs([(<subexpr1>, <newexpr1>), (<subexpr2>, <newexpr2>), ...])``
-  is equivalent to ``<symbolic object>.subs(<subexp1>,
-  <newexpr1>).subs(<subexpr2>, <newexpr2>).subs``. For example,
-
-  >>> expr
-  Calculus('2 + y**3 - x')
-  >>> expr.subs([('y', '2*z'),('z', 2)])
-  Calculus('66 - x')
+Conversation methods
+--------------------
 
 ``<symbolic object>.as_primitive()``
   return symbolic object as an instance of ``PrimitiveAlgebra`` class. All
@@ -291,3 +278,134 @@ generic ones are described below.
     2:NUMBER[1]
   ]
 
+Substitution of expressions
+---------------------------
+
+``<symbolic object>.subs(<sub-expr>, <new-expr>)``
+  return a copy of ``<symbolic object>`` with all occurances of
+  ``<sub-expr>`` replaced with ``<new-expr>``. For example,
+
+  >>> expr = Calculus('-x + 2+y**3')
+  >>> expr
+  Calculus('2 + y**3 - x')
+  >>> expr.subs('y', '2*z')
+  Calculus('2 + 8*z**3 - x')
+
+``<symbolic object>.subs([(<subexpr1>, <newexpr1>), (<subexpr2>, <newexpr2>), ...])``
+  is equivalent to ``<symbolic object>.subs(<subexp1>,
+  <newexpr1>).subs(<subexpr2>, <newexpr2>).subs``. For example,
+
+  >>> expr
+  Calculus('2 + y**3 - x')
+  >>> expr.subs([('y', '2*z'),('z', 2)])
+  Calculus('66 - x')
+
+Pattern matching
+----------------
+
+``<symbolic object>.match(<pattern-expr> [, <wildcard1>, <wildcard2> ...])``
+  check if the give symbolic object matches given pattern. Pattern
+  expression may contain wild symbols that match arbitrary
+  expressions, the ``wildcard`` must be then the corresponding
+  symbol. Wild symbols can be matched also conditionally, then the
+  ``<wildcard>`` argument must be a tuple ``(<wild-symbol>, <predicate>)``,
+  where ``<predicate>`` is a single-argument function returning ``True`` if
+  wild symbol matches the expression in argument. If the match is not
+  found then the method returns. Otherwise it will return a dictionary
+  object such that the following condition holds::
+
+    pattern.subs(expr.match(pattern, ...).items()) == expr
+
+  For example,
+
+  >>> expr = 3*x + 4*y
+  >>> pattern = v*x + w*y
+  >>> d = expr.match(pattern, v, w)
+  >>> print 'v=',d.get(v)
+  v= 3
+  >>> print 'w=',d.get(w)
+  w= 4
+  >>> pattern.subs(d.items())==expr
+  True
+
+Checking for atomic objects
+---------------------------
+
+A symbolic object is atomic if ``<symbolic object>.args == ()``.
+
+``<symbolic object>.symbols``
+  is a property that holds a set of all atomic symbols in the given
+  symbolic expression.
+
+``<symbolic object>.has(<symbol>)``
+  returns ``True`` if the symbolic expression contains ``<symbol>``.
+
+Primitive algebra
+=================
+
+XXX: explain ``PrimitiveAlgebra`` class.
+
+Commutative ring
+================
+
+In SympyCore a commutative ring is represented by an abstract class
+``CommutativeRing``.  The ``CommutativeRing`` class defines support
+for addition, substraction, multiplication, division, and
+exponentiation operations.
+
+Operations
+----------
+
+Classes deriving from ``CommutativeRing`` must define a number of
+method pairs ``(Operation, as_Operation_args)`` that satisfy the
+following condition::
+
+  cls.Operation(*obj.as_Operation_args()) == obj
+
+Here ``Operation`` can be ``Add``, ``Mul``, ``Terms``, ``Factors``,
+``Pow``, ``Log``. For example,
+
+>>> print map(str, (2*x+y).as_Add_args())
+['y', '2*x']
+>>> print map(str, (2*x+y).as_Mul_args())
+['y + 2*x']
+>>> print map(str, (2*x+y).as_Pow_args())
+['y + 2*x', '1']
+>>> print (2*x+y).as_Terms_args()
+[(Calculus('y'), 1), (Calculus('x'), 2)]
+
+
+Differentation
+--------------
+
+``<symbolic object>.diff(*symbols)``
+  return a derivative of symbolic expression with respect to given
+  symbols. The diff methods argument can also be a positive integer
+  after some symbol argument. Then the derivative is computed given
+  number of times with respect to the last symbol.
+  For example,
+
+  >>> print sin(x*y).diff(x)
+  y*cos(x*y)
+  >>> print sin(x*y).diff(x,y)
+  cos(x*y) - x*y*sin(x*y)
+  >>> print sin(x*y).diff(x,4)
+  sin(x*y)*y**4
+
+Integration
+-----------
+
+``<symbolic object>.integrate(<symbol>, integrator=None)``
+  return an antiderivative of a symbolic expression with respect to
+  ``<symbol>``.
+  For example,
+  
+  >>> from sympycore import *
+  >>> print (x**2 + x*y).integrate(x)
+  1/2*y*x**2 + 1/3*x**3
+
+Commutative ring implementation
+===============================
+
+Commutative ring operations are implemented in the class
+``CommutativeRingWithPairs`` (derived from ``CommutativeRing``).

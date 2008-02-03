@@ -156,6 +156,28 @@ class BasicAlgebra(Basic):
         raise NotImplementedError('%s must define classmethod Number' #pragma NO COVER
                                   % (cls.__name__))                   #pragma NO COVER
 
+    @property
+    def symbols(self):
+        """ Return a set of atomic subexpressions in a symbolic object.
+        """
+        symbols = self._symbols
+        if symbols is None:
+            args = self.args
+            if args:
+                symbols = set()
+                for arg in args:
+                    symbols |= arg.symbols
+            else:
+                symbols = set([self])
+            self._symbols = symbols
+        return symbols
+
+    def has(self, obj):
+        """ Return True if self contains atomic expression obj.
+        """
+        convert = self.convert
+        return convert(obj) in self.symbols
+
     def match(self, pattern, *wildcards):
         """
         Pattern matching.
