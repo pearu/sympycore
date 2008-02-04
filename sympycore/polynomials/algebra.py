@@ -120,6 +120,9 @@ class PolynomialRing(CommutativeRing):
 
     @classmethod
     def convert_coefficient(cls, obj, typeerror=True):
+        r = cls.ring.convert_coefficient(obj, typeerror=False)
+        if r is not None:
+            return r
         r = cls.ring.convert(obj, typeerror=False)
         if r is not None:
             return r
