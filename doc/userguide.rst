@@ -374,6 +374,19 @@ Here ``Operation`` can be ``Add``, ``Mul``, ``Terms``, ``Factors``,
 >>> print (2*x+y).as_Terms_args()
 [(Calculus('y'), 1), (Calculus('x'), 2)]
 
+Expanding
+---------
+
+Expanding means applying distributivity law to open parenthesis.
+
+``<symbolic object>.expand()``
+  return an expanded expression. For example,
+
+  >>> expr = x*(y+x)**2
+  >>> print expr
+  x*(x + y)**2
+  >>> print expr.expand()
+  x**3 + 2*y*x**2 + x*y**2
 
 Differentation
 --------------

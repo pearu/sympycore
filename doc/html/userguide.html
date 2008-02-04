@@ -325,16 +325,17 @@ ul.auto-toc {
 <li><a class="reference" href="#primitive-algebra" id="id11" name="id11">Primitive algebra</a></li>
 <li><a class="reference" href="#commutative-ring" id="id12" name="id12">Commutative ring</a><ul>
 <li><a class="reference" href="#operations" id="id13" name="id13">Operations</a></li>
-<li><a class="reference" href="#differentation" id="id14" name="id14">Differentation</a></li>
-<li><a class="reference" href="#integration" id="id15" name="id15">Integration</a></li>
+<li><a class="reference" href="#expanding" id="id14" name="id14">Expanding</a></li>
+<li><a class="reference" href="#differentation" id="id15" name="id15">Differentation</a></li>
+<li><a class="reference" href="#integration" id="id16" name="id16">Integration</a></li>
 </ul>
 </li>
-<li><a class="reference" href="#commutative-ring-implementation" id="id16" name="id16">Commutative ring implementation</a><ul>
-<li><a class="reference" href="#defining-functions-for-commutativeringwithpairs" id="id17" name="id17">Defining functions for <tt class="docutils literal"><span class="pre">CommutativeRingWithPairs</span></tt></a></li>
+<li><a class="reference" href="#commutative-ring-implementation" id="id17" name="id17">Commutative ring implementation</a><ul>
+<li><a class="reference" href="#defining-functions-for-commutativeringwithpairs" id="id18" name="id18">Defining functions for <tt class="docutils literal"><span class="pre">CommutativeRingWithPairs</span></tt></a></li>
 </ul>
 </li>
-<li><a class="reference" href="#calculus" id="id18" name="id18">Calculus</a></li>
-<li><a class="reference" href="#arithemetics" id="id19" name="id19">Arithemetics</a></li>
+<li><a class="reference" href="#calculus" id="id19" name="id19">Calculus</a></li>
+<li><a class="reference" href="#arithemetics" id="id20" name="id20">Arithemetics</a></li>
 </ul>
 </div>
 <div class="section">
@@ -695,7 +696,23 @@ cls.Operation(*obj.as_Operation_args()) == obj
 </pre>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id14" id="differentation" name="differentation">Differentation</a></h2>
+<h2><a class="toc-backref" href="#id14" id="expanding" name="expanding">Expanding</a></h2>
+<p>Expanding means applying distributivity law to open parenthesis.</p>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">&lt;symbolic</span> <span class="pre">object&gt;.expand()</span></tt></dt>
+<dd><p class="first">return an expanded expression. For example,</p>
+<pre class="last doctest-block">
+&gt;&gt;&gt; expr = x*(y+x)**2
+&gt;&gt;&gt; print expr
+x*(x + y)**2
+&gt;&gt;&gt; print expr.expand()
+x**3 + 2*y*x**2 + x*y**2
+</pre>
+</dd>
+</dl>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id15" id="differentation" name="differentation">Differentation</a></h2>
 <dl class="docutils">
 <dt><tt class="docutils literal"><span class="pre">&lt;symbolic</span> <span class="pre">object&gt;.diff(*symbols)</span></tt></dt>
 <dd><p class="first">return a derivative of symbolic expression with respect to given
@@ -715,7 +732,7 @@ sin(x*y)*y**4
 </dl>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id15" id="integration" name="integration">Integration</a></h2>
+<h2><a class="toc-backref" href="#id16" id="integration" name="integration">Integration</a></h2>
 <dl class="docutils">
 <dt><tt class="docutils literal"><span class="pre">&lt;symbolic</span> <span class="pre">object&gt;.integrate(&lt;symbol&gt;,</span> <span class="pre">integrator=None)</span></tt></dt>
 <dd><p class="first">return an antiderivative of a symbolic expression with respect to
@@ -731,7 +748,7 @@ For example,</p>
 </div>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id16" id="commutative-ring-implementation" name="commutative-ring-implementation">Commutative ring implementation</a></h1>
+<h1><a class="toc-backref" href="#id17" id="commutative-ring-implementation" name="commutative-ring-implementation">Commutative ring implementation</a></h1>
 <p>Commutative ring operations are implemented in the class
 <tt class="docutils literal"><span class="pre">CommutativeRingWithPairs</span></tt> (derived from <tt class="docutils literal"><span class="pre">CommutativeRing</span></tt>).</p>
 <p>The class <tt class="docutils literal"><span class="pre">CommutativeRingWithPairs</span></tt> holds two attributes, <tt class="docutils literal"><span class="pre">head</span></tt>
@@ -791,7 +808,7 @@ True
 Calculus('x')
 </pre>
 <div class="section">
-<h2><a class="toc-backref" href="#id17" id="defining-functions-for-commutativeringwithpairs" name="defining-functions-for-commutativeringwithpairs">Defining functions for <tt class="docutils literal"><span class="pre">CommutativeRingWithPairs</span></tt></a></h2>
+<h2><a class="toc-backref" href="#id18" id="defining-functions-for-commutativeringwithpairs" name="defining-functions-for-commutativeringwithpairs">Defining functions for <tt class="docutils literal"><span class="pre">CommutativeRingWithPairs</span></tt></a></h2>
 <p>The representation of an applied function within the class
 <tt class="docutils literal"><span class="pre">CommutativeRingWithPairs</span></tt> can hold any Python callable object that
 satisfies the following basic condition: it must return an instance of
@@ -814,7 +831,7 @@ mysin(x + y)
 </div>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id18" id="calculus" name="calculus">Calculus</a></h1>
+<h1><a class="toc-backref" href="#id19" id="calculus" name="calculus">Calculus</a></h1>
 <p>The default algebra of symbolic expressions with commutative ring
 operations is represented by the <tt class="docutils literal"><span class="pre">Calculus</span></tt> class (derived from
 <tt class="docutils literal"><span class="pre">CommutativeAlgebraWithPairs</span></tt>). The <tt class="docutils literal"><span class="pre">Calculus</span></tt> class can handle
@@ -828,7 +845,7 @@ constants <tt class="docutils literal"><span class="pre">E</span></tt>, <tt clas
 <tt class="docutils literal"><span class="pre">undefined</span></tt>.</p>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id19" id="arithemetics" name="arithemetics">Arithemetics</a></h1>
+<h1><a class="toc-backref" href="#id20" id="arithemetics" name="arithemetics">Arithemetics</a></h1>
 <p>The <tt class="docutils literal"><span class="pre">sympycore.arithmetic</span></tt> package is not an algebra package but it
 implements fractions, multi-precision floating point numbers, rational
 complex numbers, and extended numbers. In addition, it implements
