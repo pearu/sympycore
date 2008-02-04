@@ -98,7 +98,10 @@ class PolynomialRing(CommutativeRing):
                 i = list(cls.variables).index(data)
             l = [0]*cls.nvars
             l[i] = 1
-            data = {tuple(l):1}
+            if len(l)==1:
+                data = {l[0]:1}
+            else:
+                data = {tuple(l):1}
         else:
             assert head is None,`head`
             return cls.convert(data)
@@ -109,6 +112,8 @@ class PolynomialRing(CommutativeRing):
 
     @classmethod
     def Number(cls, obj):
+        if cls.nvars==1:
+            return newinstance(cls, {0: obj})
         return newinstance(cls, {(0,)*cls.nvars: obj})
 
     @classmethod
@@ -139,6 +144,8 @@ class PolynomialRing(CommutativeRing):
         terms = []
         for exps, coeff in data.iteritems():
             factors = [PrimitiveAlgebra(coeff)]
+            if type(exps) is not tuple:
+                exps = exps,
             for s,e in zip(symbols, exps):
                 if e:
                     if e==1:
