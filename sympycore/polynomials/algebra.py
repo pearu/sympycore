@@ -78,6 +78,11 @@ def newinstance(cls, data):
     return obj
 
 
+class AdditiveTuple(tuple):
+
+    def __add__(self, other):
+        return self.__class__([self[i] + other[i] for i in xrange(len(self))])
+
 class PolynomialRing(CommutativeRing):
     """ Base class to polynomial rings.
     """
@@ -101,7 +106,7 @@ class PolynomialRing(CommutativeRing):
             if len(l)==1:
                 data = {l[0]:1}
             else:
-                data = {tuple(l):1}
+                data = {AdditiveTuple(l):1}
         else:
             assert head is None,`head`
             return cls.convert(data)
@@ -114,13 +119,13 @@ class PolynomialRing(CommutativeRing):
     def Number(cls, obj):
         if cls.nvars==1:
             return newinstance(cls, {0: obj})
-        return newinstance(cls, {(0,)*cls.nvars: obj})
+        return newinstance(cls, {AdditiveTuple((0,)*cls.nvars): obj})
 
     @classmethod
     def Add(cls, *seq):
         r = cls({})
         for t in seq:
-            r += t
+            r = r + t
         return t
 
     @classmethod
@@ -142,9 +147,13 @@ class PolynomialRing(CommutativeRing):
         data = self.data
         symbols = [PrimitiveAlgebra(v) for v in self.variables]
         terms = []
-        for exps, coeff in data.iteritems():
-            factors = [PrimitiveAlgebra(coeff)]
-            if type(exps) is not tuple:
+        for exps in sorted(data.keys(), reverse=True):
+            coeff = data[exps]
+            if coeff==1:
+                factors = []
+            else:
+                factors = [PrimitiveAlgebra(coeff)]
+            if not isinstance(exps, tuple):
                 exps = exps,
             for s,e in zip(symbols, exps):
                 if e:
@@ -152,7 +161,9 @@ class PolynomialRing(CommutativeRing):
                         factors.append(s)
                     else:
                         factors.append(s**e)
-            if len(factors)==1:
+            if not factors:
+                terms.append(PrimitiveAlgebra(coeff))
+            elif len(factors)==1:
                 terms.append(factors[0])
             else:
                 terms.append(PrimitiveAlgebra((MUL,tuple(factors))))
@@ -180,9 +191,11 @@ class PolynomialRing(CommutativeRing):
                 n = new_cls.nvars
                 for e,c in self.data.iteritems():
                     new_e = [0] * n
+                    if not isinstance(e, tuple):
+                        e = e,
                     for i,j in enumerate(indices):
                         new_e[j] = e[i]
-                    data[tuple(new_e)] = c
+                    data[AdditiveTuple(new_e)] = c
                 return new_cls(data)
         return NotImplemented
 
@@ -194,15 +207,29 @@ class PolynomialRing(CommutativeRing):
         other_cls = other.__class__
         if cls is other_cls:
             return add_POLY_POLY(self, other, cls)
-        if not isinstance(other, PolynomialRing):
-            other = self.convert(other)
-            if other is NotImplemented:
-                return other
-            other_cls = other.__class__
+        other = self.convert(other)
+        if other is NotImplemented:
+            return other
+        other_cls = other.__class__
         if cls is other_cls:
             return add_POLY_POLY(self, other, cls)
         elif self.nvars < other.nvars:
             return other + self
+        return NotImplemented
+
+    def __mul__(self, other):
+        cls = self.__class__
+        other_cls = other.__class__
+        if cls is other_cls:
+            return mul_POLY_POLY(self, other, cls)
+        other = self.convert(other)
+        if other is NotImplemented:
+            return other
+        other_cls = other.__class__
+        if cls is other_cls:
+            return mul_POLY_POLY(self, other, cls)
+        elif self.nvars < other.nvars:
+            return other * self
         return NotImplemented
 
 def add_POLY_POLY(lhs, rhs, cls):
@@ -219,6 +246,24 @@ def add_POLY_POLY(lhs, rhs, cls):
                 d[exps] = c
             else:
                 del d[exps]
+    return r
+
+def mul_POLY_POLY(lhs, rhs, cls):
+    r = object.__new__(cls)
+    r.data = d = {}
+    for exps1, coeff1 in lhs.data.iteritems():
+        for exps2, coeff2 in rhs.data.iteritems():
+            exps = exps1 + exps2
+            coeff = coeff1 * coeff2
+            b = d.get(exps)
+            if b is None:
+                d[exps] = coeff
+            else:
+                c = b + coeff
+                if c:
+                    d[exps] = c
+                else:
+                    del d[exps]
     return r
 
 def mul_POLY_2(lhs, cls):
