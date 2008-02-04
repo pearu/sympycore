@@ -104,6 +104,9 @@ class PolynomialRing(CommutativeRing):
             return cls.convert(data)
         return newinstance(cls, data)
 
+    def __eq__(self, other):
+        return other.__class__ is self.__class__ and self.data == other.data
+
     @classmethod
     def Number(cls, obj):
         return newinstance(cls, {(0,)*cls.nvars: obj})
@@ -194,7 +197,8 @@ class PolynomialRing(CommutativeRing):
 
 def add_POLY_POLY(lhs, rhs, cls):
     d = dict(lhs.data)
-    r = newinstance(cls, d)
+    r = object.__new__(cls)
+    r.data = d
     for exps, coeff in rhs.data.iteritems():
         b = d.get(exps)
         if b is None:
@@ -205,4 +209,12 @@ def add_POLY_POLY(lhs, rhs, cls):
                 d[exps] = c
             else:
                 del d[exps]
+    return r
+
+def mul_POLY_2(lhs, cls):
+    d = {}
+    r = object.__new__(cls)
+    r.data = d
+    for exps, coeff in lhs.data.iteritems():
+        d[exps] = coeff*2
     return r
