@@ -72,6 +72,12 @@ class PolynomialRingGenerator(BasicType):
             cache[variables, ring] = r
         return r
 
+def newinstance(cls, data):
+    obj = object.__new__(cls)
+    obj.data = data
+    return obj
+
+
 class PolynomialRing(CommutativeRing):
     """ Base class to polynomial rings.
     """
@@ -96,13 +102,11 @@ class PolynomialRing(CommutativeRing):
         else:
             assert head is None,`head`
             return cls.convert(data)
-        obj = object.__new__(cls)
-        obj.data = data
-        return obj
+        return newinstance(cls, data)
 
     @classmethod
     def Number(cls, obj):
-        return cls({(0,)*cls.nvars: obj})
+        return newinstance(cls, {(0,)*cls.nvars: obj})
 
     @classmethod
     def Add(cls, *seq):
@@ -170,34 +174,35 @@ class PolynomialRing(CommutativeRing):
         return NotImplemented
 
     def __neg__(self):
-        return self.__class__(dict([(e,-c) for e, c in self.data.iteritems()]))
-
-    def __iadd__(self, other):
-        other = self.convert(other)
-        if other is NotImplemented:
-            return other
-        assert isinstance(other, self.__class__),`self, other`
-        d = self.data
-        for exps, coeff in other.data.iteritems():
-            b = d.get(exps)
-            if b is None:
-                d[exps] = coeff
-            else:
-                c = b + coeff
-                if c:
-                    d[exps] = c
-                else:
-                    del d[exps]
-        return self
+        return newinstance(self.__class__,dict([(e,-c) for e, c in self.data.iteritems()]))
         
     def __add__(self, other):
-        other = self.convert(other)
-        if other is NotImplemented:
-            return other
-        if self.__class__ is other.__class__:
-            r = self.__class__(dict(self.data))
-            r += other
-            return r
+        cls = self.__class__
+        other_cls = other.__class__
+        if cls is other_cls:
+            return add_POLY_POLY(self, other, cls)
+        if not isinstance(other, PolynomialRing):
+            other = self.convert(other)
+            if other is NotImplemented:
+                return other
+            other_cls = other.__class__
+        if cls is other_cls:
+            return add_POLY_POLY(self, other, cls)
         elif self.nvars < other.nvars:
             return other + self
         return NotImplemented
+
+def add_POLY_POLY(lhs, rhs, cls):
+    d = dict(lhs.data)
+    r = newinstance(cls, d)
+    for exps, coeff in rhs.data.iteritems():
+        b = d.get(exps)
+        if b is None:
+            d[exps] = coeff
+        else:
+            c = b + coeff
+            if c:
+                d[exps] = c
+            else:
+                del d[exps]
+    return r
