@@ -124,12 +124,12 @@ class PrimitiveAlgebra(BasicAlgebra):
     def as_algebra(self, cls, source=None):
         head, rest = self.tree
         if head is NUMBER:
-            return cls(rest, head=NUMBER)
+            return cls.Number(rest)
         if head is SYMBOL:
             r = cls.get_predefined_symbols(rest)
             if r is not None:
                 return r
-            return cls(rest, head=SYMBOL)
+            return cls.Symbol(rest)
         if head is ADD:
             return cls.Add(*[r.as_algebra(cls) for r in rest])
         if head is SUB:
