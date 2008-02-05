@@ -63,17 +63,17 @@ class BasicAlgebra(Basic):
             return obj
 
         # parse algebra expression from string:
-        if isinstance(obj, (str, unicode)):
-            obj = classes.PrimitiveAlgebra(obj)
+        if isinstance(obj, (str, unicode, PrimitiveAlgebra)):
+            return PrimitiveAlgebra(obj).as_algebra(cls)
 
-        # convert from another algebra:
-        if isinstance(obj, BasicAlgebra):
-            return obj.as_algebra(cls)
-
-        # as a last resort, check if obj belongs to coefficient algebra
+        # check if obj belongs to coefficient algebra
         r = cls.convert_coefficient(obj, typeerror=False)
         if r is not NotImplemented:
             return cls.Number(r)
+
+        # as a last resort, convert from another algebra:
+        if isinstance(obj, BasicAlgebra):
+            return obj.as_algebra(cls)
 
         if typeerror:
             raise TypeError('%s.convert: failed to convert %s instance'\
@@ -306,3 +306,5 @@ class BasicAlgebra(Basic):
         raise NotImplementedError('%s must define _subs method'     #pragma NO COVER
                                   % (self.__class__.__name__))      #pragma NO COVER
 
+
+from .primitive import PrimitiveAlgebra

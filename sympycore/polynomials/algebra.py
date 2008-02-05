@@ -1,14 +1,15 @@
+#
+# Author: Pearu Peterson
+# Created: February 2008
+#
 
 from ..core import BasicType, classes
 from ..utils import SYMBOL, NUMBER, ADD, MUL, POW
 from ..basealgebra.ring import CommutativeRing
 from ..basealgebra import PrimitiveAlgebra
 
-class PolynomialRingGenerator(BasicType):
-    """ Generator of polynomial rings:
-
-    PolynomialRing[<n>, <ring>] - represents <n>-variate polynomial
-    over coefficient <ring>.
+class PolynomialRingFactory(BasicType):
+    """ Factory of polynomial rings with symbols and coefficient ring.
     """
     def __new__(typ, name, bases, attrdict):
         if not attrdict.has_key('ring'):
@@ -17,7 +18,17 @@ class PolynomialRingGenerator(BasicType):
             attrdict['variables'] = ()
             attrdict['nvars'] = 0
         cls = type.__new__(typ, name, bases, attrdict)
+        cls.zero = cls.Number(0)
+        cls.one = cls.Number(1)
         return cls
+
+    def __eq__(self, other):
+        if isinstance(other, PolynomialRingFactory):
+            return self.ring==other.ring and self.variables==other.variables
+        return False
+
+    def __ne__(self, other):
+        return not self==other
 
     def __getitem__(self, ring_info, cache={}):
         """ Return a new polynomial ring class:
@@ -62,15 +73,25 @@ class PolynomialRingGenerator(BasicType):
         variables = tuple(sorted(variables))
         nvars = len(variables)
 
-        r = cache.get((variables, ring))
+        r = None #cache.get((variables, ring))
         if r is None:
             name = '%s[%s, %s]' % (self.__name__, tuple(map(str, variables)), ring.__name__)
-            r = PolynomialRingGenerator(name,
-                                        (self,),
-                                        dict(nvars=nvars, ring = ring,
-                                             variables = variables))
-            cache[variables, ring] = r
+            r = PolynomialRingFactory(name,
+                                      (self,),
+                                      dict(nvars=nvars, ring = ring,
+                                           variables = variables))
+            #cache[variables, ring] = r
         return r
+
+    def is_subring(self, other):
+        """ Check if self contains other as a subring, i.e. whether
+        the other instances can be converted to self instances.
+        """
+        if not isinstance(other, PolynomialRingFactory):
+            return False
+        if self.ring != other.ring:
+            return False
+        return set(other.variables).issubset(self.variables)
 
 def newinstance(cls, data):
     obj = object.__new__(cls)
@@ -79,36 +100,34 @@ def newinstance(cls, data):
 
 
 class AdditiveTuple(tuple):
+    """ A tuple that can be added element-wise.
+
+    Properties:
+      AdditiveTuple(obj) -> obj
+      AdditiveTuple([obj]) -> obj
+      AdditiveTuple([obj1, obj2]) + [r1,r2] -> AdditiveTuple([obj1+r1, obj2+r2])
+    """
+
+    def __new__(cls, arg):
+        if isinstance(arg, (tuple, list, set)):
+            if len(arg)==1:
+                return arg[0]
+            return tuple.__new__(cls, arg)
+        return arg
 
     def __add__(self, other):
         return self.__class__([self[i] + other[i] for i in xrange(len(self))])
 
+
 class PolynomialRing(CommutativeRing):
-    """ Base class to polynomial rings.
+    """ Base class to polynomial rings that holds polynomial information
+    using pairs (<exponents>: <coefficient>) stored in Python dictionary.
     """
 
-    __metaclass__ = PolynomialRingGenerator
+    __metaclass__ = PolynomialRingFactory
 
-    def __new__(cls, data, head=None):
-        if head is None and isinstance(data, dict):
-            pass
-        elif head is SYMBOL:
-            l = []
-            try:
-                i = list(cls.variables).index(data)
-            except ValueError:
-                i = None
-            if i is None:
-                cls = PolynomialRing[cls.variables+(data,), cls.ring]
-                i = list(cls.variables).index(data)
-            l = [0]*cls.nvars
-            l[i] = 1
-            if len(l)==1:
-                data = {l[0]:1}
-            else:
-                data = {AdditiveTuple(l):1}
-        else:
-            assert head is None,`head`
+    def __new__(cls, data):
+        if not isinstance(data, dict):
             return cls.convert(data)
         return newinstance(cls, data)
 
@@ -116,17 +135,87 @@ class PolynomialRing(CommutativeRing):
         return other.__class__ is self.__class__ and self.data == other.data
 
     @classmethod
+    def Symbol(cls, obj):
+        """ Return symbol element of a polynomial ring. The result
+        may be an instance of super polynomial ring.
+
+        r = PolynomialRing['x']
+        r.Symbol('x') -> r({1:1})
+        r.Symbol('y') -> PolynomialRing['x','y']({(0,1):1})
+        """
+        try:
+            i = list(cls.variables).index(obj)
+        except ValueError:
+            i = None
+        if i is None:
+            cls = PolynomialRing[cls.variables+(obj,), cls.ring]
+            i = list(cls.variables).index(obj)
+        l = [0]*cls.nvars
+        l[i] = 1
+        return newinstance(cls, {AdditiveTuple(l):1})
+
+    @classmethod
     def Number(cls, obj):
-        if cls.nvars==1:
-            return newinstance(cls, {0: obj})
-        return newinstance(cls, {AdditiveTuple((0,)*cls.nvars): obj})
+        """ Return number element of a polynomial ring.
+
+        r = PolynomialRing['x']
+        r.Number(2) -> r({0:2})
+        """
+        if obj:
+            return newinstance(cls, {AdditiveTuple((0,)*cls.nvars): obj})
+        return newinstance(cls, {})
 
     @classmethod
     def Add(cls, *seq):
         r = cls({})
         for t in seq:
-            r = r + t
-        return t
+            tcls = t.__class__
+            if cls==tcls:
+                iadd_POLY_POLY(r, t, cls)
+            elif cls.is_subring(tcls):
+                t = t.as_algebra(cls)
+                assert cls==t.__class__,`cls,t`
+                iadd_POLY_POLY(r, t, cls)
+            elif tcls.is_subring(cls):
+                cls = tcls
+                r = r.as_algebra(cls)
+                iadd_POLY_POLY(r, t, cls)
+            elif cls.ring==tcls.ring:
+                cls = PolynomialRing[cls.variables+tcls.variables, cls.ring]
+                r = r.as_algebra(cls)
+                t = t.as_algebra(cls)
+                iadd_POLY_POLY(r, t, cls)
+            else:
+                raise NotImplementedError(`r, t`)
+        if not r.data:
+            return cls.Number(0)
+        return r
+
+    @classmethod
+    def Mul(cls, *seq):
+        r = cls.one
+        for t in seq:
+            tcls = t.__class__
+            if cls==tcls:
+                r = mul_POLY_POLY(r, t, cls)
+            elif cls.is_subring(tcls):
+                t = t.as_algebra(cls)
+                assert cls==t.__class__,`cls,t`
+                r = mul_POLY_POLY(r, t, cls)
+            elif tcls.is_subring(cls):
+                cls = tcls
+                r = r.as_algebra(cls)
+                r = mul_POLY_POLY(r, t, cls)
+            elif cls.ring==tcls.ring:
+                cls = PolynomialRing[cls.variables+tcls.variables, cls.ring]
+                r = r.as_algebra(cls)
+                t = t.as_algebra(cls)
+                r = mul_POLY_POLY(r, t, cls)
+            else:
+                raise NotImplementedError(`r, t`)
+        if not r.data:
+            return cls.Number(1)
+        return r
 
     @classmethod
     def convert_coefficient(cls, obj, typeerror=True):
@@ -172,7 +261,6 @@ class PolynomialRing(CommutativeRing):
         if len(terms)==1:
             return terms[0]
         return PrimitiveAlgebra((ADD, tuple(terms)))
-
 
     def as_algebra(self, target_cls):
         cls = self.__class__
@@ -222,7 +310,10 @@ class PolynomialRing(CommutativeRing):
         other_cls = other.__class__
         if cls is other_cls:
             return mul_POLY_POLY(self, other, cls)
-        other = self.convert(other)
+        other = self.convert_coefficient(other, typeerror=False)
+        if other is not NotImplemented:
+            return mul_POLY_COEFF(self, other, cls)
+        other = self.convert(other, typeerror=False)
         if other is NotImplemented:
             return other
         other_cls = other.__class__
@@ -231,6 +322,8 @@ class PolynomialRing(CommutativeRing):
         elif self.nvars < other.nvars:
             return other * self
         return NotImplemented
+
+    __rmul__ = __mul__
 
 def add_POLY_POLY(lhs, rhs, cls):
     d = dict(lhs.data)
@@ -247,6 +340,20 @@ def add_POLY_POLY(lhs, rhs, cls):
             else:
                 del d[exps]
     return r
+
+def iadd_POLY_POLY(lhs, rhs, cls):
+    d = lhs.data
+    for exps, coeff in rhs.data.iteritems():
+        b = d.get(exps)
+        if b is None:
+            d[exps] = coeff
+        else:
+            c = b + coeff
+            if c:
+                d[exps] = c
+            else:
+                del d[exps]
+    
 
 def mul_POLY_POLY(lhs, rhs, cls):
     r = object.__new__(cls)
@@ -266,10 +373,17 @@ def mul_POLY_POLY(lhs, rhs, cls):
                     del d[exps]
     return r
 
-def mul_POLY_2(lhs, cls):
-    d = {}
+def mul_POLY_COEFF(lhs, rhs, cls):
     r = object.__new__(cls)
-    r.data = d
+    r.data = d = {}
     for exps, coeff in lhs.data.iteritems():
-        d[exps] = coeff*2
+        b = d.get(exps)
+        if b is None:
+            d[exps] = coeff * rhs
+        else:
+            c = b + coeff * rhs
+            if c:
+                d[exps] = c
+            else:
+                del d[exps]
     return r

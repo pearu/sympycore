@@ -88,8 +88,6 @@ class Calculus(CommutativeRingWithPairs):
         return getattr(cls, callername)(*args,
                                         **dict(redirect_operation='ignore_redirection'))
 
-            
-
     @classmethod
     def convert_coefficient(cls, obj, typeerror=True):
         """ Convert obj to coefficient algebra.
@@ -100,6 +98,8 @@ class Calculus(CommutativeRingWithPairs):
             return Complex(Float(obj.real), Float(obj.imag))
         if isinstance(obj, algebra_numbers):
             return obj
+        if isinstance(obj, cls) and obj.head is NUMBER:
+            return obj.data
         if typeerror:
             raise TypeError('%s.convert_coefficient: failed to convert %s instance'\
                             ' to coefficient algebra, expected int|long object'\
@@ -121,8 +121,8 @@ class Calculus(CommutativeRingWithPairs):
             return obj
 
         # parse algebra expression from string:
-        if isinstance(obj, (str, unicode)):
-            obj = PrimitiveAlgebra(obj)
+        if isinstance(obj, (str, unicode, PrimitiveAlgebra)):
+            return PrimitiveAlgebra(obj).as_algebra(cls)
 
         # convert from another algebra:
         if isinstance(obj, BasicAlgebra):
