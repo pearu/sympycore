@@ -139,7 +139,11 @@ class PrimitiveAlgebra(BasicAlgebra):
         if head is DIV:
             return rest[0].as_algebra(cls) / cls.Mul(*[r.as_algebra(cls) for r in rest[1:]])
         if head is POW:
-            return cls.Pow(*[r.as_algebra(cls) for r in rest])
+            base, exp = rest
+            h, r = exp.tree
+            if h is NUMBER:
+                return cls.Pow(base.as_algebra(cls), cls.convert_exponent(r))
+            return cls.Pow(base.as_algebra(cls), exp.as_algebra(cls))
         if head is NEG:
             return -(rest[0].as_algebra(cls))
         if head is POS:

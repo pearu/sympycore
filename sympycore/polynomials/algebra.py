@@ -7,6 +7,7 @@ from ..core import BasicType, classes
 from ..utils import SYMBOL, NUMBER, ADD, MUL, POW
 from ..basealgebra.ring import CommutativeRing
 from ..basealgebra import PrimitiveAlgebra
+from ..arithmetic.numbers import div
 
 class PolynomialRingFactory(BasicType):
     """ Factory of polynomial rings with symbols and coefficient ring.
@@ -75,7 +76,7 @@ class PolynomialRingFactory(BasicType):
 
         r = None #cache.get((variables, ring))
         if r is None:
-            name = '%s[%s, %s]' % (self.__name__, tuple(map(str, variables)), ring.__name__)
+            name = '%s[%s, %s]' % (self.__name__, AdditiveTuple(variables), ring.__name__)
             r = PolynomialRingFactory(name,
                                       (self,),
                                       dict(nvars=nvars, ring = ring,
@@ -115,8 +116,21 @@ class AdditiveTuple(tuple):
             return tuple.__new__(cls, arg)
         return arg
 
+    def __str__(self):
+        return '(%s)' % (', '.join(map(str, self)))
+
     def __add__(self, other):
-        return self.__class__([self[i] + other[i] for i in xrange(len(self))])
+        l = [self[i] + other[i] for i in xrange(len(self))]
+        return tuple.__new__(self.__class__, l)
+    
+    def __mul__(self, other):
+        l = [self[i] * other for i in xrange(len(self))]
+        return tuple.__new__(self.__class__, l)
+    
+    def add(self, index, decr):
+        l = list(self)
+        l[index] += decr
+        return tuple.__new__(self.__class__, l)
 
 
 class PolynomialRing(CommutativeRing):
@@ -124,10 +138,19 @@ class PolynomialRing(CommutativeRing):
     using pairs (<exponents>: <coefficient>) stored in Python dictionary.
     """
 
+    __slots__ = ['data', '_degree', '_ldegree']
+    _degree = None
+    _ldegree = None
+
     __metaclass__ = PolynomialRingFactory
 
     def __new__(cls, data):
-        if not isinstance(data, dict):
+        if isinstance(data, list):
+            if cls.nvars==1 and data:
+                if type(data[0]) not in [tuple,list,set]:
+                    data = [(i,c) for (i,c) in enumerate(data) if c]
+            data = dict(data)
+        elif not isinstance(data, dict):
             return cls.convert(data)
         return newinstance(cls, data)
 
@@ -218,7 +241,16 @@ class PolynomialRing(CommutativeRing):
         return r
 
     @classmethod
+    def Pow(cls, base, exp):
+        r = cls.__pow__(base, exp)
+        if r is NotImplemented:
+            raise NotImplementedError(`base,exp`)
+        return r
+
+    @classmethod
     def convert_coefficient(cls, obj, typeerror=True):
+        if isinstance(obj, cls.ring):
+            return obj
         r = cls.ring.convert_coefficient(obj, typeerror=False)
         if r is not None:
             return r
@@ -293,13 +325,13 @@ class PolynomialRing(CommutativeRing):
     def __add__(self, other):
         cls = self.__class__
         other_cls = other.__class__
-        if cls is other_cls:
+        if cls == other_cls:
             return add_POLY_POLY(self, other, cls)
         other = self.convert(other)
         if other is NotImplemented:
             return other
         other_cls = other.__class__
-        if cls is other_cls:
+        if cls == other_cls:
             return add_POLY_POLY(self, other, cls)
         elif self.nvars < other.nvars:
             return other + self
@@ -308,7 +340,7 @@ class PolynomialRing(CommutativeRing):
     def __mul__(self, other):
         cls = self.__class__
         other_cls = other.__class__
-        if cls is other_cls:
+        if cls == other_cls:
             return mul_POLY_POLY(self, other, cls)
         other = self.convert_coefficient(other, typeerror=False)
         if other is not NotImplemented:
@@ -317,13 +349,133 @@ class PolynomialRing(CommutativeRing):
         if other is NotImplemented:
             return other
         other_cls = other.__class__
-        if cls is other_cls:
+        if cls == other_cls:
             return mul_POLY_POLY(self, other, cls)
         elif self.nvars < other.nvars:
             return other * self
         return NotImplemented
 
     __rmul__ = __mul__
+
+    def __divmod__(self, other):
+        cls = self.__class__
+        other_cls = other.__class__
+        if cls == other_cls:        
+            if cls.nvars==1:
+                return divmod_POLY1_POLY1(self, other, cls)
+        return NotImplemented
+
+    def __div__(self, other):
+        cls = self.__class__
+        r = self.convert_coefficient(other, typeerror=False)
+        if r is not NotImplemented:
+            return mul_POLY_COEFF(self, div(1, r), cls)        
+        return divmod(self, other)[0]
+
+    def __mod__(self, other):
+        return divmod(self, other)[1]
+    
+    def __pow__(self, other):
+        if isinstance(other,(int, long)):
+            return pow_POLY_INT(self, other, self.__class__)
+        return NotImplemented
+
+    def __call__(self, *args):
+        r = 0
+        if self.nvars==1:
+            for exps, coeff in self.data.iteritems():
+                r = coeff * args[0]**exps + r
+        else:
+            for exps, coeff in self.data.iteritems():
+                r = reduce(lambda x,y: x*y, [a**e for a,e in zip(args,exps)], coeff) + r
+        return r
+
+    @property
+    def degree(self):
+        d = self._degree
+        if d is None:
+            data = self.data
+            if not data:
+                self._degree = d = -1
+            elif self.nvars==0:
+                self._degree = d = 0
+            elif self.nvars==1:
+                self._degree = d = max(data.keys())
+            else:
+                self._degree = d = map(max,zip(*data.keys()))
+        return d
+
+    @property
+    def ldegree(self):
+        d = self._ldegree
+        if d is None:
+            data = self.data
+            if not data:
+                self._ldegree = d = -1
+            elif self.nvars==0:
+                self._ldegree = d = 0
+            elif self.nvars==1:
+                self._ldegree = d = min(data.keys())
+            else:
+                self._ldegree = d = map(min,zip(*data.keys()))
+        return d
+
+    def diff(self, index=0):
+        if self.nvars==0:
+            return self.zero
+        d = {}
+        r = newinstance(self.__class__, d)
+        if self.nvars==1:
+            assert index==0,`index`
+            for exps, coeff in self.data.iteritems():
+                if exps:
+                    d[exps-1] = coeff * exps
+        else:
+            assert 0<=index<self.nvars, `index`
+            for exps, coeff in self.data.iteritems():
+                e = exps[index]
+                if e:
+                    d[exps.add(index,-1)] = coeff * e
+        return r
+        
+def divmod_POLY1_POLY1(lhs, rhs, cls):
+    if rhs.degree < 0:
+        raise ZeroDivisionError, "polynomial division"
+    #XXX: optimize the algorithm to (exponent: coefficient) representation
+    n = lhs.degree
+    nv = rhs.degree
+    u = [0]*(n+1)
+    v = [0]*(nv+1)
+    for e,c in lhs.data.iteritems():
+        u[e] = c
+    for e,c in rhs.data.iteritems():
+        v[e] = c
+    r = list(u)
+    q = [0] * (len(r)+1)
+    for k in range(n-nv, -1, -1):
+        q[k] = div(r[nv+k], v[nv])
+        for j in range(nv+k-1, k-1, -1):
+            r[j] -= q[k]*v[j-k]
+    for j in range(nv, n+1, 1):
+        r[j] = 0
+    q, r = cls(q), cls(r)
+    return q, r
+
+def pow_POLY_INT(base, exp, cls):
+    if exp==0:
+        return cls.one
+    if exp==1:
+        return base
+    if exp < 0:
+        return NotImplemented
+    d = base.data
+    if len(d)==1:
+        exps, coeff = d.items()[0]
+        r = object.__new__(cls)
+        r.data = {exps * exp: coeff ** exp}
+        return r
+    return NotImplemented
+    
 
 def add_POLY_POLY(lhs, rhs, cls):
     d = dict(lhs.data)
