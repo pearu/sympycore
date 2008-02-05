@@ -13,7 +13,7 @@ from .utils import generate_swapped_first_arguments, RedirectOperation
 from .algebra import BasicAlgebra
 from .ring import CommutativeRing
 from .primitive import PrimitiveAlgebra
-
+from ..arithmetic.number_theory import multinomial_coefficients
 
 def newinstance(cls, head, data, new = object.__new__):
     o = new(cls)
@@ -1474,14 +1474,21 @@ generate_swapped_first_arguments(expand_ADD_MUL)
 
 def expand_ADD_INTPOW(lhs, m, cls):
     terms = lhs.data.items()
-    data = generate_expand_data(len(terms), int(m))
+    data = multinomial_coefficients(len(terms), int(m))
     d = {}
     result = newinstance(cls, ADD, d)
     get = d.get
     Factors = cls.Factors
     one = cls.one
     for exps, c in data.iteritems():
-        t, n = exps.apply_to_terms(terms)
+        t = []
+        n = 1
+        for i,e in enumerate(exps):
+            if e==0: continue
+            t1, c1 = terms[i]
+            t.append((t1, e))
+            if c1!=1:
+                n = n * c1**e
         t = Factors(*t)
         if t.head is NUMBER:
             n = t * n
@@ -1639,96 +1646,3 @@ add_dict2 = defaultdict(lambda:add_SYMBOL_dict,
                          MUL:add_MUL_dict,
                          })
 
-###
-
-class ExponentsTuple(tuple):
-
-    def __div__(self, other):
-        return self * other**-1
-
-    def __mul__(self, other):
-        assert isinstance(other, type(self)),`other`
-        return self.__class__([i+j for i,j in zip(self,other)])
-
-    def __pow__(self, e):
-        assert isinstance(e, int),`e`
-        return self.__class__([i*e for i in self])
-
-    def apply_to_terms(self, terms):
-        l = []
-        num = 1
-        j = None
-        for i,e in enumerate(self):
-            if e==0: continue
-            t, c = terms[i]
-            l.append((t, e))
-            if c!=1:
-                num = num * c**e
-        return l, num
-
-def generate_expand_data(n, m):
-    """ Return power-coefficient dictionary of an expanded
-    sum (A1 + A2 + .. + An)**m.
-    """
-    from ..arithmetic.numbers import Fraction
-
-    # Generate binomial coefficients
-    if n == 2:
-        d = {ExponentsTuple((0, m)):1}
-        a = 1
-        for k in xrange(1, m+1):
-            a = (a * (m-k+1))//k
-            d[ExponentsTuple((k, m-k))] = a
-        return d
-
-    # Generate multinomial coefficients
-
-    ## Consider polynomial
-    ##   P(x) = sum_{i=0}^n p_i x^k
-    ## and its m-th exponent
-    ##   P(x)^m = sum_{k=0}^{m n} a(m,k) x^k
-    ## The coefficients a(m,k) can be computed using the
-    ## J.C.P. Miller Pure Recurrence [see D.E.Knuth,
-    ## Seminumerical Algorithms, The art of Computer
-    ## Programming v.2, Addison Wesley, Reading, 1981;]:
-    ##  a(m,k) = 1/(k p_0) sum_{i=1}^n p_i ((m+1)i-k) a(m,k-i),
-    ## where a(m,0) = p_0^m.
-
-    symbols = [ExponentsTuple((0,)*i + (1,) +(0,)*(n-i-1)) for i in range(n)]
-    s0 = symbols[0]
-    p0 = [s/s0 for s in symbols]
-    r = {s0**m:1}
-    r_get = r.get
-    l = [r.items()]
-    for k in xrange(1, m*(n-1)+1):
-        d = {}
-        d_get = d.get
-        for i in xrange(1, min(n,k+1)):
-            nn = (m+1)*i-k
-            if nn:
-                t = p0[i]
-                for t2, c2 in l[k-i]:
-                    tt = t2 * t
-                    cc = Fraction(nn * c2, k)
-                    b = d_get(tt)
-                    if b is None:
-                        d[tt] = cc
-                    else:
-                        cc = b + cc
-                        if cc:
-                            d[tt] = cc
-                        else:
-                            del d[tt]
-        r1 = d.items()
-        l.append(r1)
-        for t, c in r1:
-            b = r_get(t)
-            if b is None:
-                r[t] = c
-            else:
-                c = b + c
-                if c:
-                    r[t] = c
-                else:
-                    del r[t]
-    return r

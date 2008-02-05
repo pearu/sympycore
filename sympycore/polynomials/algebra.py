@@ -8,6 +8,7 @@ from ..utils import SYMBOL, NUMBER, ADD, MUL, POW
 from ..basealgebra.ring import CommutativeRing
 from ..basealgebra import PrimitiveAlgebra
 from ..arithmetic.numbers import div
+from ..arithmetic.number_theory import multinomial_coefficients
 
 class PolynomialRingFactory(BasicType):
     """ Factory of polynomial rings with symbols and coefficient ring.
@@ -468,13 +469,35 @@ def pow_POLY_INT(base, exp, cls):
         return base
     if exp < 0:
         return NotImplemented
-    d = base.data
-    if len(d)==1:
-        exps, coeff = d.items()[0]
+    data = base.data
+    if len(data)==1:
+        exps, coeff = data.items()[0]
         r = object.__new__(cls)
         r.data = {exps * exp: coeff ** exp}
         return r
-    return NotImplemented
+    nvars = cls.nvars
+    d = {}
+    r = newinstance(cls, d)
+    items = data.items()
+    m = len(data)
+    for k,c_kn in multinomial_coefficients(m, exp).iteritems():
+        new_exps = AdditiveTuple((0,)*nvars)
+        new_coeff = c_kn
+        for i,e in enumerate(k):
+            if e:
+                exps, coeff = items[i]
+                new_exps += exps * e
+                new_coeff *= coeff ** e
+        b = d.get(new_exps)
+        if b is None:
+            d[new_exps] = new_coeff
+        else:
+            c = b + new_coeff
+            if c:
+                d[new_exps] = c
+            else:
+                del d[new_exps]
+    return r
     
 
 def add_POLY_POLY(lhs, rhs, cls):

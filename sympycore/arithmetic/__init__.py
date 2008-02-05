@@ -1,3 +1,3 @@
 
 from .numbers import Fraction, Float, Complex, ExtendedNumber
-from .number_theory import gcd
+from .number_theory import gcd, multinomial_coefficients
