@@ -3,6 +3,7 @@ from basealgebra import *
 from arithmetic import *
 from calculus import *
 from polynomials import *
+from matrices import *
 from physics import *
 
 def profile_expr(expr):

@@ -156,7 +156,7 @@ class PolynomialRing(CommutativeRing):
         return newinstance(cls, data)
 
     def __eq__(self, other):
-        return other.__class__ is self.__class__ and self.data == other.data
+        return other.__class__==self.__class__ and self.data == other.data
 
     @classmethod
     def Symbol(cls, obj):
@@ -427,7 +427,9 @@ class PolynomialRing(CommutativeRing):
         data = self.data
         nvars = self.nvars
         if nvars==1:
-            return data[self.degree]
+            if data:
+                return data[self.degree]
+            return self.zero
         raise NotImplementedError(`self,nvars`)
 
     def diff(self, index=0):
