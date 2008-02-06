@@ -731,6 +731,8 @@ def div(a, b):
     """Safely compute a/b (if a or b is an integer, this function makes sure
     to convert it to a rational)."""
     if isinstance(b, inttypes):
+        if isinstance(a, inttypes):
+            return Fraction(a, b)
         return Fraction(1,b) * a
     return a / b
 

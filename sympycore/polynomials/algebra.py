@@ -363,7 +363,7 @@ class PolynomialRing(CommutativeRing):
         other_cls = other.__class__
         if cls == other_cls:        
             if cls.nvars==1:
-                return divmod_POLY1_POLY1(self, other, cls)
+                return divmod_POLY1_POLY1_SPARSE(self, other, cls)
         return NotImplemented
 
     def __div__(self, other):
@@ -382,6 +382,7 @@ class PolynomialRing(CommutativeRing):
         return NotImplemented
 
     def __call__(self, *args):
+        # XXX: Use Horner scheme.
         r = 0
         if self.nvars==1:
             for exps, coeff in self.data.iteritems():
@@ -397,7 +398,7 @@ class PolynomialRing(CommutativeRing):
         if d is None:
             data = self.data
             if not data:
-                self._degree = d = -1
+                self._degree = d = 0
             elif self.nvars==0:
                 self._degree = d = 0
             elif self.nvars==1:
@@ -412,7 +413,7 @@ class PolynomialRing(CommutativeRing):
         if d is None:
             data = self.data
             if not data:
-                self._ldegree = d = -1
+                self._ldegree = d = 0
             elif self.nvars==0:
                 self._ldegree = d = 0
             elif self.nvars==1:
@@ -420,6 +421,14 @@ class PolynomialRing(CommutativeRing):
             else:
                 self._ldegree = d = map(min,zip(*data.keys()))
         return d
+
+    @property
+    def coeff(self):
+        data = self.data
+        nvars = self.nvars
+        if nvars==1:
+            return data[self.degree]
+        raise NotImplementedError(`self,nvars`)
 
     def diff(self, index=0):
         if self.nvars==0:
@@ -438,11 +447,48 @@ class PolynomialRing(CommutativeRing):
                 if e:
                     d[exps.add(index,-1)] = coeff * e
         return r
-        
-def divmod_POLY1_POLY1(lhs, rhs, cls):
-    if rhs.degree < 0:
+
+def divmod_POLY1_POLY1_SPARSE(lhs, rhs, cls):
+    d2 = rhs.degree
+    c2 = rhs.coeff
+    if not c2:
         raise ZeroDivisionError, "polynomial division"
-    #XXX: optimize the algorithm to (exponent: coefficient) representation
+    other_iter = rhs.data.iteritems
+    dq = {}
+    dr = dict(lhs.data)
+    q = newinstance(cls, dq)
+    r = newinstance(cls, dr)
+    dseq = [0] + dr.keys()
+    dr_get = dr.get
+    dseq_append = dseq.append
+    dseq_remove = dseq.remove
+    while 1:
+        d1 = max(dseq)
+        if d1 < d2:
+            return q, r
+        c1 = dr[d1]
+        e = d1 - d2
+        c = div(c1, c2)
+        dq[e] = c
+        nc = -c
+        for e0,c0 in other_iter():
+            e0 = e0 + e
+            c0 = nc * c0
+            b = dr_get(e0)
+            if b is None:
+                dr[e0] = c0
+                dseq_append(e0)
+            else:
+                b = b + c0
+                if b:
+                    dr[e0] = b
+                else:
+                    del dr[e0]
+                    dseq_remove(e0)
+
+def divmod_POLY1_POLY1_DENSE(lhs, rhs, cls):
+    if not rhs.coeff:
+        raise ZeroDivisionError, "polynomial division"
     n = lhs.degree
     nv = rhs.degree
     u = [0]*(n+1)

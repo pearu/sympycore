@@ -12,8 +12,9 @@ def time1(n=500):
     import sympycore as sympy
     w = sympy.Fraction(3,4)
     x = sympy.polynomials.poly([0, 1, 1])
-    a = (x-1)*(x-2)*(x-3)*(x-4)*(x-5)
     b = (x-1)*(x-2)*(x-w)
+    a = (x-1)*(x-2)*(x-3)*(x-4)*(x-5)# + (x-1)*(x-2)*x**10
+
     t1 = clock()
     while n:
         divmod(a, b)
@@ -25,8 +26,8 @@ def time2(n=500):
     import sympycore as sympy
     w = sympy.Fraction(3,4)
     x = sympy.polynomials.PolynomialRing[1]([0, 1, 1])
-    a = (x-1)*(x-2)*(x-3)*(x-4)*(x-5)
     b = (x-1)*(x-2)*(x-w)
+    a = (x-1)*(x-2)*(x-3)*(x-4)*(x-5)# + (x-1)*(x-2)*x**10
     t1 = clock()
     while n:
         divmod(a, b)

@@ -37,8 +37,8 @@ def test_univariate():
     assert X([1, 2, 3]) == 3*x**2 + 2*x + 1
     assert X([1, 2, 3]).degree == 2
     assert X([1, 2, 3]).ldegree == 0
-    assert X([0]).degree == -1
-    assert X([0]).ldegree == -1
+    assert X([0]).degree == 0
+    assert X([0]).ldegree == 0
     assert (x**3 + x) + (3*x + x**4) == x**4 + x**3 + 4*x
     assert X([1, 2, 3])*2 == X([2, 4, 6])
     assert X([1, 2, 3])/2.0 == X([0.5, 1.0, 1.5])
