@@ -217,6 +217,12 @@ class Calculus(CommutativeRingWithPairs):
             return cls.Mul(*[t.as_polynom(cls)**c for t,c in self.data.iteritems()])
         raise NotImplementedError(`head, self`)
 
+    def __divmod__(self, other):
+        if isinstance(other, Calculus):
+            lhs = self.as_polynom()
+            rhs = other.as_polynom(lhs.__class__)
+            return divmod(lhs, rhs)
+        return NotImplemented
 
 class Positive:
     def __init__(self, a):
