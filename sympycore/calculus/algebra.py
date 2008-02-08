@@ -176,18 +176,26 @@ class Calculus(CommutativeRingWithPairs):
 
     def __lt__(self, other):
         other = self.convert(other)
+        if self.head is NUMBER and other.head is NUMBER:
+            return self.data < other.data
         return Lt(self, other)
 
     def __le__(self, other):
         other = self.convert(other)
+        if self.head is NUMBER and other.head is NUMBER:
+            return self.data <= other.data
         return Le(self, other)
 
     def __gt__(self, other):
         other = self.convert(other)
+        if self.head is NUMBER and other.head is NUMBER:
+            return self.data > other.data
         return Gt(self, other)
 
     def __ge__(self, other):
         other = self.convert(other)
+        if self.head is NUMBER and other.head is NUMBER:
+            return self.data >= other.data
         return Ge(self, other)
 
     def as_polynom(self, cls=None):

@@ -281,6 +281,14 @@ class CommutativeRingWithPairs(CommutativeRing):
     def is_Pow(self):
         return self.head is MUL and len(self.data) == 1
 
+    @property
+    def is_Number(self):
+        return self.head is NUMBER
+
+    @property
+    def is_Symbol(self):
+        return self.head is SYMBOL
+
     def as_Add_args(self):
         head = self.head
         data = self.data

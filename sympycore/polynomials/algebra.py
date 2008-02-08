@@ -450,6 +450,7 @@ class PolynomialRing(CommutativeRing):
                     d[exps.add(index,-1)] = coeff * e
         return r
 
+
 def divmod_POLY1_POLY1_SPARSE(lhs, rhs, cls):
     d2 = rhs.degree
     c2 = rhs.coeff

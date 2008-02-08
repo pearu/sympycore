@@ -352,6 +352,32 @@ class MatrixRing(CommutativeRing):
         P = PermutationMatrix(pivot_table).T
         return P, L, U
 
+    def inv_l(self):
+        """ Return inverse of lower triangular matrix L.
+        """
+        linv = self.zero.copy()
+        M,N = self.shape
+        assert M==N,`M,N`
+        for j in xrange(N):
+            linv[j,j] = div(1, self[j, j])
+            for i in xrange(j+1,N):
+                r = 0
+                for k in range(j,i):
+                    r = r - self[i, k] * linv[k, j]
+                linv[i, j] = div(r, self[i, i])
+        return linv
+
+    def inv(self):
+        p, l, u = self.lu()
+        # a = p*l*u
+        # a^-1 = u^-1 * l^-1 * p.T
+        det = reduce(lambda x,y:x*y,[u[i,i] for i in range(min(u.shape))],1)
+        if det:
+            linv = l.inv_l()
+            uinv = u.T.inv_l().T
+            return uinv * linv * p.T
+        raise ZeroDivisionError
+
 class SquareMatrix(MatrixRing):
 
     is_square = True
