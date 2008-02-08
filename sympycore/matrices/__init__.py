@@ -1,2 +1,2 @@
 
-from .algebra import MatrixRing
+from .algebra import MatrixRing, PermutationMatrix, SquareMatrix
