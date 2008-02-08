@@ -268,6 +268,19 @@ class CommutativeRingWithPairs(CommutativeRing):
             return data,
         raise NotImplementedError(`self, head`)
 
+    @property
+    def is_Add(self):
+        return self.head is ADD and len(self.data) > 1
+
+    @property
+    def is_Mul(self):
+        return (self.head is ADD and len(self.data) == 1) \
+            or (self.head is MUL and len(self.data) > 1)
+
+    @property
+    def is_Pow(self):
+        return self.head is MUL and len(self.data) == 1
+
     def as_Add_args(self):
         head = self.head
         data = self.data

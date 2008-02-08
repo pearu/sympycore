@@ -174,6 +174,22 @@ class Calculus(CommutativeRingWithPairs):
             return self.data == other
         return False
 
+    def __lt__(self, other):
+        other = self.convert(other)
+        return Lt(self, other)
+
+    def __le__(self, other):
+        other = self.convert(other)
+        return Le(self, other)
+
+    def __gt__(self, other):
+        other = self.convert(other)
+        return Gt(self, other)
+
+    def __ge__(self, other):
+        other = self.convert(other)
+        return Ge(self, other)
+
     def as_polynom(self, cls=None):
         if cls is None:
             cls = PolynomialRing
@@ -200,6 +216,24 @@ class Calculus(CommutativeRingWithPairs):
         if head is MUL:
             return cls.Mul(*[t.as_polynom(cls)**c for t,c in self.data.iteritems()])
         raise NotImplementedError(`head, self`)
+
+
+class Positive:
+    def __init__(self, a):
+        self.a = a
+    def __repr__(self):
+        return "(%s) > 0" % self.a
+
+class Nonnegative:
+    def __init__(self, a):
+        self.a = a
+    def __repr__(self):
+        return "(%s) >= 0" % self.a
+
+def Lt(a, b): return Positive(b-a)
+def Le(a, b): return Nonnegative(b-a)
+def Gt(a, b): return Positive(a-b)
+def Ge(a, b): return Nonnegative(a-b)
 
 A = Calculus
 one = A(1, head=NUMBER)
