@@ -251,7 +251,7 @@ class PolynomialRing(CommutativeRing):
     @classmethod
     def convert_coefficient(cls, obj, typeerror=True):
         if isinstance(obj, cls.ring):
-            return obj
+            return NotImplemented
         r = cls.ring.convert_coefficient(obj, typeerror=False)
         if r is not None:
             return r

@@ -17,3 +17,8 @@ def Rational(num, denom):
 Add = lambda *args: Calculus.Add(*map(Calculus.convert, args))
 Mul = lambda *args: Calculus.Mul(*map(Calculus.convert, args))
 Pow = lambda *args: Calculus.Pow(*map(Calculus.convert, args))
+
+from ..arithmetic.number_theory import factorial as _factorial
+def factorial(n):
+    return Number(_factorial(n))
+    

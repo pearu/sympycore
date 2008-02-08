@@ -32,6 +32,8 @@ class Calculus(CommutativeRingWithPairs):
             return self.as_primitive()
         if cls is classes.Unit:
             return newinstance(cls, NUMBER, self)
+        if issubclass(cls, PolynomialRing):
+            return self.as_polynom(cls)
         return self.as_primitive().as_algebra(cls)
 
     defined_functions = {}
@@ -172,6 +174,32 @@ class Calculus(CommutativeRingWithPairs):
             return self.data == other
         return False
 
+    def as_polynom(self, cls=None):
+        if cls is None:
+            cls = PolynomialRing
+        head = self.head
+        if head is NUMBER:
+            return cls(self)
+        if head is SYMBOL:
+            try:
+                i = list(cls.variables).index(self)
+            except ValueError:
+                i = None
+            if i is None:
+                try:
+                    i = list(cls.variables).index(self.data)
+                except ValueError:
+                    i = None
+            if i is not None:
+                l = [0]*cls.nvars
+                l[i] = 1
+                return cls({AdditiveTuple(l):1})                
+            return cls[(self.data,), self.__class__]({1:1})
+        if head is ADD:
+            return cls.Add(*[t.as_polynom(cls)*c for t,c in self.data.iteritems()])
+        if head is MUL:
+            return cls.Mul(*[t.as_polynom(cls)**c for t,c in self.data.iteritems()])
+        raise NotImplementedError(`head, self`)
 
 A = Calculus
 one = A(1, head=NUMBER)
@@ -187,3 +215,5 @@ undefined = A(ExtendedNumber.get_undefined(), head=NUMBER)
 
 def integrate(expr, x):
     return Calculus(expr).integrate(x)
+
+from ..polynomials.algebra import PolynomialRing, AdditiveTuple
