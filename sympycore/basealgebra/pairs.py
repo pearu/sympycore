@@ -668,12 +668,19 @@ class CommutativeRingWithPairs(CommutativeRing):
             return zero
         elif callable(head):
             return diff_callable_SYMBOL(self, x, zero, cls)
+        if x not in self._get_symbols_data():
+            return zero
         return diff_SYMBOL_dict[head](self, x, zero, cls)
 
     @staticmethod
     def _integrator(e, x):
         raise NotImplementedError("Don't know how to integrate(%s, %s)" % \
             (e, x))
+
+    @staticmethod
+    def _integrator_definite(e, x, a, b):
+        raise NotImplementedError("Don't know how to integrate(%s, %s)" % \
+            (e, (x, a, b)))
 
     def _integrate(self, x, integrator=None):
         """
@@ -714,6 +721,40 @@ class CommutativeRingWithPairs(CommutativeRing):
             return self.Add(*(coef*term._integrate(x, integrator) \
                               for term, coef in self.data.iteritems()))
         return integrator(self, x)
+
+    def _integrate_definite(self, x, a, b, integrator=None):
+        head = self.head
+        if head is NUMBER or x not in self._get_symbols_data():
+            return self*(a-b)
+        if head is SYMBOL and self.data == x:
+            return (b**2-a**2) / 2
+        if integrator is None:
+            integrator = self._integrator_definite
+        if head is MUL:
+            product = self.one
+            have_x = False
+            for base, e in self.data.iteritems():
+                # We don't know how to do exponentials yet
+                if isinstance(e, self.__class__) and e.has_symbol(x):
+                    return integrator(self, x, a, b)
+                if base.head is SYMBOL and base.data == x:
+                    if have_x:
+                        return integrator(self, x, a, b)
+                    e1 = e+1
+                    product *= (b**e1-a**e1) / e1
+                    have_x = True
+                # Cases like (x+y)*x could still be handled by expanding,
+                # but this may cause infinite recursion if implemented
+                # directly here
+                elif x in base._get_symbols_data():
+                    return integrator(self, x, a, b)
+                else:
+                    product *= newinstance(self.__class__, MUL, {base:e})
+            return product
+        if head is ADD:
+            return self.Add(*(coef*term._integrate_definite(x, a, b, integrator) \
+                              for term, coef in self.data.iteritems()))
+        return integrator(self, x, a, b)
 
 
 def diff_callable_SYMBOL(expr, x, zero, cls):
