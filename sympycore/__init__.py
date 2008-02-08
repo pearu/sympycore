@@ -18,7 +18,7 @@ def profile_expr(expr):
     prof.runcall(foo)
     prof.close()
     stats = hotshot.stats.load("/tmp/sympycore_stones.prof")
-    stats.strip_dirs()
+    #stats.strip_dirs()
     stats.sort_stats('time','calls','time')
     stats.print_stats(40)
     return stats
