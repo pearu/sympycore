@@ -15,6 +15,7 @@ dummy_src_name = '<func-timeit-src>'
 class Timer(timeit.Timer):
 
     def __init__(self, test_func):
+        self.disable = False
         rev = None
         for l in sys.argv:
             if l.startswith('REVISION'):
@@ -22,8 +23,11 @@ class Timer(timeit.Timer):
                 break
         if rev and hasattr(test_func, 'MIN_REVISION'):
             if rev < test_func.MIN_REVISION:
-                raise ValueError('Given test function %s requires %s revision as minimum but got %s'\
-                                 % (test_func, test_func.MIN_REVISION, rev))
+                print 'Given test function %s requires %s revision as minimum but got %s'\
+                      % (test_func, test_func.MIN_REVISION, rev)
+                self.disable = True
+                return
+
         doc = getattr(test_func, '__doc__')
         if doc is None:
             doc = str(test_func)
@@ -41,6 +45,8 @@ class Timer(timeit.Timer):
         self.base_best = min(timeit.Timer('foo()','def foo(): pass').repeat(repeat=5, number=number))/number
 
     def smart_timeit(self, repeat=20, verbose=True):
+        if self.disable:
+            return
         units = ["s", "ms", "\xc2\xb5s", "ns"]
         scaling = [1, 1e3, 1e6, 1e9]
         precision = 3
