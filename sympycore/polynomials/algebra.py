@@ -145,7 +145,7 @@ class PolynomialRing(CommutativeRing):
 
     __metaclass__ = PolynomialRingFactory
 
-    def __new__(cls, data):
+    def __new__(cls, data = {}):
         if isinstance(data, list):
             if cls.nvars==1 and data:
                 if type(data[0]) not in [tuple,list,set]:

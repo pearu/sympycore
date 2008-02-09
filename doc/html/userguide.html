@@ -336,6 +336,12 @@ ul.auto-toc {
 </li>
 <li><a class="reference" href="#calculus" id="id19" name="id19">Calculus</a></li>
 <li><a class="reference" href="#arithemetics" id="id20" name="id20">Arithemetics</a></li>
+<li><a class="reference" href="#polynomials" id="id21" name="id21">Polynomials</a><ul>
+<li><a class="reference" href="#univariatepolynomial" id="id22" name="id22"><tt class="docutils literal"><span class="pre">UnivariatePolynomial</span></tt></a></li>
+<li><a class="reference" href="#polynomialring" id="id23" name="id23"><tt class="docutils literal"><span class="pre">PolynomialRing</span></tt></a></li>
+</ul>
+</li>
+<li><a class="reference" href="#matrices" id="id24" name="id24">Matrices</a></li>
 </ul>
 </div>
 <div class="section">
@@ -362,7 +368,7 @@ algebra.</p>
 &gt;&gt;&gt; n = Number(2,5)
 &gt;&gt;&gt; x+n
 Calculus('x + 2/5')
-&gt;&gt;&gt; x,y,v,w=map(Symbol,'xyvw')
+&gt;&gt;&gt; x,y,z,v,w=map(Symbol,'xyzvw')
 </pre>
 <p>To construct expression from a string, use the corresponding algebra
 class, for example,</p>
@@ -851,6 +857,137 @@ implements fractions, multi-precision floating point numbers, rational
 complex numbers, and extended numbers. In addition, it implements
 various algorithms from number theory and provides methods to compute
 the values of constants like pi and Eulers number, etc.</p>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id21" id="polynomials" name="polynomials">Polynomials</a></h1>
+<p>The <tt class="docutils literal"><span class="pre">sympycore.polynomials</span></tt> package has two different
+implementations for polynomials: <tt class="docutils literal"><span class="pre">UnivariatePolynomial</span></tt> and
+<tt class="docutils literal"><span class="pre">PolynomialRing</span></tt>.</p>
+<div class="section">
+<h2><a class="toc-backref" href="#id22" id="univariatepolynomial" name="univariatepolynomial"><tt class="docutils literal"><span class="pre">UnivariatePolynomial</span></tt></a></h2>
+<p>The <tt class="docutils literal"><span class="pre">UnivariatePolynomial</span></tt> class stores polynomial coefficients in a
+Python list. The exponents are implicitly defined as indices of the
+list so that the degree of a polynomial is equal to the length of the
+list minus 1. <tt class="docutils literal"><span class="pre">UnivariatePolynomial</span></tt> is most efficient for
+manipulating low order and dense polynomials. To specify the variable
+symbol of a polynomial, use <tt class="docutils literal"><span class="pre">symbol</span></tt> keyword argument (default
+variable symbol is <tt class="docutils literal"><span class="pre">x</span></tt>).</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; poly = UnivariatePolynomial
+&gt;&gt;&gt; poly([4,3,2,1])
+4 + 3*x + 2*x**2 + x**3
+&gt;&gt;&gt; poly([4,3,2,1]).degree
+3
+&gt;&gt;&gt; poly([4,3,2,1],symbol='y')
+4 + 3*y + 2*y**2 + y**3
+</pre>
+<p>Coefficients can be arbitrary symbolic expressions:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; poly([2,y+1,y+z])
+2 + ((1 + y))*x + ((y + z))*x**2
+</pre>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id23" id="polynomialring" name="polynomialring"><tt class="docutils literal"><span class="pre">PolynomialRing</span></tt></a></h2>
+<p>The <tt class="docutils literal"><span class="pre">PolynomialRing</span></tt> based classes store polynomial exponenets and
+coefficients information in a Python dictionary object where keys are
+exponenents (in univariate case Python integers, in multivariate case
+<tt class="docutils literal"><span class="pre">AdditiveTuple</span></tt> instances) and values are coefficients.
+<tt class="docutils literal"><span class="pre">PolynomialRing</span></tt> is most efficient for manipulating sparse
+polynomials.  The coefficients belong to specified ring (default ring
+is <tt class="docutils literal"><span class="pre">Calculus</span></tt>).</p>
+<p>The <tt class="docutils literal"><span class="pre">PolynomialRing</span></tt> class (derived from <tt class="docutils literal"><span class="pre">CommutativeRing</span></tt>) is
+a base class to various polynomial rings with different coefficent
+rings and different number of variables. To create a class
+representing a polynomial element with variables <tt class="docutils literal"><span class="pre">(X,</span> <span class="pre">Y,</span> <span class="pre">..)</span></tt> and
+with <tt class="docutils literal"><span class="pre">&lt;ring&gt;</span></tt> coefficients, use one of the following constructions:</p>
+<pre class="literal-block">
+PolynomialRing[(X, Y, ..), &lt;ring&gt;]
+PolynomialRing[&lt;int&gt;, &lt;ring&gt;]
+</pre>
+<p>where nonnegative <tt class="docutils literal"><span class="pre">&lt;int&gt;</span></tt> specifies the number of variables (default
+symbols are then <tt class="docutils literal"><span class="pre">X0</span></tt>, <tt class="docutils literal"><span class="pre">X1</span></tt>, etc). The <tt class="docutils literal"><span class="pre">&lt;ring&gt;</span></tt> argument can be
+omitted, then <tt class="docutils literal"><span class="pre">Calculus</span></tt> is used as a default ring.  Variables can
+be arbitrary symbolic expressions.</p>
+<p>For example,</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; polyXY = PolynomialRing[('X', 'Y'), Calculus]
+&gt;&gt;&gt; polyXY
+&lt;class 'sympycore.polynomials.algebra.PolynomialRing[(X, Y), Calculus]'&gt;
+</pre>
+<p>To create a polynomial with given exponents and coefficients pairs,
+the <tt class="docutils literal"><span class="pre">PolynomialRing</span></tt> constructor accepts dictinary objects
+containing the corresponding pairs:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; polyXY({(0,0):4, (2,1):3, (0,3):2})
+PolynomialRing[(X, Y), Calculus]('3*X**2*Y + 2*Y**3 + 4')
+</pre>
+<p>Univariate polynomials can also be constructed from a list in the same
+way as <tt class="docutils literal"><span class="pre">UnivariatePolynomial</span></tt> instances were constructed above:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; PolynomialRing[1]([4,3,2,1])
+PolynomialRing[X0, Calculus]('X0**3 + 2*X0**2 + 3*X0 + 4')
+</pre>
+</div>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id24" id="matrices" name="matrices">Matrices</a></h1>
+<p>The <tt class="docutils literal"><span class="pre">sympycore.matrices</span></tt> package defines <tt class="docutils literal"><span class="pre">MatrixRing</span></tt> that is base
+class to matrix algebras. Matrix algebras are represented as classes
+(derived from <tt class="docutils literal"><span class="pre">MatrixRing</span></tt>) parametrized with matrix shape and
+element ring (default ring is <tt class="docutils literal"><span class="pre">Calculus</span></tt>). To create a matrix
+ring, use the following constructs:</p>
+<pre class="literal-block">
+MatrixRing[&lt;shape&gt;, &lt;ring&gt;]
+SquareMatrix[&lt;size&gt;, &lt;ring&gt;]
+PermutationMatrix[&lt;size&gt;]
+</pre>
+<p>where <tt class="docutils literal"><span class="pre">&lt;ring&gt;</span></tt> can be omitted, then <tt class="docutils literal"><span class="pre">Calculus</span></tt> is used as a
+default element ring.</p>
+<p>For example,</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; m=MatrixRing[3,4]()
+&gt;&gt;&gt; print m
+ 0  0  0  0
+ 0  0  0  0
+ 0  0  0  0
+&gt;&gt;&gt; m[1,2] = 3
+&gt;&gt;&gt; m[2,3] = 4
+&gt;&gt;&gt; print m
+ 0  0  0  0
+ 0  0  3  0
+ 0  0  0  4
+</pre>
+<p>The content of the matrix is stored as a dictionary containing
+pairs <tt class="docutils literal"><span class="pre">(&lt;rowindex&gt;,&lt;column-index&gt;):</span> <span class="pre">&lt;non-zero</span> <span class="pre">element&gt;</span></tt>.</p>
+<p>Matrix instances can be constructed from Python dictionary or from a
+Python list:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; print MatrixRing[2,2]({(0,0):1,(0,1):2,(1,1):3})
+ 1  2
+ 0  3
+&gt;&gt;&gt; print MatrixRing[2,2]([[1,2],[3,4]])
+ 1  2
+ 3  4
+</pre>
+<p>Permutation matrices can be constructed from a sequence of
+integers:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; print PermutationMatrix([1,0,2])
+ 0  1  0
+ 1  0  0
+ 0  0  1
+</pre>
+<p>Use <tt class="docutils literal"><span class="pre">random()</span></tt> classmethod to construct matrices with random
+content:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; print SquareMatrix[2].random()         #doctest: +SKIP
+ -1  3
+  3  0
+&gt;&gt;&gt; print SquareMatrix[2].random((10,20))  #doctest: +SKIP
+ 15  10
+ 13  15
+</pre>
 </div>
 </div>
 </body>

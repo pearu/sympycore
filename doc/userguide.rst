@@ -45,7 +45,7 @@ algebra.
 >>> n = Number(2,5)
 >>> x+n
 Calculus('x + 2/5')
->>> x,y,v,w=map(Symbol,'xyvw')
+>>> x,y,z,v,w=map(Symbol,'xyzvw')
 
 To construct expression from a string, use the corresponding algebra
 class, for example,
@@ -533,3 +533,142 @@ implements fractions, multi-precision floating point numbers, rational
 complex numbers, and extended numbers. In addition, it implements
 various algorithms from number theory and provides methods to compute
 the values of constants like pi and Eulers number, etc.
+
+Polynomials
+===========
+
+The ``sympycore.polynomials`` package has two different
+implementations for polynomials: ``UnivariatePolynomial`` and
+``PolynomialRing``.
+
+``UnivariatePolynomial``
+------------------------
+
+The ``UnivariatePolynomial`` class stores polynomial coefficients in a
+Python list. The exponents are implicitly defined as indices of the
+list so that the degree of a polynomial is equal to the length of the
+list minus 1. ``UnivariatePolynomial`` is most efficient for
+manipulating low order and dense polynomials. To specify the variable
+symbol of a polynomial, use ``symbol`` keyword argument (default
+variable symbol is ``x``).
+
+>>> poly = UnivariatePolynomial
+>>> poly([4,3,2,1])
+4 + 3*x + 2*x**2 + x**3
+>>> poly([4,3,2,1]).degree
+3
+>>> poly([4,3,2,1],symbol='y')
+4 + 3*y + 2*y**2 + y**3
+
+Coefficients can be arbitrary symbolic expressions:
+
+>>> poly([2,y+1,y+z])
+2 + ((1 + y))*x + ((y + z))*x**2
+
+
+``PolynomialRing``
+------------------
+
+The ``PolynomialRing`` based classes store polynomial exponenets and
+coefficients information in a Python dictionary object where keys are
+exponenents (in univariate case Python integers, in multivariate case
+``AdditiveTuple`` instances) and values are coefficients.
+``PolynomialRing`` is most efficient for manipulating sparse
+polynomials.  The coefficients belong to specified ring (default ring
+is ``Calculus``).
+
+The ``PolynomialRing`` class (derived from ``CommutativeRing``) is
+a base class to various polynomial rings with different coefficent
+rings and different number of variables. To create a class
+representing a polynomial element with variables ``(X, Y, ..)`` and
+with ``<ring>`` coefficients, use one of the following constructions::
+
+  PolynomialRing[(X, Y, ..), <ring>]
+  PolynomialRing[<int>, <ring>]
+
+where nonnegative ``<int>`` specifies the number of variables (default
+symbols are then ``X0``, ``X1``, etc). The ``<ring>`` argument can be
+omitted, then ``Calculus`` is used as a default ring.  Variables can
+be arbitrary symbolic expressions.
+
+For example,
+
+>>> polyXY = PolynomialRing[('X', 'Y'), Calculus]
+>>> polyXY
+<class 'sympycore.polynomials.algebra.PolynomialRing[(X, Y), Calculus]'>
+
+To create a polynomial with given exponents and coefficients pairs,
+the ``PolynomialRing`` constructor accepts dictinary objects
+containing the corresponding pairs:
+
+>>> polyXY({(0,0):4, (2,1):3, (0,3):2})
+PolynomialRing[(X, Y), Calculus]('3*X**2*Y + 2*Y**3 + 4')
+
+Univariate polynomials can also be constructed from a list in the same
+way as ``UnivariatePolynomial`` instances were constructed above:
+
+>>> PolynomialRing[1]([4,3,2,1])
+PolynomialRing[X0, Calculus]('X0**3 + 2*X0**2 + 3*X0 + 4')
+
+
+Matrices
+========
+
+The ``sympycore.matrices`` package defines ``MatrixRing`` that is base
+class to matrix algebras. Matrix algebras are represented as classes
+(derived from ``MatrixRing``) parametrized with matrix shape and
+element ring (default ring is ``Calculus``). To create a matrix
+ring, use the following constructs::
+
+  MatrixRing[<shape>, <ring>]
+  SquareMatrix[<size>, <ring>]
+  PermutationMatrix[<size>]
+
+where ``<ring>`` can be omitted, then ``Calculus`` is used as a
+default element ring.
+
+For example,
+
+>>> m=MatrixRing[3,4]()
+>>> print m
+ 0  0  0  0 
+ 0  0  0  0 
+ 0  0  0  0 
+>>> m[1,2] = 3
+>>> m[2,3] = 4
+>>> print m
+ 0  0  0  0 
+ 0  0  3  0 
+ 0  0  0  4 
+
+The content of the matrix is stored as a dictionary containing
+pairs ``(<rowindex>,<column-index>): <non-zero element>``.
+
+Matrix instances can be constructed from Python dictionary or from a
+Python list:
+
+>>> print MatrixRing[2,2]({(0,0):1,(0,1):2,(1,1):3})
+ 1  2 
+ 0  3 
+>>> print MatrixRing[2,2]([[1,2],[3,4]])
+ 1  2 
+ 3  4 
+
+Permutation matrices can be constructed from a sequence of
+integers:
+
+>>> print PermutationMatrix([1,0,2])
+ 0  1  0 
+ 1  0  0 
+ 0  0  1 
+
+Use ``random()`` classmethod to construct matrices with random
+content:
+
+>>> print SquareMatrix[2].random()         #doctest: +SKIP
+ -1  3 
+  3  0 
+>>> print SquareMatrix[2].random((10,20))  #doctest: +SKIP
+ 15  10 
+ 13  15 
+

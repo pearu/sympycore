@@ -368,6 +368,8 @@ class MatrixRing(CommutativeRing):
         return linv
 
     def inv(self):
+        """ Return inverse of a square matrix.
+        """
         p, l, u = self.lu()
         # a = p*l*u
         # a^-1 = u^-1 * l^-1 * p.T
