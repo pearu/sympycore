@@ -14,8 +14,8 @@ dummy_src_name = '<func-timeit-src>'
 class Timer(timeit.Timer):
 
     def __init__(self, test_func):
-        """
-        """
+        title = getattr(test_func, '__doc__', test_func.func_code.co_filename).strip().splitlines()[0]
+        print 'TIMER_TITLE=',title
         self.timer = timeit.default_timer
         src = template
         self.src = src # Save for traceback display
@@ -24,22 +24,24 @@ class Timer(timeit.Timer):
         exec code in globals(), ns
         self.inner = ns["inner"]
 
-        base_timer = timeit.Timer('foo()','def foo(): pass')
-        self.base_timing = min(base_timer.repeat(repeat=3, number=100000))/100000
+        number = 100000
+        self.base_best = min(timeit.Timer('foo()','def foo(): pass').repeat(repeat=5, number=number))/number
 
-    def smart_timeit(self, repeat=3, verbose=True):
+    def smart_timeit(self, repeat=20, verbose=True):
         units = ["s", "ms", "\xc2\xb5s", "ns"]
         scaling = [1, 1e3, 1e6, 1e9]
         precision = 3
         
-        number = 1
+        number = 2
         for i in range(1, 10):
-            number *= 10
-            if self.timeit(number) >= 0.2:
+            number *= 2
+            t = self.timeit(number)
+            if t >= 0.5:
                 break
-        result = sorted(self.repeat(repeat=repeat, number=number))
+        
+        result = self.repeat(repeat=repeat, number=number)
 
-        best = result[0] / number
+        best = min(result) / number
 
         if best > 0.0:
             order = min(-int(math.floor(math.log10(best)) // 3), 3)
@@ -50,4 +52,7 @@ class Timer(timeit.Timer):
                                                               precision,
                                                               best * scaling[order],
                                                               units[order])
-        return best/self.base_timing
+
+        stones = best / self.base_best
+        print 'TIMER_STONES=%s' % (int(stones+0.5))
+        return stones
