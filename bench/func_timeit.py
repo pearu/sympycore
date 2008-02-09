@@ -26,7 +26,7 @@ class Timer(timeit.Timer):
                                  % (test_func, test_func.MIN_REVISION, rev))
         doc = getattr(test_func, '__doc__')
         if doc is None:
-            doc = test_func.func_code.co_filename or test_func.__module__.__name__ or ''
+            doc = str(test_func)
         title = doc.lstrip().splitlines()[0].strip()
         print 'TIMER_TITLE=',title
         self.timer = timeit.default_timer

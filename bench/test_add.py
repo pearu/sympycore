@@ -16,4 +16,3 @@ def test():
 if __name__=='__main__':
     from func_timeit import Timer
     Timer(test).smart_timeit()
-
