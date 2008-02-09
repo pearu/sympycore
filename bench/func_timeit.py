@@ -24,6 +24,9 @@ class Timer(timeit.Timer):
         exec code in globals(), ns
         self.inner = ns["inner"]
 
+        base_timer = timeit.Timer('foo()','def foo(): pass')
+        self.base_timing = min(base_timer.repeat(repeat=3, number=100000))/100000
+
     def smart_timeit(self, repeat=3, verbose=True):
         units = ["s", "ms", "\xc2\xb5s", "ns"]
         scaling = [1, 1e3, 1e6, 1e9]
@@ -47,4 +50,4 @@ class Timer(timeit.Timer):
                                                               precision,
                                                               best * scaling[order],
                                                               units[order])
-        return 1/best
+        return best/self.base_timing

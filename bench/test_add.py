@@ -10,4 +10,5 @@ def test():
 if __name__=='__main__':
     from func_timeit import Timer
     ops = Timer(test).smart_timeit()
-    print 'Number of test calls per second:', int(ops)
+    print 'TIMER_STONES =', int(ops+0.5)
+
