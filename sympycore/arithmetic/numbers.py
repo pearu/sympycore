@@ -5,35 +5,38 @@ calculations, etc. In the interest of speed, the classes implemented
 here have some quirks which make them unsuitable to be exposed
 directly to (non-expert) users.
 
-In particular, we want fractions to normalize back to Python ints
-when they become integer-valued, and we want complex numbers to
-normalize back to their real parts when the imaginary parts disappear.
-This means code like
+In addition to the number types Fraction (rationals), Float (floats)
+and Complex (complexes), the ExtendedNumber type can be used
+to represent infinities and indeterminate/undefined (nan) results.
 
-    a = Fraction(2)
-    b = Fraction(3)
-    a / b
+Important notes:
 
-should not be expected to work. Instead, the div() function can be used
-to safely divide numbers (it checks for integers). However, +, - and *,
-as well as positive integer powers, are always safe.
+To make hashing, equality testing and instance creation as fast as
+possible, a Fraction instance *must only* be created from a fully
+normalized (p, q) pair and p/q *must not* be integer-valued.
+Arithmetic operations on Fractions automatically normalize back to
+Python ints when the results are integer valued.
+
+Fraction.__init__ does *not* validate its input. To safely create a
+fraction from two integers, use the function normalized_fraction().
+
+Note that Fraction(2)/Fraction(3) does *not* work as expected; it
+does the same thing as 2/3 in Python. To perform safe division, use
+the div function instead.
+
+Fractions can be compared with Python ints, but cannot be (correctly)
+compared with Python floats. If you need to mix approximate and
+exact fractions, use the Float class instead.
 
 Powers, except when the exponent is a positive integer, should be
 computed with the try_power() function which detects when the result is
 not exact.
 
-In addition to the number types Fraction (rationals), Float (floats) and Complex
-(complexes), the ExtendedNumber type can be used to represent infinities
-and indeterminate/undefined (nan) results.
-
-Some issues:
-* Rational hashing is not compatible with floats (however, mixing floats
-  and rationals is generally not a good idea).
-* Extended numbers are not fully handled yet.
-* try_power does not yet know how to compute fractional powers
-  (and square roots in particular)
-
+In a similar manner to how integer-valued rationals become Python ints,
+complex numbers automatically normalize to their real parts when
+they become real.
 """
+
 #
 # Author: Fredrik Johansson
 # Created: January 2008
@@ -41,7 +44,7 @@ Some issues:
 import math
 
 __all__ = ['Fraction', 'Float', 'Complex', 'div', 'int_root', 'try_power',
-           'ExtendedNumber']
+           'ExtendedNumber', 'normalized_fraction']
 
 from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_NUMBER
 from ..basealgebra.primitive import PrimitiveAlgebra, NUMBER, SYMBOL
@@ -56,19 +59,27 @@ inttypes = (int, long)
 #                                                                            #
 #----------------------------------------------------------------------------#
 
+def normalized_fraction(p, q=1):
+    x, y = p, q
+    while y:
+        x, y = y, x % y
+    if x != 1:
+        p //= x
+        q //= x
+    if q == 1:
+        return p
+    return Fraction((p, q))
+
 class Fraction(tuple):
+
+    # These methods are inherited directly from tuple for speed. This works
+    # as long as all Fraction tuples are normalized.
+    # __new__/__init__
+    # __nonzero__
+    # __eq__
+    # __hash__
+
     __slots__ = []
-    
-    def __new__(cls, p, q=1, tnew=tuple.__new__):
-        x, y = p, q
-        while y:
-            x, y = y, x % y
-        if x != 1:
-            p //= x
-            q //= x
-        if q == 1:
-            return p
-        return tnew(cls, (p, q))
 
     def as_primitive(self):
         p, q = self
@@ -85,12 +96,7 @@ class Fraction(tuple):
         return "(%i/%i)" % self
 
     def __repr__(self):
-        return "Fraction(%r, %r)" % (self[0], self[1])
-
-    # not needed when __new__ normalizes to ints
-    # __nonzero__
-    # __eq__
-    # __hash__
+        return "Fraction((%r, %r))" % (self[0], self[1])
 
     def __cmp__(self, other):
         p, q = self
@@ -109,26 +115,37 @@ class Fraction(tuple):
         p, q = self
         return p // q
 
-    def __neg__(self, tnew=tuple.__new__):
+    def __neg__(self):
         p, q = self
-        return tnew(Fraction, (-p, q))
+        return Fraction((-p, q))
 
     def __pos__(self):
         return self
 
-    def __abs__(self, tnew=tuple.__new__):
+    def __abs__(self):
         p, q = self
         if p < 0:
-            return tnew(Fraction, (-p, q))
+            return Fraction((-p, q))
         return self
 
     def __add__(self, other):
         p, q = self
         if isinstance(other, inttypes):
-            return Fraction(p+q*other, q)
+            # GCD never needed
+            return Fraction((p+q*other, q))
         if isinstance(other, Fraction):
             r, s = other
-            return Fraction(p*s+q*r, q*s)
+            # GCD reduction inlined for speed
+            p = x = p*s+q*r
+            q = y = q*s
+            while y:
+                x, y = y, x % y
+            if x != 1:
+                p //= x
+                q //= x
+            if q == 1:
+                return p
+            return Fraction((p, q))
         return NotImplemented
 
     __radd__ = __add__
@@ -136,25 +153,36 @@ class Fraction(tuple):
     def __sub__(self, other):
         p, q = self
         if isinstance(other, inttypes):
-            return Fraction(p-q*other, q)
+            # GCD never needed
+            return Fraction((p-q*other, q))
         if isinstance(other, Fraction):
             r, s = other
-            return Fraction(p*s - q*r, q*s)
+            return normalized_fraction(p*s - q*r, q*s)
         return NotImplemented
 
     def __rsub__(self, other):
         p, q = self
         if isinstance(other, inttypes):
-            return Fraction(q*other-p, q)
+            return Fraction((q*other-p, q))
         return NotImplemented
 
     def __mul__(self, other):
         p, q = self
         if isinstance(other, inttypes):
-            return Fraction(p*other, q)
+            return normalized_fraction(p*other, q)
         if isinstance(other, Fraction):
             r, s = other
-            return Fraction(p*r, q*s)
+            # GCD reduction inlined for speed
+            p = x = p*r
+            q = y = q*s
+            while y:
+                x, y = y, x % y
+            if x != 1:
+                p //= x
+                q //= x
+            if q == 1:
+                return p
+            return Fraction((p, q))
         return NotImplemented
 
     __rmul__ = __mul__
@@ -164,16 +192,16 @@ class Fraction(tuple):
         if isinstance(other, inttypes):
             if not other:
                 return cmp(p, 0) * ExtendedNumber.get_oo()
-            return Fraction(p, q*other)
+            return normalized_fraction(p, q*other)
         if isinstance(other, Fraction):
             r, s = other
-            return Fraction(p*s, q*r)
+            return normalized_fraction(p*s, q*r)
         return NotImplemented
 
     def __rdiv__(self, other):
         p, q = self
         if isinstance(other, inttypes):
-            return Fraction(q*other, p)
+            return normalized_fraction(q*other, p)
         return NotImplemented
 
     def __floordiv__(a, b):
@@ -197,10 +225,17 @@ class Fraction(tuple):
     def __pow__(self, n):
         assert isinstance(n, inttypes)
         p, q = self
-        if n >= 0:
-            return Fraction(p**n, q**n)
+        if not n:
+            return 1
+        # GCD not needed...
+        if n > 0:
+            return Fraction((p**n, q**n))
         else:
-            return Fraction(q**-n, p**-n)
+            if p > 0:
+                return Fraction((q**-n, p**-n))
+            else:
+                # ...but we have to handle signs
+                return Fraction(((-q)**-n, (-p)**-n))
 
 
 #----------------------------------------------------------------------------#
@@ -731,9 +766,13 @@ def div(a, b):
     """Safely compute a/b (if a or b is an integer, this function makes sure
     to convert it to a rational)."""
     if isinstance(b, inttypes):
+        if not b:
+            raise ZeroDivisionError
         if isinstance(a, inttypes):
-            return Fraction(a, b)
-        return Fraction(1,b) * a
+            return normalized_fraction(a, b)
+        if b == 1:
+            return a
+        return Fraction((1,b)) * a
     return a / b
 
 def int_root(y, n):
@@ -837,7 +876,7 @@ def try_power(x, y):
         elif not x:
             return ExtendedNumber.get_zoo(), []
         elif isinstance(x, inttypes):
-            return Fraction(1, x**(-y)), []
+            return normalized_fraction(1, x**(-y)), []
         elif isinstance(x, (Fraction, Float, Complex)):
             return x**y, []
     elif isinstance(x, inttypes) and isinstance(y, Fraction):
@@ -858,7 +897,7 @@ def try_power(x, y):
                 if p > 0:
                     g = r**p
                 else:
-                    g = Fraction(1, r**(-p))
+                    g = normalized_fraction(1, r**(-p))
                 return g, []
     elif isinstance(x, Fraction) and isinstance(y, Fraction):
         a, b = x

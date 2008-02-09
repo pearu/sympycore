@@ -1,6 +1,6 @@
 from sympycore.arithmetic.numbers import *
 
-mpq = Fraction
+mpq = normalized_fraction
 mpf = Float
 mpc = Complex
 oo = ExtendedNumber.get_oo()
@@ -27,6 +27,10 @@ def test_Fraction():
     assert mpq(2,3)**0 == 1
     assert mpq(2,3)**1 == mpq(2,3)
     assert mpq(2,3)**2 == mpq(4,9)
+    assert mpq(-2,3)**2 == mpq(4,9)
+    assert mpq(-2,3)**-2 == mpq(9,4)
+    assert mpq(-2,3)**3 == mpq(-8,27)
+    assert mpq(-2,3)**-3 == mpq(-27,8)
     assert div(1,2) == mpq(1,2)
     assert div(3,mpq(1,2)) == 6
     assert div(mpq(1,2),mpq(3,2)) == mpq(1,3)

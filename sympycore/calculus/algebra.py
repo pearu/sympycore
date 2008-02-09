@@ -8,7 +8,9 @@ from ..basealgebra.primitive import PrimitiveAlgebra, SYMBOL, NUMBER, ADD, MUL
 
 from ..basealgebra.pairs import CommutativeRingWithPairs, newinstance
 
-from ..arithmetic.numbers import Fraction, Float, Complex, try_power, ExtendedNumber
+from ..arithmetic.numbers import Fraction, normalized_fraction, Float, Complex, \
+    try_power, ExtendedNumber
+
 from ..arithmetic.evalf import evalf
 
 algebra_numbers = (int, long, Fraction, Float, Complex, ExtendedNumber)
@@ -141,7 +143,7 @@ class Calculus(CommutativeRingWithPairs):
     def Number(cls, num, denom=None):
         if denom is None:
             return cls(num, head=NUMBER)
-        return cls(Fraction(num, denom), head=NUMBER)
+        return cls(normalized_fraction(num, denom), head=NUMBER)
 
     @classmethod
     def Symbol(cls, obj):

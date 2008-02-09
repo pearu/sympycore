@@ -1,4 +1,4 @@
-from .numbers import Fraction, Complex, Float, div
+from .numbers import Fraction, normalized_fraction, Complex, Float, div
 
 def factorial(n, memo=[1, 1]):
     """Return n factorial (for integers n >= 0 only)."""
@@ -132,7 +132,7 @@ def multinomial_coefficients(m, n):
                 t = p0[i]
                 for t2, c2 in l[k-i]:
                     tt = t2 * t
-                    cc = Fraction(nn * c2, k)
+                    cc = normalized_fraction(nn * c2, k)
                     b = d_get(tt)
                     if b is None:
                         d[tt] = cc
