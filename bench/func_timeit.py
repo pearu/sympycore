@@ -1,3 +1,4 @@
+import sys
 import math
 import timeit
 
@@ -14,6 +15,15 @@ dummy_src_name = '<func-timeit-src>'
 class Timer(timeit.Timer):
 
     def __init__(self, test_func):
+        rev = None
+        for l in sys.argv:
+            if l.startswith('REVISION'):
+                rev = int(l.split('=')[-1].strip())
+                break
+        if rev and hasattr(test_func, 'MIN_REVISION'):
+            if rev < test_func.MIN_REVISION:
+                raise ValueError('Given test function %s requires %s revision as minimum but got %s'\
+                                 % (test_func, test_func.MIN_REVISION, rev))
         doc = getattr(test_func, '__doc__')
         if doc is None:
             doc = test_func.func_code.co_filename or test_func.__module__.__name__ or ''
