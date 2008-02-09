@@ -14,7 +14,10 @@ dummy_src_name = '<func-timeit-src>'
 class Timer(timeit.Timer):
 
     def __init__(self, test_func):
-        title = getattr(test_func, '__doc__', test_func.func_code.co_filename or test_func.__module__.__name__ or '').strip().splitlines()[0]
+        doc = getattr(test_func, '__doc__')
+        if doc is None:
+            doc = test_func.func_code.co_filename or test_func.__module__.__name__ or ''
+        title = doc.lstrip().splitlines()[0].strip()
         print 'TIMER_TITLE=',title
         self.timer = timeit.default_timer
         src = template
