@@ -70,12 +70,10 @@ def test_nested():
     nested.expand()
 
 if __name__=='__main__':
-    from func_timeit import Timer
-    Timer(test_bin_1).smart_timeit()
-    Timer(test_bin_2).smart_timeit()
-    Timer(test_bin_3).smart_timeit()
-    Timer(test_quad_1).smart_timeit()
-    Timer(test_quad_2).smart_timeit()
-    Timer(test_mixed_1).smart_timeit()
-    Timer(test_mixed_2).smart_timeit()
-    Timer(test_nested).smart_timeit()
+    from func_timeit import run_tests
+    run_tests([
+        test_bin_1, test_bin_2, test_bin_3,
+        test_quad_1, test_quad_2,
+        test_mixed_1, test_mixed_2, test_nested
+        ])
+
