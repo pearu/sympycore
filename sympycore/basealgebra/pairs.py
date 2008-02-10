@@ -505,6 +505,7 @@ class CommutativeRingWithPairs(CommutativeRing):
     def __int__(self):
         assert self.head is NUMBER,`self`
         return int(self.data)
+
     def __long__(self):
         assert self.head is NUMBER,`self`
         return long(self.data)
@@ -522,9 +523,10 @@ class CommutativeRingWithPairs(CommutativeRing):
         return self
 
     def __add__(self, other, redirect_operation='__add__'):
-        other = self.convert(other, False)
-        if other is NotImplemented:
-            return NotImplemented
+        if type(self) is not type(other):
+            other = self.convert(other, False)
+            if other is NotImplemented:
+                return NotImplemented
         try:
             return add_dict2[self.head][other.head](self, other, self.__class__)
         except RedirectOperation:
@@ -538,11 +540,12 @@ class CommutativeRingWithPairs(CommutativeRing):
             return add_dict2[other.head][self.head](other, self, other.__class__)
         except RedirectOperation:
             return self.redirect_operation(self, other, redirect_operation=redirect_operation)
-        
+
     def __mul__(self, other, redirect_operation='__mul__'):
-        other = self.convert(other, False)
-        if other is NotImplemented:
-            return NotImplemented
+        if type(self) is not type(other):
+            other = self.convert(other, False)
+            if other is NotImplemented:
+                return NotImplemented
         try:
             return multiply_dict2[self.head][other.head](self, other, self.__class__)
         except RedirectOperation:
