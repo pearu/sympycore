@@ -44,7 +44,7 @@ class Timer(timeit.Timer):
         number = 100000
         self.base_best = min(timeit.Timer('foo()','def foo(): pass').repeat(repeat=5, number=number))/number
 
-    def smart_timeit(self, repeat=20, verbose=True):
+    def smart_timeit(self, repeat=5, verbose=True):
         if self.disable:
             return
         units = ["s", "ms", "\xc2\xb5s", "ns"]
