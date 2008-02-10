@@ -35,9 +35,9 @@ def test_bin_1():
 def test_bin_2():
     """Expand small binomials with fractional coeffs, 30x"""
     for i in range(10):
-        bina2 = (Number(3,4)*x + Number(1,2)*y)**2
-        binb2 = (Number(3,4)*x + Number(1,2))**2
-        binc2 = (Number(3,4)*x + Number(1,2)*y)**4
+        bina2.expand()
+        binb2.expand()
+        binc2.expand()
 
 def test_bin_3():
     """Expand big binomials, 2x"""
