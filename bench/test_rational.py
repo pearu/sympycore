@@ -1,13 +1,13 @@
-from sympycore import Rational, Symbol
+from sympycore import Number, Symbol
 
-a = Rational(1,2)
-b = Rational(-1,2)
-c = Rational(3,4)
-d = Rational(-7,6)
-e = Rational(0,1)
-f = Rational(1,1)
-g = Rational(-5,1)
-h = Rational(36,1)
+a = Number(1,2)
+b = Number(-1,2)
+c = Number(3,4)
+d = Number(-7,6)
+e = Number(0,1)
+f = Number(1,1)
+g = Number(-5,1)
+h = Number(36,1)
 
 numbers = [a,b,c,d,e,f,g,h]
 
