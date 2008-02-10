@@ -2,6 +2,17 @@ import sys
 import math
 import timeit
 
+def run_tests(seq):
+    titles = []
+    stones = []
+    for func in seq:
+        timer = Timer(func, verbose=1)
+        stone = timer.smart_timeit(verbose=1)
+        titles.append(timer.title)
+        stones.append(int(stone+0.5))
+    print 'TIMER_TITLES=',`titles`
+    print 'TIMER_STONES=',`stones`
+
 template = """
 def inner(_it, _timer, _func=test_func):
     _t0 = _timer()
@@ -14,7 +25,7 @@ dummy_src_name = '<func-timeit-src>'
 
 class Timer(timeit.Timer):
 
-    def __init__(self, test_func):
+    def __init__(self, test_func, verbose=2):
         self.disable = False
         rev = None
         for l in sys.argv:
@@ -31,8 +42,7 @@ class Timer(timeit.Timer):
         doc = getattr(test_func, '__doc__')
         if doc is None:
             doc = str(test_func)
-        title = doc.lstrip().splitlines()[0].strip()
-        print 'TIMER_TITLE=',title
+        self.title = title = doc.lstrip().splitlines()[0].strip()
         self.timer = timeit.default_timer
         src = template
         self.src = src # Save for traceback display
@@ -44,9 +54,11 @@ class Timer(timeit.Timer):
         number = 100000
         self.base_best = min(timeit.Timer('foo()','def foo(): pass').repeat(repeat=5, number=number))/number
 
-    def smart_timeit(self, repeat=5, verbose=True):
+    def smart_timeit(self, repeat=3, verbose=2):
         if self.disable:
             return
+        if verbose:
+            print 'Running benchmark titled %r' % (self.title)
         units = ["s", "ms", "\xc2\xb5s", "ns"]
         scaling = [1, 1e3, 1e6, 1e9]
         precision = 3
@@ -55,7 +67,7 @@ class Timer(timeit.Timer):
         for i in range(1, 10):
             number *= 2
             t = self.timeit(number)
-            if t >= 0.5:
+            if t >= 0.1:
                 break
         
         result = self.repeat(repeat=repeat, number=number)
@@ -73,5 +85,8 @@ class Timer(timeit.Timer):
                                                               units[order])
 
         stones = best / self.base_best
-        print 'TIMER_STONES=%s' % (int(stones+0.5))
+        if verbose>1:
+            print 'TIMER_TITLE=',`self.title`
+            print 'TIMER_STONES=%s' % (int(stones+0.5))
         return stones
+        
