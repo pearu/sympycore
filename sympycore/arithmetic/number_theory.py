@@ -119,30 +119,22 @@ def multinomial_coefficients(m, n):
         d_get = d.get
         for i in xrange(1, min(m,k+1)):
             nn = (n+1)*i-k
-            if nn:
-                t = p0[i]
-                for t2, c2 in l[k-i]:
-                    tt = tuple_([aa+bb for aa,bb in zip_(t2,t)])
-                    cc = normalized_fraction(nn * c2, k)
-                    b = d_get(tt)
-                    if b is None:
+            if not nn:
+                continue
+            t = p0[i]
+            for t2, c2 in l[k-i]:
+                tt = tuple_([aa+bb for aa,bb in zip_(t2,t)])
+                cc = nn * c2
+                b = d_get(tt)
+                if b is None:
+                    d[tt] = cc
+                else:
+                    cc = b + cc
+                    if cc:
                         d[tt] = cc
                     else:
-                        cc = b + cc
-                        if cc:
-                            d[tt] = cc
-                        else:
-                            del d[tt]
-        r1 = d.items()
+                        del d[tt]
+        r1 = [(t, c//k) for (t, c) in d.items()]
         l[k] = r1
-        for t, c in r1:
-            b = r_get(t)
-            if b is None:
-                r[t] = c
-            else:
-                c = b + c
-                if c:
-                    r[t] = c
-                else:
-                    del r[t]
+        r.update(r1)
     return r
