@@ -403,15 +403,25 @@ class PermutationMatrix(SquareMatrix):
 def mul_MATRIX_MATRIX(lhs, rhs, cls):
     d = {}
     r = newinstance(cls, d)
-    rhs_column_indices = rhs.column_indices()
-    for i in lhs.row_indices():
+    indices = set([])
+    lhs_row_indices = set([])
+    rhs_column_indices = set([])
+    for (i,j) in lhs.data:
+        lhs_row_indices.add(i)
+        indices.add(j)
+    for (i,j) in rhs.data:
+        rhs_column_indices.add(j)
+        indices.add(i)
+    lget = lhs.data.get
+    rget = rhs.data.get
+    for i in lhs_row_indices:
         for j in rhs_column_indices:
             c_ij = 0
-            for k in set(rhs.row_indices()+lhs.column_indices()):
-                a_ik = lhs.data.get((i,k))
+            for k in indices:
+                a_ik = lget((i,k))
                 if a_ik is None:
                     continue
-                b_kj = rhs.data.get((k,j))
+                b_kj = rget((k,j))
                 if b_kj is None:
                     continue
                 c_ij += a_ik * b_kj
