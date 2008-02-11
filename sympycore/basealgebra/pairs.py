@@ -541,6 +541,24 @@ class CommutativeRingWithPairs(CommutativeRing):
         except RedirectOperation:
             return self.redirect_operation(self, other, redirect_operation=redirect_operation)
 
+    def __sub__(self, other):
+        if type(self) is not type(other):
+            other = self.convert(other, False)
+            if other is NotImplemented:
+                return NotImplemented
+        if self.head is NUMBER and other.head is NUMBER:
+            return newinstance(self.__class__, NUMBER, self.data - other.data)
+        return self + (-other)
+
+    def __rsub__(self, other):
+        if type(self) is not type(other):
+            other = self.convert(other, False)
+            if other is NotImplemented:
+                return NotImplemented
+        if self.head is NUMBER and other.head is NUMBER:
+            return newinstance(self.__class__, NUMBER, other.data - self.data)
+        return (-self) + other
+
     def __mul__(self, other, redirect_operation='__mul__'):
         if type(self) is not type(other):
             other = self.convert(other, False)
