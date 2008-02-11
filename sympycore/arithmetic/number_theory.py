@@ -80,13 +80,20 @@ def real_digits(x, base=10, truncation=10):
 
 def binomial_coefficients(n):
     """Return a dictionary containing pairs {(k1,k2) : C_kn} where
-    C_kn are binomial coefficients and n=k1+k2.
-    """
-    d = {(0, n):1}
+    C_kn are binomial coefficients and n=k1+k2."""
+    d = {(0, n):1, (n, 0):1}
     a = 1
-    for k in xrange(1, n+1):
+    for k in xrange(1, n//2+1):
         a = (a * (n-k+1))//k
-        d[k, n-k] = a
+        d[k, n-k] = d[n-k, k] = a
+    return d
+
+def binomial_coefficients_list(n):
+    d = [1] * (n+1)
+    a = 1
+    for k in xrange(1, n//2+1):
+        a = (a * (n-k+1))//k
+        d[k] = d[n-k] = a
     return d
 
 def multinomial_coefficients(m, n):
