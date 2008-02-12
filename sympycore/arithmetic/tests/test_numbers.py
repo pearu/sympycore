@@ -2,7 +2,7 @@ from sympycore.arithmetic.numbers import *
 
 mpq = normalized_fraction
 mpf = Float
-mpc = normalized_complex
+mpc = Complex
 oo = ExtendedNumber.get_oo()
 moo = ExtendedNumber.get_moo()
 zoo = ExtendedNumber.get_zoo()

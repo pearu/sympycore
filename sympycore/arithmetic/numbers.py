@@ -44,7 +44,7 @@ they become real.
 import math
 
 __all__ = ['Fraction', 'Float', 'Complex', 'div', 'int_root', 'try_power',
-           'ExtendedNumber', 'normalized_fraction', 'normalized_complex']
+           'ExtendedNumber', 'normalized_fraction']
 
 from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_NUMBER
 from ..basealgebra.primitive import PrimitiveAlgebra, NUMBER, SYMBOL
@@ -395,63 +395,65 @@ def innerstr(x):
         return "%s/%s" % x
     return str(x)
 
-def normalized_complex(real, imag = 0):
-    if not imag:
-        return real
-    return Complex((real, imag))
 
-class Complex(tuple):
+class Complex(object):
 
-    __slots__ = []
+    __slots__ = ['real', 'imag']
 
-    @property
-    def real(self):
-        return self[0]
+    def __new__(cls, real, imag=0):
+        if not imag:
+            return real
+        self = object.__new__(Complex)
+        self.real = real
+        self.imag = imag
+        return self
 
-    @property
-    def imag(self):
-        return self[1]
+    def __hash__(self):
+        return hash((self, 'Complex'))
 
     def __repr__(self):
-        return "Complex((%r, %r))" % (self[0], self[1])
+        return "Complex(%r, %r)" % (self.real, self.imag)
+
+    def __hash__(self):
+        return hash((self.real, self.imag))
 
     def to_str_data(self,sort=True):
-        re, im = self
+        re, im = self.real, self.imag
         if not re:
             if im == 1: return str_SYMBOL,"I"
             if im == -1: return str_SUM, "-I"
-            return str_PRODUCT, str(im) + "*I"
-        restr = innerstr(re)
+            return str_PRODUCT, str(self.imag) + "*I"
+        restr = innerstr(self.real)
         if im == 1: return str_SUM, "%s + I" % restr
         if im == -1: return str_SUM, "%s - I" % restr
-        if im > 0: return str_SUM, "%s + %s*I" % (restr, innerstr(im))
-        if im < 0: return str_SUM, "%s - %s*I" % (restr, innerstr(-im))
+        if im > 0: return str_SUM, "%s + %s*I" % (restr, innerstr(self.imag))
+        if im < 0: return str_SUM, "%s - %s*I" % (restr, innerstr(-self.imag))
         raise NotImplementedError(`self`)
 
     def __str__(self):
-        re, im = self
+        re, im = self.real, self.imag
         if not re:
             if im == 1: return "I"
             if im == -1: return "-I"
-            return str(im) + "*I"
-        restr = innerstr(re)
+            return str(self.imag) + "*I"
+        restr = innerstr(self.real)
         if im == 1: return "(%s + I)" % restr
         if im == -1: return "(%s - I)" % restr
-        if im > 0: return "(%s + %s*I)" % (restr, innerstr(im))
-        if im < 0: return "(%s - %s*I)" % (restr, innerstr(-im))
+        if im > 0: return "(%s + %s*I)" % (restr, innerstr(self.imag))
+        if im < 0: return "(%s - %s*I)" % (restr, innerstr(-self.imag))
 
     def as_primitive(self):
-        re, im = self
+        re, im = self.real, self.imag
         if re < 0: 
-            r = -PrimitiveAlgebra(-re)
+            r = -PrimitiveAlgebra(-self.real)
         else:
-            r = PrimitiveAlgebra(re)
+            r = PrimitiveAlgebra(self.real)
         if im < 0:
-            i = -PrimitiveAlgebra(-im)
-            ni = PrimitiveAlgebra(-im)
+            i = -PrimitiveAlgebra(-self.imag)
+            ni = PrimitiveAlgebra(-self.imag)
         else:
-            i = PrimitiveAlgebra(im)
-        I = PrimitiveAlgebra(Complex((0,1)), head=NUMBER)
+            i = PrimitiveAlgebra(self.imag)
+        I = PrimitiveAlgebra(Complex(0,1), head=NUMBER)
         if not re:
             if im == 1: return I
             if im == -1: return -I
@@ -465,98 +467,97 @@ class Complex(tuple):
     
     def __eq__(self, other):
         if isinstance(other, Complex):
-            return tuple.__eq__(self, other)
+            return self.real == other.real and self.imag == other.imag
         if isinstance(other, complex):
-            return self.__eq__(self.convert(other))
+            return self.real, self.imag == self.convert(other)
         return False
 
     def convert(self, x):
         if isinstance(x, Complex):
-            return x
+            return x.real, x.imag
         if isinstance(x, complex):
-            return normalized_complex(Float(x.real), Float(x.imag))
+            return Complex(Float(x.real), Float(x.imag))
         if isinstance(x, ExtendedNumber):
             return NotImplemented, 0
         return x, 0
 
     def __pos__(self): return self
-    def __neg__(self): return Complex((-self[0], -self[1]))
+    def __neg__(self): return Complex(-self.real, -self.imag)
 
     def __abs__(self):
-        re, im = self
-        if not re:
-            return abs(im)
-        if isinstance(re, Float) and isinstance(im, Float):
-            return Float(fcabs(re.val, im.val,
-                               re.prec, rounding), re.prec)
+        if not self.real:
+            return abs(self.imag)
+        if isinstance(self.real, Float) and isinstance(self.imag, Float):
+            return Float(fcabs(self.real.val, self.imag.val,
+                self.real.prec, rounding), self.real.prec)
         raise NotImplementedError
 
     def __add__(self, other):
-        a, b = self
+        a, b = self.real, self.imag
         c, d = self.convert(other)
         if c is NotImplemented:
             return c
-        return normalized_complex(a+c, b+d)
+        return Complex(a+c, b+d)
 
     __radd__ = __add__
 
     def __sub__(self, other):
-        a, b = self
+        a, b = self.real, self.imag
         c, d = self.convert(other)
         if c is NotImplemented:
             return c
-        return normalized_complex(a-c, b-d)
+        return Complex(a-c, b-d)
 
     def __rsub__(self, other):
-        a, b = self
+        a, b = self.real, self.imag
         c, d = self.convert(other)
         if c is NotImplemented:
             return c
-        return normalized_complex(c-a, d-b)
+        return Complex(c-a, d-b)
 
     def __mul__(self, other):
-        a, b = self
+        a, b = self.real, self.imag
         c, d = self.convert(other)
         if c is NotImplemented:
             return c
-        return normalized_complex(a*c-b*d, b*c+a*d)
+        return Complex(a*c-b*d, b*c+a*d)
 
     __rmul__ = __mul__
 
     def __div__(self, other):
-        a, b = self
+        a, b = self.real, self.imag
         c, d = self.convert(other)
         if c is NotImplemented:
             return c
         mag = c*c + d*d
         re = div(a*c+b*d, mag)
         im = div(b*c-a*d, mag)
-        return normalized_complex(re, im)
+        return Complex(re, im)
 
     def __rdiv__(self, other):
-        c, d = self
+        c, d = self.real, self.imag
         a, b = self.convert(other)
         if a is NotImplemented:
             return a
         mag = c*c + d*d
         re = div(a*c+b*d, mag)
         im = div(b*c-a*d, mag)
-        return normalized_complex(re, im)
+        return Complex(re, im)
 
     def __pow__(self, n):
-        assert isinstance(n, (int, long)), `n`
+        assert isinstance(n, (int, long))
         if not n: return 1
         if n == 1: return self
         if n == 2: return self * self
         if n < 0:
             return (1 / self) ** (-n)
-        a, b = self
+        a, b = self.real, self.imag
         if not a:
             case = n % 4
             if case == 0: return b**n
-            if case == 1: return Complex((0, b**n))
+            if case == 1: return Complex(0, b**n)
             if case == 2: return -(b**n)
-            if case == 3: return Complex((0, -b**n))
+            if case == 3: return Complex(0, -b**n)
         m = 1
         if isinstance(a, Fraction):
             if isinstance(b, Fraction):
@@ -578,10 +579,10 @@ class Complex(tuple):
             n //= 2
         if m==1:
             if d:
-                return Complex((c, d))
+                return Complex(c, d)
             return c
         if d:
-            return Complex((div(c, m), div(d, m)))
+            return Complex(div(c, m), div(d, m))
         return div(c, m)
 
 #----------------------------------------------------------------------------#
@@ -592,7 +593,7 @@ class Complex(tuple):
 
 def as_direction(x):
     if isinstance(x, (Complex, complex)):
-        return normalized_complex(cmp(x.real, 0), cmp(x.imag, 0))
+        return Complex(cmp(x.real, 0), cmp(x.imag, 0))
     return cmp(x, 0)
 
 cmp_error = "no ordering relation is defined for complex numbers"
@@ -890,7 +891,7 @@ def try_power(x, y):
             if x==-1:
                 p, q = y
                 if q==2:
-                    return Complex((0, 1))**p, []
+                    return Complex(0, 1)**p, []
                 return 1, [(x,y)]
             else:
                 z, sym = try_power(-x, y)

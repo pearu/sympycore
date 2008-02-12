@@ -1,4 +1,4 @@
-from .numbers import Float, normalized_complex, ExtendedNumber
+from .numbers import Float, Complex, ExtendedNumber
 
 import math
 import cmath
@@ -36,7 +36,7 @@ def compile_mpmath(symbols, expr):
 def mpmath_to_numbers(x, digits):
     prec = int(digits*3.33) + 12
     if isinstance(x, mpmath.mpc):
-        return normalized_complex(Float(x.real.val, prec), Float(x.imag.val, prec))
+        return Complex(Float(x.real.val, prec), Float(x.imag.val, prec))
     a = object.__new__(Float)
     a.val = x.val
     a.prec = prec

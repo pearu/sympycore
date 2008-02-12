@@ -257,7 +257,7 @@ zero = A(0, head=NUMBER)
 A.one = one
 A.zero = zero
 
-I = A(Complex((0,1)), head=NUMBER)
+I = A(Complex(0,1), head=NUMBER)
 oo = A(ExtendedNumber.get_oo(), head=NUMBER)
 moo = A(ExtendedNumber.get_moo(), head=NUMBER)
 zoo = A(ExtendedNumber.get_zoo(), head=NUMBER)
