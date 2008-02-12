@@ -78,14 +78,5 @@ def test_mixed_symbolic():
 
 if __name__=='__main__':
     from func_timeit import run_tests
-    run_tests([test_compare, test_equality, test_add, test_sub, test_mul, test_div, test_pow, test_mixed_symbolic])
-
-if 0:
-    Timer(test_compare).smart_timeit()
-    Timer(test_equality).smart_timeit()
-    Timer(test_add).smart_timeit()
-    Timer(test_sub).smart_timeit()
-    Timer(test_mul).smart_timeit()
-    Timer(test_div).smart_timeit()
-    Timer(test_pow).smart_timeit()
-    Timer(test_mixed_symbolic).smart_timeit()
+    run_tests([test_compare, test_equality, test_add, test_sub, test_mul,
+               test_div, test_pow, test_mixed_symbolic])
