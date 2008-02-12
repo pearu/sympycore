@@ -576,7 +576,7 @@ class Complex(object):
             n //= 2
         if m==1:
             return Complex(c, d)
-        return Complex(div(c, m), div(d, m))
+        return Complex(normalized_fraction(c, m), normalized_fraction(d, m))
 
 #----------------------------------------------------------------------------#
 #                                                                            #
