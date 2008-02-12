@@ -581,8 +581,8 @@ class Complex(tuple):
                 return Complex((c, d))
             return c
         if d:
-            return Complex((normalized_fraction(c, m), normalized_fraction(d, m)))
-        return normalized_fraction(c, m)
+            return Complex((div(c, m), div(d, m)))
+        return div(c, m)
 
 #----------------------------------------------------------------------------#
 #                                                                            #
