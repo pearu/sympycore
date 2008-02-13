@@ -19,5 +19,10 @@ class Constant(str):
             return cls(self, head=SYMBOL)
         return cls(self)
 
+    def get_direction(self):
+        if self in ['pi', 'E']:
+            return 1
+        return NotImplemented
+
 const_pi = Constant('pi')
 const_E = Constant('E')

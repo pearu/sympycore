@@ -107,6 +107,9 @@ class CommutativeRingWithPairs(CommutativeRing):
             raise NotImplementedError(`self, head`)
         return '\n'.join(r)
 
+    def get_direction(self):
+        return getattr(self.data, 'get_direction', lambda : NotImplemented)()
+
     @classmethod
     def coefficient_to_str_data(cls, obj, sort=True):
         if isinstance(obj, inttypes):
@@ -527,19 +530,13 @@ class CommutativeRingWithPairs(CommutativeRing):
             other = self.convert(other, False)
             if other is NotImplemented:
                 return NotImplemented
-        try:
-            return add_dict2[self.head][other.head](self, other, self.__class__)
-        except RedirectOperation:
-            return self.redirect_operation(self, other, redirect_operation=redirect_operation)
+        return add_dict2[self.head][other.head](self, other, self.__class__)
 
     def __radd__(self, other, redirect_operation='__radd__'):
         other = self.convert(other, False)
         if other is NotImplemented:
             return NotImplemented
-        try:
-            return add_dict2[other.head][self.head](other, self, other.__class__)
-        except RedirectOperation:
-            return self.redirect_operation(self, other, redirect_operation=redirect_operation)
+        return add_dict2[other.head][self.head](other, self, other.__class__)
 
     def __sub__(self, other):
         if type(self) is not type(other):
@@ -564,19 +561,13 @@ class CommutativeRingWithPairs(CommutativeRing):
             other = self.convert(other, False)
             if other is NotImplemented:
                 return NotImplemented
-        try:
-            return multiply_dict2[self.head][other.head](self, other, self.__class__)
-        except RedirectOperation:
-            return self.redirect_operation(self, other, redirect_operation=redirect_operation)
+        return multiply_dict2[self.head][other.head](self, other, self.__class__)
 
     def __rmul__(self, other, redirect_operation='__rmul__'):
         other = self.convert(other, False)
         if other is NotImplemented:
             return NotImplemented
-        try:
-            return multiply_dict2[other.head][self.head](other, self, other.__class__)
-        except RedirectOperation:
-            return self.redirect_operation(self, other, redirect_operation=redirect_operation)
+        return multiply_dict2[other.head][self.head](other, self, other.__class__)
 
     def __lt__(self, other):
         return self.data < other
@@ -1080,10 +1071,13 @@ def iadd_ADD_SYMBOL(lhs, rhs, one_c, cls):
         pairs[rhs] = one_c
     else:
         c = b + one_c
-        if c:
+        try:
+            if c:
+                pairs[rhs] = c
+            else:
+                del pairs[rhs]
+        except RedirectOperation:
             pairs[rhs] = c
-        else:
-            del pairs[rhs]
     return
 
 def iadd_ADD_ADD(lhs, rhs, one_c, cls):
@@ -1217,9 +1211,13 @@ def add_NUMBER_NUMBER(lhs, rhs, cls):
     return newinstance(cls, NUMBER, lhs.data + rhs.data)
 
 def add_NUMBER_SYMBOL(lhs, rhs, cls):
-    if lhs.data:
-        return newinstance(cls, ADD, {lhs.one: lhs.data, rhs: 1})
-    return rhs
+    value = lhs.data
+    try:
+        if not value:
+            return rhs
+    except RedirectOperation:
+        pass
+    return newinstance(cls, ADD, {lhs.one: lhs.data, rhs: 1})
 
 generate_swapped_first_arguments(add_NUMBER_SYMBOL)
 
@@ -1266,10 +1264,13 @@ def add_SYMBOL_ADD(lhs, rhs, cls):
         pairs[lhs] = 1
     else:
         c = b + 1
-        if c:
+        try:
+            if c:
+                pairs[lhs] = c
+            else:
+                del pairs[lhs]
+        except RedirectOperation:
             pairs[lhs] = c
-        else:
-            del pairs[lhs]
     if len(pairs)<=1:
         return result.canonize()
     return result
@@ -1293,10 +1294,13 @@ def add_ADD_ADD(lhs, rhs, cls):
             pairs[t] = c
         else:
             c = b + c
-            if c:
+            try:
+                if c:
+                    pairs[t] = c
+                else:
+                    del pairs[t]
+            except RedirectOperation:
                 pairs[t] = c
-            else:
-                del pairs[t]
     if len(pairs)<=1:
         return result.canonize()
     return result
@@ -1329,23 +1333,38 @@ def multiply_NUMBER_NUMBER(lhs, rhs, cls):
 
 def multiply_NUMBER_SYMBOL(lhs, rhs, cls):
     value = lhs.data
-    if value:
-        if value==1:
-            return rhs
-        return newinstance(cls, ADD, {rhs:value})
-    return lhs
+    try:
+        if not value:
+            return lhs
+    except RedirectOperation:
+        r = value.__mul__(rhs)
+        if r is not NotImplemented:
+            return r
+    if value==1:
+        return rhs
+    return newinstance(cls, ADD, {rhs:value})
 
 generate_swapped_first_arguments(multiply_NUMBER_SYMBOL)
 
 def multiply_NUMBER_ADD(lhs, rhs, cls):
     value = lhs.data
+    try:
+        bool(value)
+    except RedirectOperation:
+        r = value.__mul__(rhs)
+        if r is not NotImplemented:
+            return r
+        return newinstance(cls, ADD, {rhs:value})
     if value==1:
         return rhs
     d = {}
     result = newinstance(cls, ADD, d)
     for t,c in rhs.data.iteritems():
         c = c * value
-        if c:
+        try:
+            if c:
+                d[t] = c
+        except RedirectOperation:
             d[t] = c
     if len(d)<=1:
         return result.canonize()
@@ -1355,24 +1374,27 @@ generate_swapped_first_arguments(multiply_NUMBER_ADD)
 
 def multiply_NUMBER_MUL(lhs, rhs, cls):
     value = lhs.data
-    if value:
-        if value==1:
-            return rhs
-        b = rhs.data.get(lhs)
-        if b is not None:
-            result = rhs.copy()
-            pairs = result.data
-            c = b + cls.one_e
-            if c:
-                pairs[lhs] = c
-                return result
-            else:
-                del pairs[lhs]
-            if len(pairs)<=1:
-                return result.canonize()
-            return result
+    try:
+        if not value:
+            return lhs
+    except RedirectOperation:
         return newinstance(cls,ADD,{rhs:value})
-    return lhs
+    if value==1:
+        return rhs
+    b = rhs.data.get(lhs)
+    if b is not None:
+        result = rhs.copy()
+        pairs = result.data
+        c = b + cls.one_e
+        if c:
+            pairs[lhs] = c
+            return result
+        else:
+            del pairs[lhs]
+        if len(pairs)<=1:
+            return result.canonize()
+        return result
+    return newinstance(cls,ADD,{rhs:value})
 
 generate_swapped_first_arguments(multiply_NUMBER_MUL)
 

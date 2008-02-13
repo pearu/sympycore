@@ -604,6 +604,14 @@ class ExtendedNumber:
         self.infinite = infinite
         self.direction = direction
 
+    @classmethod
+    def convert(cls, obj):
+        if isinstance(obj, cls):
+            return obj
+        if isinstance(obj, numbertypes):
+            return obj
+        return getattr(obj, 'get_direction',lambda: NotImplemented)()
+
     def __repr__(self):
         if not self.infinite: return 'undefined'
         if not self.direction: return 'zoo'
@@ -619,8 +627,6 @@ class ExtendedNumber:
         return str_PRODUCT, "(%s)*oo" % self.direction
 
     def __nonzero__(self):
-        if get_object_by_name('redirect_operation', 'ignore_redirection')=='ignore_redirection':
-            return True
         raise RedirectOperation(self)
 
     def __abs__(self):
@@ -695,7 +701,8 @@ class ExtendedNumber:
         if isinstance(other, ExtendedNumber):
             return ExtendedNumber(self.infinite*other.infinite,
                                    as_direction(self.direction*other.direction))
-        if not isinstance(other, numbertypes):
+        other = self.convert(other)
+        if not isinstance(other, numbertypes) or other is NotImplemented:
             return NotImplemented
         if not other:
             return ExtendedNumber.get_undefined()
