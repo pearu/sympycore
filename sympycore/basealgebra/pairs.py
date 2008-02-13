@@ -1031,8 +1031,15 @@ def pow_MUL_SYMBOL(lhs, rhs, cls):
     return newinstance(cls, MUL, {lhs:rhs})
 
 def pow_SYMBOL_NUMBER(lhs, rhs, cls):
-    if isinstance(rhs.data, inttypes):
-        return pow_SYMBOL_int(lhs, rhs.data, cls)
+    value = rhs.data
+    if isinstance(value, inttypes):
+        return pow_SYMBOL_int(lhs, value, cls)
+    try:
+        bool(value)
+    except RedirectOperation:
+        r = value.__rpow__(lhs)
+        if r is not NotImplemented:
+            return cls.convert(r)
     return newinstance(cls, MUL, {lhs:rhs})
 
 def pow_SYMBOL_ADD(lhs, rhs, cls):

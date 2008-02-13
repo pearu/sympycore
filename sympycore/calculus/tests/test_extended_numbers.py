@@ -15,15 +15,26 @@ x,y,z = map(Calculus.Symbol, 'xyz')
 def test_oo_symbol():
     assert str(oo + x)=='oo + x'
     assert str(oo - x)=='oo - x'
+    assert str(x - oo)=='x - oo'
     assert str(oo * x)=='oo*x'
     assert str(oo / x)=='oo*x**(-1)'
+    assert str(x/oo)=='0'
     assert str(oo ** x)=='oo**x'
+    assert str(x**oo)=='x**oo'
 
     assert str(oo + pi)=='oo'
     assert str(oo - pi)=='oo'
     assert str(oo * pi)=='oo'
     assert str(oo / pi)=='oo'
     assert str(oo ** pi)=='oo'
+    assert str(pi - oo)=='-oo'
+    assert str(pi/oo)=='0'
+    #assert str(pi**oo)=='oo'
+
+    assert oo + x == x + oo
+    assert oo * x == x * oo
+    assert oo + pi == pi + oo
+    assert oo * pi == pi * oo
 
 def test_moo_optable():
     assert moo + moo == moo
