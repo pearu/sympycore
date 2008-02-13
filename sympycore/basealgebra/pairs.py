@@ -107,9 +107,6 @@ class CommutativeRingWithPairs(CommutativeRing):
             raise NotImplementedError(`self, head`)
         return '\n'.join(r)
 
-    def get_direction(self):
-        return getattr(self.data, 'get_direction', lambda : NotImplemented)()
-
     @classmethod
     def coefficient_to_str_data(cls, obj, sort=True):
         if isinstance(obj, inttypes):
@@ -973,6 +970,12 @@ def pow_NUMBER_MUL(lhs, rhs, cls):
     return newinstance(cls, MUL, {lhs:rhs})
 
 def pow_NUMBER_SYMBOL(lhs, rhs, cls):
+    try:
+        bool(lhs.data)
+    except RedirectOperation:
+        r = lhs.data.__pow__(rhs)
+        if r is not NotImplemented:
+            return cls.convert(r)
     return newinstance(cls, MUL, {lhs:rhs})
 
 def pow_ADD_NUMBER(lhs, rhs, cls):
@@ -1216,15 +1219,23 @@ def add_NUMBER_SYMBOL(lhs, rhs, cls):
         if not value:
             return rhs
     except RedirectOperation:
-        pass
+        r = value.__add__(rhs)
+        if r is not NotImplemented:
+            return cls.convert(r)
     return newinstance(cls, ADD, {lhs.one: lhs.data, rhs: 1})
 
 generate_swapped_first_arguments(add_NUMBER_SYMBOL)
 
 def add_NUMBER_ADD(lhs, rhs, cls):
     value = lhs.data
-    if not value:
-        return rhs
+    try:
+        if not value:
+            return rhs
+    except RedirectOperation:
+        r = value.__add__(rhs)
+        if r is not NotImplemented:
+            return cls.convert(r)
+
     result = rhs.copy()
     pairs = result.data
     one = cls.one
@@ -1245,9 +1256,14 @@ generate_swapped_first_arguments(add_NUMBER_ADD)
 
 def add_NUMBER_MUL(lhs, rhs, cls):
     value = lhs.data
-    if value:
-        return newinstance(cls,ADD, {cls.one: value, rhs: 1})
-    return rhs
+    try:
+        if not value:
+            return rhs
+    except RedirectOperation:
+        r = value.__add__(rhs)
+        if r is not NotImplemented:
+            return cls.convert(r)
+    return newinstance(cls,ADD, {cls.one: value, rhs: 1})
 
 generate_swapped_first_arguments(add_NUMBER_MUL)
 
@@ -1339,7 +1355,7 @@ def multiply_NUMBER_SYMBOL(lhs, rhs, cls):
     except RedirectOperation:
         r = value.__mul__(rhs)
         if r is not NotImplemented:
-            return r
+            return cls.convert(r)
     if value==1:
         return rhs
     return newinstance(cls, ADD, {rhs:value})
@@ -1353,7 +1369,7 @@ def multiply_NUMBER_ADD(lhs, rhs, cls):
     except RedirectOperation:
         r = value.__mul__(rhs)
         if r is not NotImplemented:
-            return r
+            return cls.convert(r)
         return newinstance(cls, ADD, {rhs:value})
     if value==1:
         return rhs
@@ -1378,7 +1394,10 @@ def multiply_NUMBER_MUL(lhs, rhs, cls):
         if not value:
             return lhs
     except RedirectOperation:
-        return newinstance(cls,ADD,{rhs:value})
+        r = value.__mul__(rhs)
+        if r is not NotImplemented:
+            return cls.convert(r)
+        return newinstance(cls, ADD, {rhs:value})
     if value==1:
         return rhs
     b = rhs.data.get(lhs)

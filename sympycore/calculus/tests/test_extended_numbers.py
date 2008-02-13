@@ -1,5 +1,5 @@
 
-from sympycore.calculus import oo, moo, zoo, undefined, I, Calculus
+from sympycore.calculus import oo, moo, zoo, undefined, I, Calculus, pi
 
 zero = Calculus.Number(0)
 one = Calculus.Number(1)
@@ -10,6 +10,20 @@ half = Calculus.Number(1)/2
 mhalf = Calculus.Number(-1)/2
 onehalf = Calculus.Number(3)/2
 monehalf = Calculus.Number(-3)/2
+x,y,z = map(Calculus.Symbol, 'xyz')
+
+def test_oo_symbol():
+    assert str(oo + x)=='oo + x'
+    assert str(oo - x)=='oo - x'
+    assert str(oo * x)=='oo*x'
+    assert str(oo / x)=='oo*x**(-1)'
+    assert str(oo ** x)=='oo**x'
+
+    assert str(oo + pi)=='oo'
+    assert str(oo - pi)=='oo'
+    assert str(oo * pi)=='oo'
+    assert str(oo / pi)=='oo'
+    assert str(oo ** pi)=='oo'
 
 def test_moo_optable():
     assert moo + moo == moo

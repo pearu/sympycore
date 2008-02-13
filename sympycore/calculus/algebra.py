@@ -167,6 +167,51 @@ class Calculus(CommutativeRingWithPairs):
     def evalf(self, n=15):
         return self.Number(evalf(self, n))
 
+    def get_direction(self):
+        head = self.head
+        if head is NUMBER:
+            value = self.data
+            if isinstance(value, (int, long)):
+                return value
+            return getattr(value, 'get_direction', lambda : NotImplemented)()
+        if head is MUL:
+            direction = 1
+            for t,c in self.data.iteritems():
+                d = t.get_direction()
+                if d is NotImplemented:
+                    return d
+                if not isinstance(c, (int, long)):
+                    return NotImplemented
+                d = self.npower(d, c).get_direction()
+                if d is NotImplemented:
+                    return d
+                direction *= d
+            return direction
+        return getattr(self.data, 'get_direction', lambda : NotImplemented)()
+
+    @property
+    def is_bounded(self):
+        head = self.head
+        if head is NUMBER:
+            value = self.data
+            if isinstance(value, (int, long)):
+                return True
+            return getattr(value, 'is_bounded', None)
+        if head is SYMBOL:
+            return getattr(self.data, 'is_bounded', None)
+        if head is ADD:
+            for t, c in self.data.iteritems():
+                b = t.is_bounded
+                if not b:
+                    return b
+                if isinstance(c, (int, long)):
+                    continue
+                b = getattr(c, 'is_bounded', None)
+                if not b:
+                    return b
+            return True
+        return
+
     def __eq__(self, other):
         if self is other:
             return True

@@ -604,14 +604,6 @@ class ExtendedNumber:
         self.infinite = infinite
         self.direction = direction
 
-    @classmethod
-    def convert(cls, obj):
-        if isinstance(obj, cls):
-            return obj
-        if isinstance(obj, numbertypes):
-            return obj
-        return getattr(obj, 'get_direction',lambda: NotImplemented)()
-
     def __repr__(self):
         if not self.infinite: return 'undefined'
         if not self.direction: return 'zoo'
@@ -686,6 +678,9 @@ class ExtendedNumber:
                 return ExtendedNumber(self.infinite*other.infinite, self.direction)
             return ExtendedNumber.get_undefined()
         if not isinstance(other, numbertypes):
+            bounded = getattr(other, 'is_bounded', None)
+            if bounded:
+                return self
             return NotImplemented
         return self
 
@@ -701,9 +696,12 @@ class ExtendedNumber:
         if isinstance(other, ExtendedNumber):
             return ExtendedNumber(self.infinite*other.infinite,
                                    as_direction(self.direction*other.direction))
-        other = self.convert(other)
-        if not isinstance(other, numbertypes) or other is NotImplemented:
-            return NotImplemented
+        if not isinstance(other, numbertypes):
+            direction = getattr(other, 'get_direction',lambda: other)()
+            if isinstance(direction, numbertypes):
+                other = direction
+            else:
+                return NotImplemented
         if not other:
             return ExtendedNumber.get_undefined()
         return ExtendedNumber(self.infinite, as_direction(self.direction*other))
@@ -726,13 +724,13 @@ class ExtendedNumber:
         z, symbolic = try_power(self, n)
         if not symbolic:
             return z
-        raise NotImplementedError
+        return NotImplemented
 
     def __rpow__(self, n):
         z, symbolic = try_power(n, self)
         if not symbolic:
             return z
-        raise NotImplementedError
+        return NotImplemented
 
     @classmethod
     def get_oo(cls):
@@ -841,6 +839,9 @@ def try_power(x, y):
     if isinstance(y, ExtendedNumber) and y.is_undefined:
         return y, []
     if isinstance(x, ExtendedNumber):
+        d = getattr(y, 'get_direction', lambda : NotImplemented)()
+        if isinstance(d, realtypes):
+            y = d
         if isinstance(y, realtypes):
             if y == 0:
                 return 1, []
@@ -860,6 +861,7 @@ def try_power(x, y):
                 return ExtendedNumber.get_zoo(), []
             else:
                 return ExtendedNumber.get_undefined(), []
+                
     elif isinstance(y, ExtendedNumber):
         if isinstance(x, realtypes):
             if y.direction > 0:

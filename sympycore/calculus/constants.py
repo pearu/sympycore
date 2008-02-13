@@ -24,5 +24,11 @@ class Constant(str):
             return 1
         return NotImplemented
 
+    @property
+    def is_bounded(self):
+        if self in ['pi', 'E']:
+            return True
+        return None
+
 const_pi = Constant('pi')
 const_E = Constant('E')
