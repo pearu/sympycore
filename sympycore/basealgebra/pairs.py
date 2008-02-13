@@ -1250,10 +1250,14 @@ def add_NUMBER_ADD(lhs, rhs, cls):
         pairs[one] = value
     else:
         c = b + value
-        if c:
+        try:
+            if c:
+                pairs[one] = c
+            else:
+                del pairs[one]
+        except RedirectOperation:
             pairs[one] = c
-        else:
-            del pairs[one]
+
     if len(pairs)<=1:
         return result.canonize()
     return result

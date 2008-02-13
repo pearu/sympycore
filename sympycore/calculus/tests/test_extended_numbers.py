@@ -12,6 +12,21 @@ onehalf = Calculus.Number(3)/2
 monehalf = Calculus.Number(-3)/2
 x,y,z = map(Calculus.Symbol, 'xyz')
 
+def test_oo_product():
+    assert str(oo * (x+y))=='oo*(x + y)'
+    #assert str(oo * (1+x+y))=='oo*(x + y)'
+    #assert str(oo * (2*x))=='oo*x'
+    
+def test_oo_sum():
+    assert str(oo + (x+y))=='oo + x + y'
+    assert str(oo + (2+x+y))=='oo + x + y'
+    assert str((2+x+y) + oo)=='oo + x + y'
+    assert str(oo - (2+x+y))=='oo - x - y'
+
+    assert str((oo+y) + (x+y))=='oo + x + 2*y'
+    assert str((x+y) + (oo+y))=='oo + x + 2*y'
+    assert str((oo+y) + (oo+x))=='oo + x + y'
+
 def test_oo_symbol():
     assert str(oo + x)=='oo + x'
     assert str(oo - x)=='oo - x'
