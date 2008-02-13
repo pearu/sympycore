@@ -1242,7 +1242,6 @@ def add_NUMBER_ADD(lhs, rhs, cls):
         r = value.__add__(rhs)
         if r is not NotImplemented:
             return cls.convert(r)
-
     result = rhs.copy()
     pairs = result.data
     one = cls.one
@@ -1543,7 +1542,7 @@ def expand_NUMBER_ADD(lhs, rhs, cls):
             return rhs
         d = {}
         result = newinstance(cls, ADD, d)
-        for t,c in lhs.data.iteritems():
+        for t,c in rhs.data.iteritems():
             d[t] = c * value
         if len(d)<=1:
             return result.canonize()
