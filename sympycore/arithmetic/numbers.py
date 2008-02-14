@@ -5,24 +5,28 @@ calculations, etc. In the interest of speed, the classes implemented
 here have some quirks which make them unsuitable to be exposed
 directly to (non-expert) users.
 
-In addition to the number types Fraction (rationals), Float (floats)
-and Complex (complexes), the ExtendedNumber type can be used
+In addition to the number types FractionTuple (for rationals), Float
+(floats) and Complex (complexes), the ExtendedNumber type can be used
 to represent infinities and indeterminate/undefined (nan) results.
 
 Important notes:
 
-To make hashing, equality testing and instance creation as fast as
-possible, a Fraction instance *must only* be created from a fully
-normalized (p, q) pair and p/q *must not* be integer-valued.
-Arithmetic operations on Fractions automatically normalize back to
-Python ints when the results are integer valued.
+FractionTuples are more of a kind of tuple specialized for representing
+fractions, than a user-friendly rational number type. The goal is to
+make hashing, equality testing and instance creation as fast as
+possible.
 
-Fraction.__init__ does *not* validate its input. To safely create a
-fraction from two integers, use the function normalized_fraction().
+* FractionTuple.__init__ does *not* validate its input.
+* A FractionTuple instance *should only* be created from a fully
+  normalized (p, q) pair and p/q *should not* be integer-valued.
+* To safely create a fraction from two integers, use the function
+  normalized_fraction().
+* Arithmetic operations on FractionTuples automatically normalize back
+  to Python ints when the results are integer valued.
 
 Note that Fraction(2)/Fraction(3) does *not* work as expected; it
 does the same thing as 2/3 in Python. To perform safe division, use
-the div function instead.
+the div function provided by this module instead.
 
 Fractions can be compared with Python ints, but cannot be (correctly)
 compared with Python floats. If you need to mix approximate and
@@ -43,7 +47,7 @@ they become real.
 
 import math
 
-__all__ = ['Fraction', 'Float', 'Complex', 'div', 'int_root', 'try_power',
+__all__ = ['FractionTuple', 'Float', 'Complex', 'div', 'int_root', 'try_power',
            'ExtendedNumber', 'normalized_fraction']
 
 from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_NUMBER
@@ -68,12 +72,12 @@ def normalized_fraction(p, q=1):
         q //= x
     if q == 1:
         return p
-    return Fraction((p, q))
+    return FractionTuple((p, q))
 
-class Fraction(tuple):
+class FractionTuple(tuple):
 
     # These methods are inherited directly from tuple for speed. This works
-    # as long as all Fraction tuples are normalized.
+    # as long as all FractionTuples are normalized.
     # __new__/__init__
     # __nonzero__
     # __eq__
@@ -96,13 +100,13 @@ class Fraction(tuple):
         return "(%i/%i)" % self
 
     def __repr__(self):
-        return "Fraction((%r, %r))" % (self[0], self[1])
+        return "FractionTuple((%r, %r))" % (self[0], self[1])
 
     def __cmp__(self, other):
         p, q = self
         if isinstance(other, inttypes):
             return cmp(p - q*other, 0)
-        if isinstance(other, Fraction):
+        if isinstance(other, FractionTuple):
             r, s = other
             return cmp(p*s - q*r, 0)
         return NotImplemented
@@ -117,7 +121,7 @@ class Fraction(tuple):
 
     def __neg__(self):
         p, q = self
-        return Fraction((-p, q))
+        return FractionTuple((-p, q))
 
     def __pos__(self):
         return self
@@ -125,15 +129,15 @@ class Fraction(tuple):
     def __abs__(self):
         p, q = self
         if p < 0:
-            return Fraction((-p, q))
+            return FractionTuple((-p, q))
         return self
 
     def __add__(self, other):
         p, q = self
         if isinstance(other, inttypes):
             # GCD never needed
-            return Fraction((p+q*other, q))
-        if isinstance(other, Fraction):
+            return FractionTuple((p+q*other, q))
+        if isinstance(other, FractionTuple):
             r, s = other
             # GCD reduction inlined for speed
             p = x = p*s+q*r
@@ -145,7 +149,7 @@ class Fraction(tuple):
                 q //= x
             if q == 1:
                 return p
-            return Fraction((p, q))
+            return FractionTuple((p, q))
         return NotImplemented
 
     __radd__ = __add__
@@ -154,8 +158,8 @@ class Fraction(tuple):
         p, q = self
         if isinstance(other, inttypes):
             # GCD never needed
-            return Fraction((p-q*other, q))
-        if isinstance(other, Fraction):
+            return FractionTuple((p-q*other, q))
+        if isinstance(other, FractionTuple):
             r, s = other
             return normalized_fraction(p*s - q*r, q*s)
         return NotImplemented
@@ -163,14 +167,14 @@ class Fraction(tuple):
     def __rsub__(self, other):
         p, q = self
         if isinstance(other, inttypes):
-            return Fraction((q*other-p, q))
+            return FractionTuple((q*other-p, q))
         return NotImplemented
 
     def __mul__(self, other):
         p, q = self
         if isinstance(other, inttypes):
             return normalized_fraction(p*other, q)
-        if isinstance(other, Fraction):
+        if isinstance(other, FractionTuple):
             r, s = other
             # GCD reduction inlined for speed
             p = x = p*r
@@ -182,7 +186,7 @@ class Fraction(tuple):
                 q //= x
             if q == 1:
                 return p
-            return Fraction((p, q))
+            return FractionTuple((p, q))
         return NotImplemented
 
     __rmul__ = __mul__
@@ -193,7 +197,7 @@ class Fraction(tuple):
             if not other:
                 return cmp(p, 0) * ExtendedNumber.get_oo()
             return normalized_fraction(p, q*other)
-        if isinstance(other, Fraction):
+        if isinstance(other, FractionTuple):
             r, s = other
             return normalized_fraction(p*s, q*r)
         return NotImplemented
@@ -229,13 +233,13 @@ class Fraction(tuple):
             return 1
         # GCD not needed...
         if n > 0:
-            return Fraction((p**n, q**n))
+            return FractionTuple((p**n, q**n))
         else:
             if p > 0:
-                return Fraction((q**-n, p**-n))
+                return FractionTuple((q**-n, p**-n))
             else:
                 # ...but we have to handle signs
-                return Fraction(((-q)**-n, (-p)**-n))
+                return FractionTuple(((-q)**-n, (-p)**-n))
 
 
 #----------------------------------------------------------------------------#
@@ -265,7 +269,7 @@ class Float(object):
             return x.val
         if isinstance(x, inttypes):
             return from_int(x, self.prec, rounding)
-        if isinstance(x, Fraction):
+        if isinstance(x, FractionTuple):
             return from_rational(x[0], x[1], self.prec, rounding)
         if isinstance(x, float):
             return from_float(x, self.prec, rounding)
@@ -391,7 +395,7 @@ class Float(object):
 #----------------------------------------------------------------------------#
 
 def innerstr(x):
-    if isinstance(x, Fraction):
+    if isinstance(x, FractionTuple):
         return "%s/%s" % x
     return str(x)
 
@@ -559,14 +563,14 @@ class Complex(object):
             if case == 2: return -(b**n)
             if case == 3: return Complex(0, -b**n)
         m = 1
-        if isinstance(a, Fraction):
-            if isinstance(b, Fraction):
+        if isinstance(a, FractionTuple):
+            if isinstance(b, FractionTuple):
                 m = (a[1] * b[1]) ** n
                 a, b = a[0]*b[1], a[1]*b[0]
             elif isinstance(b, inttypes):
                 m = a[1] ** n
                 a, b = a[0], a[1]*b
-        elif isinstance(b, Fraction):
+        elif isinstance(b, FractionTuple):
             if isinstance(a, inttypes):
                 m = b[1] ** n
                 a, b = a*b[1], b[0]
@@ -764,8 +768,8 @@ class ExtendedNumber:
     def is_undefined(self):
         return (self.infinite, self.direction)==(0,0)
 
-numbertypes = (int, long, float, complex, Fraction, Float, Complex, ExtendedNumber)
-realtypes = (int, long, float, Fraction, Float)
+numbertypes = (int, long, float, complex, FractionTuple, Float, Complex, ExtendedNumber)
+realtypes = (int, long, float, FractionTuple, Float)
 complextypes = (complex, Complex)
 
 #----------------------------------------------------------------------------#
@@ -784,7 +788,7 @@ def div(a, b):
             return normalized_fraction(a, b)
         if b == 1:
             return a
-        return Fraction((1,b)) * a
+        return FractionTuple((1,b)) * a
     return a / b
 
 def int_root(y, n):
@@ -818,7 +822,8 @@ def int_root(y, n):
 def try_power(x, y):
     """
     Attempt to compute x**y where x and y must be of the types int,
-    long, Fraction, Float, Complex or ExtendedNumber. The function returns
+    long, FractionTuple, Float, Complex or ExtendedNumber. The function
+    returns
 
       z, symbolic
 
@@ -893,9 +898,9 @@ def try_power(x, y):
             return ExtendedNumber.get_zoo(), []
         elif isinstance(x, inttypes):
             return normalized_fraction(1, x**(-y)), []
-        elif isinstance(x, (Fraction, Float, Complex)):
+        elif isinstance(x, (FractionTuple, Float, Complex)):
             return x**y, []
-    elif isinstance(x, inttypes) and isinstance(y, Fraction):
+    elif isinstance(x, inttypes) and isinstance(y, FractionTuple):
         if x < 0:
             if x==-1:
                 p, q = y
@@ -915,7 +920,7 @@ def try_power(x, y):
                 else:
                     g = normalized_fraction(1, r**(-p))
                 return g, []
-    elif isinstance(x, Fraction) and isinstance(y, Fraction):
+    elif isinstance(x, FractionTuple) and isinstance(y, FractionTuple):
         a, b = x
         r, rsym = try_power(a, y)
         s, ssym = try_power(b, y)

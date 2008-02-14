@@ -1,4 +1,4 @@
-from .numbers import Fraction, normalized_fraction, Complex, Float, div
+from .numbers import FractionTuple, normalized_fraction, Complex, Float, div
 
 def factorial(n, memo=[1, 1]):
     """Return n factorial (for integers n >= 0 only)."""
@@ -58,7 +58,7 @@ def real_digits(x, base=10, truncation=10):
     fractional digits, the length reaches `truncation` digits, the
     iteration is stopped."""
     assert base > 1
-    assert isinstance(x, (int, long, Fraction))
+    assert isinstance(x, (int, long, FractionTuple))
     if x == 0:
         return ([0], 1)
     x = abs(x)

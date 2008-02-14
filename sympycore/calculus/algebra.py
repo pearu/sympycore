@@ -8,12 +8,12 @@ from ..basealgebra.primitive import PrimitiveAlgebra, SYMBOL, NUMBER, ADD, MUL
 
 from ..basealgebra.pairs import CommutativeRingWithPairs, newinstance
 
-from ..arithmetic.numbers import Fraction, normalized_fraction, Float, Complex, \
+from ..arithmetic.numbers import FractionTuple, normalized_fraction, Float, Complex, \
     try_power, ExtendedNumber
 
 from ..arithmetic.evalf import evalf
 
-algebra_numbers = (int, long, Fraction, Float, Complex, ExtendedNumber)
+algebra_numbers = (int, long, FractionTuple, Float, Complex, ExtendedNumber)
 
 class Calculus(CommutativeRingWithPairs):
     """ Represents an element of a symbolic algebra. The set of a
