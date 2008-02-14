@@ -27,6 +27,8 @@ class Calculus(CommutativeRingWithPairs):
     __slots__ = ['head', 'data', '_hash', 'one', 'zero']
     _hash = None
 
+    coefftypes = (int, long, FractionTuple, Complex)
+
     def as_algebra(self, cls):
         """ Convert algebra to another algebra.
         """
@@ -166,6 +168,12 @@ class Calculus(CommutativeRingWithPairs):
 
     def evalf(self, n=15):
         return self.Number(evalf(self, n))
+
+    def to_Float(self, n=15):
+        f = self.evalf(n)
+        if f.is_Number:
+            return f.data
+        return NotImplemented
 
     def get_direction(self):
         head = self.head

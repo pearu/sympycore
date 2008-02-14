@@ -264,6 +264,9 @@ class Float(object):
             val = self.convert(val)
         self.val = val
 
+    def __nonzero__(self):
+        raise RedirectOperation(self)
+
     def convert(self, x):
         if isinstance(x, Float):
             return x.val
@@ -275,7 +278,10 @@ class Float(object):
             return from_float(x, self.prec, rounding)
         if isinstance(x, basestring):
             return from_str(x, self.prec, rounding)
-        return NotImplemented
+        r = getattr(x, 'to_Float', lambda p: NotImplemented)(self.prec)
+        if r is NotImplemented:
+            return r
+        return self.convert(r)
 
     def to_str_data(self,sort=True):
         if self<0:
@@ -405,7 +411,7 @@ class Complex(object):
     __slots__ = ['real', 'imag']
 
     def __new__(cls, real, imag=0):
-        if not imag:
+        if imag==0:
             return real
         self = object.__new__(Complex)
         self.real = real
@@ -423,7 +429,7 @@ class Complex(object):
 
     def to_str_data(self,sort=True):
         re, im = self.real, self.imag
-        if not re:
+        if re==0:
             if im == 1: return str_SYMBOL,"I"
             if im == -1: return str_SUM, "-I"
             return str_PRODUCT, str(self.imag) + "*I"
@@ -436,7 +442,7 @@ class Complex(object):
 
     def __str__(self):
         re, im = self.real, self.imag
-        if not re:
+        if re==0:
             if im == 1: return "I"
             if im == -1: return "-I"
             return str(self.imag) + "*I"
@@ -458,7 +464,7 @@ class Complex(object):
         else:
             i = PrimitiveAlgebra(self.imag)
         I = PrimitiveAlgebra(Complex(0,1), head=NUMBER)
-        if not re:
+        if re==0:
             if im == 1: return I
             if im == -1: return -I
             return i * I
@@ -489,7 +495,7 @@ class Complex(object):
     def __neg__(self): return Complex(-self.real, -self.imag)
 
     def __abs__(self):
-        if not self.real:
+        if self.real==0:
             return abs(self.imag)
         if isinstance(self.real, Float) and isinstance(self.imag, Float):
             return Float(fcabs(self.real.val, self.imag.val,
@@ -556,7 +562,7 @@ class Complex(object):
         if n < 0:
             return (1 / self) ** (-n)
         a, b = self.real, self.imag
-        if not a:
+        if a==0:
             case = n % 4
             if case == 0: return b**n
             if case == 1: return Complex(0, b**n)
