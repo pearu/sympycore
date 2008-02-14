@@ -40,12 +40,12 @@ d = defaultdict(lambda : h4_d,
 
 def bar():
     a,b = h1,h1 # best case
-    a,b = h4,h4 # worst case
+    #a,b = h4,h4 # worst case
     return d[a][b]()
 
-def foo():
+def foo(h1=h1, h2=h2, h3=h3, h4=4):
     a,b = h1,h1 # best case
-    a,b = h4,h4 # worst case
+    #a,b = h4,h4 # worst case
     if a is h1:
         if b is h1:
             pass
