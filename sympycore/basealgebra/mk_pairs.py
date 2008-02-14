@@ -5,6 +5,31 @@
 
 import os
 
+def preprocess(source):
+    result = []
+    for line in source.splitlines():
+        if line.lstrip().startswith('@'):
+            prefix, rest = line.split('@',1)
+            i = rest.index('(')
+            name = rest[:i]
+            d = {}
+            for arg in rest.strip()[i+1:-1].split(','):
+                key, value = arg.split('=',1)
+                d[key.strip()] = value.strip()
+            try:
+                templ = eval(name, globals(), {})
+            except NameError:
+                templ = '@' + rest
+            else:
+                if '@' in templ:
+                    templ = preprocess(templ)
+            result.append(prefix + '#' + rest)
+            for l in (templ % d).splitlines():
+                result.append(prefix + l)
+        else:
+            result.append(line)
+    return '\n'.join(result)
+
 cwd = os.path.abspath(os.path.dirname(__file__))
 pairs_ops_py = os.path.join(cwd,'pairs_ops.py')
 
@@ -17,29 +42,42 @@ from ..utils import NUMBER, SYMBOL, TERMS, FACTORS, RedirectOperation
 
 '''
 
-ADD_NUMBER_NUMBER = '''\
+ADD_VALUE_NUMBER = '''\
 obj = new(cls)
 obj.head = NUMBER
-obj.data = %(LHS)s.data + %(RHS)s.data
+obj.data = %(VALUE)s + %(RHS)s.data
 return obj
 '''
 
-ADD_NUMBER_TERMS = '''\
-value = %(LHS)s.data
+ADD_VALUE_SYMBOL = '''\
 try:
-    if not value:
+    if not %(VALUE)s:
         return %(RHS)s
 except RedirectOperation:
-    r = value.__add__(%(RHS)s)
+    r = %(VALUE)s.__add__(%(RHS)s)
+    if r is not NotImplemented:
+        return cls.convert(r)
+obj = new(cls)
+obj.head = TERMS
+obj.data = {cls.one: %(VALUE)s, %(RHS)s: 1}
+return obj
+'''
+
+ADD_VALUE_TERMS = '''\
+try:
+    if not %(VALUE)s:
+        return %(RHS)s
+except RedirectOperation:
+    r = %(VALUE)s.__add__(%(RHS)s)
     if r is not NotImplemented:
         return cls.convert(r)
 pairs = dict(%(RHS)s.data)
 one = cls.one
 b = pairs.get(one)
 if b is None:
-    pairs[one] = value
+    pairs[one] = %(VALUE)s
 else:
-    c = b + value
+    c = b + %(VALUE)s
     try:
         if c:
             pairs[one] = c
@@ -55,19 +93,16 @@ obj.data = pairs
 return obj
 '''
 
+ADD_NUMBER_NUMBER = '''\
+@ADD_VALUE_NUMBER(VALUE=%(LHS)s.data, RHS=%(RHS)s)
+'''
+
+ADD_NUMBER_TERMS = '''\
+@ADD_VALUE_TERMS(VALUE=%(LHS)s.data, RHS=%(RHS)s)
+'''
+
 ADD_NUMBER_SYMBOL = '''\
-value = %(LHS)s.data
-try:
-    if not value:
-        return %(RHS)s
-except RedirectOperation:
-    r = value.__add__(%(RHS)s)
-    if r is not NotImplemented:
-        return cls.convert(r)
-obj = new(cls)
-obj.head = TERMS
-obj.data = {cls.one: value, %(RHS)s: 1}
-return obj
+@ADD_VALUE_SYMBOL(VALUE=%(LHS)s.data, RHS=%(RHS)s)
 '''
 
 ADD_SYMBOL_SYMBOL = '''\
@@ -141,42 +176,24 @@ obj.data = pairs
 return obj
 '''
 
-def preprocess(source):
-    result = []
-    for line in source.splitlines():
-        if line.lstrip().startswith('@'):
-            prefix, rest = line.split('@',1)
-            i = rest.index('(')
-            name = rest[:i]
-            d = {}
-            for arg in rest.strip()[i+1:-1].split(','):
-                key, value = arg.split('=',1)
-                d[key.strip()] = value.strip()
-            try:
-                templ = eval(name, globals(), {})
-            except NameError:
-                templ = '@' + rest
-            else:
-                if '@' in templ:
-                    templ = preprocess(templ)
-            result.append(prefix + '#' + rest)
-            for l in (templ % d).splitlines():
-                result.append(prefix + l)
-        else:
-            result.append(line)
-    return '\n'.join(result)
-
 def main():
     f = open(pairs_ops_py, 'w')
     print >> f, template
     print >> f, preprocess('''
 def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
     cls = self.__class__
+    lhead = self.head
+    if isinstance(other, cls.coefftypes):
+        if lhead is NUMBER:
+            @ADD_VALUE_NUMBER(VALUE=other, RHS=self)
+        elif lhead is TERMS:
+            @ADD_VALUE_TERMS(VALUE=other, RHS=self)
+        else:
+            @ADD_VALUE_SYMBOL(VALUE=other, RHS=self)
     if type(other) is not cls:
         other = cls.convert(other, False)
         if other is NotImplemented:
             return other
-    lhead = self.head
     rhead = other.head
     if lhead is NUMBER:
         if rhead is NUMBER:

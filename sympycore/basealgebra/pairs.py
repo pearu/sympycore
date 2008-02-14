@@ -49,6 +49,8 @@ class CommutativeRingWithPairs(CommutativeRing):
     _hash = None
     _symbols = None
     _symbols_data = None
+
+    coefftypes = (int, long)
     
     def __new__(cls, data, head=None):
         if head is None:

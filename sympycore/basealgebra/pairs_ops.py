@@ -8,36 +8,87 @@ from ..utils import NUMBER, SYMBOL, TERMS, FACTORS, RedirectOperation
 
 def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
     cls = self.__class__
+    lhead = self.head
+    if isinstance(other, cls.coefftypes):
+        if lhead is NUMBER:
+            #ADD_VALUE_NUMBER(VALUE=other, RHS=self)
+            obj = new(cls)
+            obj.head = NUMBER
+            obj.data = other + self.data
+            return obj
+        elif lhead is TERMS:
+            #ADD_VALUE_TERMS(VALUE=other, RHS=self)
+            try:
+                if not other:
+                    return self
+            except RedirectOperation:
+                r = other.__add__(self)
+                if r is not NotImplemented:
+                    return cls.convert(r)
+            pairs = dict(self.data)
+            one = cls.one
+            b = pairs.get(one)
+            if b is None:
+                pairs[one] = other
+            else:
+                c = b + other
+                try:
+                    if c:
+                        pairs[one] = c
+                    else:
+                        del pairs[one]
+                        if not pairs:
+                            return cls.zero
+                except RedirectOperation:
+                    pairs[one] = c
+            obj = new(cls)
+            obj.head = TERMS
+            obj.data = pairs
+            return obj
+        else:
+            #ADD_VALUE_SYMBOL(VALUE=other, RHS=self)
+            try:
+                if not other:
+                    return self
+            except RedirectOperation:
+                r = other.__add__(self)
+                if r is not NotImplemented:
+                    return cls.convert(r)
+            obj = new(cls)
+            obj.head = TERMS
+            obj.data = {cls.one: other, self: 1}
+            return obj
     if type(other) is not cls:
         other = cls.convert(other, False)
         if other is NotImplemented:
             return other
-    lhead = self.head
+
     rhead = other.head
     if lhead is NUMBER:
         if rhead is NUMBER:
             #ADD_NUMBER_NUMBER(LHS=self, RHS=other)
+            #ADD_VALUE_NUMBER(VALUE=self.data, RHS=other)
             obj = new(cls)
             obj.head = NUMBER
             obj.data = self.data + other.data
             return obj
         elif rhead is TERMS:
             #ADD_NUMBER_TERMS(LHS=self, RHS=other)
-            value = self.data
+            #ADD_VALUE_TERMS(VALUE=self.data, RHS=other)
             try:
-                if not value:
+                if not self.data:
                     return other
             except RedirectOperation:
-                r = value.__add__(other)
+                r = self.data.__add__(other)
                 if r is not NotImplemented:
                     return cls.convert(r)
             pairs = dict(other.data)
             one = cls.one
             b = pairs.get(one)
             if b is None:
-                pairs[one] = value
+                pairs[one] = self.data
             else:
-                c = b + value
+                c = b + self.data
                 try:
                     if c:
                         pairs[one] = c
@@ -53,36 +104,36 @@ def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
             return obj
         else:
             #ADD_NUMBER_SYMBOL(LHS=self, RHS=other)
-            value = self.data
+            #ADD_VALUE_SYMBOL(VALUE=self.data, RHS=other)
             try:
-                if not value:
+                if not self.data:
                     return other
             except RedirectOperation:
-                r = value.__add__(other)
+                r = self.data.__add__(other)
                 if r is not NotImplemented:
                     return cls.convert(r)
             obj = new(cls)
             obj.head = TERMS
-            obj.data = {cls.one: value, other: 1}
+            obj.data = {cls.one: self.data, other: 1}
             return obj
     elif lhead is TERMS:
         if rhead is NUMBER:
             #ADD_NUMBER_TERMS(LHS=other, RHS=self)
-            value = other.data
+            #ADD_VALUE_TERMS(VALUE=other.data, RHS=self)
             try:
-                if not value:
+                if not other.data:
                     return self
             except RedirectOperation:
-                r = value.__add__(self)
+                r = other.data.__add__(self)
                 if r is not NotImplemented:
                     return cls.convert(r)
             pairs = dict(self.data)
             one = cls.one
             b = pairs.get(one)
             if b is None:
-                pairs[one] = value
+                pairs[one] = other.data
             else:
-                c = b + value
+                c = b + other.data
                 try:
                     if c:
                         pairs[one] = c
@@ -158,17 +209,17 @@ def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
     else:
         if rhead is NUMBER:
             #ADD_NUMBER_SYMBOL(LHS=other, RHS=self)
-            value = other.data
+            #ADD_VALUE_SYMBOL(VALUE=other.data, RHS=self)
             try:
-                if not value:
+                if not other.data:
                     return self
             except RedirectOperation:
-                r = value.__add__(self)
+                r = other.data.__add__(self)
                 if r is not NotImplemented:
                     return cls.convert(r)
             obj = new(cls)
             obj.head = TERMS
-            obj.data = {cls.one: value, self: 1}
+            obj.data = {cls.one: other.data, self: 1}
             return obj
         elif rhead is TERMS:
             #ADD_TERMS_SYMBOL(LHS=other, RHS=self)
