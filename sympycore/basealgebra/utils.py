@@ -33,7 +33,7 @@ def get_object_by_name(name, default=None):
         frame = frame.f_back
     return default
 
-class RedirectOperation(Exception):
+class _RedirectOperation(Exception):
     """ Raised in __nonzero__ methods when the callers
     namespace contains a variable redirect_operation='caller name'.
     If redirect_operation=='ignore_redirection' then no exception is raised.

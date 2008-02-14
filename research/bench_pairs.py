@@ -39,13 +39,13 @@ d = defaultdict(lambda : h4_d,
                 )
 
 def bar():
-    a,b = h1,h1 # best case
-    #a,b = h4,h4 # worst case
-    return d[a][b]()
+    #a,b = h1,h1 # best case
+    a,b = h4,h4 # worst case
+    return d[a][b]
 
 def foo(h1=h1, h2=h2, h3=h3, h4=4):
-    a,b = h1,h1 # best case
-    #a,b = h4,h4 # worst case
+    #a,b = h1,h1 # best case
+    a,b = h4,h4 # worst case
     if a is h1:
         if b is h1:
             pass
@@ -78,7 +78,555 @@ def foo(h1=h1, h2=h2, h3=h3, h4=4):
             pass
         elif b is h2:
             pass
+        elif b is h3:
+            pass
+        else:
+            return
+
+def fun1():
+    if 1:
+        return
+
+def fun2():
+    if 1:
+        return
+    if a is h1:
+        if b is h1:
+            pass
         elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    elif a is h2:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    elif a is h3:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    else:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    if a is h1:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    elif a is h2:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    elif a is h3:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    else:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    if a is h1:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    elif a is h2:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    elif a is h3:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    else:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    if a is h1:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    elif a is h2:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    elif a is h3:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    else:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    if a is h1:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    elif a is h2:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    elif a is h3:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    else:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    if a is h1:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    elif a is h2:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    elif a is h3:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    else:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    if a is h1:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    elif a is h2:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    elif a is h3:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    else:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    if a is h1:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    elif a is h2:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    elif a is h3:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    else:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    if a is h1:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    elif a is h2:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    elif a is h3:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    else:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    if a is h1:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    elif a is h2:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    elif a is h3:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    else:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    if a is h1:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    elif a is h2:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    elif a is h3:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    else:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    if a is h1:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    elif a is h2:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    elif a is h3:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    else:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    if a is h1:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    elif a is h2:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    elif a is h3:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    else:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    if a is h1:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    elif a is h2:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    elif a is h3:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    else:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    if a is h1:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    elif a is h2:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    elif a is h3:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
+            pass
+        else:
+            return
+    else:
+        if b is h1:
+            pass
+        elif b is h2:
+            pass
+        elif b is h3:
             pass
         else:
             return

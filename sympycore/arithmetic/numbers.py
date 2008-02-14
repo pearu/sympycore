@@ -53,7 +53,7 @@ __all__ = ['FractionTuple', 'Float', 'Complex', 'div', 'int_root', 'try_power',
 from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_NUMBER
 from ..basealgebra.primitive import PrimitiveAlgebra, NUMBER, SYMBOL
 from ..basealgebra.utils import get_object_by_name
-from ..basealgebra.utils import RedirectOperation
+from ..utils import RedirectOperation
 
 inttypes = (int, long)
 

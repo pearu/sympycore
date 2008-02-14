@@ -9,11 +9,14 @@ from ..core import classes
 from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_NUMBER
 from ..utils import ADD, MUL, SYMBOL, NUMBER, APPLY, POW, TUPLE, head_to_string
 
-from .utils import generate_swapped_first_arguments, RedirectOperation
+from .utils import generate_swapped_first_arguments
+from ..utils import RedirectOperation
 from .algebra import BasicAlgebra
 from .ring import CommutativeRing
 from .primitive import PrimitiveAlgebra
 from ..arithmetic.number_theory import multinomial_coefficients
+
+from .pairs_ops import add_method
 
 def newinstance(cls, head, data, new = object.__new__):
     o = new(cls)
@@ -522,12 +525,14 @@ class CommutativeRingWithPairs(CommutativeRing):
     def __pos__(self):
         return self
 
-    def __add__(self, other, redirect_operation='__add__'):
+    def __add2__(self, other, redirect_operation='__add__'):
         if type(self) is not type(other):
             other = self.convert(other, False)
             if other is NotImplemented:
                 return NotImplemented
         return add_dict2[self.head][other.head](self, other, self.__class__)
+
+    __add__ = add_method
 
     def __radd__(self, other, redirect_operation='__radd__'):
         other = self.convert(other, False)

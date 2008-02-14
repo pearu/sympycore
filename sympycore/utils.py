@@ -1,4 +1,8 @@
 
+class RedirectOperation(Exception):
+    """ Raised in __nonzero__ methods of active objects (extended numbers and floats).
+    """
+
 # The following constants define both the order of operands
 # as well as placing parenthesis for classes deriving from
 # CommutativeRingWithPairs:
@@ -31,10 +35,10 @@ INVERT = intern('~')
 
 POS = intern('+')
 NEG = intern('-')
-ADD = intern(' + ')
+TERMS = ADD = intern(' + ')
 SUB = intern(' - ')
 MOD = intern('%')
-MUL = intern('*')
+FACTORS = MUL = intern('*')
 DIV = intern('/')
 POW = intern('**')
 
