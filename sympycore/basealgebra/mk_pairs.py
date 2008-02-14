@@ -183,14 +183,14 @@ def main():
 def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
     cls = self.__class__
     lhead = self.head
-    if isinstance(other, cls.coefftypes):
-        if lhead is NUMBER:
-            @ADD_VALUE_NUMBER(VALUE=other, RHS=self)
-        elif lhead is TERMS:
-            @ADD_VALUE_TERMS(VALUE=other, RHS=self)
-        else:
-            @ADD_VALUE_SYMBOL(VALUE=other, RHS=self)
     if type(other) is not cls:
+        if isinstance(other, cls.coefftypes):
+            if lhead is NUMBER:
+                @ADD_VALUE_NUMBER(VALUE=other, RHS=self)
+            elif lhead is TERMS:
+                @ADD_VALUE_TERMS(VALUE=other, RHS=self)
+            else:
+                @ADD_VALUE_SYMBOL(VALUE=other, RHS=self)
         other = cls.convert(other, False)
         if other is NotImplemented:
             return other

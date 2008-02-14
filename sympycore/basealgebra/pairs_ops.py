@@ -9,60 +9,59 @@ from ..utils import NUMBER, SYMBOL, TERMS, FACTORS, RedirectOperation
 def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
     cls = self.__class__
     lhead = self.head
-    if isinstance(other, cls.coefftypes):
-        if lhead is NUMBER:
-            #ADD_VALUE_NUMBER(VALUE=other, RHS=self)
-            obj = new(cls)
-            obj.head = NUMBER
-            obj.data = other + self.data
-            return obj
-        elif lhead is TERMS:
-            #ADD_VALUE_TERMS(VALUE=other, RHS=self)
-            try:
-                if not other:
-                    return self
-            except RedirectOperation:
-                r = other.__add__(self)
-                if r is not NotImplemented:
-                    return cls.convert(r)
-            pairs = dict(self.data)
-            one = cls.one
-            b = pairs.get(one)
-            if b is None:
-                pairs[one] = other
-            else:
-                c = b + other
-                try:
-                    if c:
-                        pairs[one] = c
-                    else:
-                        del pairs[one]
-                        if not pairs:
-                            return cls.zero
-                except RedirectOperation:
-                    pairs[one] = c
-            obj = new(cls)
-            obj.head = TERMS
-            obj.data = pairs
-            return obj
-        else:
-            #ADD_VALUE_SYMBOL(VALUE=other, RHS=self)
-            try:
-                if not other:
-                    return self
-            except RedirectOperation:
-                r = other.__add__(self)
-                if r is not NotImplemented:
-                    return cls.convert(r)
-            obj = new(cls)
-            obj.head = TERMS
-            obj.data = {cls.one: other, self: 1}
-            return obj
     if type(other) is not cls:
+        if isinstance(other, cls.coefftypes):
+            if lhead is NUMBER:
+                #ADD_VALUE_NUMBER(VALUE=other, RHS=self)
+                obj = new(cls)
+                obj.head = NUMBER
+                obj.data = other + self.data
+                return obj
+            elif lhead is TERMS:
+                #ADD_VALUE_TERMS(VALUE=other, RHS=self)
+                try:
+                    if not other:
+                        return self
+                except RedirectOperation:
+                    r = other.__add__(self)
+                    if r is not NotImplemented:
+                        return cls.convert(r)
+                pairs = dict(self.data)
+                one = cls.one
+                b = pairs.get(one)
+                if b is None:
+                    pairs[one] = other
+                else:
+                    c = b + other
+                    try:
+                        if c:
+                            pairs[one] = c
+                        else:
+                            del pairs[one]
+                            if not pairs:
+                                return cls.zero
+                    except RedirectOperation:
+                        pairs[one] = c
+                obj = new(cls)
+                obj.head = TERMS
+                obj.data = pairs
+                return obj
+            else:
+                #ADD_VALUE_SYMBOL(VALUE=other, RHS=self)
+                try:
+                    if not other:
+                        return self
+                except RedirectOperation:
+                    r = other.__add__(self)
+                    if r is not NotImplemented:
+                        return cls.convert(r)
+                obj = new(cls)
+                obj.head = TERMS
+                obj.data = {cls.one: other, self: 1}
+                return obj
         other = cls.convert(other, False)
         if other is NotImplemented:
             return other
-
     rhead = other.head
     if lhead is NUMBER:
         if rhead is NUMBER:
