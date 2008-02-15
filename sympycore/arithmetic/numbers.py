@@ -250,7 +250,7 @@ class FractionTuple(tuple):
 
 from .mpmath.lib import from_int, from_rational, to_str, fadd, fsub, fmul, \
   round_half_even, from_float, to_float, to_int, fpow, from_str, feq, \
-  fhash, fcmp, fdiv, fabs, fcabs, fneg, fnan, flog, fexp
+  fhash, fcmp, fdiv, fabs, fcabs, fneg, fnan, flog, fexp, fpi, fcos, fsin
 
 rounding = round_half_even
 
@@ -395,17 +395,17 @@ class Float(object):
         other = self.convert(n)
         if other is NotImplemented:
             return other
-        log_n = flog(self.val, self.prec, rounding)
-        return Float(fexp(fmul(log_n, other, self.prec, rounding),
-                          self.prec, rounding), self.prec)
+        z,sym = try_power(self, Float(other, prec))
+        assert not sym, `z,sym`
+        return z
 
     def __rpow__(self, other):
         other = self.convert(other)
         if other is NotImplemented:
             return other
-        log_n = flog(other, self.prec, rounding)
-        return Float(fexp(fmul(log_n, self.val, self.prec, rounding),
-                          self.prec, rounding), self.prec)
+        z,sym = try_power(Float(other, prec), self)
+        assert not sym, `z,sym`
+        return z
 
 #----------------------------------------------------------------------------#
 #                                                                            #
@@ -629,14 +629,14 @@ class ExtendedNumber:
 
     def __repr__(self):
         if not self.infinite: return 'undefined'
-        if not self.direction: return 'zoo'
+        if self.direction == 0: return 'zoo'
         if self.direction == 1: return 'oo'
         if self.direction == -1: return '-oo'
         return "(%s)*oo" % self.direction
 
     def to_str_data(self,sort=True):
         if not self.infinite: return str_SYMBOL, 'undefined'
-        if not self.direction: return str_SYMBOL, 'zoo'
+        if self.direction == 0: return str_SYMBOL, 'zoo'
         if self.direction == 1: return str_SYMBOL, 'oo'
         if self.direction == -1: return str_SUM, '-oo'
         return str_PRODUCT, "(%s)*oo" % self.direction
@@ -725,7 +725,7 @@ class ExtendedNumber:
                 other = direction
             else:
                 return NotImplemented
-        if not other:
+        if other==0:
             return ExtendedNumber.get_undefined()
         return ExtendedNumber(self.infinite, as_direction(self.direction*other))
 
@@ -885,7 +885,6 @@ def try_power(x, y):
                 return ExtendedNumber.get_zoo(), []
             else:
                 return ExtendedNumber.get_undefined(), []
-                
     elif isinstance(y, ExtendedNumber):
         if isinstance(x, realtypes):
             if y.direction > 0:
@@ -913,7 +912,7 @@ def try_power(x, y):
     elif isinstance(y, inttypes):
         if y >= 0:
             return x**y, []
-        elif not x:
+        elif x==0:
             return ExtendedNumber.get_zoo(), []
         elif isinstance(x, inttypes):
             return normalized_fraction(1, x**(-y)), []
@@ -946,7 +945,27 @@ def try_power(x, y):
         ssym = [(b, -e) for b, e in ssym]
         return (div(r,s), rsym + ssym)
     elif isinstance(x, Float) or isinstance(y, Float):
-        return x**y, []
+        if not isinstance(x, Float):
+            prec = y.prec
+            x = Float(x, prec)
+        elif not isinstance(y, Float):
+            prec = x.prec
+            y = Float(y, prec)
+        else:
+            prec = min(x.prec, y.prec)
+        if x < 0:
+            a = fmul(fpi(prec, rounding), y.val, prec, rounding)
+            re = Float(fcos(a, prec, rounding))
+            im = Float(fsin(a, prec, rounding))
+            if x==-1:
+                return Complex(re, im), []
+            z, sym = try_power(-x, y)
+            return z * Complex(re, im), sym
+        else:
+            l = flog(x.val, prec, rounding)
+            m = fmul(l, y.val, prec, rounding)
+            r = fexp(m, prec, rounding)
+            return Float(r, prec)
     return 1, [(x, y)]
 
 
