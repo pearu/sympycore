@@ -124,7 +124,7 @@ class PrimitiveAlgebra(BasicAlgebra):
     def as_algebra(self, cls, source=None):
         head, rest = self.tree
         if head is NUMBER:
-            if isinstance(rest, cls.coefftypes):
+            if hasattr(rest,'coefftypes') and isinstance(rest, cls.coefftypes):
                 return cls.Number(rest)
             return cls.convert(rest)
         if head is SYMBOL:
