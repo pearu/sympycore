@@ -965,7 +965,7 @@ def try_power(x, y):
             l = flog(x.val, prec, rounding)
             m = fmul(l, y.val, prec, rounding)
             r = fexp(m, prec, rounding)
-            return Float(r, prec)
+            return Float(r, prec), []
     return 1, [(x, y)]
 
 
