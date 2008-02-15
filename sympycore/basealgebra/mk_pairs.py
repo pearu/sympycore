@@ -54,9 +54,8 @@ try:
     if not %(VALUE)s:
         return %(RHS)s
 except RedirectOperation:
-    r = %(VALUE)s.__add__(%(RHS)s)
-    if r is not NotImplemented:
-        return cls.convert(r)
+    if active:
+        return %(RHS)s._add_active(%(VALUE)s)
 obj = new(cls)
 obj.head = TERMS
 obj.data = {cls.one: %(VALUE)s, %(RHS)s: 1}
@@ -68,9 +67,8 @@ try:
     if not %(VALUE)s:
         return %(RHS)s
 except RedirectOperation:
-    r = %(VALUE)s.__add__(%(RHS)s)
-    if r is not NotImplemented:
-        return cls.convert(r)
+    if active:
+        return %(RHS)s._add_active(%(VALUE)s)
 pairs = dict(%(RHS)s.data)
 one = cls.one
 b = pairs.get(one)
@@ -180,7 +178,7 @@ def main():
     f = open(pairs_ops_py, 'w')
     print >> f, template
     print >> f, preprocess('''
-def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
+def add_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
     cls = self.__class__
     lhead = self.head
     if type(other) is not cls:

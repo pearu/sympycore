@@ -264,6 +264,10 @@ class Float(object):
             val = self.convert(val)
         self.val = val
 
+    @property
+    def digits(self):
+        return int((self.prec-12)/3.33+0.5)
+
     def __nonzero__(self):
         raise RedirectOperation(self)
 

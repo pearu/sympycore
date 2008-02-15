@@ -3,6 +3,7 @@
 #
 
 from ..core import classes
+from ..utils import TERMS
 from ..basealgebra import BasicAlgebra
 from ..basealgebra.primitive import PrimitiveAlgebra, SYMBOL, NUMBER, ADD, MUL
 
@@ -74,26 +75,22 @@ class Calculus(CommutativeRingWithPairs):
                     return t
         return self
 
-    @classmethod
-    def redirect_operation(cls, *args, **kws):
-        """
-        Here should be handled operations with 'active' number
-        such as extended numbers and floats.
-        """
-        callername = kws['redirect_operation']
-        flag = True
-        if callername in ['__mul__','__add__','__rmul__','__radd__']:
-            lhs, rhs = args
-        else:
-            flag = False
-        if flag:
-            # handle operations with undefined:
-            if rhs==undefined or lhs==undefined:
-                return undefined
-
-        # fallback to default:
-        return getattr(cls, callername)(*args,
-                                        **dict(redirect_operation='ignore_redirection'))
+    def _add_active(self, obj):
+        if isinstance(obj, Float):
+            r = self.evalf(obj.digits)
+            return r.__add__(obj, active=False)
+        if isinstance(obj, ExtendedNumber):
+            if obj.is_undefined:
+                return self.Number(obj)
+            r = self.Add(*[a for a in self.as_Add_args() if not a.is_bounded])
+            r = r.__add__(obj, active=False)
+            if r.head is TERMS:
+                # (oo + x) + (-oo) -> undefined
+                c = r.data.get(self.one, None)
+                if isinstance(c, ExtendedNumber) and c.is_undefined:
+                    return self.Number(c)
+            return r
+        raise NotImplementedError(`self, obj`)
 
     @classmethod
     def convert_coefficient(cls, obj, typeerror=True):
