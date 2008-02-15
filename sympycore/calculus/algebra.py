@@ -167,7 +167,15 @@ class Calculus(CommutativeRingWithPairs):
         return newinstance(cls, MUL, d) * num
 
     def evalf(self, n=15):
-        return self.Number(evalf(self, n))
+        head = self.head
+        if head is NUMBER:
+            return self.Number(evalf(self.data, n))
+        if head is SYMBOL:
+            r = getattr(self.data, 'evalf', lambda p: NotImplemented )(n)
+            if r is not NotImplemented:
+                return self.Number(r)
+            return self
+        return self.func(*[a.evalf(n) for a in self.args])
 
     def to_Float(self, n=15):
         f = self.evalf(n)

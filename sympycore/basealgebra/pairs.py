@@ -1066,8 +1066,11 @@ def pow_SYMBOL_SYMBOL(lhs, rhs, cls):
 
 def iadd_ADD_NUMBER(lhs, rhs, one_c, cls):
     value = rhs.data * one_c
-    if not value:
-        return
+    try:
+        if not value:
+            return
+    except RedirectOperation:
+        pass
     pairs = lhs.data
     one = cls.one
     b = pairs.get(one)
@@ -1075,10 +1078,13 @@ def iadd_ADD_NUMBER(lhs, rhs, one_c, cls):
         pairs[one] = value
     else:
         c = b + value
-        if c:
+        try:
+            if c:
+                pairs[one] = c
+            else:
+                del pairs[one]
+        except RedirectOperation:
             pairs[one] = c
-        else:
-            del pairs[one]
     return
 
 def iadd_ADD_SYMBOL(lhs, rhs, one_c, cls):
