@@ -28,6 +28,7 @@ class Calculus(CommutativeRingWithPairs):
     _hash = None
 
     coefftypes = (int, long, FractionTuple, Complex)
+    exptypes = (int, long, FractionTuple, Complex)
 
     def as_algebra(self, cls):
         """ Convert algebra to another algebra.
@@ -121,6 +122,8 @@ class Calculus(CommutativeRingWithPairs):
             return obj
         if isinstance(obj, algebra_numbers):
             return obj
+        if isinstance(obj, float):
+            return Float(obj)
         if isinstance(obj, complex):
             return Complex(Float(obj.real), Float(obj.imag))
         if isinstance(obj, algebra_numbers):

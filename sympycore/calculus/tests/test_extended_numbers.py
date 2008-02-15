@@ -10,11 +10,13 @@ half = Calculus.Number(1)/2
 mhalf = Calculus.Number(-1)/2
 onehalf = Calculus.Number(3)/2
 monehalf = Calculus.Number(-3)/2
+fhalf = one/2.0
+
 x,y,z = map(Calculus.Symbol, 'xyz')
 
 def test_oo_product():
     assert str(oo * (x+y))=='oo*(x + y)'
-    #assert str(oo * (1+x+y))=='oo*(x + y)'
+    assert str(oo * (1+x+y))=='oo*(1 + x + y)'
     #assert str(oo * (2*x))=='oo*x'
     
 def test_oo_sum():
@@ -59,6 +61,7 @@ def test_moo_optable():
     assert moo + mhalf == moo
     assert moo + zero == moo
     assert moo + half == moo
+    assert moo + fhalf == moo
     assert moo + one == moo
     assert moo + onehalf == moo
     assert moo + two == moo
@@ -73,6 +76,7 @@ def test_moo_optable():
     assert moo - mhalf == moo
     assert moo - zero == moo
     assert moo - half == moo
+    assert moo - fhalf == moo
     assert moo - one == moo
     assert moo - onehalf == moo
     assert moo - two == moo
@@ -87,6 +91,7 @@ def test_moo_optable():
     assert moo * mhalf == oo
     assert moo * zero == undefined
     assert moo * half == moo
+    assert moo * fhalf == moo
     assert moo * one == moo
     assert moo * onehalf == moo
     assert moo * two == moo
@@ -101,6 +106,7 @@ def test_moo_optable():
     assert moo / mhalf == oo
     assert moo / zero == zoo
     assert moo / half == moo
+    assert moo / fhalf == moo
     assert moo / one == moo
     assert moo / onehalf == moo
     assert moo / two == moo
@@ -115,6 +121,7 @@ def test_moo_optable():
     assert moo ** mhalf == zero
     assert moo ** zero == one
     assert moo ** half == I*oo
+    #assert moo ** fhalf == I*oo
     assert moo ** one == moo
     assert moo ** onehalf == -I*oo
     assert moo ** two == oo
@@ -277,6 +284,33 @@ def test_half_optable():
     assert half ** zoo == undefined
     assert half ** undefined == undefined
 
+def test_fhalf_optable():
+    assert fhalf + moo == moo
+    assert fhalf + oo == oo
+    assert fhalf + zoo == zoo
+    assert fhalf + undefined == undefined
+
+    assert fhalf - moo == oo
+    assert fhalf - oo == moo
+    assert fhalf - zoo == zoo
+    assert fhalf - undefined == undefined
+
+    assert fhalf * moo == moo
+    assert fhalf * oo == oo
+    assert fhalf * zoo == zoo
+    assert fhalf * undefined == undefined
+
+    assert fhalf / moo == zero
+    assert fhalf / zero == zoo
+    assert fhalf / oo == zero
+    assert fhalf / zoo == zero
+    assert fhalf / undefined == undefined
+
+    assert fhalf ** moo == zoo
+    assert fhalf ** oo == zero
+    assert fhalf ** zoo == undefined
+    assert fhalf ** undefined == undefined
+
 def test_one_optable():
     assert one + moo == moo
     assert one + oo == oo
@@ -366,6 +400,7 @@ def test_oo_optable():
     assert oo + mhalf == oo
     assert oo + zero == oo
     assert oo + half == oo
+    assert oo + fhalf == oo
     assert oo + one == oo
     assert oo + onehalf == oo
     assert oo + two == oo
@@ -380,6 +415,7 @@ def test_oo_optable():
     assert oo - mhalf == oo
     assert oo - zero == oo
     assert oo - half == oo
+    assert oo - fhalf == oo
     assert oo - one == oo
     assert oo - onehalf == oo
     assert oo - two == oo
@@ -394,6 +430,7 @@ def test_oo_optable():
     assert oo * mhalf == moo
     assert oo * zero == undefined
     assert oo * half == oo
+    assert oo * fhalf == oo
     assert oo * one == oo
     assert oo * onehalf == oo
     assert oo * two == oo
@@ -408,6 +445,7 @@ def test_oo_optable():
     assert oo / mhalf == moo
     assert oo / zero == zoo
     assert oo / half == oo
+    assert oo / fhalf == oo
     assert oo / one == oo
     assert oo / onehalf == oo
     assert oo / two == oo
@@ -422,6 +460,7 @@ def test_oo_optable():
     assert oo ** mhalf == zero
     assert oo ** zero == one
     assert oo ** half == oo
+    assert oo ** fhalf == oo
     assert oo ** one == oo
     assert oo ** onehalf == oo
     assert oo ** two == oo
@@ -437,6 +476,7 @@ def test_zoo_optable():
     assert zoo + mhalf == zoo
     assert zoo + zero == zoo
     assert zoo + half == zoo
+    assert zoo + fhalf == zoo
     assert zoo + one == zoo
     assert zoo + onehalf == zoo
     assert zoo + two == zoo
@@ -451,6 +491,7 @@ def test_zoo_optable():
     assert zoo - mhalf == zoo
     assert zoo - zero == zoo
     assert zoo - half == zoo
+    assert zoo - fhalf == zoo
     assert zoo - one == zoo
     assert zoo - onehalf == zoo
     assert zoo - two == zoo
@@ -465,6 +506,7 @@ def test_zoo_optable():
     assert zoo * mhalf == zoo
     assert zoo * zero == undefined
     assert zoo * half == zoo
+    assert zoo * fhalf == zoo
     assert zoo * one == zoo
     assert zoo * onehalf == zoo
     assert zoo * two == zoo
@@ -479,6 +521,7 @@ def test_zoo_optable():
     assert zoo / mhalf == zoo
     assert zoo / zero == zoo
     assert zoo / half == zoo
+    assert zoo / fhalf == zoo
     assert zoo / one == zoo
     assert zoo / onehalf == zoo
     assert zoo / two == zoo
@@ -493,6 +536,7 @@ def test_zoo_optable():
     assert zoo ** mhalf == zero
     assert zoo ** zero == one
     assert zoo ** half == zoo
+    assert zoo ** fhalf == zoo
     assert zoo ** one == zoo
     assert zoo ** onehalf == zoo
     assert zoo ** two == zoo
@@ -508,6 +552,7 @@ def test_undefined_optable():
     assert undefined + mhalf == undefined
     assert undefined + zero == undefined
     assert undefined + half == undefined
+    assert undefined + fhalf == undefined
     assert undefined + one == undefined
     assert undefined + onehalf == undefined
     assert undefined + two == undefined
@@ -522,6 +567,7 @@ def test_undefined_optable():
     assert undefined - mhalf == undefined
     assert undefined - zero == undefined
     assert undefined - half == undefined
+    assert undefined - fhalf == undefined
     assert undefined - one == undefined
     assert undefined - onehalf == undefined
     assert undefined - two == undefined
@@ -536,6 +582,7 @@ def test_undefined_optable():
     assert undefined * mhalf == undefined
     assert undefined * zero == undefined
     assert undefined * half == undefined
+    assert undefined * fhalf == undefined
     assert undefined * one == undefined
     assert undefined * onehalf == undefined
     assert undefined * two == undefined
@@ -550,6 +597,7 @@ def test_undefined_optable():
     assert undefined / mhalf == undefined
     assert undefined / zero == undefined
     assert undefined / half == undefined
+    assert undefined / fhalf == undefined
     assert undefined / one == undefined
     assert undefined / onehalf == undefined
     assert undefined / two == undefined
@@ -564,6 +612,7 @@ def test_undefined_optable():
     assert undefined ** mhalf == undefined
     assert undefined ** zero == one
     assert undefined ** half == undefined
+    assert undefined ** fhalf == undefined
     assert undefined ** one == undefined
     assert undefined ** onehalf == undefined
     assert undefined ** two == undefined
