@@ -4,6 +4,10 @@ A = Calculus
 x = Symbol('x')
 y = Symbol('y')
 
+def test_constructor():
+    assert repr(A(1.2))=="Calculus('1.2')"
+    assert repr(A('1.2'))=="Calculus('1.2')"
+
 def test_linear():
     assert x + x == 2*x
     assert (2*x) / 2 == x

@@ -124,7 +124,9 @@ class PrimitiveAlgebra(BasicAlgebra):
     def as_algebra(self, cls, source=None):
         head, rest = self.tree
         if head is NUMBER:
-            return cls.Number(rest)
+            if isinstance(rest, cls.coefftypes):
+                return cls.Number(rest)
+            return cls.convert(rest)
         if head is SYMBOL:
             r = cls.get_predefined_symbols(rest)
             if r is not None:
