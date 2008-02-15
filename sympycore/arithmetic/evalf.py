@@ -5,7 +5,7 @@ import cmath
 import re
 import mpmath
 
-int_pattern = re.compile('\d+')
+int_pattern = re.compile('\d+([.]\d+)?')
 
 def quote_numbers(s, format):
     return int_pattern.sub(lambda m: (format % m.group()), s)

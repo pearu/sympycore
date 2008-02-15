@@ -5,6 +5,7 @@
 from ..algebra import A, oo, undefined, NUMBER, ADD, MUL, SYMBOL
 from ..constants import const_pi, const_E
 from ..function import Function
+from ...arithmetic.evalf import evalf, Float
 
 zero = A(0)
 one = A(1)
@@ -110,6 +111,8 @@ class TrigonometricFunction(Function):
     def __new__(cls, arg):
         if not isinstance(arg, A):
             arg = A.convert(arg)
+        if arg.is_Number and isinstance(arg.data, Float):
+            return A.Number(evalf('%s(%s)' % (cls.__name__, arg)))
         x, m = get_pi_shift(arg, 12)
         if x == zero:
             v = cls.eval_direct(m)

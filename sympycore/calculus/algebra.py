@@ -175,7 +175,8 @@ class Calculus(CommutativeRingWithPairs):
             if r is not NotImplemented:
                 return self.Number(r)
             return self
-        return self.func(*[a.evalf(n) for a in self.args])
+        convert = self.convert
+        return self.func(*[convert(a).evalf(n) for a in self.args])
 
     def to_Float(self, n=15):
         f = self.evalf(n)

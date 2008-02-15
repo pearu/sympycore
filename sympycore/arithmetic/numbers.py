@@ -250,7 +250,7 @@ class FractionTuple(tuple):
 
 from .mpmath.lib import from_int, from_rational, to_str, fadd, fsub, fmul, \
   round_half_even, from_float, to_float, to_int, fpow, from_str, feq, \
-  fhash, fcmp, fdiv, fabs, fcabs, fneg, fnan
+  fhash, fcmp, fdiv, fabs, fcabs, fneg, fnan, flog, fexp
 
 rounding = round_half_even
 
@@ -390,9 +390,22 @@ class Float(object):
 
     def __pow__(self, n):
         # XXX: check for divide by zero
-        assert isinstance(n, inttypes)
-        return Float(fpow(self.val, n, self.prec, rounding), self.prec)
+        if isinstance(n, inttypes):
+            return Float(fpow(self.val, n, self.prec, rounding), self.prec)
+        other = self.convert(n)
+        if other is NotImplemented:
+            return other
+        log_n = flog(self.val, self.prec, rounding)
+        return Float(fexp(fmul(log_n, other, self.prec, rounding),
+                          self.prec, rounding), self.prec)
 
+    def __rpow__(self, other):
+        other = self.convert(other)
+        if other is NotImplemented:
+            return other
+        log_n = flog(other, self.prec, rounding)
+        return Float(fexp(fmul(log_n, self.val, self.prec, rounding),
+                          self.prec, rounding), self.prec)
 
 #----------------------------------------------------------------------------#
 #                                                                            #
@@ -932,6 +945,9 @@ def try_power(x, y):
         s, ssym = try_power(b, y)
         ssym = [(b, -e) for b, e in ssym]
         return (div(r,s), rsym + ssym)
+    elif isinstance(x, Float) or isinstance(y, Float):
+        return x**y, []
     return 1, [(x, y)]
 
 
+from .evalf import evalf
