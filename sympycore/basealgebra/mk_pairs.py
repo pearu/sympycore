@@ -2,7 +2,6 @@
 #
 # Created by Pearu Peterson in Febuary 2008
 #
-# TODO: replace NEWINSTANCE usage with RETURN_NEW where applicable
 
 import os
 
@@ -122,51 +121,19 @@ NEG_FACTORS = '''\
 
 # ADD,SUB,MUL,DIV VALUE/NUMBER MACROS
 
-ADD_VALUE_NUMBER = '''\
-@NEWINSTANCE(OBJ=obj; HEAD=NUMBER; DATA=%(VALUE)s + %(RHS)s.data)
-return obj
-'''
-ADD_NUMBER_VALUE = '''\
-@NEWINSTANCE(OBJ=obj; HEAD=NUMBER; DATA=%(LHS)s.data + %(VALUE)s)
-return obj
-'''
-MUL_VALUE_NUMBER = '''\
-@NEWINSTANCE(OBJ=obj; HEAD=NUMBER; DATA=%(VALUE)s * %(RHS)s.data)
-return obj
-'''
-MUL_NUMBER_VALUE = '''\
-@NEWINSTANCE(OBJ=obj; HEAD=NUMBER; DATA=%(LHS)s.data * %(VALUE)s)
-return obj
-'''
-SUB_VALUE_NUMBER = '''\
-@NEWINSTANCE(OBJ=obj; HEAD=NUMBER; DATA=%(VALUE)s - %(RHS)s.data)
-return obj
-'''
-SUB_NUMBER_VALUE = '''\
-@NEWINSTANCE(OBJ=obj; HEAD=NUMBER; DATA=%(LHS)s.data - %(VALUE)s)
-return obj
-'''
-DIV_VALUE_NUMBER = '''\
-@NEWINSTANCE(OBJ=obj; HEAD=NUMBER; DATA=div(%(VALUE)s, %(RHS)s.data))
-return obj
-'''
-DIV_NUMBER_VALUE = '''\
-@NEWINSTANCE(OBJ=obj; HEAD=NUMBER; DATA=div(%(LHS)s.data, %(VALUE)s))
-return obj
-'''
+ADD_VALUE_NUMBER='@RETURN_NEW(HEAD=NUMBER; DATA=%(VALUE)s + %(RHS)s.data)\n'
+ADD_NUMBER_VALUE='@RETURN_NEW(HEAD=NUMBER; DATA=%(LHS)s.data + %(VALUE)s)\n'
+MUL_VALUE_NUMBER='@RETURN_NEW(HEAD=NUMBER; DATA=%(VALUE)s * %(RHS)s.data)\n'
+MUL_NUMBER_VALUE='@RETURN_NEW(HEAD=NUMBER; DATA=%(LHS)s.data * %(VALUE)s)\n'
+SUB_VALUE_NUMBER='@RETURN_NEW(HEAD=NUMBER; DATA=%(VALUE)s - %(RHS)s.data)\n'
+SUB_NUMBER_VALUE='@RETURN_NEW(HEAD=NUMBER; DATA=%(LHS)s.data - %(VALUE)s)\n'
+DIV_VALUE_NUMBER='@RETURN_NEW(HEAD=NUMBER; DATA=div(%(VALUE)s, %(RHS)s.data))\n'
+DIV_NUMBER_VALUE='@RETURN_NEW(HEAD=NUMBER; DATA=div(%(LHS)s.data, %(VALUE)s))\n'
 
-ADD_NUMBER_NUMBER = '''\
-@ADD_VALUE_NUMBER(VALUE=%(LHS)s.data; RHS=%(RHS)s)
-'''
-MUL_NUMBER_NUMBER = '''\
-@MUL_VALUE_NUMBER(VALUE=%(LHS)s.data; RHS=%(RHS)s)
-'''
-SUB_NUMBER_NUMBER = '''\
-@SUB_VALUE_NUMBER(VALUE=%(LHS)s.data; RHS=%(RHS)s)
-'''
-DIV_NUMBER_NUMBER = '''\
-@DIV_VALUE_NUMBER(VALUE=%(LHS)s.data; RHS=%(RHS)s)
-'''
+ADD_NUMBER_NUMBER = '@ADD_VALUE_NUMBER(VALUE=%(LHS)s.data; RHS=%(RHS)s)\n'
+MUL_NUMBER_NUMBER = '@MUL_VALUE_NUMBER(VALUE=%(LHS)s.data; RHS=%(RHS)s)\n'
+SUB_NUMBER_NUMBER = '@SUB_VALUE_NUMBER(VALUE=%(LHS)s.data; RHS=%(RHS)s)\n'
+DIV_NUMBER_NUMBER = '@DIV_VALUE_NUMBER(VALUE=%(LHS)s.data; RHS=%(RHS)s)\n'
 
 ADD_VALUE_SYMBOL = '''\
 try:
@@ -174,22 +141,17 @@ try:
         return %(RHS)s
 except RedirectOperation:
     pass
-@NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={cls.one: %(VALUE)s, %(RHS)s: 1})
-return obj
+@RETURN_NEW(HEAD=TERMS; DATA={cls.one: %(VALUE)s, %(RHS)s: 1})
 '''
 SUB_VALUE_SYMBOL = '''\
 try:
     if not %(VALUE)s:
-        @NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={%(RHS)s: -1})
-        return obj
+        @RETURN_NEW(HEAD=TERMS; DATA={%(RHS)s: -1})
 except RedirectOperation:
     pass
-@NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={cls.one: %(VALUE)s, %(RHS)s: -1})
-return obj
+@RETURN_NEW(HEAD=TERMS; DATA={cls.one: %(VALUE)s, %(RHS)s: -1})
 '''
-ADD_SYMBOL_VALUE = '''\
-@ADD_VALUE_SYMBOL(VALUE=%(VALUE)s; RHS=%(LHS)s)
-'''
+ADD_SYMBOL_VALUE = '@ADD_VALUE_SYMBOL(VALUE=%(VALUE)s; RHS=%(LHS)s)\n'
 SUB_SYMBOL_VALUE = '''\
 value = -%(VALUE)s
 @ADD_SYMBOL_VALUE(OBJ=obj; LHS=%(LHS)s; VALUE=value)
@@ -200,8 +162,7 @@ try:
         return cls.zero
 except RedirectOperation:
     pass
-@NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={%(RHS)s: %(VALUE)s})
-return obj
+@RETURN_NEW(HEAD=TERMS; DATA={%(RHS)s: %(VALUE)s})
 '''
 DIV_VALUE_SYMBOL = '''\
 try:
@@ -210,13 +171,10 @@ try:
 except RedirectOperation:
     pass
 @NEWINSTANCE(OBJ=obj2; HEAD=FACTORS; DATA={%(RHS)s: -1})
-@NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={obj2: %(VALUE)s})
-return obj
+@RETURN_NEW(HEAD=TERMS; DATA={obj2: %(VALUE)s})
 '''
-MUL_SYMBOL_VALUE = '''\
-@MUL_VALUE_SYMBOL(VALUE=%(VALUE)s; RHS=%(LHS)s)
-'''
-DIV_SYMBOL_VALUE = '''\
+MUL_SYMBOL_VALUE = '@MUL_VALUE_SYMBOL(VALUE=%(VALUE)s; RHS=%(LHS)s)\n'
+DIV_SYMBOL_VALUE = '''
 value = div(1, %(VALUE)s)
 @MUL_VALUE_SYMBOL(VALUE=value; RHS=%(LHS)s)
 '''
@@ -263,8 +221,7 @@ except RedirectOperation:
 pairs = dict(%(RHS)s.data)
 one = cls.one
 @ADD_VALUE_DICT(DICT=pairs; VALUE=%(VALUE)s)
-@NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA=pairs)
-return obj
+@RETURN_NEW(HEAD=TERMS; DATA=pairs)
 '''
 ADD_TERMS_VALUE = '''\
 @ADD_VALUE_TERMS(VALUE=%(VALUE)s; RHS=%(LHS)s)
@@ -278,8 +235,7 @@ except RedirectOperation:
 @NEG_DICT_VALUES(DICT_IN=%(RHS)s.data; DICT_OUT=pairs)
 one = cls.one
 @ADD_VALUE_DICT(DICT=pairs; VALUE=%(VALUE)s)
-@NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA=pairs)
-return obj
+@RETURN_NEW(HEAD=TERMS; DATA=pairs)
 '''
 SUB_TERMS_VALUE = '''\
 value = -%(VALUE)s
@@ -320,28 +276,24 @@ if %(LHS)s == %(RHS)s:
     pairs = {%(LHS)s: 2}
 else:
     pairs = {%(LHS)s: 1, %(RHS)s: 1}
-@NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA=pairs)
-return obj
+@RETURN_NEW(HEAD=TERMS; DATA=pairs)
 '''
 SUB_SYMBOL_SYMBOL = '''\
 if %(LHS)s == %(RHS)s:
     return cls.zero
-@NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={%(LHS)s: 1, %(RHS)s: -1})
-return obj
+@RETURN_NEW(HEAD=TERMS; DATA={%(LHS)s: 1, %(RHS)s: -1})
 '''
 MUL_SYMBOL_SYMBOL = '''\
 if %(LHS)s == %(RHS)s:
     pairs = {%(LHS)s: 2}
 else:
     pairs = {%(LHS)s: 1, %(RHS)s: 1}
-@NEWINSTANCE(OBJ=obj; HEAD=FACTORS; DATA=pairs)
-return obj
+@RETURN_NEW(HEAD=FACTORS; DATA=pairs)
 '''
 DIV_SYMBOL_SYMBOL = '''\
 if %(LHS)s == %(RHS)s:
     return cls.one
-@NEWINSTANCE(OBJ=obj; HEAD=FACTORS; DATA={%(LHS)s: 1, %(RHS)s: -1})
-return obj
+@RETURN_NEW(HEAD=FACTORS; DATA={%(LHS)s: 1, %(RHS)s: -1})
 '''
 
 ADD_TERMS_SYMBOL = '''\
@@ -472,21 +424,6 @@ def sub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
             @SUB_SYMBOL_TERMS(LHS=self; RHS=other)
         else:
             @SUB_SYMBOL_SYMBOL(LHS=self; RHS=other)
-
-def radd_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
-    cls = self.__class__
-    lhead = self.head
-    if isinstance(other, cls.coefftypes):
-        if lhead is NUMBER:
-            @ADD_VALUE_NUMBER(VALUE=other; RHS=self)
-        elif lhead is TERMS:
-            @ADD_VALUE_TERMS(VALUE=other; RHS=self)
-        else:
-            @ADD_VALUE_SYMBOL(VALUE=other; RHS=self)
-    other = cls.convert(other, False)
-    if other is NotImplemented:
-        return other
-    return other + self
 
 def rsub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
     cls = self.__class__

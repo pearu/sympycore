@@ -52,7 +52,7 @@ def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
         if isinstance(other, cls.coefftypes):
             if lhead is NUMBER:
                 #ADD_VALUE_NUMBER(VALUE=other; RHS=self)
-                #NEWINSTANCE(OBJ=obj; HEAD=NUMBER; DATA=other + self.data)
+                #RETURN_NEW(HEAD=NUMBER; DATA=other + self.data)
                 obj = new(cls)
                 obj.head = NUMBER
                 obj.data = other + self.data
@@ -80,7 +80,7 @@ def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                             del pairs[one]
                     except RedirectOperation:
                         pairs[one] = c
-                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA=pairs)
+                #RETURN_NEW(HEAD=TERMS; DATA=pairs)
                 obj = new(cls)
                 obj.head = TERMS
                 obj.data = pairs
@@ -92,7 +92,7 @@ def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                         return self
                 except RedirectOperation:
                     pass
-                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={cls.one: other, self: 1})
+                #RETURN_NEW(HEAD=TERMS; DATA={cls.one: other, self: 1})
                 obj = new(cls)
                 obj.head = TERMS
                 obj.data = {cls.one: other, self: 1}
@@ -105,7 +105,7 @@ def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
         if rhead is NUMBER:
             #ADD_NUMBER_NUMBER(LHS=self; RHS=other)
             #ADD_VALUE_NUMBER(VALUE=self.data; RHS=other)
-            #NEWINSTANCE(OBJ=obj; HEAD=NUMBER; DATA=self.data + other.data)
+            #RETURN_NEW(HEAD=NUMBER; DATA=self.data + other.data)
             obj = new(cls)
             obj.head = NUMBER
             obj.data = self.data + other.data
@@ -135,7 +135,7 @@ def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                         del pairs[one]
                 except RedirectOperation:
                     pairs[one] = c
-            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA=pairs)
+            #RETURN_NEW(HEAD=TERMS; DATA=pairs)
             obj = new(cls)
             obj.head = TERMS
             obj.data = pairs
@@ -149,7 +149,7 @@ def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                     return other
             except RedirectOperation:
                 pass
-            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={cls.one: value, other: 1})
+            #RETURN_NEW(HEAD=TERMS; DATA={cls.one: value, other: 1})
             obj = new(cls)
             obj.head = TERMS
             obj.data = {cls.one: value, other: 1}
@@ -180,7 +180,7 @@ def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                         del pairs[one]
                 except RedirectOperation:
                     pairs[one] = c
-            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA=pairs)
+            #RETURN_NEW(HEAD=TERMS; DATA=pairs)
             obj = new(cls)
             obj.head = TERMS
             obj.data = pairs
@@ -257,7 +257,7 @@ def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                     return self
             except RedirectOperation:
                 pass
-            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={cls.one: value, self: 1})
+            #RETURN_NEW(HEAD=TERMS; DATA={cls.one: value, self: 1})
             obj = new(cls)
             obj.head = TERMS
             obj.data = {cls.one: value, self: 1}
@@ -298,7 +298,7 @@ def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                 pairs = {self: 2}
             else:
                 pairs = {self: 1, other: 1}
-            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA=pairs)
+            #RETURN_NEW(HEAD=TERMS; DATA=pairs)
             obj = new(cls)
             obj.head = TERMS
             obj.data = pairs
@@ -311,7 +311,7 @@ def sub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
         if isinstance(other, cls.coefftypes):
             if lhead is NUMBER:
                 #SUB_NUMBER_VALUE(VALUE=other; LHS=self)
-                #NEWINSTANCE(OBJ=obj; HEAD=NUMBER; DATA=self.data - other)
+                #RETURN_NEW(HEAD=NUMBER; DATA=self.data - other)
                 obj = new(cls)
                 obj.head = NUMBER
                 obj.data = self.data - other
@@ -341,7 +341,7 @@ def sub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                             del pairs[one]
                     except RedirectOperation:
                         pairs[one] = c
-                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA=pairs)
+                #RETURN_NEW(HEAD=TERMS; DATA=pairs)
                 obj = new(cls)
                 obj.head = TERMS
                 obj.data = pairs
@@ -356,7 +356,7 @@ def sub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                         return self
                 except RedirectOperation:
                     pass
-                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={cls.one: value, self: 1})
+                #RETURN_NEW(HEAD=TERMS; DATA={cls.one: value, self: 1})
                 obj = new(cls)
                 obj.head = TERMS
                 obj.data = {cls.one: value, self: 1}
@@ -369,7 +369,7 @@ def sub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
         if rhead is NUMBER:
             #SUB_NUMBER_NUMBER(LHS=self; RHS=other)
             #SUB_VALUE_NUMBER(VALUE=self.data; RHS=other)
-            #NEWINSTANCE(OBJ=obj; HEAD=NUMBER; DATA=self.data - other.data)
+            #RETURN_NEW(HEAD=NUMBER; DATA=self.data - other.data)
             obj = new(cls)
             obj.head = NUMBER
             obj.data = self.data - other.data
@@ -418,7 +418,7 @@ def sub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                         del pairs[one]
                 except RedirectOperation:
                     pairs[one] = c
-            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA=pairs)
+            #RETURN_NEW(HEAD=TERMS; DATA=pairs)
             obj = new(cls)
             obj.head = TERMS
             obj.data = pairs
@@ -429,14 +429,14 @@ def sub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
             #SUB_VALUE_SYMBOL(VALUE=value; RHS=other)
             try:
                 if not value:
-                    #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={other: -1})
+                    #RETURN_NEW(HEAD=TERMS; DATA={other: -1})
                     obj = new(cls)
                     obj.head = TERMS
                     obj.data = {other: -1}
                     return obj
             except RedirectOperation:
                 pass
-            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={cls.one: value, other: -1})
+            #RETURN_NEW(HEAD=TERMS; DATA={cls.one: value, other: -1})
             obj = new(cls)
             obj.head = TERMS
             obj.data = {cls.one: value, other: -1}
@@ -469,7 +469,7 @@ def sub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                         del pairs[one]
                 except RedirectOperation:
                     pairs[one] = c
-            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA=pairs)
+            #RETURN_NEW(HEAD=TERMS; DATA=pairs)
             obj = new(cls)
             obj.head = TERMS
             obj.data = pairs
@@ -549,7 +549,7 @@ def sub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                     return self
             except RedirectOperation:
                 pass
-            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={cls.one: value, self: 1})
+            #RETURN_NEW(HEAD=TERMS; DATA={cls.one: value, self: 1})
             obj = new(cls)
             obj.head = TERMS
             obj.data = {cls.one: value, self: 1}
@@ -589,67 +589,11 @@ def sub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
             #SUB_SYMBOL_SYMBOL(LHS=self; RHS=other)
             if self == other:
                 return cls.zero
-            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: 1, other: -1})
+            #RETURN_NEW(HEAD=TERMS; DATA={self: 1, other: -1})
             obj = new(cls)
             obj.head = TERMS
             obj.data = {self: 1, other: -1}
             return obj
-
-def radd_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
-    cls = self.__class__
-    lhead = self.head
-    if isinstance(other, cls.coefftypes):
-        if lhead is NUMBER:
-            #ADD_VALUE_NUMBER(VALUE=other; RHS=self)
-            #NEWINSTANCE(OBJ=obj; HEAD=NUMBER; DATA=other + self.data)
-            obj = new(cls)
-            obj.head = NUMBER
-            obj.data = other + self.data
-            return obj
-        elif lhead is TERMS:
-            #ADD_VALUE_TERMS(VALUE=other; RHS=self)
-            try:
-                if not other:
-                    return self
-            except RedirectOperation:
-                pass
-            pairs = dict(self.data)
-            one = cls.one
-            #ADD_VALUE_DICT(DICT=pairs; VALUE=other)
-            #ADD_TERM_VALUE_DICT(TERM=one; VALUE=other; DICT=pairs; DICT_GET=pairs.get)
-            b = pairs.get(one)
-            if b is None:
-                pairs[one] = other
-            else:
-                c = b + other
-                try:
-                    if c:
-                        pairs[one] = c
-                    else:
-                        del pairs[one]
-                except RedirectOperation:
-                    pairs[one] = c
-            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA=pairs)
-            obj = new(cls)
-            obj.head = TERMS
-            obj.data = pairs
-            return obj
-        else:
-            #ADD_VALUE_SYMBOL(VALUE=other; RHS=self)
-            try:
-                if not other:
-                    return self
-            except RedirectOperation:
-                pass
-            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={cls.one: other, self: 1})
-            obj = new(cls)
-            obj.head = TERMS
-            obj.data = {cls.one: other, self: 1}
-            return obj
-    other = cls.convert(other, False)
-    if other is NotImplemented:
-        return other
-    return other + self
 
 def rsub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
     cls = self.__class__
@@ -657,7 +601,7 @@ def rsub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=ob
     if isinstance(other, cls.coefftypes):
         if lhead is NUMBER:
             #SUB_VALUE_NUMBER(VALUE=other; RHS=self)
-            #NEWINSTANCE(OBJ=obj; HEAD=NUMBER; DATA=other - self.data)
+            #RETURN_NEW(HEAD=NUMBER; DATA=other - self.data)
             obj = new(cls)
             obj.head = NUMBER
             obj.data = other - self.data
@@ -704,7 +648,7 @@ def rsub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=ob
                         del pairs[one]
                 except RedirectOperation:
                     pairs[one] = c
-            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA=pairs)
+            #RETURN_NEW(HEAD=TERMS; DATA=pairs)
             obj = new(cls)
             obj.head = TERMS
             obj.data = pairs
@@ -713,14 +657,14 @@ def rsub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=ob
             #SUB_VALUE_SYMBOL(VALUE=other; RHS=self)
             try:
                 if not other:
-                    #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: -1})
+                    #RETURN_NEW(HEAD=TERMS; DATA={self: -1})
                     obj = new(cls)
                     obj.head = TERMS
                     obj.data = {self: -1}
                     return obj
             except RedirectOperation:
                 pass
-            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={cls.one: other, self: -1})
+            #RETURN_NEW(HEAD=TERMS; DATA={cls.one: other, self: -1})
             obj = new(cls)
             obj.head = TERMS
             obj.data = {cls.one: other, self: -1}

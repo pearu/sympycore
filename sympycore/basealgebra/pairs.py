@@ -16,7 +16,7 @@ from .ring import CommutativeRing
 from .primitive import PrimitiveAlgebra
 from ..arithmetic.number_theory import multinomial_coefficients
 
-from .pairs_ops import add_method, sub_method, radd_method, rsub_method, neg_method
+from .pairs_ops import add_method, sub_method, rsub_method, neg_method
 
 def newinstance(cls, head, data, new = object.__new__):
     o = new(cls)
