@@ -264,7 +264,6 @@ def add_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FAC
             obj.head = TERMS
             obj.data = pairs
             return obj
-    
 
 def sub_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
     cls = self.__class__
@@ -556,4 +555,140 @@ def sub_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FAC
             obj.head = TERMS
             obj.data = {self: 1, other: -1}
             return obj
+
+def radd_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
+    cls = self.__class__
+    lhead = self.head
+    if isinstance(other, cls.coefftypes):
+        if lhead is NUMBER:
+            #ADD_VALUE_NUMBER(VALUE=other; RHS=self)
+            #NEWINSTANCE(OBJ=obj; HEAD=NUMBER; DATA=other + self.data)
+            obj = new(cls)
+            obj.head = NUMBER
+            obj.data = other + self.data
+            return obj
+        elif lhead is TERMS:
+            #ADD_VALUE_TERMS(VALUE=other; RHS=self)
+            try:
+                if not other:
+                    return self
+            except RedirectOperation:
+                pass
+            pairs = dict(self.data)
+            one = cls.one
+            #ADD_VALUE_DICT(DICT=pairs; VALUE=other)
+            #ADD_TERM_VALUE_DICT(TERM=one; VALUE=other; DICT=pairs; DICT_GET=pairs.get)
+            b = pairs.get(one)
+            if b is None:
+                pairs[one] = other
+            else:
+                c = b + other
+                try:
+                    if c:
+                        pairs[one] = c
+                    else:
+                        del pairs[one]
+                except RedirectOperation:
+                    pairs[one] = c
+            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA=pairs)
+            obj = new(cls)
+            obj.head = TERMS
+            obj.data = pairs
+            return obj
+        else:
+            #ADD_VALUE_SYMBOL(VALUE=other; RHS=self)
+            try:
+                if not other:
+                    return self
+            except RedirectOperation:
+                pass
+            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={cls.one: other, self: 1})
+            obj = new(cls)
+            obj.head = TERMS
+            obj.data = {cls.one: other, self: 1}
+            return obj
+    other = cls.convert(other, False)
+    if other is NotImplemented:
+        return other
+    return other + self
+
+def rsub_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
+    cls = self.__class__
+    lhead = self.head
+    if isinstance(other, cls.coefftypes):
+        if lhead is NUMBER:
+            #SUB_VALUE_NUMBER(VALUE=other; RHS=self)
+            #NEWINSTANCE(OBJ=obj; HEAD=NUMBER; DATA=other - self.data)
+            obj = new(cls)
+            obj.head = NUMBER
+            obj.data = other - self.data
+            return obj
+        elif lhead is TERMS:
+            #SUB_VALUE_TERMS(VALUE=other; RHS=self)
+            try:
+                if not other:
+                    #NEG_TERMS(OP=self)
+                    op_pairs = self.data
+                    if len(op_pairs)==1:
+                        t, c = op_pairs.items()[0]
+                        c = -c
+                        if c==1:
+                            return t
+                        #RETURN_NEW(HEAD=TERMS; DATA={t:c})
+                        obj = new(cls)
+                        obj.head = TERMS
+                        obj.data = {t:c}
+                        return obj
+                    #NEG_DICT_VALUES(DICT_IN=self.data; DICT_OUT=pairs)
+                    pairs = dict([(t, -c) for t,c in self.data.iteritems()])
+                    #RETURN_NEW(HEAD=TERMS; DATA=pairs)
+                    obj = new(cls)
+                    obj.head = TERMS
+                    obj.data = pairs
+                    return obj
+            except RedirectOperation:
+                pass
+            #NEG_DICT_VALUES(DICT_IN=self.data; DICT_OUT=pairs)
+            pairs = dict([(t, -c) for t,c in self.data.iteritems()])
+            one = cls.one
+            #ADD_VALUE_DICT(DICT=pairs; VALUE=other)
+            #ADD_TERM_VALUE_DICT(TERM=one; VALUE=other; DICT=pairs; DICT_GET=pairs.get)
+            b = pairs.get(one)
+            if b is None:
+                pairs[one] = other
+            else:
+                c = b + other
+                try:
+                    if c:
+                        pairs[one] = c
+                    else:
+                        del pairs[one]
+                except RedirectOperation:
+                    pairs[one] = c
+            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA=pairs)
+            obj = new(cls)
+            obj.head = TERMS
+            obj.data = pairs
+            return obj
+        else:
+            #SUB_VALUE_SYMBOL(VALUE=other; RHS=self)
+            try:
+                if not other:
+                    #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: -1})
+                    obj = new(cls)
+                    obj.head = TERMS
+                    obj.data = {self: -1}
+                    return obj
+            except RedirectOperation:
+                pass
+            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={cls.one: other, self: -1})
+            obj = new(cls)
+            obj.head = TERMS
+            obj.data = {cls.one: other, self: -1}
+            return obj
+    other = cls.convert(other, False)
+    if other is NotImplemented:
+        return other
+    return other - self
+
     

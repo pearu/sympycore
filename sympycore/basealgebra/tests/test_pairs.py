@@ -186,13 +186,21 @@ def test_number_add():
     m = a*b
     m1 = a**2
     assert n+2==5
+    assert 2+n==5
     assert n-1==2
+    assert 1-n==-2
     assert n+n==6
+    assert n-n==0
     assert str(n+a)==str('3 + a')
     assert str(n+s)==str('5 + a')
     assert str(n+s1)==str('3 + 2*a')
     assert str(n+m)==str('3 + a*b')
     assert str(n+m1)==str('3 + a**2')
+    assert str(n-a)==str('3 - a')
+    assert str(n-s)==str('1 - a')
+    assert str(n-s1)==str('3 - 2*a')
+    assert str(n-m)==str('3 - a*b')
+    assert str(n-m1)==str('3 - a**2')
 
 def test_number_mul():
     n = Number(3)
@@ -304,6 +312,22 @@ def test_add_add():
     assert str(s1+s1)==str('4*a')
     assert str(s1+m)==str('2*a + a*b')
     assert str(s1+m1) in ['2*a + a**2','a**2 + 2*a']
+
+    assert str(s-2)==str('a')
+    assert str(s-a)==str('2')
+    assert str(s-n)==str('a - 1')
+    assert str(s-s)==str('0')
+    assert str(s-s1)==str('2 - a')
+    assert str(s-m)==str('2 + a - a*b')
+    assert str(s-m1)==str('2 + a - a**2')
+
+    assert str(s1-2)==str('2*a - 2')
+    assert str(s1-a)==str('a')
+    assert str(s1-n)==str('2*a - 3')
+    assert str(s1-s)==str('a - 2')
+    assert str(s1-s1)==str('0')
+    assert str(s1-m)==str('2*a - a*b')
+    assert str(s1-m1)==str('2*a - a**2')
 
 def test_add_mul():
     n = Number(3)

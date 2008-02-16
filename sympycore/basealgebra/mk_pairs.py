@@ -424,9 +424,7 @@ def add_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FAC
             @ADD_TERMS_SYMBOL(LHS=other; RHS=self)
         else:
             @ADD_SYMBOL_SYMBOL(LHS=self; RHS=other)
-    ''')
 
-    print >> f, preprocess('''
 def sub_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
     cls = self.__class__
     lhead = self.head
@@ -463,7 +461,39 @@ def sub_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FAC
             @SUB_SYMBOL_TERMS(LHS=self; RHS=other)
         else:
             @SUB_SYMBOL_SYMBOL(LHS=self; RHS=other)
+
+def radd_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
+    cls = self.__class__
+    lhead = self.head
+    if isinstance(other, cls.coefftypes):
+        if lhead is NUMBER:
+            @ADD_VALUE_NUMBER(VALUE=other; RHS=self)
+        elif lhead is TERMS:
+            @ADD_VALUE_TERMS(VALUE=other; RHS=self)
+        else:
+            @ADD_VALUE_SYMBOL(VALUE=other; RHS=self)
+    other = cls.convert(other, False)
+    if other is NotImplemented:
+        return other
+    return other + self
+
+def rsub_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
+    cls = self.__class__
+    lhead = self.head
+    if isinstance(other, cls.coefftypes):
+        if lhead is NUMBER:
+            @SUB_VALUE_NUMBER(VALUE=other; RHS=self)
+        elif lhead is TERMS:
+            @SUB_VALUE_TERMS(VALUE=other; RHS=self)
+        else:
+            @SUB_VALUE_SYMBOL(VALUE=other; RHS=self)
+    other = cls.convert(other, False)
+    if other is NotImplemented:
+        return other
+    return other - self
+
     ''')
+
 
     f.close()
 
