@@ -16,7 +16,7 @@ from .ring import CommutativeRing
 from .primitive import PrimitiveAlgebra
 from ..arithmetic.number_theory import multinomial_coefficients
 
-from .pairs_ops import add_method
+from .pairs_ops import add_method, sub_method
 
 def newinstance(cls, head, data, new = object.__new__):
     o = new(cls)
@@ -527,22 +527,10 @@ class CommutativeRingWithPairs(CommutativeRing):
     def __pos__(self):
         return self
 
-    def __add2__(self, other, redirect_operation='__add__'):
-        if type(self) is not type(other):
-            other = self.convert(other, False)
-            if other is NotImplemented:
-                return NotImplemented
-        return add_dict2[self.head][other.head](self, other, self.__class__)
+    __add__ = __radd__ = add_method
+    __sub__ = sub_method
 
-    __add__ = add_method
-
-    def __radd__(self, other, redirect_operation='__radd__'):
-        other = self.convert(other, False)
-        if other is NotImplemented:
-            return NotImplemented
-        return add_dict2[other.head][self.head](other, self, other.__class__)
-
-    def __sub__(self, other):
+    def __sub2__(self, other):
         if type(self) is not type(other):
             other = self.convert(other, False)
             if other is NotImplemented:
