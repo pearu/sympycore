@@ -13,7 +13,7 @@ def preprocess(source):
             i = rest.index('(')
             name = rest[:i]
             d = {}
-            for arg in rest.strip()[i+1:-1].split(','):
+            for arg in rest.strip()[i+1:-1].split(';'):
                 key, value = arg.split('=',1)
                 d[key.strip()] = value.strip()
             try:
@@ -42,10 +42,14 @@ from ..utils import NUMBER, SYMBOL, TERMS, FACTORS, RedirectOperation
 
 '''
 
+NEWINSTANCE = '''\
+%(OBJ)s = new(cls)
+%(OBJ)s.head = %(HEAD)s
+%(OBJ)s.data = %(DATA)s
+'''
+
 ADD_VALUE_NUMBER = '''\
-obj = new(cls)
-obj.head = NUMBER
-obj.data = %(VALUE)s + %(RHS)s.data
+@NEWINSTANCE(OBJ=obj; HEAD=NUMBER; DATA=%(VALUE)s + %(RHS)s.data)
 return obj
 '''
 
@@ -56,9 +60,7 @@ try:
 except RedirectOperation:
     if active:
         return %(RHS)s._add_active(%(VALUE)s)
-obj = new(cls)
-obj.head = TERMS
-obj.data = {cls.one: %(VALUE)s, %(RHS)s: 1}
+@NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={cls.one: %(VALUE)s, %(RHS)s: 1})
 return obj
 '''
 
@@ -85,31 +87,28 @@ else:
                 return cls.zero
     except RedirectOperation:
         pairs[one] = c
-obj = new(cls)
-obj.head = TERMS
-obj.data = pairs
+@NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA=pairs)
 return obj
 '''
 
 ADD_NUMBER_NUMBER = '''\
-@ADD_VALUE_NUMBER(VALUE=%(LHS)s.data, RHS=%(RHS)s)
+@ADD_VALUE_NUMBER(VALUE=%(LHS)s.data; RHS=%(RHS)s)
 '''
 
 ADD_NUMBER_TERMS = '''\
-@ADD_VALUE_TERMS(VALUE=%(LHS)s.data, RHS=%(RHS)s)
+@ADD_VALUE_TERMS(VALUE=%(LHS)s.data; RHS=%(RHS)s)
 '''
 
 ADD_NUMBER_SYMBOL = '''\
-@ADD_VALUE_SYMBOL(VALUE=%(LHS)s.data, RHS=%(RHS)s)
+@ADD_VALUE_SYMBOL(VALUE=%(LHS)s.data; RHS=%(RHS)s)
 '''
 
 ADD_SYMBOL_SYMBOL = '''\
-obj = new(cls)
-obj.head = TERMS
 if %(LHS)s == %(RHS)s:
-    obj.data = {%(LHS)s: 2}
+    pairs = {%(LHS)s: 2}
 else:
-    obj.data = {%(LHS)s: 1, %(RHS)s: 1}
+    pairs = {%(LHS)s: 1, %(RHS)s: 1}
+@NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA=pairs)
 return obj
 '''
 
@@ -138,9 +137,7 @@ else:
                     return cls.convert(c)
     except RedirectOperation:
         pairs[%(RHS)s] = c
-obj = new(cls)
-obj.head = TERMS
-obj.data = pairs
+@NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA=pairs)
 return obj
 '''
 
@@ -168,9 +165,7 @@ elif len(pairs)==1:
         return t
     if t==cls.one:
         return cls.convert(c)
-obj = new(cls)
-obj.head = TERMS
-obj.data = pairs
+@NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA=pairs)
 return obj
 '''
 
@@ -184,36 +179,36 @@ def add_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FAC
     if type(other) is not cls:
         if isinstance(other, cls.coefftypes):
             if lhead is NUMBER:
-                @ADD_VALUE_NUMBER(VALUE=other, RHS=self)
+                @ADD_VALUE_NUMBER(VALUE=other; RHS=self)
             elif lhead is TERMS:
-                @ADD_VALUE_TERMS(VALUE=other, RHS=self)
+                @ADD_VALUE_TERMS(VALUE=other; RHS=self)
             else:
-                @ADD_VALUE_SYMBOL(VALUE=other, RHS=self)
+                @ADD_VALUE_SYMBOL(VALUE=other; RHS=self)
         other = cls.convert(other, False)
         if other is NotImplemented:
             return other
     rhead = other.head
     if lhead is NUMBER:
         if rhead is NUMBER:
-            @ADD_NUMBER_NUMBER(LHS=self, RHS=other)
+            @ADD_NUMBER_NUMBER(LHS=self; RHS=other)
         elif rhead is TERMS:
-            @ADD_NUMBER_TERMS(LHS=self, RHS=other)
+            @ADD_NUMBER_TERMS(LHS=self; RHS=other)
         else:
-            @ADD_NUMBER_SYMBOL(LHS=self, RHS=other)
+            @ADD_NUMBER_SYMBOL(LHS=self; RHS=other)
     elif lhead is TERMS:
         if rhead is NUMBER:
-            @ADD_NUMBER_TERMS(LHS=other, RHS=self)
+            @ADD_NUMBER_TERMS(LHS=other; RHS=self)
         elif rhead is TERMS:
-            @ADD_TERMS_TERMS(LHS=self, RHS=other)
+            @ADD_TERMS_TERMS(LHS=self; RHS=other)
         else:
-            @ADD_TERMS_SYMBOL(LHS=self, RHS=other)
+            @ADD_TERMS_SYMBOL(LHS=self; RHS=other)
     else:
         if rhead is NUMBER:
-            @ADD_NUMBER_SYMBOL(LHS=other, RHS=self)
+            @ADD_NUMBER_SYMBOL(LHS=other; RHS=self)
         elif rhead is TERMS:
-            @ADD_TERMS_SYMBOL(LHS=other, RHS=self)
+            @ADD_TERMS_SYMBOL(LHS=other; RHS=self)
         else:
-            @ADD_SYMBOL_SYMBOL(LHS=self, RHS=other)
+            @ADD_SYMBOL_SYMBOL(LHS=self; RHS=other)
     ''')
     
     f.close()

@@ -12,13 +12,14 @@ def add_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FAC
     if type(other) is not cls:
         if isinstance(other, cls.coefftypes):
             if lhead is NUMBER:
-                #ADD_VALUE_NUMBER(VALUE=other, RHS=self)
+                #ADD_VALUE_NUMBER(VALUE=other; RHS=self)
+                #NEWINSTANCE(OBJ=obj; HEAD=NUMBER; DATA=other + self.data)
                 obj = new(cls)
                 obj.head = NUMBER
                 obj.data = other + self.data
                 return obj
             elif lhead is TERMS:
-                #ADD_VALUE_TERMS(VALUE=other, RHS=self)
+                #ADD_VALUE_TERMS(VALUE=other; RHS=self)
                 try:
                     if not other:
                         return self
@@ -41,18 +42,20 @@ def add_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FAC
                                 return cls.zero
                     except RedirectOperation:
                         pairs[one] = c
+                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA=pairs)
                 obj = new(cls)
                 obj.head = TERMS
                 obj.data = pairs
                 return obj
             else:
-                #ADD_VALUE_SYMBOL(VALUE=other, RHS=self)
+                #ADD_VALUE_SYMBOL(VALUE=other; RHS=self)
                 try:
                     if not other:
                         return self
                 except RedirectOperation:
                     if active:
                         return self._add_active(other)
+                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={cls.one: other, self: 1})
                 obj = new(cls)
                 obj.head = TERMS
                 obj.data = {cls.one: other, self: 1}
@@ -63,15 +66,16 @@ def add_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FAC
     rhead = other.head
     if lhead is NUMBER:
         if rhead is NUMBER:
-            #ADD_NUMBER_NUMBER(LHS=self, RHS=other)
-            #ADD_VALUE_NUMBER(VALUE=self.data, RHS=other)
+            #ADD_NUMBER_NUMBER(LHS=self; RHS=other)
+            #ADD_VALUE_NUMBER(VALUE=self.data; RHS=other)
+            #NEWINSTANCE(OBJ=obj; HEAD=NUMBER; DATA=self.data + other.data)
             obj = new(cls)
             obj.head = NUMBER
             obj.data = self.data + other.data
             return obj
         elif rhead is TERMS:
-            #ADD_NUMBER_TERMS(LHS=self, RHS=other)
-            #ADD_VALUE_TERMS(VALUE=self.data, RHS=other)
+            #ADD_NUMBER_TERMS(LHS=self; RHS=other)
+            #ADD_VALUE_TERMS(VALUE=self.data; RHS=other)
             try:
                 if not self.data:
                     return other
@@ -94,27 +98,29 @@ def add_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FAC
                             return cls.zero
                 except RedirectOperation:
                     pairs[one] = c
+            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA=pairs)
             obj = new(cls)
             obj.head = TERMS
             obj.data = pairs
             return obj
         else:
-            #ADD_NUMBER_SYMBOL(LHS=self, RHS=other)
-            #ADD_VALUE_SYMBOL(VALUE=self.data, RHS=other)
+            #ADD_NUMBER_SYMBOL(LHS=self; RHS=other)
+            #ADD_VALUE_SYMBOL(VALUE=self.data; RHS=other)
             try:
                 if not self.data:
                     return other
             except RedirectOperation:
                 if active:
                     return other._add_active(self.data)
+            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={cls.one: self.data, other: 1})
             obj = new(cls)
             obj.head = TERMS
             obj.data = {cls.one: self.data, other: 1}
             return obj
     elif lhead is TERMS:
         if rhead is NUMBER:
-            #ADD_NUMBER_TERMS(LHS=other, RHS=self)
-            #ADD_VALUE_TERMS(VALUE=other.data, RHS=self)
+            #ADD_NUMBER_TERMS(LHS=other; RHS=self)
+            #ADD_VALUE_TERMS(VALUE=other.data; RHS=self)
             try:
                 if not other.data:
                     return self
@@ -137,12 +143,13 @@ def add_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FAC
                             return cls.zero
                 except RedirectOperation:
                     pairs[one] = c
+            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA=pairs)
             obj = new(cls)
             obj.head = TERMS
             obj.data = pairs
             return obj
         elif rhead is TERMS:
-            #ADD_TERMS_TERMS(LHS=self, RHS=other)
+            #ADD_TERMS_TERMS(LHS=self; RHS=other)
             pairs = dict(self.data)
             get = pairs.get
             for t,c in other.data.iteritems():
@@ -166,12 +173,13 @@ def add_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FAC
                     return t
                 if t==cls.one:
                     return cls.convert(c)
+            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA=pairs)
             obj = new(cls)
             obj.head = TERMS
             obj.data = pairs
             return obj
         else:
-            #ADD_TERMS_SYMBOL(LHS=self, RHS=other)
+            #ADD_TERMS_SYMBOL(LHS=self; RHS=other)
             pairs = dict(self.data)
             b = pairs.get(other)
             if b is None:
@@ -196,26 +204,28 @@ def add_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FAC
                                 return cls.convert(c)
                 except RedirectOperation:
                     pairs[other] = c
+            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA=pairs)
             obj = new(cls)
             obj.head = TERMS
             obj.data = pairs
             return obj
     else:
         if rhead is NUMBER:
-            #ADD_NUMBER_SYMBOL(LHS=other, RHS=self)
-            #ADD_VALUE_SYMBOL(VALUE=other.data, RHS=self)
+            #ADD_NUMBER_SYMBOL(LHS=other; RHS=self)
+            #ADD_VALUE_SYMBOL(VALUE=other.data; RHS=self)
             try:
                 if not other.data:
                     return self
             except RedirectOperation:
                 if active:
                     return self._add_active(other.data)
+            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={cls.one: other.data, self: 1})
             obj = new(cls)
             obj.head = TERMS
             obj.data = {cls.one: other.data, self: 1}
             return obj
         elif rhead is TERMS:
-            #ADD_TERMS_SYMBOL(LHS=other, RHS=self)
+            #ADD_TERMS_SYMBOL(LHS=other; RHS=self)
             pairs = dict(other.data)
             b = pairs.get(self)
             if b is None:
@@ -240,17 +250,20 @@ def add_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FAC
                                 return cls.convert(c)
                 except RedirectOperation:
                     pairs[self] = c
+            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA=pairs)
             obj = new(cls)
             obj.head = TERMS
             obj.data = pairs
             return obj
         else:
-            #ADD_SYMBOL_SYMBOL(LHS=self, RHS=other)
+            #ADD_SYMBOL_SYMBOL(LHS=self; RHS=other)
+            if self == other:
+                pairs = {self: 2}
+            else:
+                pairs = {self: 1, other: 1}
+            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA=pairs)
             obj = new(cls)
             obj.head = TERMS
-            if self == other:
-                obj.data = {self: 2}
-            else:
-                obj.data = {self: 1, other: 1}
+            obj.data = pairs
             return obj
     
