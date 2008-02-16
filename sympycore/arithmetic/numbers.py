@@ -102,13 +102,40 @@ class FractionTuple(tuple):
     def __repr__(self):
         return "FractionTuple((%r, %r))" % (self[0], self[1])
 
-    def __cmp__(self, other):
+    def __lt__(self, other):
         p, q = self
         if isinstance(other, inttypes):
-            return cmp(p - q*other, 0)
+            return p < q*other
         if isinstance(other, FractionTuple):
             r, s = other
-            return cmp(p*s - q*r, 0)
+            return p*s < q*r
+        return NotImplemented
+
+    def __le__(self, other):
+        p, q = self
+        if isinstance(other, inttypes):
+            return p <= q*other
+        if isinstance(other, FractionTuple):
+            r, s = other
+            return p*s <= q*r
+        return NotImplemented
+
+    def __gt__(self, other):
+        p, q = self
+        if isinstance(other, inttypes):
+            return p > q*other
+        if isinstance(other, FractionTuple):
+            r, s = other
+            return p*s > q*r
+        return NotImplemented
+
+    def __ge__(self, other):
+        p, q = self
+        if isinstance(other, inttypes):
+            return p >= q*other
+        if isinstance(other, FractionTuple):
+            r, s = other
+            return p*s >= q*r
         return NotImplemented
 
     def __float__(self):
