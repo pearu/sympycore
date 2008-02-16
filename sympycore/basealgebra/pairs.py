@@ -16,7 +16,7 @@ from .ring import CommutativeRing
 from .primitive import PrimitiveAlgebra
 from ..arithmetic.number_theory import multinomial_coefficients
 
-from .pairs_ops import add_method, sub_method, rsub_method, neg_method
+from .pairs_ops import add_method, sub_method, rsub_method, neg_method, mul_method
 
 def newinstance(cls, head, data, new = object.__new__):
     o = new(cls)
@@ -527,30 +527,14 @@ class CommutativeRingWithPairs(CommutativeRing):
     __sub__ = sub_method
     __rsub__ = rsub_method
 
-    def __sub2__(self, other):
-        if type(self) is not type(other):
-            other = self.convert(other, False)
-            if other is NotImplemented:
-                return NotImplemented
-        if self.head is NUMBER and other.head is NUMBER:
-            return newinstance(self.__class__, NUMBER, self.data - other.data)
-        return self + (-other)
-
-    def __rsub__(self, other):
-        if type(self) is not type(other):
-            other = self.convert(other, False)
-            if other is NotImplemented:
-                return NotImplemented
-        if self.head is NUMBER and other.head is NUMBER:
-            return newinstance(self.__class__, NUMBER, other.data - self.data)
-        return (-self) + other
-
     def __mul__(self, other, redirect_operation='__mul__'):
         if type(self) is not type(other):
             other = self.convert(other, False)
             if other is NotImplemented:
                 return NotImplemented
         return multiply_dict2[self.head][other.head](self, other, self.__class__)
+
+    __mul__ = mul_method
 
     def __rmul__(self, other, redirect_operation='__rmul__'):
         other = self.convert(other, False)
@@ -1194,6 +1178,7 @@ def expand_MUL(obj, cls):
         elif head is ADD:
             return expand_ADD_INTPOW(t, c, cls)
         return newinstance(cls, MUL, {t:c})
+
     # split product into lhs * rhs:
     it = pairs.iteritems()
     t, c = it.next()
