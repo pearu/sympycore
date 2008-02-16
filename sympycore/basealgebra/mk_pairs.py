@@ -2,6 +2,7 @@
 #
 # Created by Pearu Peterson in Febuary 2008
 #
+# TODO: replace NEWINSTANCE usage with RETURN_NEW where applicable
 
 import os
 
@@ -102,8 +103,7 @@ NEG_NUMBER = '''\
 @RETURN_NEW(HEAD=NUMBER; DATA=-%(OP)s.data)
 '''
 NEG_SYMBOL = '''\
-@NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={%(OP)s: -1})
-return obj
+@RETURN_NEW(HEAD=TERMS; DATA={%(OP)s: -1})
 '''
 NEG_TERMS = '''\
 op_pairs = %(OP)s.data
@@ -388,7 +388,18 @@ def main():
     f = open(pairs_ops_py, 'w')
     print >> f, template
     print >> f, preprocess('''
-def add_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
+
+def neg_method(self, NUMBER=NUMBER, TERMS=TERMS, new=object.__new__):
+    cls = self.__class__
+    lhead = self.head
+    if lhead is NUMBER:
+        @NEG_NUMBER(OP=self)
+    elif lhead is TERMS:
+        @NEG_TERMS(OP=self)
+    else:
+        @NEG_SYMBOL(OP=self)
+
+def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
     cls = self.__class__
     lhead = self.head
     if type(other) is not cls:
@@ -425,7 +436,7 @@ def add_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FAC
         else:
             @ADD_SYMBOL_SYMBOL(LHS=self; RHS=other)
 
-def sub_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
+def sub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
     cls = self.__class__
     lhead = self.head
     if type(other) is not cls:
@@ -462,7 +473,7 @@ def sub_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FAC
         else:
             @SUB_SYMBOL_SYMBOL(LHS=self; RHS=other)
 
-def radd_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
+def radd_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
     cls = self.__class__
     lhead = self.head
     if isinstance(other, cls.coefftypes):
@@ -477,7 +488,7 @@ def radd_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FA
         return other
     return other + self
 
-def rsub_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
+def rsub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
     cls = self.__class__
     lhead = self.head
     if isinstance(other, cls.coefftypes):

@@ -177,6 +177,20 @@ def test_Mul():
     assert Mul(a,a**-1)==1
     assert Mul(n,n**-1)==1
 
+def test_neg():
+    n = Number(3)
+    a = Symbol('a')
+    b = Symbol('b')
+    s = 2 + a
+    s1 = 2*a
+    m = a*b
+    m1 = a**2
+    assert str(-n)==str('-3')
+    assert str(-a)==str('-a')
+    assert str(-s)==str('-2 - a')
+    assert str(-s1)==str('-2*a')
+    assert str(-m)==str('-a*b')
+
 def test_number_add():
     n = Number(3)
     a = Symbol('a')

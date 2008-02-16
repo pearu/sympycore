@@ -6,7 +6,46 @@ DO NOT CHANGE THIS FILE DIRECTLY!!!
 from ..utils import NUMBER, SYMBOL, TERMS, FACTORS, RedirectOperation
 
 
-def add_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
+
+def neg_method(self, NUMBER=NUMBER, TERMS=TERMS, new=object.__new__):
+    cls = self.__class__
+    lhead = self.head
+    if lhead is NUMBER:
+        #NEG_NUMBER(OP=self)
+        #RETURN_NEW(HEAD=NUMBER; DATA=-self.data)
+        obj = new(cls)
+        obj.head = NUMBER
+        obj.data = -self.data
+        return obj
+    elif lhead is TERMS:
+        #NEG_TERMS(OP=self)
+        op_pairs = self.data
+        if len(op_pairs)==1:
+            t, c = op_pairs.items()[0]
+            c = -c
+            if c==1:
+                return t
+            #RETURN_NEW(HEAD=TERMS; DATA={t:c})
+            obj = new(cls)
+            obj.head = TERMS
+            obj.data = {t:c}
+            return obj
+        #NEG_DICT_VALUES(DICT_IN=self.data; DICT_OUT=pairs)
+        pairs = dict([(t, -c) for t,c in self.data.iteritems()])
+        #RETURN_NEW(HEAD=TERMS; DATA=pairs)
+        obj = new(cls)
+        obj.head = TERMS
+        obj.data = pairs
+        return obj
+    else:
+        #NEG_SYMBOL(OP=self)
+        #RETURN_NEW(HEAD=TERMS; DATA={self: -1})
+        obj = new(cls)
+        obj.head = TERMS
+        obj.data = {self: -1}
+        return obj
+
+def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
     cls = self.__class__
     lhead = self.head
     if type(other) is not cls:
@@ -265,7 +304,7 @@ def add_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FAC
             obj.data = pairs
             return obj
 
-def sub_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
+def sub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
     cls = self.__class__
     lhead = self.head
     if type(other) is not cls:
@@ -556,7 +595,7 @@ def sub_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FAC
             obj.data = {self: 1, other: -1}
             return obj
 
-def radd_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
+def radd_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
     cls = self.__class__
     lhead = self.head
     if isinstance(other, cls.coefftypes):
@@ -612,7 +651,7 @@ def radd_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FA
         return other
     return other + self
 
-def rsub_method(self, other, active=True, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
+def rsub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
     cls = self.__class__
     lhead = self.head
     if isinstance(other, cls.coefftypes):

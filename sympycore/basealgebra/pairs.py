@@ -16,7 +16,7 @@ from .ring import CommutativeRing
 from .primitive import PrimitiveAlgebra
 from ..arithmetic.number_theory import multinomial_coefficients
 
-from .pairs_ops import add_method, sub_method, radd_method, rsub_method
+from .pairs_ops import add_method, sub_method, radd_method, rsub_method, neg_method
 
 def newinstance(cls, head, data, new = object.__new__):
     o = new(cls)
@@ -519,16 +519,11 @@ class CommutativeRingWithPairs(CommutativeRing):
         assert self.head is NUMBER,`self`
         return type(self)(abs(self.data))
 
-    def __neg__(self):
-        if self.head is NUMBER:
-            return type(self)(-self.data)
-        return -1 * self
-
     def __pos__(self):
         return self
 
-    __add__ = add_method
-    __radd__ = radd_method
+    __neg__ = neg_method
+    __add__ = __radd__ = add_method
     __sub__ = sub_method
     __rsub__ = rsub_method
 
