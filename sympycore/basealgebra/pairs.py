@@ -17,7 +17,8 @@ from .primitive import PrimitiveAlgebra
 from ..arithmetic.numbers import FractionTuple
 from ..arithmetic.number_theory import multinomial_coefficients
 
-from .pairs_ops import add_method, sub_method, rsub_method, neg_method, mul_method
+from .pairs_ops import (add_method, sub_method, rsub_method, neg_method,
+                        mul_method, div_method, rdiv_method)
 
 def newinstance(cls, head, data, new = object.__new__):
     o = new(cls)
@@ -58,6 +59,8 @@ class CommutativeRingWithPairs(CommutativeRing):
     __sub__ = sub_method
     __rsub__ = rsub_method
     __mul__ = __rmul__ = mul_method
+    __div__ = div_method
+    __rdiv__ = rdiv_method
     
     def __new__(cls, data, head=None):
         if head is None:

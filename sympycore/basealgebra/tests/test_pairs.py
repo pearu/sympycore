@@ -566,7 +566,7 @@ def test_integrate():
     assert (x*y).integrate(x) == y * x**2 / 2
     assert (x*y**2).integrate(x) == y**2 * x**2 / 2
     r1 = (1 + 4*y*x + 3*x**2).integrate(x)
-    r2 = x + 4*Number(2)**-1*y*x**2 + x**3
+    r2 = x + 2*y*x**2 + x**3
     assert r1 == r2
     failures = [x**x, x**(1+y+5**x), 1/(2+x), x/(2+3*x+5), (3*x+2*y)*x]
     for f in failures:

@@ -766,6 +766,11 @@ class ExtendedNumber:
         if isinstance(other, ExtendedNumber):
             return self * other**(-1)
         if isinstance(other, numbertypes):
+            try:
+                if not other:
+                    return self * self.get_zoo()
+            except RedirectOperation:
+                pass
             return self * div(1, other)
         return NotImplemented
 

@@ -29,7 +29,8 @@ def preprocess(source, tmp_cache=[1]):
                 templ_d = templ % d
             except KeyError, msg:
                 print 'KeyError: %s (while processing %r)' % (msg, line.lstrip())
-                print templ, d
+                print d, `templ`
+                continue
             for l in templ_d.splitlines():
                 result.append(prefix + l)
         else:
@@ -47,7 +48,25 @@ DO NOT CHANGE THIS FILE DIRECTLY!!!
 """
 
 from ..utils import NUMBER, SYMBOL, TERMS, FACTORS, RedirectOperation
-from ..arithmetic.numbers import div
+from ..arithmetic.numbers import ExtendedNumber, normalized_fraction, FractionTuple
+
+def div(a, b, inttypes = (int, long)):
+    if isinstance(b, inttypes):
+        if isinstance(a, inttypes):
+            if not b:
+                if not a:
+                    return ExtendedNumber.get_undefined()
+                return ExtendedNumber.get_zoo()
+            return normalized_fraction(a, b)
+        if not b:
+            if isinstance(a, ExtendedNumber):
+                return a / b
+            return ExtendedNumber.get_zoo()
+        if b == 1:
+            return a
+        return FractionTuple((1,b)) * a
+    return a / b
+
 '''
 
 #======================================
@@ -383,11 +402,14 @@ else:
     pairs = {%(LHS)s: 1, %(RHS)s: 1}
 @RETURN_NEW(HEAD=FACTORS; DATA=pairs)
 '''
+MUL_DICT_SYMBOL = '''\
+@ADD_TERM_VALUE_DICT(TERM=%(RHS)s; VALUE=1; DICT=%(DICT)s; DICT_GET=%(DICT)s.get)
+@CANONIZE_FACTORS_DICT1(DICT=%(DICT)s)
+@RETURN_NEW(HEAD=FACTORS; DATA=%(DICT)s)
+'''
 MUL_FACTORS_SYMBOL = '''\
 pairs = dict(%(LHS)s.data)
-@ADD_TERM_VALUE_DICT(TERM=%(RHS)s; VALUE=1; DICT=pairs; DICT_GET=pairs.get)
-@CANONIZE_FACTORS_DICT1(DICT=pairs)
-@RETURN_NEW(HEAD=FACTORS; DATA=pairs)
+@MUL_DICT_SYMBOL(DICT=pairs; RHS=%(RHS)s)
 '''
 MUL_SYMBOL_FACTORS = '@MUL_FACTORS_SYMBOL(LHS=%(RHS)s; RHS=%(LHS)s)\n'
 MUL_FACTORS_TERMS = '''\
@@ -427,19 +449,177 @@ try:
 except RedirectOperation:
     pass
 @NEWINSTANCE(OBJ=obj2; HEAD=FACTORS; DATA={%(RHS)s: -1})
+if %(TMP)s==1:
+    return obj2
 @RETURN_NEW(HEAD=TERMS; DATA={obj2: %(TMP)s})
 '''
 DIV_SYMBOL_VALUE = '@MUL_VALUE_SYMBOL(VALUE=div(1, %(VALUE)s); RHS=%(LHS)s)\n'
 DIV_NUMBER_SYMBOL = '@DIV_VALUE_SYMBOL(VALUE=%(LHS)s.data; RHS=%(RHS)s)\n'
 DIV_SYMBOL_NUMBER = '@DIV_SYMBOL_VALUE(VALUE=%(RHS)s.data; LHS=%(LHS)s)\n'
-#DIV_VALUE_TERMS
-#DIV_TERMS_VALUE
+DIV_TERMS_VALUE = '@MUL_TERMS_VALUE(LHS=%(LHS)s; VALUE=div(1,%(VALUE)s))\n'
+
+#XXX: 0/(undefined+x)
+DIV_VALUE_TERMS = '''\
+pairs = %(RHS)s.data
+if len(pairs)==1:
+    t, c = pairs.items()[0]
+    c = div(%(VALUE)s, c)
+    t = 1/t
+    if c==1:
+        return t
+    if t==cls.one:
+        return cls.convert(c)
+    @RETURN_NEW(HEAD=TERMS; DATA={t: c})
+@NEWINSTANCE(OBJ=%(TMP)s; HEAD=FACTORS; DATA={%(RHS)s: -1})
+if %(VALUE)s==1:
+    return %(TMP)s
+@RETURN_NEW(HEAD=TERMS; DATA={%(TMP)s: %(VALUE)s})
+'''
+
+DIV_FACTORS_VALUE = '@MUL_FACTORS_VALUE(LHS=%(LHS)s; VALUE=div(1,%(VALUE)s))\n'
+DIV_VALUE_FACTORS = '''
+pairs = %(RHS)s.data
+if len(pairs)==1:
+    t, c = pairs.items()[0]
+    c = -c
+    if c==1:
+        return t * %(VALUE)s
+    new_pairs = {t: c}
+else:
+    @NEG_DICT_VALUES(DICT_IN=pairs; DICT_OUT=new_pairs)
+@NEWINSTANCE(OBJ=%(TMP)s; HEAD=FACTORS; DATA=new_pairs)
+if %(VALUE)s==1:
+    return %(TMP)s
+@RETURN_NEW(HEAD=TERMS; DATA={%(TMP)s: %(VALUE)s})
+'''
 DIV_NUMBER_TERMS = '@DIV_VALUE_TERMS(VALUE=%(LHS)s.data; RHS=%(RHS)s)\n'
 DIV_TERMS_NUMBER = '@DIV_TERMS_VALUE(VALUE=%(RHS)s.data; LHS=%(LHS)s)\n'
+DIV_NUMBER_FACTORS = '@DIV_VALUE_FACTORS(VALUE=%(LHS)s.data; RHS=%(RHS)s)\n'
+DIV_FACTORS_NUMBER = '@DIV_FACTORS_VALUE(VALUE=%(RHS)s.data; LHS=%(LHS)s)\n'
 DIV_SYMBOL_SYMBOL = '''\
 if %(LHS)s == %(RHS)s:
     return cls.one
 @RETURN_NEW(HEAD=FACTORS; DATA={%(LHS)s: 1, %(RHS)s: -1})
+'''
+DIV_TERMS_SYMBOL = '''
+pairs = %(LHS)s.data
+if len(pairs)==1:
+    t, c = pairs.items()[0]
+    if t==%(RHS)s:
+        return cls.convert(c)
+    @NEWINSTANCE(OBJ=%(TMP)s; HEAD=FACTORS; DATA={t:1, %(RHS)s: -1})
+    @RETURN_NEW(HEAD=TERMS; DATA={%(TMP)s: c})
+@RETURN_NEW(HEAD=FACTORS; DATA={%(LHS)s: 1, %(RHS)s: -1})
+'''
+DIV_TERMS_TERMS = '''
+if %(LHS)s==%(RHS)s:
+    return cls.one
+lpairs = %(LHS)s.data
+rpairs = %(RHS)s.data
+if len(lpairs)==1:
+    t1, c1 = lpairs.items()[0]
+    if len(rpairs)==1:
+        t2, c2 = rpairs.items()[0]
+        c = div(c1, c2)
+        if t2==t1:
+            return cls.convert(c)
+        if c==1:
+            @RETURN_NEW(HEAD=FACTORS; DATA={t1:1, t2:-1})
+        @NEWINSTANCE(OBJ=%(TMP)s; HEAD=FACTORS; DATA={t1:1, t2:-1})
+    else:
+        @NEWINSTANCE(OBJ=%(TMP)s; HEAD=FACTORS; DATA={t1:1, %(RHS)s:-1})
+    @RETURN_NEW(HEAD=TERMS; DATA={%(TMP)s:c})
+elif len(rpairs)==1:
+    t2, c2 = rpairs.items()[0]
+    c = div(1, c2)
+    if t2==%(LHS)s:
+        return cls.convert(c)
+    %(TMP)s = %(LHS)s / t2
+    @RETURN_NEW(HEAD=TERMS; DATA={%(TMP)s:c})
+@RETURN_NEW(HEAD=FACTORS; DATA={%(LHS)s:1, %(RHS)s:-1})
+'''
+DIV_SYMBOL_TERMS = '''\
+pairs = %(RHS)s.data
+if len(pairs)==1:
+    t,c = pairs.items()[0]
+    if %(LHS)s==t:
+        return cls.convert(div(1, c))
+    @NEWINSTANCE(OBJ=%(TMP)s; HEAD=FACTORS; DATA={%(LHS)s:1, t:-1})
+    @RETURN_NEW(HEAD=TERMS; DATA={%(TMP)s: div(1, c)})
+@RETURN_NEW(HEAD=FACTORS; DATA={%(LHS)s:1, %(RHS)s:-1})
+'''
+DIV_SYMBOL_FACTORS = '''\
+pairs = %(RHS)s.data
+if len(pairs)==1:
+    t, c = pairs.items()[0]
+    if t==%(LHS)s:
+        c = 1 - c
+        try:
+            if not c:
+                return cls.one
+        except RedirectOperation:
+            pass
+        if c==1:
+            return t
+        else:
+            @RETURN_NEW(HEAD=FACTORS; DATA={t: c})
+    @RETURN_NEW(HEAD=FACTORS; DATA={t: -c, %(LHS)s: 1})
+@NEG_DICT_VALUES(DICT_IN=%(RHS)s.data; DICT_OUT=pairs)
+@MUL_DICT_SYMBOL(DICT=pairs; RHS=%(LHS)s)
+'''
+DIV_TERMS_FACTORS = '''\
+lpairs = %(LHS)s.data
+if len(lpairs)==1:
+    t, c = lpairs.items()[0]
+    t = t / %(RHS)s
+    if t==cls.one:
+        return cls.convert(c)
+    head = t.head
+    if head is NUMBER:
+        @RETURN_NEW(HEAD=NUMBER; DATA=t.data * c)
+    elif head is TERMS:
+        @MUL_TERMS_VALUE(LHS=t; VALUE=c)
+    else:
+        @MUL_SYMBOL_VALUE(LHS=t; VALUE=c)
+@DIV_SYMBOL_FACTORS(LHS=%(LHS)s; RHS=%(RHS)s)
+'''
+DIV_DICT_SYMBOL = '''\
+@ADD_TERM_VALUE_DICT(TERM=%(RHS)s; VALUE=-1; DICT=%(DICT)s; DICT_GET=%(DICT)s.get)
+@CANONIZE_FACTORS_DICT1(DICT=%(DICT)s)
+@RETURN_NEW(HEAD=FACTORS; DATA=%(DICT)s)
+'''
+DIV_FACTORS_SYMBOL = '''\
+pairs = dict(%(LHS)s.data)
+@DIV_DICT_SYMBOL(RHS=%(RHS)s; DICT=pairs)
+'''
+DIV_FACTORS_TERMS = '''\
+rpairs = %(RHS)s.data
+if len(rpairs)==1:
+    t, c = rpairs.items()[0]
+    t = %(LHS)s / t
+    c = div(1, c)
+    if t==cls.one:
+        return cls.convert(c)
+    head = t.head
+    if head is NUMBER:
+        @RETURN_NEW(HEAD=NUMBER; DATA=t.data * c)
+    elif head is TERMS:
+        @MUL_TERMS_VALUE(LHS=t; VALUE=c)
+    else:
+        @MUL_SYMBOL_VALUE(LHS=t; VALUE=c)
+@DIV_FACTORS_SYMBOL(LHS=%(LHS)s; RHS=%(RHS)s)
+'''
+DIV_FACTORS_FACTORS = '''\
+pairs = dict(%(LHS)s.data)
+pairs_get = pairs.get
+number = 1
+for t,c in %(RHS)s.data.iteritems():
+    @MUL_FACTOR_VALUE_DICT(FACTOR=t; VALUE=-c; DICT=pairs; DICT_GET=pairs_get; NUMBER=number)
+@CANONIZE_FACTORS_DICT(DICT=pairs; NUMBER=number)
+if number is 1:
+    @RETURN_NEW(HEAD=FACTORS; DATA=pairs)
+@NEWINSTANCE(OBJ=obj; HEAD=FACTORS; DATA=pairs)
+return obj * number
 '''
 
 def generate_if_blocks(heads, prefix='', tab=' '*4):
@@ -530,12 +710,30 @@ def rsub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=ob
     if other is NotImplemented:
         return other
     return other - self
+
+def rdiv_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
+    cls = self.__class__
+    lhead = self.head
+    if isinstance(other, cls.coefftypes):
+        if lhead is NUMBER:
+            @DIV_VALUE_NUMBER(VALUE=other; RHS=self)
+        elif lhead is TERMS:
+            @DIV_VALUE_TERMS(VALUE=other; RHS=self)
+        elif lhead is FACTORS:
+            @DIV_VALUE_FACTORS(VALUE=other; RHS=self)
+        else:
+            @DIV_VALUE_SYMBOL(VALUE=other; RHS=self)
+    other = cls.convert(other, False)
+    if other is NotImplemented:
+        return other
+    return other / self
 ''')
 
 
     print >> f, preprocess(OP3_TEMPLATE % (dict(op='add', OP='ADD')))
     print >> f, preprocess(OP3_TEMPLATE % (dict(op='sub', OP='SUB')))
     print >> f, preprocess(OP4_TEMPLATE % (dict(op='mul', OP='MUL')))
+    print >> f, preprocess(OP4_TEMPLATE % (dict(op='div', OP='DIV')))
 
     f.close()
 

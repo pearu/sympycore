@@ -289,6 +289,7 @@ class CommutativeRing(BasicAlgebra):
                 else:
                     exact_part.append(a)
             if exact_part:
+                print `expr, Mul(*exact_part)`
                 expr = expr / Mul(*exact_part)
             if len(wild_part)==1:
                 return wild_part[0].matches(expr, repl_dict, wild_info)
