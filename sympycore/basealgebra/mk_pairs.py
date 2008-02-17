@@ -313,7 +313,7 @@ try:
         else:
             return cls.zero
 except RedirectOperation:
-    @RETURN_NEW(HEAD=TERMS; DATA={%(OP)s: %(VALUE)s})
+    pass
 '''
 
 MUL_VALUE_NUMBER='@RETURN_NEW(HEAD=NUMBER; DATA=%(VALUE)s * %(RHS)s.data)\n'
@@ -342,8 +342,10 @@ else:
 '''
 MUL_VALUE_TERMS = '''\
 %(TMP)s = %(VALUE)s
-@MUL_ZERO_OP(VALUE=%(TMP)s; OP=%(RHS)s)
 pairs = %(RHS)s.data
+@MUL_ZERO_OP(VALUE=%(TMP)s; OP=%(RHS)s)
+    if len(pairs) > 1:
+        @RETURN_NEW(HEAD=TERMS; DATA={%(RHS)s: %(TMP)s})
 if len(pairs)==1:
     t, c = pairs.items()[0]
     c = %(TMP)s * c

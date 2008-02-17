@@ -17,7 +17,9 @@ x,y,z = map(Calculus.Symbol, 'xyz')
 def test_oo_product():
     assert str(oo * (x+y))=='oo*(x + y)'
     assert str(oo * (1+x+y))=='oo*(1 + x + y)'
-    #assert str(oo * (2*x))=='oo*x'
+    assert str(oo * (2*x))=='oo*x'
+    assert str(oo / (2/x))=='oo*x'
+    assert str(oo / (2*x))=='oo*x**(-1)'
     
 def test_oo_sum():
     assert str(oo + (x+y))=='oo + x + y'
