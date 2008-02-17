@@ -14,6 +14,7 @@ from ..utils import RedirectOperation
 from .algebra import BasicAlgebra
 from .ring import CommutativeRing
 from .primitive import PrimitiveAlgebra
+from ..arithmetic.numbers import FractionTuple
 from ..arithmetic.number_theory import multinomial_coefficients
 
 from .pairs_ops import add_method, sub_method, rsub_method, neg_method, mul_method
@@ -50,7 +51,13 @@ class CommutativeRingWithPairs(CommutativeRing):
     _symbols = None
     _symbols_data = None
 
-    coefftypes = (int, long)
+    coefftypes = (int, long, FractionTuple)
+
+    __neg__ = neg_method
+    __add__ = __radd__ = add_method
+    __sub__ = sub_method
+    __rsub__ = rsub_method
+    __mul__ = __rmul__ = mul_method
     
     def __new__(cls, data, head=None):
         if head is None:
@@ -521,26 +528,6 @@ class CommutativeRingWithPairs(CommutativeRing):
 
     def __pos__(self):
         return self
-
-    __neg__ = neg_method
-    __add__ = __radd__ = add_method
-    __sub__ = sub_method
-    __rsub__ = rsub_method
-
-    def __mul__(self, other, redirect_operation='__mul__'):
-        if type(self) is not type(other):
-            other = self.convert(other, False)
-            if other is NotImplemented:
-                return NotImplemented
-        return multiply_dict2[self.head][other.head](self, other, self.__class__)
-
-    __mul__ = mul_method
-
-    def __rmul__(self, other, redirect_operation='__rmul__'):
-        other = self.convert(other, False)
-        if other is NotImplemented:
-            return NotImplemented
-        return multiply_dict2[other.head][self.head](other, self, other.__class__)
 
     def __lt__(self, other):
         return self.data < other
