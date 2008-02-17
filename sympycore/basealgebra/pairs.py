@@ -1108,10 +1108,13 @@ def iadd_ADD_ADD(lhs, rhs, one_c, cls):
         b = get(t)
         if b is not None:
             c = b + c
-        if c:
+        try:
+            if c:
+                pairs[t] = c
+            elif b is not None:
+                del pairs[t]
+        except RedirectOperation:
             pairs[t] = c
-        elif b is not None:
-            del pairs[t]
     return
 
 def iadd_ADD_MUL(lhs, rhs, one_c, cls):

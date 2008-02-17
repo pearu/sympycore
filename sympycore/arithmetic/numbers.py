@@ -426,7 +426,7 @@ class Float(object):
         other = self.convert(n)
         if other is NotImplemented:
             return other
-        z,sym = try_power(self, Float(other, prec))
+        z,sym = try_power(self, Float(other, self.prec))
         assert not sym, `z,sym`
         return z
 
