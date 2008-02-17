@@ -1104,15 +1104,14 @@ def iadd_ADD_ADD(lhs, rhs, one_c, cls):
     pairs = lhs.data
     get = pairs.get
     for t,c in rhs.data.iteritems():
+        c = c * one_c
         b = get(t)
-        if b is None:
-            pairs[t] = c * one_c
-        else:
-            c = b + c * one_c
-            if c:
-                pairs[t] = c
-            else:
-                del pairs[t]
+        if b is not None:
+            c = b + c
+        if c:
+            pairs[t] = c
+        elif b is not None:
+            del pairs[t]
     return
 
 def iadd_ADD_MUL(lhs, rhs, one_c, cls):
