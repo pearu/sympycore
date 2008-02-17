@@ -874,10 +874,8 @@ def mul_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                     try:
                         if c:
                             pairs[t] = c
-                        else:
-                            del pairs[t]
                     except RedirectOperation:
-                        d[t] = c
+                        pairs[t] = c
                 #CANONIZE_TERMS_DICT(DICT=pairs)
                 if not pairs:
                     return cls.zero
@@ -975,10 +973,8 @@ def mul_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                 try:
                     if c:
                         pairs[t] = c
-                    else:
-                        del pairs[t]
                 except RedirectOperation:
-                    d[t] = c
+                    pairs[t] = c
             #CANONIZE_TERMS_DICT(DICT=pairs)
             if not pairs:
                 return cls.zero
@@ -1064,10 +1060,8 @@ def mul_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                 try:
                     if c:
                         pairs[t] = c
-                    else:
-                        del pairs[t]
                 except RedirectOperation:
-                    d[t] = c
+                    pairs[t] = c
             #CANONIZE_TERMS_DICT(DICT=pairs)
             if not pairs:
                 return cls.zero
@@ -1470,10 +1464,8 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                     try:
                         if c:
                             pairs[t] = c
-                        else:
-                            del pairs[t]
                     except RedirectOperation:
-                        d[t] = c
+                        pairs[t] = c
                 #CANONIZE_TERMS_DICT(DICT=pairs)
                 if not pairs:
                     return cls.zero
@@ -1652,10 +1644,8 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                 try:
                     if c:
                         pairs[t] = c
-                    else:
-                        del pairs[t]
                 except RedirectOperation:
-                    d[t] = c
+                    pairs[t] = c
             #CANONIZE_TERMS_DICT(DICT=pairs)
             if not pairs:
                 return cls.zero
@@ -1774,10 +1764,8 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                         try:
                             if c:
                                 pairs[t] = c
-                            else:
-                                del pairs[t]
                         except RedirectOperation:
-                            d[t] = c
+                            pairs[t] = c
                     #CANONIZE_TERMS_DICT(DICT=pairs)
                     if not pairs:
                         return cls.zero
@@ -1962,10 +1950,8 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                         try:
                             if c:
                                 pairs[t] = c
-                            else:
-                                del pairs[t]
                         except RedirectOperation:
-                            d[t] = c
+                            pairs[t] = c
                     #CANONIZE_TERMS_DICT(DICT=pairs)
                     if not pairs:
                         return cls.zero

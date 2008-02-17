@@ -355,10 +355,8 @@ for t,c in %(RHS)s.data.iteritems():
     try:
         if c:
             pairs[t] = c
-        else:
-            del pairs[t]
     except RedirectOperation:
-        d[t] = c
+        pairs[t] = c
 @CANONIZE_TERMS_DICT(DICT=pairs)
 @RETURN_NEW(HEAD=TERMS; DATA=pairs)
 '''
