@@ -7,14 +7,14 @@ from collections import defaultdict
 
 from ..core import classes
 from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_NUMBER
-from ..utils import ADD, MUL, SYMBOL, NUMBER, APPLY, POW, TUPLE, head_to_string
+from ..utils import ADD, MUL, SYMBOL, NUMBER, APPLY, POW, TUPLE, head_to_string, TERMS, FACTORS
 
 from .utils import generate_swapped_first_arguments
 from ..utils import RedirectOperation
 from .algebra import BasicAlgebra
 from .ring import CommutativeRing
 from .primitive import PrimitiveAlgebra
-from ..arithmetic.numbers import FractionTuple
+from ..arithmetic.numbers import FractionTuple, ExtendedNumber
 from ..arithmetic.number_theory import multinomial_coefficients
 
 from .pairs_ops import (add_method, sub_method, rsub_method, neg_method,
@@ -42,7 +42,9 @@ class CommutativeRingWithPairs(CommutativeRing):
     """ Implementation of a commutative ring where sums and products
     are represented as dictionaries of pairs.
     """
-    __slots__ = ['head', 'data', '_hash', '_symbols', '_symbols_data']
+    __slots__ = ['head', 'data', '_hash',
+                 '_symbols', '_symbols_data',
+                 '_has_active']
     one_c = 1   # one element of coefficient algebra
     one_e = 1   # one element of exponent algebra
     zero_c = 0  # zero element of coefficient algebra
@@ -61,6 +63,42 @@ class CommutativeRingWithPairs(CommutativeRing):
     __mul__ = __rmul__ = mul_method
     __div__ = div_method
     __rdiv__ = rdiv_method
+
+    _has_active = None
+    def has_active(self):
+        cls = type(self)
+        r = self._has_active
+        if r is not None:
+            return r
+        head = self.head
+        if head is NUMBER:
+            r = type(self.data) is ExtendedNumber
+            self._has_active = r
+            return r
+        if head is TERMS or head is FACTORS:
+            for t,c in self.data.iteritems():
+                tc = type(c)
+                if tc is ExtendedNumber:
+                    self._has_active = True
+                    return True
+                if t.has_active():
+                    self._has_active = True
+                    return True
+                if tc is cls and c.has_active():
+                    self._has_active = True
+                    return True
+            self._has_active = False
+            return False
+        if head is SYMBOL:
+            self._has_active = False
+            return False
+        if callable(head):
+            for a in self.args:
+                if a.has_active():
+                    self._has_active = True
+                    return True
+        self._has_active = False
+        return False
     
     def __new__(cls, data, head=None):
         if head is None:

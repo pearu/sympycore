@@ -169,6 +169,25 @@ def rdiv_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=ob
             return obj
         elif lhead is TERMS:
             #DIV_VALUE_TERMS(VALUE=other; RHS=self)
+            #MUL_ZERO_OP(VALUE=other; OP=self)
+            try:
+                if not other:
+                    if self.has_active():
+                        #RETURN_NEW(HEAD=TERMS; DATA={self: 0})
+                        #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: 0})
+                        obj = new(cls)
+                        obj.head = TERMS
+                        obj.data = {self: 0}
+                        return obj
+                    else:
+                        return cls.zero
+            except RedirectOperation:
+                #RETURN_NEW(HEAD=TERMS; DATA={self: other})
+                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: other})
+                obj = new(cls)
+                obj.head = TERMS
+                obj.data = {self: other}
+                return obj
             pairs = self.data
             if len(pairs)==1:
                 t, c = pairs.items()[0]
@@ -209,23 +228,23 @@ def rdiv_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=ob
             else:
                 #NEG_DICT_VALUES(DICT_IN=pairs; DICT_OUT=new_pairs)
                 new_pairs = dict([(t, -c) for t,c in pairs.iteritems()])
-            #NEWINSTANCE(OBJ=_tmp43; HEAD=FACTORS; DATA=new_pairs)
-            _tmp43 = new(cls)
-            _tmp43.head = FACTORS
-            _tmp43.data = new_pairs
+            #NEWINSTANCE(OBJ=_tmp48; HEAD=FACTORS; DATA=new_pairs)
+            _tmp48 = new(cls)
+            _tmp48.head = FACTORS
+            _tmp48.data = new_pairs
             if other==1:
-                return _tmp43
-            #RETURN_NEW(HEAD=TERMS; DATA={_tmp43: other})
-            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={_tmp43: other})
+                return _tmp48
+            #RETURN_NEW(HEAD=TERMS; DATA={_tmp48: other})
+            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={_tmp48: other})
             obj = new(cls)
             obj.head = TERMS
-            obj.data = {_tmp43: other}
+            obj.data = {_tmp48: other}
             return obj
         else:
             #DIV_VALUE_SYMBOL(VALUE=other; RHS=self)
-            _tmp48 = other
+            _tmp53 = other
             try:
-                if not _tmp48:
+                if not _tmp53:
                     return cls.zero
             except RedirectOperation:
                 pass
@@ -233,13 +252,13 @@ def rdiv_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=ob
             obj2 = new(cls)
             obj2.head = FACTORS
             obj2.data = {self: -1}
-            if _tmp48==1:
+            if _tmp53==1:
                 return obj2
-            #RETURN_NEW(HEAD=TERMS; DATA={obj2: _tmp48})
-            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={obj2: _tmp48})
+            #RETURN_NEW(HEAD=TERMS; DATA={obj2: _tmp53})
+            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={obj2: _tmp53})
             obj = new(cls)
             obj.head = TERMS
-            obj.data = {obj2: _tmp48}
+            obj.data = {obj2: _tmp53}
             return obj
     other = cls.convert(other, False)
     if other is NotImplemented:
@@ -262,21 +281,21 @@ def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
             elif lhead is TERMS:
                 #ADD_TERMS_VALUE(VALUE=other; LHS=self)
                 #ADD_VALUE_TERMS(VALUE=other; RHS=self)
-                _tmp56 = other
+                _tmp61 = other
                 try:
-                    if not _tmp56:
+                    if not _tmp61:
                         return self
                 except RedirectOperation:
                     pass
                 pairs = dict(self.data)
                 one = cls.one
-                #ADD_VALUE_DICT(DICT=pairs; VALUE=_tmp56)
-                #ADD_TERM_VALUE_DICT(TERM=one; VALUE=_tmp56; DICT=pairs; DICT_GET=pairs.get)
+                #ADD_VALUE_DICT(DICT=pairs; VALUE=_tmp61)
+                #ADD_TERM_VALUE_DICT(TERM=one; VALUE=_tmp61; DICT=pairs; DICT_GET=pairs.get)
                 b = pairs.get(one)
                 if b is None:
-                    pairs[one] = _tmp56
+                    pairs[one] = _tmp61
                 else:
-                    c = b + _tmp56
+                    c = b + _tmp61
                     try:
                         if c:
                             pairs[one] = c
@@ -293,17 +312,17 @@ def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
             else:
                 #ADD_SYMBOL_VALUE(VALUE=other; LHS=self)
                 #ADD_VALUE_SYMBOL(VALUE=other; RHS=self)
-                _tmp62 = other
+                _tmp67 = other
                 try:
-                    if not _tmp62:
+                    if not _tmp67:
                         return self
                 except RedirectOperation:
                     pass
-                #RETURN_NEW(HEAD=TERMS; DATA={cls.one: _tmp62, self: 1})
-                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={cls.one: _tmp62, self: 1})
+                #RETURN_NEW(HEAD=TERMS; DATA={cls.one: _tmp67, self: 1})
+                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={cls.one: _tmp67, self: 1})
                 obj = new(cls)
                 obj.head = TERMS
-                obj.data = {cls.one: _tmp62, self: 1}
+                obj.data = {cls.one: _tmp67, self: 1}
                 return obj
         other = cls.convert(other, False)
         if other is NotImplemented:
@@ -322,21 +341,21 @@ def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
         elif rhead is TERMS:
             #ADD_NUMBER_TERMS(LHS=self; RHS=other)
             #ADD_VALUE_TERMS(VALUE=self.data; RHS=other)
-            _tmp70 = self.data
+            _tmp75 = self.data
             try:
-                if not _tmp70:
+                if not _tmp75:
                     return other
             except RedirectOperation:
                 pass
             pairs = dict(other.data)
             one = cls.one
-            #ADD_VALUE_DICT(DICT=pairs; VALUE=_tmp70)
-            #ADD_TERM_VALUE_DICT(TERM=one; VALUE=_tmp70; DICT=pairs; DICT_GET=pairs.get)
+            #ADD_VALUE_DICT(DICT=pairs; VALUE=_tmp75)
+            #ADD_TERM_VALUE_DICT(TERM=one; VALUE=_tmp75; DICT=pairs; DICT_GET=pairs.get)
             b = pairs.get(one)
             if b is None:
-                pairs[one] = _tmp70
+                pairs[one] = _tmp75
             else:
-                c = b + _tmp70
+                c = b + _tmp75
                 try:
                     if c:
                         pairs[one] = c
@@ -353,38 +372,38 @@ def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
         else:
             #ADD_NUMBER_SYMBOL(LHS=self; RHS=other)
             #ADD_VALUE_SYMBOL(VALUE=self.data; RHS=other)
-            _tmp76 = self.data
+            _tmp81 = self.data
             try:
-                if not _tmp76:
+                if not _tmp81:
                     return other
             except RedirectOperation:
                 pass
-            #RETURN_NEW(HEAD=TERMS; DATA={cls.one: _tmp76, other: 1})
-            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={cls.one: _tmp76, other: 1})
+            #RETURN_NEW(HEAD=TERMS; DATA={cls.one: _tmp81, other: 1})
+            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={cls.one: _tmp81, other: 1})
             obj = new(cls)
             obj.head = TERMS
-            obj.data = {cls.one: _tmp76, other: 1}
+            obj.data = {cls.one: _tmp81, other: 1}
             return obj
     elif lhead is TERMS:
         if rhead is NUMBER:
             #ADD_TERMS_NUMBER(LHS=self; RHS=other)
             #ADD_TERMS_VALUE(VALUE=other.data; LHS=self)
             #ADD_VALUE_TERMS(VALUE=other.data; RHS=self)
-            _tmp81 = other.data
+            _tmp86 = other.data
             try:
-                if not _tmp81:
+                if not _tmp86:
                     return self
             except RedirectOperation:
                 pass
             pairs = dict(self.data)
             one = cls.one
-            #ADD_VALUE_DICT(DICT=pairs; VALUE=_tmp81)
-            #ADD_TERM_VALUE_DICT(TERM=one; VALUE=_tmp81; DICT=pairs; DICT_GET=pairs.get)
+            #ADD_VALUE_DICT(DICT=pairs; VALUE=_tmp86)
+            #ADD_TERM_VALUE_DICT(TERM=one; VALUE=_tmp86; DICT=pairs; DICT_GET=pairs.get)
             b = pairs.get(one)
             if b is None:
-                pairs[one] = _tmp81
+                pairs[one] = _tmp86
             else:
-                c = b + _tmp81
+                c = b + _tmp86
                 try:
                     if c:
                         pairs[one] = c
@@ -467,17 +486,17 @@ def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
             #ADD_SYMBOL_NUMBER(LHS=self; RHS=other)
             #ADD_SYMBOL_VALUE(VALUE=other.data; LHS=self)
             #ADD_VALUE_SYMBOL(VALUE=other.data; RHS=self)
-            _tmp98 = other.data
+            _tmp103 = other.data
             try:
-                if not _tmp98:
+                if not _tmp103:
                     return self
             except RedirectOperation:
                 pass
-            #RETURN_NEW(HEAD=TERMS; DATA={cls.one: _tmp98, self: 1})
-            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={cls.one: _tmp98, self: 1})
+            #RETURN_NEW(HEAD=TERMS; DATA={cls.one: _tmp103, self: 1})
+            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={cls.one: _tmp103, self: 1})
             obj = new(cls)
             obj.head = TERMS
-            obj.data = {cls.one: _tmp98, self: 1}
+            obj.data = {cls.one: _tmp103, self: 1}
             return obj
         elif rhead is TERMS:
             #ADD_SYMBOL_TERMS(LHS=self; RHS=other)
@@ -540,21 +559,21 @@ def sub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
             elif lhead is TERMS:
                 #SUB_TERMS_VALUE(VALUE=other; LHS=self)
                 #ADD_VALUE_TERMS(VALUE=-other; RHS=self)
-                _tmp114 = -other
+                _tmp119 = -other
                 try:
-                    if not _tmp114:
+                    if not _tmp119:
                         return self
                 except RedirectOperation:
                     pass
                 pairs = dict(self.data)
                 one = cls.one
-                #ADD_VALUE_DICT(DICT=pairs; VALUE=_tmp114)
-                #ADD_TERM_VALUE_DICT(TERM=one; VALUE=_tmp114; DICT=pairs; DICT_GET=pairs.get)
+                #ADD_VALUE_DICT(DICT=pairs; VALUE=_tmp119)
+                #ADD_TERM_VALUE_DICT(TERM=one; VALUE=_tmp119; DICT=pairs; DICT_GET=pairs.get)
                 b = pairs.get(one)
                 if b is None:
-                    pairs[one] = _tmp114
+                    pairs[one] = _tmp119
                 else:
-                    c = b + _tmp114
+                    c = b + _tmp119
                     try:
                         if c:
                             pairs[one] = c
@@ -572,17 +591,17 @@ def sub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                 #SUB_SYMBOL_VALUE(VALUE=other; LHS=self)
                 #ADD_SYMBOL_VALUE(OBJ=obj; LHS=self; VALUE=-other)
                 #ADD_VALUE_SYMBOL(VALUE=-other; RHS=self)
-                _tmp121 = -other
+                _tmp126 = -other
                 try:
-                    if not _tmp121:
+                    if not _tmp126:
                         return self
                 except RedirectOperation:
                     pass
-                #RETURN_NEW(HEAD=TERMS; DATA={cls.one: _tmp121, self: 1})
-                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={cls.one: _tmp121, self: 1})
+                #RETURN_NEW(HEAD=TERMS; DATA={cls.one: _tmp126, self: 1})
+                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={cls.one: _tmp126, self: 1})
                 obj = new(cls)
                 obj.head = TERMS
-                obj.data = {cls.one: _tmp121, self: 1}
+                obj.data = {cls.one: _tmp126, self: 1}
                 return obj
         other = cls.convert(other, False)
         if other is NotImplemented:
@@ -601,9 +620,9 @@ def sub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
         elif rhead is TERMS:
             #SUB_NUMBER_TERMS(LHS=self; RHS=other)
             #SUB_VALUE_TERMS(VALUE=self.data; RHS=other)
-            _tmp129 = self.data
+            _tmp134 = self.data
             try:
-                if not _tmp129:
+                if not _tmp134:
                     #NEG_TERMS(OP=other)
                     op_pairs = other.data
                     if len(op_pairs)==1:
@@ -630,13 +649,13 @@ def sub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
             #NEG_DICT_VALUES(DICT_IN=other.data; DICT_OUT=pairs)
             pairs = dict([(t, -c) for t,c in other.data.iteritems()])
             one = cls.one
-            #ADD_VALUE_DICT(DICT=pairs; VALUE=_tmp129)
-            #ADD_TERM_VALUE_DICT(TERM=one; VALUE=_tmp129; DICT=pairs; DICT_GET=pairs.get)
+            #ADD_VALUE_DICT(DICT=pairs; VALUE=_tmp134)
+            #ADD_TERM_VALUE_DICT(TERM=one; VALUE=_tmp134; DICT=pairs; DICT_GET=pairs.get)
             b = pairs.get(one)
             if b is None:
-                pairs[one] = _tmp129
+                pairs[one] = _tmp134
             else:
-                c = b + _tmp129
+                c = b + _tmp134
                 try:
                     if c:
                         pairs[one] = c
@@ -653,9 +672,9 @@ def sub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
         else:
             #SUB_NUMBER_SYMBOL(LHS=self; RHS=other)
             #SUB_VALUE_SYMBOL(VALUE=self.data; RHS=other)
-            _tmp142 = self.data
+            _tmp147 = self.data
             try:
-                if not _tmp142:
+                if not _tmp147:
                     #RETURN_NEW(HEAD=TERMS; DATA={other: -1})
                     #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={other: -1})
                     obj = new(cls)
@@ -664,32 +683,32 @@ def sub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                     return obj
             except RedirectOperation:
                 pass
-            #RETURN_NEW(HEAD=TERMS; DATA={cls.one: _tmp142, other: -1})
-            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={cls.one: _tmp142, other: -1})
+            #RETURN_NEW(HEAD=TERMS; DATA={cls.one: _tmp147, other: -1})
+            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={cls.one: _tmp147, other: -1})
             obj = new(cls)
             obj.head = TERMS
-            obj.data = {cls.one: _tmp142, other: -1}
+            obj.data = {cls.one: _tmp147, other: -1}
             return obj
     elif lhead is TERMS:
         if rhead is NUMBER:
             #SUB_TERMS_NUMBER(LHS=self; RHS=other)
             #SUB_TERMS_VALUE(VALUE=other.data; LHS=self)
             #ADD_VALUE_TERMS(VALUE=-other.data; RHS=self)
-            _tmp149 = -other.data
+            _tmp154 = -other.data
             try:
-                if not _tmp149:
+                if not _tmp154:
                     return self
             except RedirectOperation:
                 pass
             pairs = dict(self.data)
             one = cls.one
-            #ADD_VALUE_DICT(DICT=pairs; VALUE=_tmp149)
-            #ADD_TERM_VALUE_DICT(TERM=one; VALUE=_tmp149; DICT=pairs; DICT_GET=pairs.get)
+            #ADD_VALUE_DICT(DICT=pairs; VALUE=_tmp154)
+            #ADD_TERM_VALUE_DICT(TERM=one; VALUE=_tmp154; DICT=pairs; DICT_GET=pairs.get)
             b = pairs.get(one)
             if b is None:
-                pairs[one] = _tmp149
+                pairs[one] = _tmp154
             else:
-                c = b + _tmp149
+                c = b + _tmp154
                 try:
                     if c:
                         pairs[one] = c
@@ -773,17 +792,17 @@ def sub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
             #SUB_SYMBOL_VALUE(VALUE=other.data; LHS=self)
             #ADD_SYMBOL_VALUE(OBJ=obj; LHS=self; VALUE=-other.data)
             #ADD_VALUE_SYMBOL(VALUE=-other.data; RHS=self)
-            _tmp167 = -other.data
+            _tmp172 = -other.data
             try:
-                if not _tmp167:
+                if not _tmp172:
                     return self
             except RedirectOperation:
                 pass
-            #RETURN_NEW(HEAD=TERMS; DATA={cls.one: _tmp167, self: 1})
-            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={cls.one: _tmp167, self: 1})
+            #RETURN_NEW(HEAD=TERMS; DATA={cls.one: _tmp172, self: 1})
+            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={cls.one: _tmp172, self: 1})
             obj = new(cls)
             obj.head = TERMS
-            obj.data = {cls.one: _tmp167, self: 1}
+            obj.data = {cls.one: _tmp172, self: 1}
             return obj
         elif rhead is TERMS:
             #SUB_SYMBOL_TERMS(LHS=self; RHS=other)
@@ -844,35 +863,45 @@ def mul_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
             elif lhead is TERMS:
                 #MUL_TERMS_VALUE(VALUE=other; LHS=self)
                 #MUL_VALUE_TERMS(VALUE=other; RHS=self)
-                _tmp183 = other
+                _tmp188 = other
+                #MUL_ZERO_OP(VALUE=_tmp188; OP=self)
                 try:
-                    not _tmp183
+                    if not _tmp188:
+                        if self.has_active():
+                            #RETURN_NEW(HEAD=TERMS; DATA={self: 0})
+                            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: 0})
+                            obj = new(cls)
+                            obj.head = TERMS
+                            obj.data = {self: 0}
+                            return obj
+                        else:
+                            return cls.zero
                 except RedirectOperation:
-                    pairs = self.data
-                    if len(pairs)==1:
-                        t, c = pairs.items()[0]
-                        c = _tmp183 * c
-                        if c==1:
-                            return t
-                        #RETURN_NEW(HEAD=TERMS; DATA={t: c})
-                        #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={t: c})
-                        obj = new(cls)
-                        obj.head = TERMS
-                        obj.data = {t: c}
-                        return obj
-                    #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp183})
-                    #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp183})
+                    #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp188})
+                    #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp188})
                     obj = new(cls)
                     obj.head = TERMS
-                    obj.data = {self: _tmp183}
+                    obj.data = {self: _tmp188}
                     return obj
-                if _tmp183==1:
+                pairs = self.data
+                if len(pairs)==1:
+                    t, c = pairs.items()[0]
+                    c = _tmp188 * c
+                    if c==1:
+                        return t
+                    #RETURN_NEW(HEAD=TERMS; DATA={t: c})
+                    #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={t: c})
+                    obj = new(cls)
+                    obj.head = TERMS
+                    obj.data = {t: c}
+                    return obj
+                if _tmp188==1:
                     return self
                 pairs = {}
                 for t,c in self.data.iteritems():
-                    c = _tmp183 * c
+                    c = _tmp188 * c
                     try:
-                        if c:
+                        if c or t.has_active():
                             pairs[t] = c
                     except RedirectOperation:
                         pairs[t] = c
@@ -895,36 +924,64 @@ def mul_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                 #MUL_FACTORS_VALUE(VALUE=other; LHS=self)
                 #MUL_SYMBOL_VALUE(VALUE=other; LHS=self)
                 #MUL_VALUE_SYMBOL(VALUE=other; RHS=self)
-                _tmp193 = other
+                _tmp201 = other
+                #MUL_ZERO_OP(VALUE=_tmp201; OP=self)
                 try:
-                    if not _tmp193:
-                        return cls.zero
+                    if not _tmp201:
+                        if self.has_active():
+                            #RETURN_NEW(HEAD=TERMS; DATA={self: 0})
+                            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: 0})
+                            obj = new(cls)
+                            obj.head = TERMS
+                            obj.data = {self: 0}
+                            return obj
+                        else:
+                            return cls.zero
                 except RedirectOperation:
-                    pass
-                if _tmp193==1:
+                    #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp201})
+                    #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp201})
+                    obj = new(cls)
+                    obj.head = TERMS
+                    obj.data = {self: _tmp201}
+                    return obj
+                if _tmp201==1:
                     return self
-                #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp193})
-                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp193})
+                #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp201})
+                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp201})
                 obj = new(cls)
                 obj.head = TERMS
-                obj.data = {self: _tmp193}
+                obj.data = {self: _tmp201}
                 return obj
             else:
                 #MUL_SYMBOL_VALUE(VALUE=other; LHS=self)
                 #MUL_VALUE_SYMBOL(VALUE=other; RHS=self)
-                _tmp197 = other
+                _tmp210 = other
+                #MUL_ZERO_OP(VALUE=_tmp210; OP=self)
                 try:
-                    if not _tmp197:
-                        return cls.zero
+                    if not _tmp210:
+                        if self.has_active():
+                            #RETURN_NEW(HEAD=TERMS; DATA={self: 0})
+                            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: 0})
+                            obj = new(cls)
+                            obj.head = TERMS
+                            obj.data = {self: 0}
+                            return obj
+                        else:
+                            return cls.zero
                 except RedirectOperation:
-                    pass
-                if _tmp197==1:
+                    #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp210})
+                    #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp210})
+                    obj = new(cls)
+                    obj.head = TERMS
+                    obj.data = {self: _tmp210}
+                    return obj
+                if _tmp210==1:
                     return self
-                #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp197})
-                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp197})
+                #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp210})
+                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp210})
                 obj = new(cls)
                 obj.head = TERMS
-                obj.data = {self: _tmp197}
+                obj.data = {self: _tmp210}
                 return obj
         other = cls.convert(other, False)
         if other is NotImplemented:
@@ -943,35 +1000,45 @@ def mul_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
         elif rhead is TERMS:
             #MUL_NUMBER_TERMS(LHS=self; RHS=other)
             #MUL_VALUE_TERMS(VALUE=self.data; RHS=other)
-            _tmp205 = self.data
+            _tmp223 = self.data
+            #MUL_ZERO_OP(VALUE=_tmp223; OP=other)
             try:
-                not _tmp205
+                if not _tmp223:
+                    if other.has_active():
+                        #RETURN_NEW(HEAD=TERMS; DATA={other: 0})
+                        #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={other: 0})
+                        obj = new(cls)
+                        obj.head = TERMS
+                        obj.data = {other: 0}
+                        return obj
+                    else:
+                        return cls.zero
             except RedirectOperation:
-                pairs = other.data
-                if len(pairs)==1:
-                    t, c = pairs.items()[0]
-                    c = _tmp205 * c
-                    if c==1:
-                        return t
-                    #RETURN_NEW(HEAD=TERMS; DATA={t: c})
-                    #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={t: c})
-                    obj = new(cls)
-                    obj.head = TERMS
-                    obj.data = {t: c}
-                    return obj
-                #RETURN_NEW(HEAD=TERMS; DATA={other: _tmp205})
-                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={other: _tmp205})
+                #RETURN_NEW(HEAD=TERMS; DATA={other: _tmp223})
+                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={other: _tmp223})
                 obj = new(cls)
                 obj.head = TERMS
-                obj.data = {other: _tmp205}
+                obj.data = {other: _tmp223}
                 return obj
-            if _tmp205==1:
+            pairs = other.data
+            if len(pairs)==1:
+                t, c = pairs.items()[0]
+                c = _tmp223 * c
+                if c==1:
+                    return t
+                #RETURN_NEW(HEAD=TERMS; DATA={t: c})
+                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={t: c})
+                obj = new(cls)
+                obj.head = TERMS
+                obj.data = {t: c}
+                return obj
+            if _tmp223==1:
                 return other
             pairs = {}
             for t,c in other.data.iteritems():
-                c = _tmp205 * c
+                c = _tmp223 * c
                 try:
-                    if c:
+                    if c or t.has_active():
                         pairs[t] = c
                 except RedirectOperation:
                     pairs[t] = c
@@ -994,71 +1061,109 @@ def mul_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
             #MUL_NUMBER_FACTORS(LHS=self; RHS=other)
             #MUL_SYMBOL_VALUE(VALUE=self.data; LHS=other)
             #MUL_VALUE_SYMBOL(VALUE=self.data; RHS=other)
-            _tmp215 = self.data
+            _tmp236 = self.data
+            #MUL_ZERO_OP(VALUE=_tmp236; OP=other)
             try:
-                if not _tmp215:
-                    return cls.zero
+                if not _tmp236:
+                    if other.has_active():
+                        #RETURN_NEW(HEAD=TERMS; DATA={other: 0})
+                        #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={other: 0})
+                        obj = new(cls)
+                        obj.head = TERMS
+                        obj.data = {other: 0}
+                        return obj
+                    else:
+                        return cls.zero
             except RedirectOperation:
-                pass
-            if _tmp215==1:
+                #RETURN_NEW(HEAD=TERMS; DATA={other: _tmp236})
+                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={other: _tmp236})
+                obj = new(cls)
+                obj.head = TERMS
+                obj.data = {other: _tmp236}
+                return obj
+            if _tmp236==1:
                 return other
-            #RETURN_NEW(HEAD=TERMS; DATA={other: _tmp215})
-            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={other: _tmp215})
+            #RETURN_NEW(HEAD=TERMS; DATA={other: _tmp236})
+            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={other: _tmp236})
             obj = new(cls)
             obj.head = TERMS
-            obj.data = {other: _tmp215}
+            obj.data = {other: _tmp236}
             return obj
         else:
             #MUL_NUMBER_SYMBOL(LHS=self; RHS=other)
             #MUL_VALUE_SYMBOL(VALUE=self.data; RHS=other)
-            _tmp219 = self.data
+            _tmp245 = self.data
+            #MUL_ZERO_OP(VALUE=_tmp245; OP=other)
             try:
-                if not _tmp219:
-                    return cls.zero
+                if not _tmp245:
+                    if other.has_active():
+                        #RETURN_NEW(HEAD=TERMS; DATA={other: 0})
+                        #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={other: 0})
+                        obj = new(cls)
+                        obj.head = TERMS
+                        obj.data = {other: 0}
+                        return obj
+                    else:
+                        return cls.zero
             except RedirectOperation:
-                pass
-            if _tmp219==1:
+                #RETURN_NEW(HEAD=TERMS; DATA={other: _tmp245})
+                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={other: _tmp245})
+                obj = new(cls)
+                obj.head = TERMS
+                obj.data = {other: _tmp245}
+                return obj
+            if _tmp245==1:
                 return other
-            #RETURN_NEW(HEAD=TERMS; DATA={other: _tmp219})
-            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={other: _tmp219})
+            #RETURN_NEW(HEAD=TERMS; DATA={other: _tmp245})
+            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={other: _tmp245})
             obj = new(cls)
             obj.head = TERMS
-            obj.data = {other: _tmp219}
+            obj.data = {other: _tmp245}
             return obj
     elif lhead is TERMS:
         if rhead is NUMBER:
             #MUL_TERMS_NUMBER(LHS=self; RHS=other)
             #MUL_TERMS_VALUE(VALUE=other.data; LHS=self)
             #MUL_VALUE_TERMS(VALUE=other.data; RHS=self)
-            _tmp224 = other.data
+            _tmp255 = other.data
+            #MUL_ZERO_OP(VALUE=_tmp255; OP=self)
             try:
-                not _tmp224
+                if not _tmp255:
+                    if self.has_active():
+                        #RETURN_NEW(HEAD=TERMS; DATA={self: 0})
+                        #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: 0})
+                        obj = new(cls)
+                        obj.head = TERMS
+                        obj.data = {self: 0}
+                        return obj
+                    else:
+                        return cls.zero
             except RedirectOperation:
-                pairs = self.data
-                if len(pairs)==1:
-                    t, c = pairs.items()[0]
-                    c = _tmp224 * c
-                    if c==1:
-                        return t
-                    #RETURN_NEW(HEAD=TERMS; DATA={t: c})
-                    #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={t: c})
-                    obj = new(cls)
-                    obj.head = TERMS
-                    obj.data = {t: c}
-                    return obj
-                #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp224})
-                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp224})
+                #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp255})
+                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp255})
                 obj = new(cls)
                 obj.head = TERMS
-                obj.data = {self: _tmp224}
+                obj.data = {self: _tmp255}
                 return obj
-            if _tmp224==1:
+            pairs = self.data
+            if len(pairs)==1:
+                t, c = pairs.items()[0]
+                c = _tmp255 * c
+                if c==1:
+                    return t
+                #RETURN_NEW(HEAD=TERMS; DATA={t: c})
+                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={t: c})
+                obj = new(cls)
+                obj.head = TERMS
+                obj.data = {t: c}
+                return obj
+            if _tmp255==1:
                 return self
             pairs = {}
             for t,c in self.data.iteritems():
-                c = _tmp224 * c
+                c = _tmp255 * c
                 try:
-                    if c:
+                    if c or t.has_active():
                         pairs[t] = c
                 except RedirectOperation:
                     pairs[t] = c
@@ -1192,19 +1297,33 @@ def mul_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
             #MUL_FACTORS_NUMBER(LHS=self; RHS=other)
             #MUL_SYMBOL_VALUE(VALUE=other.data; LHS=self)
             #MUL_VALUE_SYMBOL(VALUE=other.data; RHS=self)
-            _tmp258 = other.data
+            _tmp292 = other.data
+            #MUL_ZERO_OP(VALUE=_tmp292; OP=self)
             try:
-                if not _tmp258:
-                    return cls.zero
+                if not _tmp292:
+                    if self.has_active():
+                        #RETURN_NEW(HEAD=TERMS; DATA={self: 0})
+                        #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: 0})
+                        obj = new(cls)
+                        obj.head = TERMS
+                        obj.data = {self: 0}
+                        return obj
+                    else:
+                        return cls.zero
             except RedirectOperation:
-                pass
-            if _tmp258==1:
+                #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp292})
+                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp292})
+                obj = new(cls)
+                obj.head = TERMS
+                obj.data = {self: _tmp292}
+                return obj
+            if _tmp292==1:
                 return self
-            #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp258})
-            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp258})
+            #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp292})
+            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp292})
             obj = new(cls)
             obj.head = TERMS
-            obj.data = {self: _tmp258}
+            obj.data = {self: _tmp292}
             return obj
         elif rhead is TERMS:
             #MUL_FACTORS_TERMS(LHS=self; RHS=other)
@@ -1260,22 +1379,22 @@ def mul_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                 if b is None:
                     pairs[t] = c
                 else:
-                    _tmp271 = b + c
+                    _tmp310 = b + c
                     try:
-                        if _tmp271:
+                        if _tmp310:
                             if t.head is NUMBER:
-                                r = t ** _tmp271
+                                r = t ** _tmp310
                                 if r.head is NUMBER:
                                     number *= r
                                     del pairs[t]
                                 else:
-                                    pairs[t] = _tmp271
+                                    pairs[t] = _tmp310
                             else:
-                                pairs[t] = _tmp271
+                                pairs[t] = _tmp310
                         else:
                             del pairs[t]
                     except RedirectOperation:
-                        pairs[t] = _tmp271
+                        pairs[t] = _tmp310
             #CANONIZE_FACTORS_DICT(DICT=pairs; NUMBER=number)
             if not pairs:
                 if number is 1:
@@ -1336,19 +1455,33 @@ def mul_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
             #MUL_SYMBOL_NUMBER(LHS=self; RHS=other)
             #MUL_SYMBOL_VALUE(VALUE=other.data; LHS=self)
             #MUL_VALUE_SYMBOL(VALUE=other.data; RHS=self)
-            _tmp284 = other.data
+            _tmp323 = other.data
+            #MUL_ZERO_OP(VALUE=_tmp323; OP=self)
             try:
-                if not _tmp284:
-                    return cls.zero
+                if not _tmp323:
+                    if self.has_active():
+                        #RETURN_NEW(HEAD=TERMS; DATA={self: 0})
+                        #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: 0})
+                        obj = new(cls)
+                        obj.head = TERMS
+                        obj.data = {self: 0}
+                        return obj
+                    else:
+                        return cls.zero
             except RedirectOperation:
-                pass
-            if _tmp284==1:
+                #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp323})
+                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp323})
+                obj = new(cls)
+                obj.head = TERMS
+                obj.data = {self: _tmp323}
+                return obj
+            if _tmp323==1:
                 return self
-            #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp284})
-            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp284})
+            #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp323})
+            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp323})
             obj = new(cls)
             obj.head = TERMS
-            obj.data = {self: _tmp284}
+            obj.data = {self: _tmp323}
             return obj
         elif rhead is TERMS:
             #MUL_SYMBOL_TERMS(LHS=self; RHS=other)
@@ -1434,35 +1567,45 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                 #DIV_TERMS_VALUE(VALUE=other; LHS=self)
                 #MUL_TERMS_VALUE(LHS=self; VALUE=div(1,other))
                 #MUL_VALUE_TERMS(VALUE=div(1,other); RHS=self)
-                _tmp308 = div(1,other)
+                _tmp352 = div(1,other)
+                #MUL_ZERO_OP(VALUE=_tmp352; OP=self)
                 try:
-                    not _tmp308
+                    if not _tmp352:
+                        if self.has_active():
+                            #RETURN_NEW(HEAD=TERMS; DATA={self: 0})
+                            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: 0})
+                            obj = new(cls)
+                            obj.head = TERMS
+                            obj.data = {self: 0}
+                            return obj
+                        else:
+                            return cls.zero
                 except RedirectOperation:
-                    pairs = self.data
-                    if len(pairs)==1:
-                        t, c = pairs.items()[0]
-                        c = _tmp308 * c
-                        if c==1:
-                            return t
-                        #RETURN_NEW(HEAD=TERMS; DATA={t: c})
-                        #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={t: c})
-                        obj = new(cls)
-                        obj.head = TERMS
-                        obj.data = {t: c}
-                        return obj
-                    #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp308})
-                    #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp308})
+                    #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp352})
+                    #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp352})
                     obj = new(cls)
                     obj.head = TERMS
-                    obj.data = {self: _tmp308}
+                    obj.data = {self: _tmp352}
                     return obj
-                if _tmp308==1:
+                pairs = self.data
+                if len(pairs)==1:
+                    t, c = pairs.items()[0]
+                    c = _tmp352 * c
+                    if c==1:
+                        return t
+                    #RETURN_NEW(HEAD=TERMS; DATA={t: c})
+                    #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={t: c})
+                    obj = new(cls)
+                    obj.head = TERMS
+                    obj.data = {t: c}
+                    return obj
+                if _tmp352==1:
                     return self
                 pairs = {}
                 for t,c in self.data.iteritems():
-                    c = _tmp308 * c
+                    c = _tmp352 * c
                     try:
-                        if c:
+                        if c or t.has_active():
                             pairs[t] = c
                     except RedirectOperation:
                         pairs[t] = c
@@ -1486,36 +1629,64 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                 #MUL_FACTORS_VALUE(LHS=self; VALUE=div(1,other))
                 #MUL_SYMBOL_VALUE(VALUE=div(1,other); LHS=self)
                 #MUL_VALUE_SYMBOL(VALUE=div(1,other); RHS=self)
-                _tmp319 = div(1,other)
+                _tmp366 = div(1,other)
+                #MUL_ZERO_OP(VALUE=_tmp366; OP=self)
                 try:
-                    if not _tmp319:
-                        return cls.zero
+                    if not _tmp366:
+                        if self.has_active():
+                            #RETURN_NEW(HEAD=TERMS; DATA={self: 0})
+                            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: 0})
+                            obj = new(cls)
+                            obj.head = TERMS
+                            obj.data = {self: 0}
+                            return obj
+                        else:
+                            return cls.zero
                 except RedirectOperation:
-                    pass
-                if _tmp319==1:
+                    #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp366})
+                    #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp366})
+                    obj = new(cls)
+                    obj.head = TERMS
+                    obj.data = {self: _tmp366}
+                    return obj
+                if _tmp366==1:
                     return self
-                #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp319})
-                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp319})
+                #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp366})
+                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp366})
                 obj = new(cls)
                 obj.head = TERMS
-                obj.data = {self: _tmp319}
+                obj.data = {self: _tmp366}
                 return obj
             else:
                 #DIV_SYMBOL_VALUE(VALUE=other; LHS=self)
                 #MUL_VALUE_SYMBOL(VALUE=div(1, other); RHS=self)
-                _tmp323 = div(1, other)
+                _tmp375 = div(1, other)
+                #MUL_ZERO_OP(VALUE=_tmp375; OP=self)
                 try:
-                    if not _tmp323:
-                        return cls.zero
+                    if not _tmp375:
+                        if self.has_active():
+                            #RETURN_NEW(HEAD=TERMS; DATA={self: 0})
+                            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: 0})
+                            obj = new(cls)
+                            obj.head = TERMS
+                            obj.data = {self: 0}
+                            return obj
+                        else:
+                            return cls.zero
                 except RedirectOperation:
-                    pass
-                if _tmp323==1:
+                    #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp375})
+                    #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp375})
+                    obj = new(cls)
+                    obj.head = TERMS
+                    obj.data = {self: _tmp375}
+                    return obj
+                if _tmp375==1:
                     return self
-                #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp323})
-                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp323})
+                #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp375})
+                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp375})
                 obj = new(cls)
                 obj.head = TERMS
-                obj.data = {self: _tmp323}
+                obj.data = {self: _tmp375}
                 return obj
         other = cls.convert(other, False)
         if other is NotImplemented:
@@ -1534,6 +1705,25 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
         elif rhead is TERMS:
             #DIV_NUMBER_TERMS(LHS=self; RHS=other)
             #DIV_VALUE_TERMS(VALUE=self.data; RHS=other)
+            #MUL_ZERO_OP(VALUE=self.data; OP=other)
+            try:
+                if not self.data:
+                    if other.has_active():
+                        #RETURN_NEW(HEAD=TERMS; DATA={other: 0})
+                        #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={other: 0})
+                        obj = new(cls)
+                        obj.head = TERMS
+                        obj.data = {other: 0}
+                        return obj
+                    else:
+                        return cls.zero
+            except RedirectOperation:
+                #RETURN_NEW(HEAD=TERMS; DATA={other: self.data})
+                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={other: self.data})
+                obj = new(cls)
+                obj.head = TERMS
+                obj.data = {other: self.data}
+                return obj
             pairs = other.data
             if len(pairs)==1:
                 t, c = pairs.items()[0]
@@ -1549,17 +1739,17 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                 obj.head = TERMS
                 obj.data = {t: c}
                 return obj
-            #NEWINSTANCE(OBJ=_tmp331; HEAD=FACTORS; DATA={other: -1})
-            _tmp331 = new(cls)
-            _tmp331.head = FACTORS
-            _tmp331.data = {other: -1}
+            #NEWINSTANCE(OBJ=_tmp388; HEAD=FACTORS; DATA={other: -1})
+            _tmp388 = new(cls)
+            _tmp388.head = FACTORS
+            _tmp388.data = {other: -1}
             if self.data==1:
-                return _tmp331
-            #RETURN_NEW(HEAD=TERMS; DATA={_tmp331: self.data})
-            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={_tmp331: self.data})
+                return _tmp388
+            #RETURN_NEW(HEAD=TERMS; DATA={_tmp388: self.data})
+            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={_tmp388: self.data})
             obj = new(cls)
             obj.head = TERMS
-            obj.data = {_tmp331: self.data}
+            obj.data = {_tmp388: self.data}
             return obj
         elif rhead is FACTORS:
             #DIV_NUMBER_FACTORS(LHS=self; RHS=other)
@@ -1575,24 +1765,24 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
             else:
                 #NEG_DICT_VALUES(DICT_IN=pairs; DICT_OUT=new_pairs)
                 new_pairs = dict([(t, -c) for t,c in pairs.iteritems()])
-            #NEWINSTANCE(OBJ=_tmp338; HEAD=FACTORS; DATA=new_pairs)
-            _tmp338 = new(cls)
-            _tmp338.head = FACTORS
-            _tmp338.data = new_pairs
+            #NEWINSTANCE(OBJ=_tmp400; HEAD=FACTORS; DATA=new_pairs)
+            _tmp400 = new(cls)
+            _tmp400.head = FACTORS
+            _tmp400.data = new_pairs
             if self.data==1:
-                return _tmp338
-            #RETURN_NEW(HEAD=TERMS; DATA={_tmp338: self.data})
-            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={_tmp338: self.data})
+                return _tmp400
+            #RETURN_NEW(HEAD=TERMS; DATA={_tmp400: self.data})
+            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={_tmp400: self.data})
             obj = new(cls)
             obj.head = TERMS
-            obj.data = {_tmp338: self.data}
+            obj.data = {_tmp400: self.data}
             return obj
         else:
             #DIV_NUMBER_SYMBOL(LHS=self; RHS=other)
             #DIV_VALUE_SYMBOL(VALUE=self.data; RHS=other)
-            _tmp344 = self.data
+            _tmp406 = self.data
             try:
-                if not _tmp344:
+                if not _tmp406:
                     return cls.zero
             except RedirectOperation:
                 pass
@@ -1600,13 +1790,13 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
             obj2 = new(cls)
             obj2.head = FACTORS
             obj2.data = {other: -1}
-            if _tmp344==1:
+            if _tmp406==1:
                 return obj2
-            #RETURN_NEW(HEAD=TERMS; DATA={obj2: _tmp344})
-            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={obj2: _tmp344})
+            #RETURN_NEW(HEAD=TERMS; DATA={obj2: _tmp406})
+            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={obj2: _tmp406})
             obj = new(cls)
             obj.head = TERMS
-            obj.data = {obj2: _tmp344}
+            obj.data = {obj2: _tmp406}
             return obj
     elif lhead is TERMS:
         if rhead is NUMBER:
@@ -1614,35 +1804,45 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
             #DIV_TERMS_VALUE(VALUE=other.data; LHS=self)
             #MUL_TERMS_VALUE(LHS=self; VALUE=div(1,other.data))
             #MUL_VALUE_TERMS(VALUE=div(1,other.data); RHS=self)
-            _tmp351 = div(1,other.data)
+            _tmp413 = div(1,other.data)
+            #MUL_ZERO_OP(VALUE=_tmp413; OP=self)
             try:
-                not _tmp351
+                if not _tmp413:
+                    if self.has_active():
+                        #RETURN_NEW(HEAD=TERMS; DATA={self: 0})
+                        #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: 0})
+                        obj = new(cls)
+                        obj.head = TERMS
+                        obj.data = {self: 0}
+                        return obj
+                    else:
+                        return cls.zero
             except RedirectOperation:
-                pairs = self.data
-                if len(pairs)==1:
-                    t, c = pairs.items()[0]
-                    c = _tmp351 * c
-                    if c==1:
-                        return t
-                    #RETURN_NEW(HEAD=TERMS; DATA={t: c})
-                    #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={t: c})
-                    obj = new(cls)
-                    obj.head = TERMS
-                    obj.data = {t: c}
-                    return obj
-                #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp351})
-                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp351})
+                #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp413})
+                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp413})
                 obj = new(cls)
                 obj.head = TERMS
-                obj.data = {self: _tmp351}
+                obj.data = {self: _tmp413}
                 return obj
-            if _tmp351==1:
+            pairs = self.data
+            if len(pairs)==1:
+                t, c = pairs.items()[0]
+                c = _tmp413 * c
+                if c==1:
+                    return t
+                #RETURN_NEW(HEAD=TERMS; DATA={t: c})
+                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={t: c})
+                obj = new(cls)
+                obj.head = TERMS
+                obj.data = {t: c}
+                return obj
+            if _tmp413==1:
                 return self
             pairs = {}
             for t,c in self.data.iteritems():
-                c = _tmp351 * c
+                c = _tmp413 * c
                 try:
-                    if c:
+                    if c or t.has_active():
                         pairs[t] = c
                 except RedirectOperation:
                     pairs[t] = c
@@ -1682,32 +1882,32 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                         obj.head = FACTORS
                         obj.data = {t1:1, t2:-1}
                         return obj
-                    #NEWINSTANCE(OBJ=_tmp359; HEAD=FACTORS; DATA={t1:1, t2:-1})
-                    _tmp359 = new(cls)
-                    _tmp359.head = FACTORS
-                    _tmp359.data = {t1:1, t2:-1}
+                    #NEWINSTANCE(OBJ=_tmp424; HEAD=FACTORS; DATA={t1:1, t2:-1})
+                    _tmp424 = new(cls)
+                    _tmp424.head = FACTORS
+                    _tmp424.data = {t1:1, t2:-1}
                 else:
-                    #NEWINSTANCE(OBJ=_tmp359; HEAD=FACTORS; DATA={t1:1, other:-1})
-                    _tmp359 = new(cls)
-                    _tmp359.head = FACTORS
-                    _tmp359.data = {t1:1, other:-1}
-                #RETURN_NEW(HEAD=TERMS; DATA={_tmp359:c})
-                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={_tmp359:c})
+                    #NEWINSTANCE(OBJ=_tmp424; HEAD=FACTORS; DATA={t1:1, other:-1})
+                    _tmp424 = new(cls)
+                    _tmp424.head = FACTORS
+                    _tmp424.data = {t1:1, other:-1}
+                #RETURN_NEW(HEAD=TERMS; DATA={_tmp424:c})
+                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={_tmp424:c})
                 obj = new(cls)
                 obj.head = TERMS
-                obj.data = {_tmp359:c}
+                obj.data = {_tmp424:c}
                 return obj
             elif len(rpairs)==1:
                 t2, c2 = rpairs.items()[0]
                 c = div(1, c2)
                 if t2==self:
                     return cls.convert(c)
-                _tmp359 = self / t2
-                #RETURN_NEW(HEAD=TERMS; DATA={_tmp359:c})
-                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={_tmp359:c})
+                _tmp424 = self / t2
+                #RETURN_NEW(HEAD=TERMS; DATA={_tmp424:c})
+                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={_tmp424:c})
                 obj = new(cls)
                 obj.head = TERMS
-                obj.data = {_tmp359:c}
+                obj.data = {_tmp424:c}
                 return obj
             #RETURN_NEW(HEAD=FACTORS; DATA={self:1, other:-1})
             #NEWINSTANCE(OBJ=obj; HEAD=FACTORS; DATA={self:1, other:-1})
@@ -1734,35 +1934,45 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                 elif head is TERMS:
                     #MUL_TERMS_VALUE(LHS=t; VALUE=c)
                     #MUL_VALUE_TERMS(VALUE=c; RHS=t)
-                    _tmp374 = c
+                    _tmp439 = c
+                    #MUL_ZERO_OP(VALUE=_tmp439; OP=t)
                     try:
-                        not _tmp374
+                        if not _tmp439:
+                            if t.has_active():
+                                #RETURN_NEW(HEAD=TERMS; DATA={t: 0})
+                                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={t: 0})
+                                obj = new(cls)
+                                obj.head = TERMS
+                                obj.data = {t: 0}
+                                return obj
+                            else:
+                                return cls.zero
                     except RedirectOperation:
-                        pairs = t.data
-                        if len(pairs)==1:
-                            t, c = pairs.items()[0]
-                            c = _tmp374 * c
-                            if c==1:
-                                return t
-                            #RETURN_NEW(HEAD=TERMS; DATA={t: c})
-                            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={t: c})
-                            obj = new(cls)
-                            obj.head = TERMS
-                            obj.data = {t: c}
-                            return obj
-                        #RETURN_NEW(HEAD=TERMS; DATA={t: _tmp374})
-                        #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={t: _tmp374})
+                        #RETURN_NEW(HEAD=TERMS; DATA={t: _tmp439})
+                        #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={t: _tmp439})
                         obj = new(cls)
                         obj.head = TERMS
-                        obj.data = {t: _tmp374}
+                        obj.data = {t: _tmp439}
                         return obj
-                    if _tmp374==1:
+                    pairs = t.data
+                    if len(pairs)==1:
+                        t, c = pairs.items()[0]
+                        c = _tmp439 * c
+                        if c==1:
+                            return t
+                        #RETURN_NEW(HEAD=TERMS; DATA={t: c})
+                        #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={t: c})
+                        obj = new(cls)
+                        obj.head = TERMS
+                        obj.data = {t: c}
+                        return obj
+                    if _tmp439==1:
                         return t
                     pairs = {}
                     for t,c in t.data.iteritems():
-                        c = _tmp374 * c
+                        c = _tmp439 * c
                         try:
-                            if c:
+                            if c or t.has_active():
                                 pairs[t] = c
                         except RedirectOperation:
                             pairs[t] = c
@@ -1784,19 +1994,33 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                 else:
                     #MUL_SYMBOL_VALUE(LHS=t; VALUE=c)
                     #MUL_VALUE_SYMBOL(VALUE=c; RHS=t)
-                    _tmp383 = c
+                    _tmp451 = c
+                    #MUL_ZERO_OP(VALUE=_tmp451; OP=t)
                     try:
-                        if not _tmp383:
-                            return cls.zero
+                        if not _tmp451:
+                            if t.has_active():
+                                #RETURN_NEW(HEAD=TERMS; DATA={t: 0})
+                                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={t: 0})
+                                obj = new(cls)
+                                obj.head = TERMS
+                                obj.data = {t: 0}
+                                return obj
+                            else:
+                                return cls.zero
                     except RedirectOperation:
-                        pass
-                    if _tmp383==1:
+                        #RETURN_NEW(HEAD=TERMS; DATA={t: _tmp451})
+                        #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={t: _tmp451})
+                        obj = new(cls)
+                        obj.head = TERMS
+                        obj.data = {t: _tmp451}
+                        return obj
+                    if _tmp451==1:
                         return t
-                    #RETURN_NEW(HEAD=TERMS; DATA={t: _tmp383})
-                    #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={t: _tmp383})
+                    #RETURN_NEW(HEAD=TERMS; DATA={t: _tmp451})
+                    #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={t: _tmp451})
                     obj = new(cls)
                     obj.head = TERMS
-                    obj.data = {t: _tmp383}
+                    obj.data = {t: _tmp451}
                     return obj
             #DIV_SYMBOL_FACTORS(LHS=self; RHS=other)
             pairs = other.data
@@ -1863,15 +2087,15 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                 t, c = pairs.items()[0]
                 if t==other:
                     return cls.convert(c)
-                #NEWINSTANCE(OBJ=_tmp397; HEAD=FACTORS; DATA={t:1, other: -1})
-                _tmp397 = new(cls)
-                _tmp397.head = FACTORS
-                _tmp397.data = {t:1, other: -1}
-                #RETURN_NEW(HEAD=TERMS; DATA={_tmp397: c})
-                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={_tmp397: c})
+                #NEWINSTANCE(OBJ=_tmp470; HEAD=FACTORS; DATA={t:1, other: -1})
+                _tmp470 = new(cls)
+                _tmp470.head = FACTORS
+                _tmp470.data = {t:1, other: -1}
+                #RETURN_NEW(HEAD=TERMS; DATA={_tmp470: c})
+                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={_tmp470: c})
                 obj = new(cls)
                 obj.head = TERMS
-                obj.data = {_tmp397: c}
+                obj.data = {_tmp470: c}
                 return obj
             #RETURN_NEW(HEAD=FACTORS; DATA={self: 1, other: -1})
             #NEWINSTANCE(OBJ=obj; HEAD=FACTORS; DATA={self: 1, other: -1})
@@ -1886,19 +2110,33 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
             #MUL_FACTORS_VALUE(LHS=self; VALUE=div(1,other.data))
             #MUL_SYMBOL_VALUE(VALUE=div(1,other.data); LHS=self)
             #MUL_VALUE_SYMBOL(VALUE=div(1,other.data); RHS=self)
-            _tmp407 = div(1,other.data)
+            _tmp480 = div(1,other.data)
+            #MUL_ZERO_OP(VALUE=_tmp480; OP=self)
             try:
-                if not _tmp407:
-                    return cls.zero
+                if not _tmp480:
+                    if self.has_active():
+                        #RETURN_NEW(HEAD=TERMS; DATA={self: 0})
+                        #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: 0})
+                        obj = new(cls)
+                        obj.head = TERMS
+                        obj.data = {self: 0}
+                        return obj
+                    else:
+                        return cls.zero
             except RedirectOperation:
-                pass
-            if _tmp407==1:
+                #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp480})
+                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp480})
+                obj = new(cls)
+                obj.head = TERMS
+                obj.data = {self: _tmp480}
+                return obj
+            if _tmp480==1:
                 return self
-            #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp407})
-            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp407})
+            #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp480})
+            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp480})
             obj = new(cls)
             obj.head = TERMS
-            obj.data = {self: _tmp407}
+            obj.data = {self: _tmp480}
             return obj
         elif rhead is TERMS:
             #DIV_FACTORS_TERMS(LHS=self; RHS=other)
@@ -1920,35 +2158,45 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                 elif head is TERMS:
                     #MUL_TERMS_VALUE(LHS=t; VALUE=c)
                     #MUL_VALUE_TERMS(VALUE=c; RHS=t)
-                    _tmp414 = c
+                    _tmp492 = c
+                    #MUL_ZERO_OP(VALUE=_tmp492; OP=t)
                     try:
-                        not _tmp414
+                        if not _tmp492:
+                            if t.has_active():
+                                #RETURN_NEW(HEAD=TERMS; DATA={t: 0})
+                                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={t: 0})
+                                obj = new(cls)
+                                obj.head = TERMS
+                                obj.data = {t: 0}
+                                return obj
+                            else:
+                                return cls.zero
                     except RedirectOperation:
-                        pairs = t.data
-                        if len(pairs)==1:
-                            t, c = pairs.items()[0]
-                            c = _tmp414 * c
-                            if c==1:
-                                return t
-                            #RETURN_NEW(HEAD=TERMS; DATA={t: c})
-                            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={t: c})
-                            obj = new(cls)
-                            obj.head = TERMS
-                            obj.data = {t: c}
-                            return obj
-                        #RETURN_NEW(HEAD=TERMS; DATA={t: _tmp414})
-                        #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={t: _tmp414})
+                        #RETURN_NEW(HEAD=TERMS; DATA={t: _tmp492})
+                        #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={t: _tmp492})
                         obj = new(cls)
                         obj.head = TERMS
-                        obj.data = {t: _tmp414}
+                        obj.data = {t: _tmp492}
                         return obj
-                    if _tmp414==1:
+                    pairs = t.data
+                    if len(pairs)==1:
+                        t, c = pairs.items()[0]
+                        c = _tmp492 * c
+                        if c==1:
+                            return t
+                        #RETURN_NEW(HEAD=TERMS; DATA={t: c})
+                        #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={t: c})
+                        obj = new(cls)
+                        obj.head = TERMS
+                        obj.data = {t: c}
+                        return obj
+                    if _tmp492==1:
                         return t
                     pairs = {}
                     for t,c in t.data.iteritems():
-                        c = _tmp414 * c
+                        c = _tmp492 * c
                         try:
-                            if c:
+                            if c or t.has_active():
                                 pairs[t] = c
                         except RedirectOperation:
                             pairs[t] = c
@@ -1970,19 +2218,33 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                 else:
                     #MUL_SYMBOL_VALUE(LHS=t; VALUE=c)
                     #MUL_VALUE_SYMBOL(VALUE=c; RHS=t)
-                    _tmp423 = c
+                    _tmp504 = c
+                    #MUL_ZERO_OP(VALUE=_tmp504; OP=t)
                     try:
-                        if not _tmp423:
-                            return cls.zero
+                        if not _tmp504:
+                            if t.has_active():
+                                #RETURN_NEW(HEAD=TERMS; DATA={t: 0})
+                                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={t: 0})
+                                obj = new(cls)
+                                obj.head = TERMS
+                                obj.data = {t: 0}
+                                return obj
+                            else:
+                                return cls.zero
                     except RedirectOperation:
-                        pass
-                    if _tmp423==1:
+                        #RETURN_NEW(HEAD=TERMS; DATA={t: _tmp504})
+                        #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={t: _tmp504})
+                        obj = new(cls)
+                        obj.head = TERMS
+                        obj.data = {t: _tmp504}
+                        return obj
+                    if _tmp504==1:
                         return t
-                    #RETURN_NEW(HEAD=TERMS; DATA={t: _tmp423})
-                    #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={t: _tmp423})
+                    #RETURN_NEW(HEAD=TERMS; DATA={t: _tmp504})
+                    #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={t: _tmp504})
                     obj = new(cls)
                     obj.head = TERMS
-                    obj.data = {t: _tmp423}
+                    obj.data = {t: _tmp504}
                     return obj
             #DIV_FACTORS_SYMBOL(LHS=self; RHS=other)
             pairs = dict(self.data)
@@ -2026,22 +2288,22 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                 if b is None:
                     pairs[t] = -c
                 else:
-                    _tmp433 = b + -c
+                    _tmp519 = b + -c
                     try:
-                        if _tmp433:
+                        if _tmp519:
                             if t.head is NUMBER:
-                                r = t ** _tmp433
+                                r = t ** _tmp519
                                 if r.head is NUMBER:
                                     number *= r
                                     del pairs[t]
                                 else:
-                                    pairs[t] = _tmp433
+                                    pairs[t] = _tmp519
                             else:
-                                pairs[t] = _tmp433
+                                pairs[t] = _tmp519
                         else:
                             del pairs[t]
                     except RedirectOperation:
-                        pairs[t] = _tmp433
+                        pairs[t] = _tmp519
             #CANONIZE_FACTORS_DICT(DICT=pairs; NUMBER=number)
             if not pairs:
                 if number is 1:
@@ -2053,18 +2315,23 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                    return t * number
                if t==cls.one:
                    return number
-            if number is 1:
+            if number==1:
                 #RETURN_NEW(HEAD=FACTORS; DATA=pairs)
                 #NEWINSTANCE(OBJ=obj; HEAD=FACTORS; DATA=pairs)
                 obj = new(cls)
                 obj.head = FACTORS
                 obj.data = pairs
                 return obj
-            #NEWINSTANCE(OBJ=obj; HEAD=FACTORS; DATA=pairs)
+            #NEWINSTANCE(OBJ=_tmp518; HEAD=FACTORS; DATA=pairs)
+            _tmp518 = new(cls)
+            _tmp518.head = FACTORS
+            _tmp518.data = pairs
+            #RETURN_NEW(HEAD=TERMS; DATA={_tmp518: number})
+            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={_tmp518: number})
             obj = new(cls)
-            obj.head = FACTORS
-            obj.data = pairs
-            return obj * number
+            obj.head = TERMS
+            obj.data = {_tmp518: number}
+            return obj
         else:
             #DIV_FACTORS_SYMBOL(LHS=self; RHS=other)
             pairs = dict(self.data)
@@ -2102,19 +2369,33 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
             #DIV_SYMBOL_NUMBER(LHS=self; RHS=other)
             #DIV_SYMBOL_VALUE(VALUE=other.data; LHS=self)
             #MUL_VALUE_SYMBOL(VALUE=div(1, other.data); RHS=self)
-            _tmp446 = div(1, other.data)
+            _tmp534 = div(1, other.data)
+            #MUL_ZERO_OP(VALUE=_tmp534; OP=self)
             try:
-                if not _tmp446:
-                    return cls.zero
+                if not _tmp534:
+                    if self.has_active():
+                        #RETURN_NEW(HEAD=TERMS; DATA={self: 0})
+                        #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: 0})
+                        obj = new(cls)
+                        obj.head = TERMS
+                        obj.data = {self: 0}
+                        return obj
+                    else:
+                        return cls.zero
             except RedirectOperation:
-                pass
-            if _tmp446==1:
+                #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp534})
+                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp534})
+                obj = new(cls)
+                obj.head = TERMS
+                obj.data = {self: _tmp534}
+                return obj
+            if _tmp534==1:
                 return self
-            #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp446})
-            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp446})
+            #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp534})
+            #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={self: _tmp534})
             obj = new(cls)
             obj.head = TERMS
-            obj.data = {self: _tmp446}
+            obj.data = {self: _tmp534}
             return obj
         elif rhead is TERMS:
             #DIV_SYMBOL_TERMS(LHS=self; RHS=other)
@@ -2123,15 +2404,15 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                 t,c = pairs.items()[0]
                 if self==t:
                     return cls.convert(div(1, c))
-                #NEWINSTANCE(OBJ=_tmp449; HEAD=FACTORS; DATA={self:1, t:-1})
-                _tmp449 = new(cls)
-                _tmp449.head = FACTORS
-                _tmp449.data = {self:1, t:-1}
-                #RETURN_NEW(HEAD=TERMS; DATA={_tmp449: div(1, c)})
-                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={_tmp449: div(1, c)})
+                #NEWINSTANCE(OBJ=_tmp542; HEAD=FACTORS; DATA={self:1, t:-1})
+                _tmp542 = new(cls)
+                _tmp542.head = FACTORS
+                _tmp542.data = {self:1, t:-1}
+                #RETURN_NEW(HEAD=TERMS; DATA={_tmp542: div(1, c)})
+                #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA={_tmp542: div(1, c)})
                 obj = new(cls)
                 obj.head = TERMS
-                obj.data = {_tmp449: div(1, c)}
+                obj.data = {_tmp542: div(1, c)}
                 return obj
             #RETURN_NEW(HEAD=FACTORS; DATA={self:1, other:-1})
             #NEWINSTANCE(OBJ=obj; HEAD=FACTORS; DATA={self:1, other:-1})

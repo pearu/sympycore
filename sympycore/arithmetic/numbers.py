@@ -652,7 +652,7 @@ def as_direction(x):
 
 cmp_error = "no ordering relation is defined for complex numbers"
 
-class ExtendedNumber:
+class ExtendedNumber(object):
 
     def __init__(self, infinite, direction):
         self.infinite = infinite

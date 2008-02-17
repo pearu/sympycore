@@ -241,7 +241,6 @@ for t,c in %(RHS)s.data.iteritems():
 @RETURN_NEW(HEAD=TERMS; DATA=pairs)
 '''
 
-
 #======================================
 # SUB macros
 #======================================
@@ -306,16 +305,23 @@ for t,c in %(RHS)s.data.iteritems():
 # MUL macros
 #======================================
 
+MUL_ZERO_OP = '''\
+try:
+    if not %(VALUE)s:
+        if %(OP)s.has_active():
+            @RETURN_NEW(HEAD=TERMS; DATA={%(OP)s: 0})
+        else:
+            return cls.zero
+except RedirectOperation:
+    @RETURN_NEW(HEAD=TERMS; DATA={%(OP)s: %(VALUE)s})
+'''
+
 MUL_VALUE_NUMBER='@RETURN_NEW(HEAD=NUMBER; DATA=%(VALUE)s * %(RHS)s.data)\n'
 MUL_NUMBER_VALUE='@RETURN_NEW(HEAD=NUMBER; DATA=%(LHS)s.data * %(VALUE)s)\n'
 MUL_NUMBER_NUMBER = '@MUL_VALUE_NUMBER(VALUE=%(LHS)s.data; RHS=%(RHS)s)\n'
 MUL_VALUE_SYMBOL = '''\
 %(TMP)s = %(VALUE)s
-try:
-    if not %(TMP)s:
-        return cls.zero
-except RedirectOperation:
-    pass
+@MUL_ZERO_OP(VALUE=%(TMP)s; OP=%(RHS)s)
 if %(TMP)s==1:
     return %(RHS)s
 @RETURN_NEW(HEAD=TERMS; DATA={%(RHS)s: %(TMP)s})
@@ -336,24 +342,21 @@ else:
 '''
 MUL_VALUE_TERMS = '''\
 %(TMP)s = %(VALUE)s
-try:
-    not %(TMP)s
-except RedirectOperation:
-    pairs = %(RHS)s.data
-    if len(pairs)==1:
-        t, c = pairs.items()[0]
-        c = %(TMP)s * c
-        if c==1:
-            return t
-        @RETURN_NEW(HEAD=TERMS; DATA={t: c})
-    @RETURN_NEW(HEAD=TERMS; DATA={%(RHS)s: %(TMP)s})
+@MUL_ZERO_OP(VALUE=%(TMP)s; OP=%(RHS)s)
+pairs = %(RHS)s.data
+if len(pairs)==1:
+    t, c = pairs.items()[0]
+    c = %(TMP)s * c
+    if c==1:
+        return t
+    @RETURN_NEW(HEAD=TERMS; DATA={t: c})
 if %(TMP)s==1:
     return %(RHS)s
 pairs = {}
 for t,c in %(RHS)s.data.iteritems():
     c = %(TMP)s * c
     try:
-        if c:
+        if c or t.has_active():
             pairs[t] = c
     except RedirectOperation:
         pairs[t] = c
@@ -456,8 +459,8 @@ DIV_NUMBER_SYMBOL = '@DIV_VALUE_SYMBOL(VALUE=%(LHS)s.data; RHS=%(RHS)s)\n'
 DIV_SYMBOL_NUMBER = '@DIV_SYMBOL_VALUE(VALUE=%(RHS)s.data; LHS=%(LHS)s)\n'
 DIV_TERMS_VALUE = '@MUL_TERMS_VALUE(LHS=%(LHS)s; VALUE=div(1,%(VALUE)s))\n'
 
-#XXX: 0/(undefined+x)
 DIV_VALUE_TERMS = '''\
+@MUL_ZERO_OP(VALUE=%(VALUE)s; OP=%(RHS)s)
 pairs = %(RHS)s.data
 if len(pairs)==1:
     t, c = pairs.items()[0]
@@ -614,10 +617,10 @@ number = 1
 for t,c in %(RHS)s.data.iteritems():
     @MUL_FACTOR_VALUE_DICT(FACTOR=t; VALUE=-c; DICT=pairs; DICT_GET=pairs_get; NUMBER=number)
 @CANONIZE_FACTORS_DICT(DICT=pairs; NUMBER=number)
-if number is 1:
+if number==1:
     @RETURN_NEW(HEAD=FACTORS; DATA=pairs)
-@NEWINSTANCE(OBJ=obj; HEAD=FACTORS; DATA=pairs)
-return obj * number
+@NEWINSTANCE(OBJ=%(TMP)s; HEAD=FACTORS; DATA=pairs)
+@RETURN_NEW(HEAD=TERMS; DATA={%(TMP)s: number})
 '''
 
 def generate_if_blocks(heads, prefix='', tab=' '*4):
