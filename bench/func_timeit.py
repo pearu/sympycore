@@ -2,7 +2,7 @@ import sys
 import math
 import timeit
 
-def run_tests(seq, start_revision=None):
+def run_tests(seq):
     titles = []
     stones = []
     for func in seq:
@@ -56,7 +56,7 @@ class Timer(timeit.Timer):
 
     def smart_timeit(self, repeat=3, verbose=2):
         if self.disable:
-            return
+            return -1
         if verbose:
             print 'Running benchmark titled %r' % (self.title)
         units = ["s", "ms", "\xc2\xb5s", "ns"]

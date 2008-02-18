@@ -1,3 +1,5 @@
+START_REVISION=564
+
 from sympycore import MatrixRing
 
 a = MatrixRing[15,20].random()
@@ -34,5 +36,4 @@ def test_add_sparse():
 if __name__=='__main__':
     from func_timeit import run_tests
     run_tests([test_neg, test_add, test_sub, test_mul_coeff, test_div_coeff,
-               test_add_sparse], start_revision=564)
-
+               test_add_sparse])
