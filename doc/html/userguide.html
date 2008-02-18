@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.4.1: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.4: http://docutils.sourceforge.net/" />
 <title>SympyCore Users Guide</title>
 <meta name="authors" content="Pearu Peterson" />
 <style type="text/css">
@@ -342,6 +342,7 @@ ul.auto-toc {
 </ul>
 </li>
 <li><a class="reference" href="#matrices" id="id24" name="id24">Matrices</a></li>
+<li><a class="reference" href="#canonical-forms-and-suppressed-evaluation" id="id25" name="id25">Canonical forms and suppressed evaluation</a></li>
 </ul>
 </div>
 <div class="section">
@@ -988,6 +989,94 @@ content:</p>
  15  10
  13  15
 </pre>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id25" id="canonical-forms-and-suppressed-evaluation" name="canonical-forms-and-suppressed-evaluation">Canonical forms and suppressed evaluation</a></h1>
+<p>The <tt class="docutils literal"><span class="pre">Calculus</span></tt> algebra automatically applies some transformations to
+expressions. The purpose of these transformations is to permit quick
+recognition of mathematically equivalent expressions.
+Sums and products of numbers are always evaluated, and
+multiples/powers of identical subexpressions are automatically
+collected together.  Rational factors are also automatically
+distributed over sums. For example, the following transformations
+are performed automatically:</p>
+<blockquote>
+<p><tt class="docutils literal"><span class="pre">2*3</span> <span class="pre">-&gt;</span> <span class="pre">6</span></tt></p>
+<p><tt class="docutils literal"><span class="pre">x+x</span> <span class="pre">-&gt;</span> <span class="pre">2*x</span></tt></p>
+<p><tt class="docutils literal"><span class="pre">x*x</span> <span class="pre">-&gt;</span> <span class="pre">x**2</span></tt></p>
+<p><tt class="docutils literal"><span class="pre">2*(x+y)</span> <span class="pre">-&gt;</span> <span class="pre">2*x</span> <span class="pre">+</span> <span class="pre">2*y</span></tt></p>
+</blockquote>
+<p>An expression to which default transformations have been applied is
+said to be in canonical or normalized form. The enforcement of
+canonical forms important for performance reasons as it ensures that,
+in many important basic cases, expressions that are mathematically
+equivalent will be recognized directly as equal no matter in what
+form they were entered, without the need to apply additional
+transformations. The default transformations described above
+ensure that for example the following expressions cancel completely:</p>
+<blockquote>
+<p><tt class="docutils literal"><span class="pre">2*3</span> <span class="pre">-</span> <span class="pre">6</span> <span class="pre">-&gt;</span> <span class="pre">0</span></tt></p>
+<p><tt class="docutils literal"><span class="pre">x+x</span> <span class="pre">-</span> <span class="pre">(2*x)</span> <span class="pre">-&gt;</span> <span class="pre">0</span></tt></p>
+<p><tt class="docutils literal"><span class="pre">x*x</span> <span class="pre">-</span> <span class="pre">x**2</span> <span class="pre">-&gt;</span> <span class="pre">0</span></tt></p>
+<p><tt class="docutils literal"><span class="pre">2*(x-y)</span> <span class="pre">+</span> <span class="pre">2*(y-x)</span> <span class="pre">-&gt;</span> <span class="pre">0</span></tt></p>
+</blockquote>
+<p>Ideally we would like the canonical form to be the simplest
+expression possible, e.g.:</p>
+<blockquote>
+<tt class="docutils literal"><span class="pre">cos(x)**2</span> <span class="pre">+</span> <span class="pre">sin(x)**2</span> <span class="pre">-&gt;</span> <span class="pre">1</span></tt></blockquote>
+<p>Automatically generating the simplest possible form is not always
+possible, as some expressions have multiple valid representations that
+may each be useful in different contexts. E.g.: <tt class="docutils literal"><span class="pre">cos(2*x)</span></tt> and
+<tt class="docutils literal"><span class="pre">cos(x)**2</span> <span class="pre">-</span> <span class="pre">sin(x)**2</span></tt>. In general, detecting whether two expressions are
+equal is not even algorithmically undecidable, and even when it is
+possible, the required simplifications can be extremely computationally
+expensive (and unpredictably so).</p>
+<p>Default transformations are limited to performing operations cases that
+are fast and have predictable behavior. To perform more expensive
+simplifications, one should explicitly invoke <tt class="docutils literal"><span class="pre">simplify()</span></tt> or, depending on
+the desired form, special-purpose rewriting functions like <tt class="docutils literal"><span class="pre">collect()</span></tt>,
+<tt class="docutils literal"><span class="pre">apart()</span></tt>, etc (note: these are not yet implemented in SympyCore).</p>
+<p>It can sometimes be useful to bypass automatic transformations, for
+example to keep the expression <tt class="docutils literal"><span class="pre">2*(x+y)</span></tt> in factored form. The most
+general way to achieve this is to use the <tt class="docutils literal"><span class="pre">PrimitiveAlgebra</span></tt> class
+(which performs no simplifications whatsoever) instead of <tt class="docutils literal"><span class="pre">Calculus</span></tt>.</p>
+<blockquote>
+<pre class="doctest-block">
+&gt;&gt;&gt; PrimitiveAlgebra('2*(x+pi)')
+PrimitiveAlgebra('2*(pi+x)')
+</pre>
+</blockquote>
+<p>You can also construct non-canonical <tt class="docutils literal"><span class="pre">Calculus</span></tt> instances by manually
+passing data to the <tt class="docutils literal"><span class="pre">Calculus</span></tt> constructor. For example:</p>
+<blockquote>
+<pre class="doctest-block">
+&gt;&gt;&gt; p = Calculus({(pi+x):2}, head=ADD)
+&gt;&gt;&gt; print p
+2*(pi + x)
+</pre>
+</blockquote>
+<p>It is important to note that some <tt class="docutils literal"><span class="pre">Calculus</span></tt> functions assume the input to
+be in canonical form. Although they should never break (i.e. generate
+invalid results) when given noncanonical input, they may fail to simplify
+results. For example, <tt class="docutils literal"><span class="pre">sin</span></tt> assumes its argument to be flattened such that
+if it contains an integer multiple of pi that can be eliminated, this term
+will be available at the top of the expression. Thus:</p>
+<blockquote>
+<pre class="doctest-block">
+&gt;&gt;&gt; sin(2*(pi+x))  # sin(2*pi + 2*x)
+Calculus('sin(2*x)')
+&gt;&gt;&gt; sin(p)
+Calculus('sin(2*(pi + x))')
+</pre>
+</blockquote>
+<p>To canonize an expression, either use the function XXX or convert it to
+<tt class="docutils literal"><span class="pre">PrimitiveAlgebra</span></tt> and then back to <tt class="docutils literal"><span class="pre">Calculus</span></tt>.</p>
+<blockquote>
+<pre class="doctest-block">
+&gt;&gt;&gt; Calculus(PrimitiveAlgebra(p))
+Calculus('2*x + 2*y')
+</pre>
+</blockquote>
 </div>
 </div>
 </body>

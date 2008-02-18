@@ -119,7 +119,7 @@ Calculus('a + b**2 - 3/4')
 >>> Calculus('a-3/4+b**2').args
 [Calculus('a'), Calculus('-3/4'), Calculus('b**2')]
 
-Package structure 
+Package structure
 =================
 
 SympyCore project provides a python package ``sympycore`` that consists of
@@ -141,7 +141,7 @@ several modules and subpackages:
    <class 'sympycore.physics.units.Unit'>
    >>> classes.CommutativeRingWithPairs
    <class 'sympycore.basealgebra.pairs.CommutativeRingWithPairs'>
-  
+
 #. ``arithmetic/`` - provides ``Fraction``, ``Float``, ``Complex``
    classes that represent fractions, multiprecision floating point
    numbers, and complex numbers with rational parts. This package also
@@ -192,7 +192,7 @@ example, classes of commutative rings have methods like
 operations and ``Add``, ``Mul``, etc for constructing new symbolic
 objects representing addition, multiplication, etc operations. For
 more information about such methods, see sections describing the
-particular algebra classes. 
+particular algebra classes.
 
 
 Output methods
@@ -412,7 +412,7 @@ Integration
   return an antiderivative of a symbolic expression with respect to
   ``<symbol>``.
   For example,
-  
+
   >>> from sympycore import *
   >>> print (x**2 + x*y).integrate(x)
   1/2*y*x**2 + 1/3*x**3
@@ -502,7 +502,7 @@ For example, let us define a customized sinus function:
 ...     if x==0:
 ...         return x
 ...     return Calculus(x, head=mysin)
-... 
+...
 >>> mysin(0)
 0
 >>> print mysin(x+y)
@@ -521,7 +521,7 @@ rational complex numbers represented by the ``Complex`` class.
 
 The ``sympycore.calculus.functions`` package defines the following
 symbolic functions: ``sqrt``, ``exp``, ``log``, ``sin``, ``cos``,
-``tan``, ``cot``. It also provides ``Calculus`` based interfaces to 
+``tan``, ``cot``. It also provides ``Calculus`` based interfaces to
 constants ``E``, ``pi``, and symbols ``I``, ``oo``, ``moo``, ``zoo``,
 ``undefined``.
 
@@ -631,15 +631,15 @@ For example,
 
 >>> m=MatrixRing[3,4]()
 >>> print m
- 0  0  0  0 
- 0  0  0  0 
- 0  0  0  0 
+ 0  0  0  0
+ 0  0  0  0
+ 0  0  0  0
 >>> m[1,2] = 3
 >>> m[2,3] = 4
 >>> print m
- 0  0  0  0 
- 0  0  3  0 
- 0  0  0  4 
+ 0  0  0  0
+ 0  0  3  0
+ 0  0  0  4
 
 The content of the matrix is stored as a dictionary containing
 pairs ``(<rowindex>,<column-index>): <non-zero element>``.
@@ -648,27 +648,116 @@ Matrix instances can be constructed from Python dictionary or from a
 Python list:
 
 >>> print MatrixRing[2,2]({(0,0):1,(0,1):2,(1,1):3})
- 1  2 
- 0  3 
+ 1  2
+ 0  3
 >>> print MatrixRing[2,2]([[1,2],[3,4]])
- 1  2 
- 3  4 
+ 1  2
+ 3  4
 
 Permutation matrices can be constructed from a sequence of
 integers:
 
 >>> print PermutationMatrix([1,0,2])
- 0  1  0 
- 1  0  0 
- 0  0  1 
+ 0  1  0
+ 1  0  0
+ 0  0  1
 
 Use ``random()`` classmethod to construct matrices with random
 content:
 
 >>> print SquareMatrix[2].random()         #doctest: +SKIP
- -1  3 
-  3  0 
+ -1  3
+  3  0
 >>> print SquareMatrix[2].random((10,20))  #doctest: +SKIP
- 15  10 
- 13  15 
+ 15  10
+ 13  15
 
+
+Canonical forms and suppressed evaluation
+=========================================
+
+The ``Calculus`` algebra automatically applies some transformations to
+expressions. The purpose of these transformations is to permit quick
+recognition of mathematically equivalent expressions.
+Sums and products of numbers are always evaluated, and
+multiples/powers of identical subexpressions are automatically
+collected together.  Rational factors are also automatically
+distributed over sums. For example, the following transformations
+are performed automatically:
+
+    ``2*3 -> 6``
+
+    ``x+x -> 2*x``
+
+    ``x*x -> x**2``
+
+    ``2*(x+y) -> 2*x + 2*y``
+
+An expression to which default transformations have been applied is
+said to be in canonical or normalized form. The enforcement of
+canonical forms important for performance reasons as it ensures that,
+in many important basic cases, expressions that are mathematically
+equivalent will be recognized directly as equal no matter in what
+form they were entered, without the need to apply additional
+transformations. The default transformations described above
+ensure that for example the following expressions cancel completely:
+
+    ``2*3 - 6 -> 0``
+
+    ``x+x - (2*x) -> 0``
+
+    ``x*x - x**2 -> 0``
+
+    ``2*(x-y) + 2*(y-x) -> 0``
+
+Ideally we would like the canonical form to be the simplest
+expression possible, e.g.:
+
+    ``cos(x)**2 + sin(x)**2 -> 1``
+
+Automatically generating the simplest possible form is not always
+possible, as some expressions have multiple valid representations that
+may each be useful in different contexts. E.g.: ``cos(2*x)`` and
+``cos(x)**2 - sin(x)**2``. In general, detecting whether two expressions are
+equal is not even algorithmically undecidable, and even when it is
+possible, the required simplifications can be extremely computationally
+expensive (and unpredictably so).
+
+Default transformations are limited to performing operations cases that
+are fast and have predictable behavior. To perform more expensive
+simplifications, one should explicitly invoke ``simplify()`` or, depending on
+the desired form, special-purpose rewriting functions like ``collect()``,
+``apart()``, etc (note: these are not yet implemented in SympyCore).
+
+It can sometimes be useful to bypass automatic transformations, for
+example to keep the expression ``2*(x+y)`` in factored form. The most
+general way to achieve this is to use the ``PrimitiveAlgebra`` class
+(which performs no simplifications whatsoever) instead of ``Calculus``.
+
+    >>> PrimitiveAlgebra('2*(x+pi)')
+    PrimitiveAlgebra('2*(pi+x)')
+
+You can also construct non-canonical ``Calculus`` instances by manually
+passing data to the ``Calculus`` constructor. For example:
+
+    >>> p = Calculus({(pi+x):2}, head=ADD)
+    >>> print p
+    2*(pi + x)
+
+It is important to note that some ``Calculus`` functions assume the input to
+be in canonical form. Although they should never break (i.e. generate
+invalid results) when given noncanonical input, they may fail to simplify
+results. For example, ``sin`` assumes its argument to be flattened such that
+if it contains an integer multiple of pi that can be eliminated, this term
+will be available at the top of the expression. Thus:
+
+    >>> sin(2*(pi+x))  # sin(2*pi + 2*x)
+    Calculus('sin(2*x)')
+    >>> sin(p)
+    Calculus('sin(2*(pi + x))')
+
+To canonize an expression, either use the function XXX or convert it to
+``PrimitiveAlgebra`` and then back to ``Calculus``.
+
+    >>> Calculus(PrimitiveAlgebra(p))
+    Calculus('2*x + 2*y')
