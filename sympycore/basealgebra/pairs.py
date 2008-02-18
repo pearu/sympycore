@@ -115,9 +115,10 @@ class CommutativeRingWithPairs(CommutativeRing):
     def __eq__(self, other):
         if self is other:
             return True
-        if other.__class__ is self.__class__:
+        to = type(other)
+        if to is type(self):
             return self.head is other.head and self.data == other.data
-        if self.head is NUMBER and isinstance(other, inttypes):
+        if self.head is NUMBER and (to is int or to is long):
             return self.data == other
         return False
 
