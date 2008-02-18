@@ -695,7 +695,7 @@ are performed automatically:
 
 An expression to which default transformations have been applied is
 said to be in canonical or normalized form. The enforcement of
-canonical forms important for performance reasons as it ensures that,
+canonical forms is important for performance reasons as it ensures that,
 in many important basic cases, expressions that are mathematically
 equivalent will be recognized directly as equal no matter in what
 form they were entered, without the need to apply additional
