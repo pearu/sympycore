@@ -67,5 +67,5 @@ if __name__=='__main__':
     from func_timeit import run_tests
     run_tests([test_Add, test_Add2, test_Sub2,
                test_Mul, test_Mul2, test_Div2,
-               test_directadd5])
+               test_directadd5], start_revision=473)
 

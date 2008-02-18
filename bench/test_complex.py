@@ -49,4 +49,4 @@ def test_pow():
 if __name__=='__main__':
     from func_timeit import run_tests
     run_tests([test_add, test_sub, test_mul,
-               test_div, test_pow])
+               test_div, test_pow], start_revision=418)

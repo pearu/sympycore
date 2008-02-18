@@ -79,4 +79,4 @@ def test_mixed_symbolic():
 if __name__=='__main__':
     from func_timeit import run_tests
     run_tests([test_compare, test_equality, test_add, test_sub, test_mul,
-               test_div, test_pow, test_mixed_symbolic])
+               test_div, test_pow, test_mixed_symbolic], start_revision=418)

@@ -38,4 +38,4 @@ def test_rat_complex_power():
 
 if __name__=='__main__':
     from func_timeit import run_tests
-    run_tests([test_sin, test_cos, test_complex_power, test_rat_complex_power])
+    run_tests([test_sin, test_cos, test_complex_power, test_rat_complex_power], start_revision=418)
