@@ -28,8 +28,8 @@ class Calculus(CommutativeRingWithPairs):
     __slots__ = ['head', 'data', '_hash', 'one', 'zero']
     _hash = None
 
-    coefftypes = (int, long, FractionTuple, Complex)
-    exptypes = (int, long, FractionTuple, Complex)
+    coefftypes = (int, long, FractionTuple, Complex, ExtendedNumber, Float)
+    exptypes = (int, long, FractionTuple, Complex, ExtendedNumber, Float)
 
     def as_algebra(self, cls):
         """ Convert algebra to another algebra.

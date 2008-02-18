@@ -268,6 +268,11 @@ class FractionTuple(tuple):
                 # ...but we have to handle signs
                 return FractionTuple(((-q)**-n, (-p)**-n))
 
+    def __rpow__(self, n):
+        z,sym = try_power(n, self)
+        if sym:
+            return NotImplemented
+        return z
 
 #----------------------------------------------------------------------------#
 #                                                                            #

@@ -246,7 +246,7 @@ def test_number_pow():
     assert n**n==27
     assert str(n**a)==str('3**a')
     assert str(n**s)==str('3**(2 + a)')
-    assert str(n**s1)==str('9**a')
+    assert str(n**s1)==str('3**(2*a)')
     assert str(n**m)==str('3**(a*b)')
     assert str(n**m1)==str('3**(a**2)')
 
@@ -299,7 +299,7 @@ def test_symbol_pow():
     assert str(a**n)=='a**3'
     assert str(a**a)==str('a**a')
     assert str(a**s)==str('a**(2 + a)')
-    assert str(a**s1)==str('(a**a)**2')
+    assert str(a**s1)==str('a**(2*a)')
     assert str(a**m)==str('a**(a*b)')
     assert str(a**m1)==str('a**(a**2)')
 
@@ -391,8 +391,8 @@ def test_add_pow():
     assert str(s1**2)=='4*a**2'
     assert str(s1**n)=='8*a**3'
     assert str(s1**a)==str('(2*a)**a')
-    assert str(s1**s)==str('2**(2 + a)*a**(2 + a)')
-    assert str(s1**s1) in ['4**a*a**(2*a)','(a**a)**2*4**a']
+    assert str(s1**s)==str('(2*a)**(2 + a)')
+    assert str(s1**s1)==str('(2*a)**(2*a)')
     assert str(s1**m)==str('(2*a)**(a*b)')
     assert str(s1**m1)==str('(2*a)**(a**2)')
 
@@ -465,7 +465,7 @@ def test_mul_pow():
 
     assert str(m1**2)=='a**4'
     assert str(m1**n)=='a**6'
-    assert str(m1**a)==str('(a**a)**2')
+    assert str(m1**a)==str('a**(2*a)')
     assert str(m1**s)==str('a**(4 + 2*a)')
     assert str(m1**s1)==str('a**(4*a)')
     assert str(m1**m)==str('a**(2*a*b)')

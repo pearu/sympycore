@@ -19,8 +19,9 @@ def preprocess(source, tmp_cache=[1]):
                 d[key.strip()] = value.strip()
             try:
                 templ = eval(name, globals(), {})
-            except NameError:
+            except NameError, msg:
                 templ = '@' + rest
+                print 'NameError: %s (while processing %r)' % (msg, line.strip())
             else:
                 if '@' in templ:
                     templ = preprocess(templ)
@@ -48,7 +49,8 @@ DO NOT CHANGE THIS FILE DIRECTLY!!!
 """
 
 from ..utils import NUMBER, SYMBOL, TERMS, FACTORS, RedirectOperation
-from ..arithmetic.numbers import ExtendedNumber, normalized_fraction, FractionTuple
+from ..arithmetic.numbers import (ExtendedNumber, normalized_fraction,
+ FractionTuple, try_power, numbertypes)
 
 def div(a, b, inttypes = (int, long)):
     if isinstance(b, inttypes):
@@ -662,7 +664,7 @@ if number==1:
 
 POW_NUMBER_INT = '''\
 if %(VALUE)s < 0:
-    @RETURN_NEW(HEAD=NUMBER; DATA=div(1, (%(LHS)s.data)*(-%(VALUE)s)))
+    @RETURN_NEW(HEAD=NUMBER; DATA=div(1, (%(LHS)s.data)**(-%(VALUE)s)))
 @RETURN_NEW(HEAD=NUMBER; DATA=(%(LHS)s.data)**(%(VALUE)s))
 '''
 POW_TERMS_INT = '''\
@@ -680,7 +682,7 @@ if len(pairs)==1:
 @RETURN_NEW(HEAD=FACTORS; DATA={%(LHS)s: %(VALUE)s})
 '''
 POW_FACTORS_INT = '''\
-MUL_DICT_VALUES(DICT_IN=%(LHS)s.data; DICT_OUT=pairs; OP=%(VALUE)s)
+@MUL_DICT_VALUES(DICT_IN=%(LHS)s.data; DICT_OUT=pairs; OP=%(VALUE)s)
 if len(pairs)==1:
     t, c = pairs.items()[0]
     if c==1:
@@ -689,6 +691,53 @@ if len(pairs)==1:
 '''
 POW_SYMBOL_INT = '''\
 @RETURN_NEW(HEAD=FACTORS; DATA={%(LHS)s: %(VALUE)s})
+'''
+
+POW_NUMBER_VALUE = '''\
+z, sym = try_power(%(LHS)s.data, %(VALUE)s)
+if not sym:
+    @RETURN_NEW(HEAD=NUMBER; DATA=z)
+factors = {}
+for t,c in sym:
+    factors[cls.convert(t)] = c
+@NEWINSTANCE(OBJ=%(TMP)s; HEAD=FACTORS; DATA=factors)
+if z==1:
+    return %(TMP)s
+@RETURN_NEW(HEAD=TERMS; DATA={%(TMP)s: z})
+'''
+
+POW_TERMS_FRAC = '''\
+pairs = %(LHS)s.data
+if len(pairs)==1:
+    t, c = pairs.items()[0]
+    if isinstance(c, numbertypes) and not c==-1:
+        if c < 0:
+            z, sym = try_power(-c, %(VALUE)s)
+            factors = {-t: %(VALUE)s}
+        else:
+            z, sym = try_power(c, %(VALUE)s)
+            factors = {t: %(VALUE)s}
+        for t,c in sym:
+            factors[cls.convert(t)] = c
+        @NEWINSTANCE(OBJ=%(TMP)s; HEAD=FACTORS; DATA=factors)
+        if z==1:
+            return %(TMP)s
+        @RETURN_NEW(HEAD=TERMS; DATA={%(TMP)s: z})
+@RETURN_NEW(HEAD=FACTORS; DATA={%(LHS)s: %(VALUE)s})
+'''
+
+POW_SYMBOL_FRAC = '''\
+@RETURN_NEW(HEAD=FACTORS; DATA={%(LHS)s: %(VALUE)s})
+'''
+
+POW_FACTORS_SYMBOL = '''\
+pairs = %(LHS)s.data
+if len(pairs)==1:
+    t, c = pairs.items()[0]
+    tc = type(c)
+    if tc is int or tc is long:
+        @RETURN_NEW(HEAD=FACTORS; DATA={t: %(RHS)s * c})
+@RETURN_NEW(HEAD=FACTORS; DATA={%(LHS)s: %(RHS)s})
 '''
 
 def generate_if_blocks(heads, prefix='', tab=' '*4):
@@ -809,19 +858,27 @@ def pow_method(self, other, z = None, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTOR
             return cls.one
         if other==1:
             return self
-        """
         if lhead is NUMBER:
             @POW_NUMBER_INT(VALUE=other; LHS=self)
-        elif lhead is TERM:
-            @POW_TERM_INT(VALUE=other; LHS=self)
+        elif lhead is TERMS:
+            @POW_TERMS_INT(VALUE=other; LHS=self)
         elif lhead is FACTORS:
             @POW_FACTORS_INT(VALUE=other; LHS=self)
         else:
             @POW_SYMBOL_INT(VALUE=other; LHS=self)
-        """
+    if lhead is NUMBER and isinstance(other, cls.exptypes):
+        @POW_NUMBER_VALUE(VALUE=other; LHS=self)
+    if type_other is FractionTuple:
+        if lhead is TERMS:
+            @POW_TERMS_FRAC(VALUE=other; LHS=self)
+        else:
+            @POW_SYMBOL_FRAC(VALUE=other; LHS=self)
+    if type_other is cls or isinstance(other, cls.exptypes):
+        if lhead is FACTORS:
+            @POW_FACTORS_SYMBOL(LHS=self; RHS=other)
+        @RETURN_NEW(HEAD=FACTORS; DATA={self: other})
     return NotImplemented
 ''')
-
 
     print >> f, preprocess(OP3_TEMPLATE % (dict(op='add', OP='ADD')))
     print >> f, preprocess(OP3_TEMPLATE % (dict(op='sub', OP='SUB')))

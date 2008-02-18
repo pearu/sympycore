@@ -18,7 +18,7 @@ from ..arithmetic.numbers import FractionTuple, ExtendedNumber
 from ..arithmetic.number_theory import multinomial_coefficients
 
 from .pairs_ops import (add_method, sub_method, rsub_method, neg_method,
-                        mul_method, div_method, rdiv_method)
+                        mul_method, div_method, rdiv_method, pow_method)
 
 def newinstance(cls, head, data, new = object.__new__):
     o = new(cls)
@@ -55,6 +55,7 @@ class CommutativeRingWithPairs(CommutativeRing):
     _symbols_data = None
 
     coefftypes = (int, long, FractionTuple)
+    exptypes = (int, long, FractionTuple)
 
     _coeff_terms = (1, None) # set by MUL_VALUE_TERMS
     __neg__ = neg_method
@@ -64,6 +65,7 @@ class CommutativeRingWithPairs(CommutativeRing):
     __mul__ = __rmul__ = mul_method
     __div__ = div_method
     __rdiv__ = rdiv_method
+    __pow__ = pow_method
 
     _has_active = None
     def has_active(self):
