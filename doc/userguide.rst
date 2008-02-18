@@ -719,7 +719,7 @@ Automatically generating the simplest possible form is not always
 possible, as some expressions have multiple valid representations that
 may each be useful in different contexts. E.g.: ``cos(2*x)`` and
 ``cos(x)**2 - sin(x)**2``. In general, detecting whether two expressions are
-equal is not even algorithmically undecidable, and even when it is
+equal is not even algorithmically decidable, and even when it is
 possible, the required simplifications can be extremely computationally
 expensive (and unpredictably so).
 
