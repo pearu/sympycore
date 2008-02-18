@@ -123,7 +123,7 @@ class CommutativeRingWithPairs(CommutativeRing):
 
     def __hash__(self):
         h = self._hash
-        if h is None:
+        if not h:
             data = self.data
             if type(data) is dict:
                 h = hash(frozenset(data.iteritems()))
