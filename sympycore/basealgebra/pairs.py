@@ -56,6 +56,7 @@ class CommutativeRingWithPairs(CommutativeRing):
 
     coefftypes = (int, long, FractionTuple)
 
+    _coeff_terms = (1, None) # set by MUL_VALUE_TERMS
     __neg__ = neg_method
     __add__ = __radd__ = add_method
     __sub__ = sub_method
