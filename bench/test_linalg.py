@@ -1,3 +1,5 @@
+START_REVISION=568
+
 from sympycore import MatrixRing
 
 N = 5
@@ -30,5 +32,5 @@ def test_mul_sparse():
 
 if __name__=='__main__':
     from func_timeit import run_tests
-    run_tests([test_mul, test_mul_sparse, test_lu, test_inv], start_revision=568)
+    run_tests([test_mul, test_mul_sparse, test_lu, test_inv])
 

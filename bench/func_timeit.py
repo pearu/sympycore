@@ -3,16 +3,6 @@ import math
 import timeit
 
 def run_tests(seq, start_revision=None):
-    if start_revision is not None:
-        rev = None
-        for l in sys.argv:
-            if l.startswith('REVISION'):
-                rev = int(l.split('=')[-1].strip())
-                break
-        if rev < start_revision:
-            print 'This test sequence requires %s revision as minimum but got %s' % \
-                  (start_revision, rev)
-            return
     titles = []
     stones = []
     for func in seq:
