@@ -172,11 +172,11 @@ __ http://en.wikipedia.org/wiki/Commutativity
   For example::
 
     0 * x -> 0
-    0 * (x + oo) -> 0 * (x + oo)     # the result is undefined for any x
+    0 * (x + oo) -> undefined
 
   Division a non-zero number by zero is infinity with undefined direction::
 
-    1/0 -> oo(undefined)
+    1/0 -> oo(+oo)
     0/0 -> undefined
 
   Exponentiation by zero results one.
