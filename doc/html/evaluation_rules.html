@@ -392,7 +392,9 @@ directions is defined as follows:</p>
 oo(theta1) &lt;op&gt; oo(theta2) =   lim      r1 * exp(I*theta1) &lt;op&gt; r2 * exp(I*theta2)
                             r1, r2 -&gt; oo
 </pre>
-<p class="last">where the limit processes <tt class="docutils literal"><span class="pre">r1-&gt;oo</span></tt> and <tt class="docutils literal"><span class="pre">r2-&gt;oo</span></tt> are independent.</p>
+<p>where the limit processes <tt class="docutils literal"><span class="pre">r1-&gt;oo</span></tt> and <tt class="docutils literal"><span class="pre">r2-&gt;oo</span></tt> are independent.</p>
+<p class="last">If <tt class="docutils literal"><span class="pre">lim(r1-&gt;oo,</span> <span class="pre">r2-&gt;oo)</span></tt> is different from <tt class="docutils literal"><span class="pre">lim(r2-&gt;oo,</span> <span class="pre">r1-&gt;oo)</span></tt> then the
+result is defined as <tt class="docutils literal"><span class="pre">undefined</span></tt>.</p>
 </div>
 </div>
 <div class="section">
@@ -462,7 +464,12 @@ contain extended numbers explicitly.</p>
 <p>For example:</p>
 <pre class="literal-block">
 0 * x -&gt; 0
-0 * (x + oo) -&gt; 0 * (x + oo)
+0 * (x + oo) -&gt; 0 * (x + oo)     # the result is undefined for any x
+</pre>
+<p>Division a non-zero number by zero is infinity with undefined direction:</p>
+<pre class="literal-block">
+1/0 -&gt; oo(undefined)
+0/0 -&gt; undefined
 </pre>
 <p>Exponentiation by zero results one.</p>
 <p>For example:</p>
@@ -498,9 +505,11 @@ carried out. For example:</p>
 4**(1/2) -&gt; 2
 8**(1/2) -&gt; 2*2**(1/2)
 </pre>
-<div class="admonition-rule-6-m-n-for-integers-m-n admonition">
-<p class="first admonition-title">Rule 6: <tt class="docutils literal"><span class="pre">m</span> <span class="pre">**</span> <span class="pre">n</span></tt> for integers <tt class="docutils literal"><span class="pre">m</span></tt>, <tt class="docutils literal"><span class="pre">n</span></tt>.</p>
-<p>If <tt class="docutils literal"><span class="pre">n</span></tt> is positive then the result is an integer.</p>
+<div class="section">
+<h3><a id="integer-powers" name="integer-powers">2.3.1&nbsp;&nbsp;&nbsp;Integer powers</a></h3>
+<div class="admonition-rule-6-m-n-for-a-number-m-and-integer-n admonition">
+<p class="first admonition-title">Rule 6: <tt class="docutils literal"><span class="pre">m</span> <span class="pre">**</span> <span class="pre">n</span></tt> for a number <tt class="docutils literal"><span class="pre">m</span></tt> and integer <tt class="docutils literal"><span class="pre">n</span></tt>.</p>
+<p>If <tt class="docutils literal"><span class="pre">n</span></tt> is positive then the result is a number.</p>
 <p class="last">If <tt class="docutils literal"><span class="pre">n</span></tt> is negative then the result is <tt class="docutils literal"><span class="pre">1/(m**(-n))</span></tt> (or <tt class="docutils literal"><span class="pre">(1/m)**(-n)</span></tt>).</p>
 </div>
 <div class="admonition-rule-7-p-q-n-for-integers-p-q-n admonition">
@@ -531,6 +540,7 @@ oo(theta)**n -&gt; oo(n*theta)
 <pre class="last literal-block">
 oo(theta)**n -&gt; 0
 </pre>
+</div>
 </div>
 </div>
 </div>

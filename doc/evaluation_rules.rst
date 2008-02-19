@@ -97,8 +97,9 @@ directions is defined as follows:
                                 r1, r2 -> oo
 
   where the limit processes ``r1->oo`` and ``r2->oo`` are independent.
-
-
+  
+  If ``lim(r1->oo, r2->oo)`` is different from ``lim(r2->oo, r1->oo)`` then the
+  result is defined as ``undefined``.
 
 Notes on floating point numbers
 ```````````````````````````````
@@ -216,9 +217,12 @@ carried out. For example::
   4**(1/2) -> 2
   8**(1/2) -> 2*2**(1/2)
 
-.. admonition:: Rule 6: ``m ** n`` for integers ``m``, ``n``.
+Integer powers
+``````````````
 
-  If ``n`` is positive then the result is an integer.
+.. admonition:: Rule 6: ``m ** n`` for a number ``m`` and integer ``n``.
+
+  If ``n`` is positive then the result is a number.
 
   If ``n`` is negative then the result is ``1/(m**(-n))`` (or ``(1/m)**(-n)``).
 
