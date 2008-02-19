@@ -532,12 +532,12 @@ class Complex(object):
         return False
 
     def convert(self, x):
+        if isinstance(x, realtypes):
+            return x, 0
         if isinstance(x, Complex):
             return x.real, x.imag
         if isinstance(x, complex):
             return Complex(Float(x.real), Float(x.imag))
-        if isinstance(x, realtypes):
-            return x, 0
         return NotImplemented, 0
 
     def __pos__(self): return self
