@@ -1,5 +1,6 @@
 from sympycore.calculus import Calculus as A
-from sympycore.calculus.algebra import oo
+from sympycore.calculus.algebra import oo, I
+from sympycore.calculus import Number
 from sympycore.calculus.functions.elementary import sin, cos, tan, cot, pi, E, exp, log
 
 def test_exp_log():
@@ -10,6 +11,20 @@ def test_exp_log():
     assert log(oo) == oo
     assert log(2,3) == log(2)/log(3)
     assert log(0,3) == (-oo)/log(3)
+    assert log(100,10) == 2
+    assert log(65536,2) == 16
+    assert log(101,10) != 2
+    assert log(100,0) == 0
+    assert log(5,pi) == log(5)/log(pi)
+    assert log(-3) == I*pi + log(3)
+    assert log(-pi) == I*pi + log(pi)
+    assert log(I) == I*pi/2
+    assert log(-I) == -I*pi/2
+    assert log(3*I) == log(3) + I*pi/2
+    assert log(-3*I) == log(3) - I*pi/2
+    assert str(log(1+I)) == 'log(1 + I)'
+    assert log(5**Number(1,3)) == Number(1,3)*log(5)
+    assert log(5**(3+2*I)) != (3+2*I)*log(5)
 
 def test_trig_values():
     sqrt2 = A('2**(1/2)')

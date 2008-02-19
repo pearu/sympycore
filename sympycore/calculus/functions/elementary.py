@@ -2,10 +2,17 @@
 # Created January 2008 by Fredrik Johansson
 #
 
-from ..algebra import A, oo, undefined, NUMBER, ADD, MUL, SYMBOL
+from ..algebra import A, oo, I, undefined, NUMBER, ADD, MUL, SYMBOL
 from ..constants import const_pi, const_E
 from ..function import Function
 from ...arithmetic.evalf import evalf, Float
+from ...arithmetic.numbers import Complex, realtypes, inttypes
+
+def is_positive(x):
+    from ..relational import no_assumptions
+    return no_assumptions.positive(x)
+
+import math
 
 zero = A(0)
 one = A(1)
@@ -16,8 +23,12 @@ sqrt3 = A('3**(1/2)')
 #---------------------------------------------------------------------------#
 #                                  Exponentials                             #
 #---------------------------------------------------------------------------#
+
 pi = const_pi.as_algebra(A)
 E = const_E.as_algebra(A)
+
+Ipi = I*pi
+Ipi2 = Ipi/2
 
 class sqrt(Function):
     def __new__(cls, arg):
@@ -35,19 +46,53 @@ class exp(Function):
     def derivative(cls, arg):
         return exp(arg)
 
+log_number_table = {
+    zero.data : -oo,
+    one.data : zero,
+    oo.data : oo,
+    undefined.data : undefined,
+    I.data : Ipi2,
+    (-I).data : -Ipi2
+}
+
 class log(Function):
     def __new__(cls, arg, base=E):
-        if base != E:
-            return cls(arg) / cls(base)
         if not isinstance(arg, A):
             arg = A.convert(arg)
-        if arg.head is NUMBER:
-            if arg == zero: return -oo
-            if arg == one: return zero
-            if arg == oo: return oo
-            if arg == undefined: return undefined
+        if base != E:
+            base = A.convert(base)
+            bd = base.data
+            ad = arg.data
+            if base.head is NUMBER and isinstance(bd, inttypes) and \
+                arg.head is NUMBER and isinstance(ad, inttypes) and \
+                ad > 0 and bd > 1:
+                l = int(math.log(ad, bd) + 0.5)
+                if bd**l == ad:
+                    return A(l)
+            return cls(arg) / cls(base)
+        head = arg.head
+        data = arg.data
+        if head is NUMBER:
+            v = log_number_table.get(data)
+            if v is not None:
+                return v
+            if isinstance(data, realtypes) and data < 0:
+                return Ipi + log(-arg)
+            if isinstance(data, Complex) and data.real == 0:
+                im = data.imag
+                if im > 0: return A(A(im, head=NUMBER), head=cls) + Ipi2
+                if im < 0: return A(A(-im, head=NUMBER), head=cls) - Ipi2
+            return A(arg, head=cls)
         if arg == E:
             return one
+        if head is MUL and len(data) == 1:
+            base, expt = data.items()[0]
+            if is_positive(base) and isinstance(expt, realtypes):
+                return A(base, head=cls) * expt
+        if head is ADD and len(data) == 1:
+            term, coeff = data.items()[0]
+            if (isinstance(coeff, realtypes) and coeff < 0) and is_positive(base):
+                return Ipi + log(-arg)
         return A(arg, head=cls)
 
     @classmethod
