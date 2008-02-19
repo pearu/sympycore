@@ -3,9 +3,9 @@
 .. To produce HTML file, use command ``rst2html userguide.rst html/userguide.html``
 .. To produce PDF file, use command ``rst2latex userguide.rst userguide.tex; pdflatex userguide.tex``
 
-=====================
-SympyCore Users Guide
-=====================
+======================
+SympyCore User's Guide
+======================
 
 :Authors:
   `Pearu Peterson <pearu.peterson@gmail.com>`_
@@ -14,7 +14,13 @@ SympyCore Users Guide
   January 2008
 
 
-.. contents::
+.. section-numbering::
+
+.. sidebar:: Table of contents
+
+    .. contents::
+        :depth: 2
+        :local:
 
 Introduction
 ============
@@ -683,15 +689,15 @@ Sums and products of numbers are always evaluated, and
 multiples/powers of identical subexpressions are automatically
 collected together.  Rational factors are also automatically
 distributed over sums. For example, the following transformations
-are performed automatically:
+are performed automatically::
 
-    ``2*3 -> 6``
+    2*3 -> 6
 
-    ``x+x -> 2*x``
+    x+x -> 2*x
 
-    ``x*x -> x**2``
+    x*x -> x**2
 
-    ``2*(x+y) -> 2*x + 2*y``
+    2*(x+y) -> 2*x + 2*y
 
 An expression to which default transformations have been applied is
 said to be in canonical or normalized form. The enforcement of
@@ -700,20 +706,20 @@ in many important basic cases, expressions that are mathematically
 equivalent will be recognized directly as equal no matter in what
 form they were entered, without the need to apply additional
 transformations. The default transformations described above
-ensure that for example the following expressions cancel completely:
+ensure that for example the following expressions cancel completely::
 
-    ``2*3 - 6 -> 0``
+    2*3 - 6 -> 0
 
-    ``x+x - (2*x) -> 0``
+    x+x - (2*x) -> 0
 
-    ``x*x - x**2 -> 0``
+    x*x - x**2 -> 0
 
-    ``2*(x-y) + 2*(y-x) -> 0``
+    2*(x-y) + 2*(y-x) -> 0
 
 Ideally we would like the canonical form to be the simplest
-expression possible, e.g.:
+expression possible, e.g.::
 
-    ``cos(x)**2 + sin(x)**2 -> 1``
+    cos(x)**2 + sin(x)**2 -> 1
 
 Automatically generating the simplest possible form is not always
 possible, as some expressions have multiple valid representations that
@@ -735,12 +741,12 @@ general way to achieve this is to use the ``PrimitiveAlgebra`` class
 (which performs no simplifications whatsoever) instead of ``Calculus``.
 
     >>> PrimitiveAlgebra('2*(x+pi)')
-    PrimitiveAlgebra('2*(pi+x)')
+    PrimitiveAlgebra('2*(x + pi)')
 
 You can also construct non-canonical ``Calculus`` instances by manually
 passing data to the ``Calculus`` constructor. For example:
 
-    >>> p = Calculus({(pi+x):2}, head=ADD)
+    >>> p = Calculus({(pi+x):2}, head=utils.TERMS)
     >>> print p
     2*(pi + x)
 
@@ -760,4 +766,4 @@ To canonize an expression, either use the function XXX or convert it to
 ``PrimitiveAlgebra`` and then back to ``Calculus``.
 
     >>> Calculus(PrimitiveAlgebra(p))
-    Calculus('2*x + 2*y')
+    Calculus('2*pi + 2*x')

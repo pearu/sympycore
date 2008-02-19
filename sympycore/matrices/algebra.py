@@ -162,7 +162,7 @@ class MatrixRing(CommutativeRing):
                 fmt = ' %'+str(width)+'s '
                 col = [fmt % (s) for s in col]
                 columns.append(col)
-            return '\n'.join([''.join(row) for row in zip(*columns)])
+            return '\n'.join([''.join(row).rstrip() for row in zip(*columns)])
         return '['+', '.join(['(%s, %s)' % (i,e) for i,e in self.data.iteritems()])+']'
 
     def __setitem__(self, key, value):

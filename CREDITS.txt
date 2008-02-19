@@ -10,10 +10,15 @@ use the particular part of the contribution anymore. Nevertheless, the
 contribution had importance in the development of sympycore to its
 current stage.
 
-Credits
--------
+Credits and History
+-------------------
 
-* In January 2008 a new algebra package was introduced that increased
+* In February 2008, the following features were introduced: SympyCore
+  User's Guide, PolynomialRing, MatrixRing, SympyCore benchmarks
+  suite, generating super-efficient code for
+  CommutatitiveRingWithPairs methods.
+
+* In January 2008, a new algebra package was introduced that increased
   the performance of the directadd5 test case four-fold. The basic
   design of the algebra package was developed by Pearu Peterson and
   Fredrik Johansson.  Pearu implemented CommutativeRingWithPairs that
@@ -59,7 +64,7 @@ Credits
   which included the suggestion by Fredrik to use dicts instead of
   tuples to hold sums, to make flattening of sums faster.
 
-* The Sympy Core project started by Pearu Peterson is closely related
+* The Sympy Core project, started by Pearu Peterson, is closely related
   to the SymPy project: http://sympy.googlecode.com/.
   See http://wiki.sympy.org/wiki/Contributors/ for SymPy credits.
 
@@ -69,7 +74,7 @@ Third-party software
 
 Sympy Core includes the following third-party software:
 
-* mpmath package (SVN revision 189) developed by Fredrik Johansson:
+* mpmath package (SVN revisions 189, 325) developed by Fredrik Johansson:
 
     http://mpmath.googlecode.com/
 

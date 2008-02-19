@@ -6,6 +6,8 @@ from polynomials import *
 from matrices import *
 from physics import *
 
+import utils
+
 def profile_expr(expr):
     import sys
     import hotshot, hotshot.stats
