@@ -103,9 +103,11 @@ else:
 MUL_FACTOR_VALUE_DICT='''\
 b = %(DICT_GET)s(%(FACTOR)s)
 if b is None:
-    %(DICT)s[%(FACTOR)s] = %(VALUE)s
+    %(DICT)s[%(FACTOR)s] = %(SIGN)s %(VALUE)s
 else:
-    %(TMP)s = b + %(VALUE)s
+    %(TMP)s = b %(SIGN)s %(VALUE)s
+    if type(%(TMP)s) is cls and %(TMP)s.head is NUMBER:
+        %(TMP)s = %(TMP)s.data
     try:
         if %(TMP)s:
             if %(FACTOR)s.head is NUMBER:
@@ -462,7 +464,7 @@ pairs = dict(%(LHS)s.data)
 pairs_get = pairs.get
 number = 1
 for t,c in %(RHS)s.data.iteritems():
-    @MUL_FACTOR_VALUE_DICT(FACTOR=t; VALUE=c; DICT=pairs; DICT_GET=pairs_get; NUMBER=number)
+    @MUL_FACTOR_VALUE_DICT(FACTOR=t; SIGN=+; VALUE=c; DICT=pairs; DICT_GET=pairs_get; NUMBER=number)
 @CANONIZE_FACTORS_DICT(DICT=pairs; NUMBER=number)
 if number is 1:
     @RETURN_NEW(HEAD=FACTORS; DATA=pairs)
@@ -650,7 +652,7 @@ pairs = dict(%(LHS)s.data)
 pairs_get = pairs.get
 number = 1
 for t,c in %(RHS)s.data.iteritems():
-    @MUL_FACTOR_VALUE_DICT(FACTOR=t; VALUE=-c; DICT=pairs; DICT_GET=pairs_get; NUMBER=number)
+    @MUL_FACTOR_VALUE_DICT(FACTOR=t; SIGN=-; VALUE=c; DICT=pairs; DICT_GET=pairs_get; NUMBER=number)
 @CANONIZE_FACTORS_DICT(DICT=pairs; NUMBER=number)
 if number==1:
     @RETURN_NEW(HEAD=FACTORS; DATA=pairs)

@@ -1563,12 +1563,14 @@ def mul_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
             pairs_get = pairs.get
             number = 1
             for t,c in other.data.iteritems():
-                #MUL_FACTOR_VALUE_DICT(FACTOR=t; VALUE=c; DICT=pairs; DICT_GET=pairs_get; NUMBER=number)
+                #MUL_FACTOR_VALUE_DICT(FACTOR=t; SIGN=+; VALUE=c; DICT=pairs; DICT_GET=pairs_get; NUMBER=number)
                 b = pairs_get(t)
                 if b is None:
-                    pairs[t] = c
+                    pairs[t] = + c
                 else:
                     _tmp335 = b + c
+                    if type(_tmp335) is cls and _tmp335.head is NUMBER:
+                        _tmp335 = _tmp335.data
                     try:
                         if _tmp335:
                             if t.head is NUMBER:
@@ -2481,12 +2483,14 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
             pairs_get = pairs.get
             number = 1
             for t,c in other.data.iteritems():
-                #MUL_FACTOR_VALUE_DICT(FACTOR=t; VALUE=-c; DICT=pairs; DICT_GET=pairs_get; NUMBER=number)
+                #MUL_FACTOR_VALUE_DICT(FACTOR=t; SIGN=-; VALUE=c; DICT=pairs; DICT_GET=pairs_get; NUMBER=number)
                 b = pairs_get(t)
                 if b is None:
-                    pairs[t] = -c
+                    pairs[t] = - c
                 else:
-                    _tmp529 = b + -c
+                    _tmp529 = b - c
+                    if type(_tmp529) is cls and _tmp529.head is NUMBER:
+                        _tmp529 = _tmp529.data
                     try:
                         if _tmp529:
                             if t.head is NUMBER:
