@@ -8,10 +8,6 @@ from ..function import Function
 from ...arithmetic.evalf import evalf, Float
 from ...arithmetic.numbers import Complex, realtypes, inttypes
 
-def is_positive(x):
-    from ..relational import no_assumptions
-    return no_assumptions.positive(x)
-
 import math
 
 zero = A(0)
@@ -85,6 +81,7 @@ class log(Function):
             return A(arg, head=cls)
         if arg == E:
             return one
+        from ..relational import is_positive
         if head is MUL and len(data) == 1:
             base, expt = data.items()[0]
             if is_positive(base) and isinstance(expt, realtypes):

@@ -29,6 +29,12 @@ class Assumptions:
         ns = [repr(Nonnegative(a)) for a in self.nonneg_values]
         return "Assumptions([%s])" % ", ".join(ps + ns)
 
+    def __enter__(self):
+        globalctx.assumptions = self
+
+    def __exit__(self, *args):
+        globalctx.assumptions = no_assumptions
+
     def check(self, cond):
         if isinstance(cond, (bool, type(None))):
             return cond
@@ -129,3 +135,12 @@ class Assumptions:
         return None
 
 no_assumptions = Assumptions([])
+
+class GlobalContext(object):
+    pass
+
+globalctx = GlobalContext()
+
+globalctx.assumptions = no_assumptions
+
+is_positive = lambda e: globalctx.assumptions.positive(e)

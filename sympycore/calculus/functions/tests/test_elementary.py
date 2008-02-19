@@ -1,7 +1,10 @@
+from __future__ import with_statement
+
 from sympycore.calculus import Calculus as A
 from sympycore.calculus.algebra import oo, I
-from sympycore.calculus import Number
+from sympycore.calculus import Number, Symbol
 from sympycore.calculus.functions.elementary import sin, cos, tan, cot, pi, E, exp, log
+from sympycore.calculus.relational import Assumptions
 
 def test_exp_log():
     assert exp(1) == E
@@ -25,6 +28,12 @@ def test_exp_log():
     assert str(log(1+I)) == 'log(1 + I)'
     assert log(5**Number(1,3)) == Number(1,3)*log(5)
     assert log(5**(3+2*I)) != (3+2*I)*log(5)
+
+def test_log_assumptions():
+    x = Symbol('x')
+    assert log(x**2) != 2*log(x)
+    with Assumptions([x > 0]):
+        assert log(x**2) == 2*log(x)
 
 def test_trig_values():
     sqrt2 = A('2**(1/2)')
