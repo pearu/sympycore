@@ -8,7 +8,7 @@ SympyCore User's Guide
 ======================
 
 :Authors:
-  `Pearu Peterson <pearu.peterson@gmail.com>`_
+  Pearu Peterson <pearu.peterson@gmail.com>
 
 :Created:
   January 2008
@@ -681,6 +681,10 @@ content:
 
 Canonical forms and suppressed evaluation
 =========================================
+
+See also `Automatic evaluation rules of symbolic expressions`__.
+
+__ evaluation_rules.html
 
 The ``Calculus`` algebra automatically applies some transformations to
 expressions. The purpose of these transformations is to permit quick

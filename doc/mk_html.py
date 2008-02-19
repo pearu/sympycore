@@ -12,6 +12,8 @@ except:
 
 from docutils.core import publish_file
 
-publish_file(source_path=path('userguide.rst'),
-             destination_path=path('html','userguide.html'),
-             writer_name='html')
+for n in ['userguide', 'evaluation_rules']:
+    publish_file(source_path=path(n+'.rst'),
+                 destination_path=path('html',n+'.html'),
+                 writer_name='html')
+
