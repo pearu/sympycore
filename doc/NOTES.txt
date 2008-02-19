@@ -1,0 +1,5 @@
+
+When adding a new html file to html/ directory, execute the following
+command:
+
+  svn propset svn:mime-type text/html html/filename.html
