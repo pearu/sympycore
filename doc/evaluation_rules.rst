@@ -74,7 +74,7 @@ The following notation is used::
 
   +oo = oo(0)
   -oo = oo(pi)
-  zoo = oo(undefined)
+  zoo = oo(+oo)
 
 An operation ``<op>`` with an infinity and a finite number is defined
 as follows:
@@ -156,7 +156,7 @@ __ http://en.wikipedia.org/wiki/Commutativity
 
   In commutative operations *equal* expressions are collected. The
   equality is defined as an *equality between data structures* which
-  may not be equivalent to *mathematical equality*.
+  may not be equivalent to the notion of *mathematical equality*.
 
   For example::
 
@@ -189,7 +189,7 @@ __ http://en.wikipedia.org/wiki/Commutativity
 .. admonition:: Rule 5: distributivity
 
   `Distributivity`__ law of multiplication over addition is applied
-  only when a sum is multiplied by a number that is not extended
+  only when a sum is multiplied by a number that is not an extended
   number.
 
   For example::
@@ -200,13 +200,25 @@ __ http://en.wikipedia.org/wiki/Commutativity
 
 __ http://en.wikipedia.org/wiki/Distributivity
 
+The reason why distributivity law is not used in case of extended numbers
+is that it might lead to undefined results that otherwise would be defined.
+For example, if ``x=-1`` then::
 
-Operations with numbers
------------------------
+  oo*(2 + x) -> oo*1 -> oo
+
+but
+
+::
+
+  oo*(2 + x) -> oo + oo*x -> oo + oo*(-1) -> oo - oo -> undefined
 
 All number sets (integers, rationals, complex numbers) are closed with
-respect to addition and multiplication operations.  Hence addition and
-multiplication operations with numbers always result in a number.
+respect to addition and multiplication operations.  Hence:
+
+.. admonition:: Rule 6: additing and multiplying numbers
+
+  Addition and multiplication operations with numbers always result in
+  a number.
 
 Exponentiation operation with numbers are evaluated to a number when
 possible. In case of algebraic numbers, suppresed evaluation may be
@@ -220,33 +232,19 @@ carried out. For example::
 Integer powers
 ``````````````
 
-.. admonition:: Rule 6: ``m ** n`` for a number ``m`` and integer ``n``.
+.. admonition:: Rule 7: ``m ** n`` for a number ``m`` and integer ``n``.
 
-  If ``n`` is positive then the result is a number.
+  If ``n`` is ``0`` then the result is ``1``.
 
-  If ``n`` is negative then the result is ``1/(m**(-n))`` (or ``(1/m)**(-n)``).
+  If ``n`` is positive then the result is a number. Different
+  algorithms are possible for cases where ``m`` is integer, or
+  fraction, or floating point number, or complex number, or purely
+  imaginary complex number.
 
-.. admonition:: Rule 7: ``(p/q) ** n`` for integers ``p``, ``q``, ``n``.
+  If ``n`` is negative then the result is ``1/(m**(-n))`` (or
+  ``(1/m)**(-n)``).
 
-  If ``n`` is positive then the result is ``(p**n)/(q**n)``.
-
-  If ``n`` is negative then the result is ``(q**(-n))/(p**(-n))`` (or ``(q/p)**(-n)``).
-
-.. admonition:: Rule 8: ``f ** n`` for floating point number ``f`` and integer ``n``.
-
-  If ``n`` is positive then the result is a floating point number.
-
-  If ``n`` is negative then the result is ``1/(f**(-n))`` (or ``(1/f)**(-n)``).
-
-.. admonition:: Rule 9: ``(r+I*i) ** n`` for real numbers ``r``, ``i!=0``, and integer ``n``.
-
-  If ``n`` is positive then the result is a complex number. Different
-  algorithms are possible for cases where ``r==0``, ``r, i`` are
-  fractions or integers.
-
-  If ``n`` is negative then the result is ``(1/(r+I*i))**(-n)``.
-
-.. admonition:: Rule 10: ``z ** n`` for extended number ``z=oo(theta)`` and integer ``n``.
+.. admonition:: Rule 8: ``z ** n`` for extended number ``z=oo(theta)`` and integer ``n``.
 
   If ``n`` is ``0`` then the result is ``1``.
 
@@ -257,6 +255,27 @@ Integer powers
   If ``n`` is negative then::
 
     oo(theta)**n -> 0
+
+.. admonition:: Rule 9: ``(w*z) ** n`` for symbols ``w``, ``z``, and integer ``n``.
+
+  The result is ``w**n * z**n``.
+
+.. admonition:: Rule 10: ``(w**z) ** n`` for symbols ``w``, ``z``, and integer ``n``.
+
+  The result is ``w**(n*z)``.
+
+Fraction powers
+```````````````
+
+.. admonition:: Rule 11: ``m ** (1/q)`` for integers ``m``, ``q>0``.
+
+  If ``m`` is positive then the result is a product of algebraic numbers.
+
+  If ``m`` is negative then the result is ``(-1)**(1/q) * (-m)**(1/q)``
+
+.. admonition:: Rule 12: ``m ** (p/q)`` for integers ``m``, ``p!=1``, ``q>0``.
+
+  The result is evaluated result of ``(m ** (1/q))**p``.
 
 
 Function evaluations
