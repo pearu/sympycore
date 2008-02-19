@@ -313,10 +313,10 @@ ul.auto-toc {
 <li><a class="reference" href="#operands" id="id6" name="id6">2.1&nbsp;&nbsp;&nbsp;Operands</a></li>
 <li><a class="reference" href="#operations" id="id7" name="id7">2.2&nbsp;&nbsp;&nbsp;Operations</a></li>
 <li><a class="reference" href="#operations-with-numbers" id="id8" name="id8">2.3&nbsp;&nbsp;&nbsp;Operations with numbers</a></li>
-<li><a class="reference" href="#operations-with-extended-numbers" id="id9" name="id9">2.4&nbsp;&nbsp;&nbsp;Operations with extended numbers</a></li>
 </ul>
 </li>
-<li><a class="reference" href="#function-evaluations" id="id10" name="id10">3&nbsp;&nbsp;&nbsp;Function evaluations</a></li>
+<li><a class="reference" href="#function-evaluations" id="id9" name="id9">3&nbsp;&nbsp;&nbsp;Function evaluations</a></li>
+<li><a class="reference" href="#references" id="id10" name="id10">4&nbsp;&nbsp;&nbsp;References</a></li>
 </ul>
 </div>
 </div>
@@ -355,10 +355,52 @@ fractions, or floating point numbers.</p>
 <p class="last">Any rule containing symbols, should remain valid when the symbols
 are replaced by numbers.</p>
 </div>
+<div class="section">
+<h3><a id="notes-on-extended-numbers" name="notes-on-extended-numbers">2.1.1&nbsp;&nbsp;&nbsp;Notes on extended numbers</a></h3>
 <p>Expressions containing extended numbers require special rules as
-distributivity laws are not valid for extended numbers. Note that the
-distributivity law is not strictly valid also for operations with
-floating point numbers.</p>
+distributivity laws are not valid for extended numbers. An extended
+number is defined as a quantity that has infinite magnitude and has
+either specified or unspecified direction in the complex
+plane. Infinity with direction <tt class="docutils literal"><span class="pre">theta</span></tt> can be defined as follows:</p>
+<div class="admonition-definition-1-infinity-with-direction admonition">
+<p class="first admonition-title">Definition 1: infinity with direction</p>
+<pre class="last literal-block">
+oo(theta) =  lim     r * exp(I*theta)
+            r -&gt; oo
+</pre>
+</div>
+<p>The following notation is used:</p>
+<pre class="literal-block">
++oo = oo(0)
+-oo = oo(pi)
+zoo = oo(undefined)
+</pre>
+<p>An operation <tt class="docutils literal"><span class="pre">&lt;op&gt;</span></tt> with an infinity and a finite number is defined
+as follows:</p>
+<div class="admonition-definition-2-operations-with-finite-numbers admonition">
+<p class="first admonition-title">Definition 2: operations with finite numbers</p>
+<pre class="last literal-block">
+oo(theta) &lt;op&gt; number =   lim    r * exp(I*theta) &lt;op&gt; number
+                        r -&gt; oo
+</pre>
+</div>
+<p>An operation <tt class="docutils literal"><span class="pre">&lt;op&gt;</span></tt> with two infinities with different
+directions is defined as follows:</p>
+<div class="admonition-definition-3-operations-with-infinite-numbers admonition">
+<p class="first admonition-title">Definition 3: operations with infinite numbers</p>
+<pre class="literal-block">
+oo(theta1) &lt;op&gt; oo(theta2) =   lim      r1 * exp(I*theta1) &lt;op&gt; r2 * exp(I*theta2)
+                            r1, r2 -&gt; oo
+</pre>
+<p class="last">where the limit processes <tt class="docutils literal"><span class="pre">r1-&gt;oo</span></tt> and <tt class="docutils literal"><span class="pre">r2-&gt;oo</span></tt> are independent.</p>
+</div>
+</div>
+<div class="section">
+<h3><a id="notes-on-floating-point-numbers" name="notes-on-floating-point-numbers">2.1.2&nbsp;&nbsp;&nbsp;Notes on floating point numbers</a></h3>
+<p>Note that the distributivity law is not strictly valid also for
+operations with floating point numbers but in the following we assume
+it to hold for simplicity.</p>
+</div>
 </div>
 <div class="section">
 <h2><a class="toc-backref" href="#id7" id="operations" name="operations">2.2&nbsp;&nbsp;&nbsp;Operations</a></h2>
@@ -444,18 +486,62 @@ oo*(2 + x) -&gt; oo*(2 + x)
 </div>
 <div class="section">
 <h2><a class="toc-backref" href="#id8" id="operations-with-numbers" name="operations-with-numbers">2.3&nbsp;&nbsp;&nbsp;Operations with numbers</a></h2>
-<p>Addition and multiplication operations with numbers always result in a number.</p>
-<p>XXX: add rules for exponentiation with integers, fractions.</p>
+<p>All number sets (integers, rationals, complex numbers) are closed with
+respect to addition and multiplication operations.  Hence addition and
+multiplication operations with numbers always result in a number.</p>
+<p>Exponentiation operation with numbers are evaluated to a number when
+possible. In case of algebraic numbers, suppresed evaluation may be
+carried out. For example:</p>
+<pre class="literal-block">
+2**3 -&gt; 8
+2**(-3) -&gt; 1/8
+4**(1/2) -&gt; 2
+8**(1/2) -&gt; 2*2**(1/2)
+</pre>
+<div class="admonition-rule-6-m-n-for-integers-m-n admonition">
+<p class="first admonition-title">Rule 6: <tt class="docutils literal"><span class="pre">m</span> <span class="pre">**</span> <span class="pre">n</span></tt> for integers <tt class="docutils literal"><span class="pre">m</span></tt>, <tt class="docutils literal"><span class="pre">n</span></tt>.</p>
+<p>If <tt class="docutils literal"><span class="pre">n</span></tt> is positive then the result is an integer.</p>
+<p class="last">If <tt class="docutils literal"><span class="pre">n</span></tt> is negative then the result is <tt class="docutils literal"><span class="pre">1/(m**(-n))</span></tt> (or <tt class="docutils literal"><span class="pre">(1/m)**(-n)</span></tt>).</p>
+</div>
+<div class="admonition-rule-7-p-q-n-for-integers-p-q-n admonition">
+<p class="first admonition-title">Rule 7: <tt class="docutils literal"><span class="pre">(p/q)</span> <span class="pre">**</span> <span class="pre">n</span></tt> for integers <tt class="docutils literal"><span class="pre">p</span></tt>, <tt class="docutils literal"><span class="pre">q</span></tt>, <tt class="docutils literal"><span class="pre">n</span></tt>.</p>
+<p>If <tt class="docutils literal"><span class="pre">n</span></tt> is positive then the result is <tt class="docutils literal"><span class="pre">(p**n)/(q**n)</span></tt>.</p>
+<p class="last">If <tt class="docutils literal"><span class="pre">n</span></tt> is negative then the result is <tt class="docutils literal"><span class="pre">(q**(-n))/(p**(-n))</span></tt> (or <tt class="docutils literal"><span class="pre">(q/p)**(-n)</span></tt>).</p>
+</div>
+<div class="admonition-rule-8-f-n-for-floating-point-number-f-and-integer-n admonition">
+<p class="first admonition-title">Rule 8: <tt class="docutils literal"><span class="pre">f</span> <span class="pre">**</span> <span class="pre">n</span></tt> for floating point number <tt class="docutils literal"><span class="pre">f</span></tt> and integer <tt class="docutils literal"><span class="pre">n</span></tt>.</p>
+<p>If <tt class="docutils literal"><span class="pre">n</span></tt> is positive then the result is a floating point number.</p>
+<p class="last">If <tt class="docutils literal"><span class="pre">n</span></tt> is negative then the result is <tt class="docutils literal"><span class="pre">1/(f**(-n))</span></tt> (or <tt class="docutils literal"><span class="pre">(1/f)**(-n)</span></tt>).</p>
+</div>
+<div class="admonition-rule-9-r-i-i-n-for-real-numbers-r-i-0-and-integer-n admonition">
+<p class="first admonition-title">Rule 9: <tt class="docutils literal"><span class="pre">(r+I*i)</span> <span class="pre">**</span> <span class="pre">n</span></tt> for real numbers <tt class="docutils literal"><span class="pre">r</span></tt>, <tt class="docutils literal"><span class="pre">i!=0</span></tt>, and integer <tt class="docutils literal"><span class="pre">n</span></tt>.</p>
+<p>If <tt class="docutils literal"><span class="pre">n</span></tt> is positive then the result is a complex number. Different
+algorithms are possible for cases where <tt class="docutils literal"><span class="pre">r==0</span></tt>, <tt class="docutils literal"><span class="pre">r,</span> <span class="pre">i</span></tt> are
+fractions or integers.</p>
+<p class="last">If <tt class="docutils literal"><span class="pre">n</span></tt> is negative then the result is <tt class="docutils literal"><span class="pre">(1/(r+I*i))**(-n)</span></tt>.</p>
+</div>
+<div class="admonition-rule-10-z-n-for-extended-number-z-oo-theta-and-integer-n admonition">
+<p class="first admonition-title">Rule 10: <tt class="docutils literal"><span class="pre">z</span> <span class="pre">**</span> <span class="pre">n</span></tt> for extended number <tt class="docutils literal"><span class="pre">z=oo(theta)</span></tt> and integer <tt class="docutils literal"><span class="pre">n</span></tt>.</p>
+<p>If <tt class="docutils literal"><span class="pre">n</span></tt> is <tt class="docutils literal"><span class="pre">0</span></tt> then the result is <tt class="docutils literal"><span class="pre">1</span></tt>.</p>
+<p>If <tt class="docutils literal"><span class="pre">n</span></tt> is positive then:</p>
+<pre class="literal-block">
+oo(theta)**n -&gt; oo(n*theta)
+</pre>
+<p>If <tt class="docutils literal"><span class="pre">n</span></tt> is negative then:</p>
+<pre class="last literal-block">
+oo(theta)**n -&gt; 0
+</pre>
+</div>
+</div>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id9" id="operations-with-extended-numbers" name="operations-with-extended-numbers">2.4&nbsp;&nbsp;&nbsp;Operations with extended numbers</a></h2>
-<p><a class="reference" href="http://code.google.com/p/sympycore/wiki/ExtendedNumbers">http://code.google.com/p/sympycore/wiki/ExtendedNumbers</a></p>
-</div>
-</div>
-<div class="section">
-<h1><a class="toc-backref" href="#id10" id="function-evaluations" name="function-evaluations">3&nbsp;&nbsp;&nbsp;Function evaluations</a></h1>
+<h1><a class="toc-backref" href="#id9" id="function-evaluations" name="function-evaluations">3&nbsp;&nbsp;&nbsp;Function evaluations</a></h1>
 <p>XXX: explain the rules for evaluating elementary functions such as
 <tt class="docutils literal"><span class="pre">sin</span></tt>, <tt class="docutils literal"><span class="pre">cos</span></tt>, etc.</p>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id10" id="references" name="references">4&nbsp;&nbsp;&nbsp;References</a></h1>
+<p><a class="reference" href="http://code.google.com/p/sympycore/wiki/ExtendedNumbers">http://code.google.com/p/sympycore/wiki/ExtendedNumbers</a></p>
 </div>
 </div>
 </body>

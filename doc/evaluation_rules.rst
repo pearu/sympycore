@@ -54,10 +54,58 @@ fractions, or floating point numbers.
   Any rule containing symbols, should remain valid when the symbols
   are replaced by numbers.
 
+Notes on extended numbers
+`````````````````````````
+
 Expressions containing extended numbers require special rules as
-distributivity laws are not valid for extended numbers. Note that the
-distributivity law is not strictly valid also for operations with
-floating point numbers.
+distributivity laws are not valid for extended numbers. An extended
+number is defined as a quantity that has infinite magnitude and has
+either specified or unspecified direction in the complex
+plane. Infinity with direction ``theta`` can be defined as follows:
+
+.. admonition:: Definition 1: infinity with direction
+
+  ::
+
+    oo(theta) =  lim     r * exp(I*theta)
+                r -> oo
+
+The following notation is used::
+
+  +oo = oo(0)
+  -oo = oo(pi)
+  zoo = oo(undefined)
+
+An operation ``<op>`` with an infinity and a finite number is defined
+as follows:
+
+.. admonition:: Definition 2: operations with finite numbers
+
+  ::
+
+    oo(theta) <op> number =   lim    r * exp(I*theta) <op> number
+                            r -> oo
+
+An operation ``<op>`` with two infinities with different
+directions is defined as follows:
+
+.. admonition:: Definition 3: operations with infinite numbers
+
+  ::
+
+    oo(theta1) <op> oo(theta2) =   lim      r1 * exp(I*theta1) <op> r2 * exp(I*theta2)
+                                r1, r2 -> oo
+
+  where the limit processes ``r1->oo`` and ``r2->oo`` are independent.
+
+
+
+Notes on floating point numbers
+```````````````````````````````
+
+Note that the distributivity law is not strictly valid also for
+operations with floating point numbers but in the following we assume
+it to hold for simplicity.
 
 Operations
 ----------
@@ -150,14 +198,56 @@ __ http://en.wikipedia.org/wiki/Distributivity
 Operations with numbers
 -----------------------
 
-Addition and multiplication operations with numbers always result in a number.
+All number sets (integers, rationals, complex numbers) are closed with
+respect to addition and multiplication operations.  Hence addition and
+multiplication operations with numbers always result in a number.
 
-XXX: add rules for exponentiation with integers, fractions.
+Exponentiation operation with numbers are evaluated to a number when
+possible. In case of algebraic numbers, suppresed evaluation may be
+carried out. For example::
 
-Operations with extended numbers
---------------------------------
+  2**3 -> 8
+  2**(-3) -> 1/8
+  4**(1/2) -> 2
+  8**(1/2) -> 2*2**(1/2)
 
-http://code.google.com/p/sympycore/wiki/ExtendedNumbers
+.. admonition:: Rule 6: ``m ** n`` for integers ``m``, ``n``.
+
+  If ``n`` is positive then the result is an integer.
+
+  If ``n`` is negative then the result is ``1/(m**(-n))`` (or ``(1/m)**(-n)``).
+
+.. admonition:: Rule 7: ``(p/q) ** n`` for integers ``p``, ``q``, ``n``.
+
+  If ``n`` is positive then the result is ``(p**n)/(q**n)``.
+
+  If ``n`` is negative then the result is ``(q**(-n))/(p**(-n))`` (or ``(q/p)**(-n)``).
+
+.. admonition:: Rule 8: ``f ** n`` for floating point number ``f`` and integer ``n``.
+
+  If ``n`` is positive then the result is a floating point number.
+
+  If ``n`` is negative then the result is ``1/(f**(-n))`` (or ``(1/f)**(-n)``).
+
+.. admonition:: Rule 9: ``(r+I*i) ** n`` for real numbers ``r``, ``i!=0``, and integer ``n``.
+
+  If ``n`` is positive then the result is a complex number. Different
+  algorithms are possible for cases where ``r==0``, ``r, i`` are
+  fractions or integers.
+
+  If ``n`` is negative then the result is ``(1/(r+I*i))**(-n)``.
+
+.. admonition:: Rule 10: ``z ** n`` for extended number ``z=oo(theta)`` and integer ``n``.
+
+  If ``n`` is ``0`` then the result is ``1``.
+
+  If ``n`` is positive then::
+
+    oo(theta)**n -> oo(n*theta)
+
+  If ``n`` is negative then::
+
+    oo(theta)**n -> 0
 
 
 Function evaluations
@@ -165,3 +255,9 @@ Function evaluations
 
 XXX: explain the rules for evaluating elementary functions such as
 ``sin``, ``cos``, etc.
+
+
+References
+==========
+
+http://code.google.com/p/sympycore/wiki/ExtendedNumbers
