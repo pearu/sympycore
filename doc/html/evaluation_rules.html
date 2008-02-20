@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.4.1: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.4: http://docutils.sourceforge.net/" />
 <title>Automatic evaluation rules of symbolic expressions</title>
 <meta name="authors" content="Pearu Peterson &lt;pearu.peterson AT gmail DOT com&gt;" />
 <style type="text/css">
@@ -314,8 +314,14 @@ ul.auto-toc {
 <li><a class="reference" href="#operations" id="id7" name="id7">2.2&nbsp;&nbsp;&nbsp;Operations</a></li>
 </ul>
 </li>
-<li><a class="reference" href="#function-evaluations" id="id8" name="id8">3&nbsp;&nbsp;&nbsp;Function evaluations</a></li>
-<li><a class="reference" href="#references" id="id9" name="id9">4&nbsp;&nbsp;&nbsp;References</a></li>
+<li><a class="reference" href="#function-evaluations" id="id8" name="id8">3&nbsp;&nbsp;&nbsp;Function evaluations</a><ul class="auto-toc">
+<li><a class="reference" href="#general-rules" id="id9" name="id9">3.1&nbsp;&nbsp;&nbsp;General rules</a></li>
+<li><a class="reference" href="#exponentials" id="id10" name="id10">3.2&nbsp;&nbsp;&nbsp;Exponentials</a></li>
+<li><a class="reference" href="#logarithms" id="id11" name="id11">3.3&nbsp;&nbsp;&nbsp;Logarithms</a></li>
+<li><a class="reference" href="#trigonometric-functions" id="id12" name="id12">3.4&nbsp;&nbsp;&nbsp;Trigonometric functions</a></li>
+</ul>
+</li>
+<li><a class="reference" href="#references" id="id13" name="id13">4&nbsp;&nbsp;&nbsp;References</a></li>
 </ul>
 </div>
 </div>
@@ -463,11 +469,11 @@ contain extended numbers explicitly.</p>
 <p>For example:</p>
 <pre class="literal-block">
 0 * x -&gt; 0
-0 * (x + oo) -&gt; 0 * (x + oo)     # the result is undefined for any x
+0 * (x + oo) -&gt; undefined
 </pre>
 <p>Division a non-zero number by zero is infinity with undefined direction:</p>
 <pre class="literal-block">
-1/0 -&gt; oo(undefined)
+1/0 -&gt; oo(+oo)
 0/0 -&gt; undefined
 </pre>
 <p>Exponentiation by zero results one.</p>
@@ -564,11 +570,70 @@ oo(theta)**n -&gt; 0
 </div>
 <div class="section">
 <h1><a class="toc-backref" href="#id8" id="function-evaluations" name="function-evaluations">3&nbsp;&nbsp;&nbsp;Function evaluations</a></h1>
-<p>XXX: explain the rules for evaluating elementary functions such as
-<tt class="docutils literal"><span class="pre">sin</span></tt>, <tt class="docutils literal"><span class="pre">cos</span></tt>, etc.</p>
+<div class="section">
+<h2><a class="toc-backref" href="#id9" id="general-rules" name="general-rules">3.1&nbsp;&nbsp;&nbsp;General rules</a></h2>
+<p>A function should automatically evaluate back to a number
+when given an input for which it assumes a rational
+or complex rational value. An exception to this rule can be
+made if the computation required to produce the number
+is extremely time-consuming.</p>
+<p>Given a floating-point number <tt class="docutils literal"><span class="pre">x</span></tt>, <tt class="docutils literal"><span class="pre">f(x)</span></tt> should return
+a floating-point approximation.</p>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id9" id="references" name="references">4&nbsp;&nbsp;&nbsp;References</a></h1>
+<h2><a class="toc-backref" href="#id10" id="exponentials" name="exponentials">3.2&nbsp;&nbsp;&nbsp;Exponentials</a></h2>
+<p><tt class="docutils literal"><span class="pre">exp(x)</span></tt> is equivalent to <tt class="docutils literal"><span class="pre">E**x</span></tt>, and implemented as a simple
+wrapper for this operation.</p>
+<p>Likewise, <tt class="docutils literal"><span class="pre">sqrt(x)</span></tt> is equivalent to <tt class="docutils literal"><span class="pre">x**(1/2)</span></tt>.</p>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id11" id="logarithms" name="logarithms">3.3&nbsp;&nbsp;&nbsp;Logarithms</a></h2>
+<p><tt class="docutils literal"><span class="pre">log(x,b)</span></tt> is defined as <tt class="docutils literal"><span class="pre">log(x)/log(b)</span></tt>. <tt class="docutils literal"><span class="pre">log(x)</span></tt> denotes
+the natural logarithm with base <tt class="docutils literal"><span class="pre">b</span></tt> = <tt class="docutils literal"><span class="pre">E</span></tt>. In general <tt class="docutils literal"><span class="pre">x</span></tt>
+and <tt class="docutils literal"><span class="pre">b</span></tt> are assumed to be complex numbers (meaning that some
+transformations familiar for positive real numbers cannot be
+performed automatically with symbolic arguments). If no
+simplifications can be found, <tt class="docutils literal"><span class="pre">log(x,b)</span></tt> is expanded
+automatically to <tt class="docutils literal"><span class="pre">log(x)/log(b)</span></tt>.</p>
+<p>If <tt class="docutils literal"><span class="pre">x</span></tt> and <tt class="docutils literal"><span class="pre">b</span></tt> are both positive integers, <tt class="docutils literal"><span class="pre">log(x,</span> <span class="pre">b)</span></tt>
+evaluates to an integer when exact (note that <tt class="docutils literal"><span class="pre">log(x)/log(b)</span></tt>
+does not).</p>
+<p>For complex arguments, <tt class="docutils literal"><span class="pre">log(x)</span></tt> is taken to be the principal
+branch of the natural logarithm, with the branch cut placed
+infinitesimally below the negative real half axis.</p>
+<p><tt class="docutils literal"><span class="pre">log(x)</span></tt> evaluates to an explicit value at <tt class="docutils literal"><span class="pre">x</span></tt> = <tt class="docutils literal"><span class="pre">1</span></tt>, <tt class="docutils literal"><span class="pre">E</span></tt>,
+<tt class="docutils literal"><span class="pre">I</span></tt> and <tt class="docutils literal"><span class="pre">-I</span></tt>. <tt class="docutils literal"><span class="pre">log(0)</span></tt> evaluates to <tt class="docutils literal"><span class="pre">-oo</span></tt> and <tt class="docutils literal"><span class="pre">log(oo)</span></tt>
+evaluates to <tt class="docutils literal"><span class="pre">oo</span></tt>.</p>
+<p><tt class="docutils literal"><span class="pre">log(b**x,</span> <span class="pre">b)</span></tt> evaluates to <tt class="docutils literal"><span class="pre">x</span></tt> if <tt class="docutils literal"><span class="pre">b</span></tt> is positive and <tt class="docutils literal"><span class="pre">x</span></tt>
+is real (in particular, if <tt class="docutils literal"><span class="pre">b</span></tt> is <tt class="docutils literal"><span class="pre">E</span></tt> and <tt class="docutils literal"><span class="pre">y</span></tt> is rational).
+By extension, <tt class="docutils literal"><span class="pre">log(b**x,</span> <span class="pre">b**y)</span></tt> evaluates to <tt class="docutils literal"><span class="pre">x/y</span></tt> if <tt class="docutils literal"><span class="pre">b</span></tt>
+is positive and <tt class="docutils literal"><span class="pre">x</span></tt> and <tt class="docutils literal"><span class="pre">y</span></tt> are both real.</p>
+<p>TODO: log(-x), log(I*x), log(-I*x), ...</p>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id12" id="trigonometric-functions" name="trigonometric-functions">3.4&nbsp;&nbsp;&nbsp;Trigonometric functions</a></h2>
+<p>Trigonometric functions are automatically evaluated
+to algebraic values if the argument is an integral multiple of <tt class="docutils literal"><span class="pre">pi/6</span></tt>.
+(Direct evaluation is currently also performed at all multiples
+of <tt class="docutils literal"><span class="pre">pi/12</span></tt>; this behavior could be adjusted.) The poles
+in <tt class="docutils literal"><span class="pre">tan</span></tt> and <tt class="docutils literal"><span class="pre">cot</span></tt> evaluate to <tt class="docutils literal"><span class="pre">zoo</span></tt>. Trigonometric functions
+are kept unevaluated at <tt class="docutils literal"><span class="pre">-oo</span></tt> and <tt class="docutils literal"><span class="pre">oo</span></tt> (this can be useful
+when computing limits).</p>
+<p>If the argument to a trigonometric function contains an explicit
+rational multiple of <tt class="docutils literal"><span class="pre">pi</span></tt> as a term, this term is replaced by
+a multiple of pi in the interval <tt class="docutils literal"><span class="pre">[0,</span> <span class="pre">pi/2)</span></tt> using
+trigonometric identities. This may involve replacing a sine
+by a cosine, etc.</p>
+<p>Explicit signs are moved out of the function, e.g.
+<tt class="docutils literal"><span class="pre">sin(-x)</span> <span class="pre">-&gt;</span> <span class="pre">-sin(x)</span></tt>. If the argument is a sum of several terms,
+a sign is moved out if and only if all terms have an explicit
+minus sign.</p>
+<p>Trigonometric functions of products containing an explicit
+imaginary factor <tt class="docutils literal"><span class="pre">I</span></tt> evaluate to hyperbolic functions and vice versa.</p>
+</div>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id13" id="references" name="references">4&nbsp;&nbsp;&nbsp;References</a></h1>
 <p><a class="reference" href="http://code.google.com/p/sympycore/wiki/ExtendedNumbers">http://code.google.com/p/sympycore/wiki/ExtendedNumbers</a></p>
 </div>
 </div>

@@ -38,7 +38,7 @@ In commutative ring operations, four types of operands are possible:
   * products, e.g. ``3*x``, ``x**2 * z``;
   * symbols, e.g. ``x``, ``sin(x+z**2)``.
 
-Depending on a particular ring, numbers can be 
+Depending on a particular ring, numbers can be
 
   * integers, e.g. ``-4``, ``0``, ``1``;
   * fractions, e.g. ``1/2``, ``-3/4``;
@@ -97,7 +97,7 @@ directions is defined as follows:
                                 r1, r2 -> oo
 
   where the limit processes ``r1->oo`` and ``r2->oo`` are independent.
-  
+
   If ``lim(r1->oo, r2->oo)`` is different from ``lim(r2->oo, r1->oo)`` then the
   result is defined as ``undefined``.
 
@@ -281,8 +281,84 @@ Fraction powers
 Function evaluations
 ====================
 
-XXX: explain the rules for evaluating elementary functions such as
-``sin``, ``cos``, etc.
+General rules
+-------------
+
+A function should automatically evaluate back to a number
+when given an input for which it assumes a rational
+or complex rational value. An exception to this rule can be
+made if the computation required to produce the number
+is extremely time-consuming.
+
+Given a floating-point number ``x``, ``f(x)`` should return
+a floating-point approximation.
+
+Exponentials
+------------
+
+``exp(x)`` is equivalent to ``E**x``, and implemented as a simple
+wrapper for this operation.
+
+Likewise, ``sqrt(x)`` is equivalent to ``x**(1/2)``.
+
+Logarithms
+----------
+
+``log(x,b)`` is defined as ``log(x)/log(b)``. ``log(x)`` denotes
+the natural logarithm with base ``b`` = ``E``. In general ``x``
+and ``b`` are assumed to be complex numbers (meaning that some
+transformations familiar for positive real numbers cannot be
+performed automatically with symbolic arguments). If no
+simplifications can be found, ``log(x,b)`` is expanded
+automatically to ``log(x)/log(b)``.
+
+If ``x`` and ``b`` are both positive integers, ``log(x, b)``
+evaluates to an integer when exact (note that ``log(x)/log(b)``
+does not).
+
+For complex arguments, ``log(x)`` is taken to be the principal
+branch of the natural logarithm, with the branch cut placed
+infinitesimally below the negative real half axis.
+
+``log(x)`` evaluates to an explicit value at ``x`` = ``1``, ``E``,
+``I`` and ``-I``. ``log(0)`` evaluates to ``-oo`` and ``log(oo)``
+evaluates to ``oo``.
+
+``log(b**x, b)`` evaluates to ``x`` if ``b`` is positive and ``x``
+is real (in particular, if ``b`` is ``E`` and ``y`` is rational).
+By extension, ``log(b**x, b**y)`` evaluates to ``x/y`` if ``b``
+is positive and ``x`` and ``y`` are both real.
+
+TODO: log(-x), log(I*x), log(-I*x), ...
+
+
+Trigonometric functions
+-----------------------
+
+Trigonometric functions are automatically evaluated
+to algebraic values if the argument is an integral multiple of ``pi/6``.
+(Direct evaluation is currently also performed at all multiples
+of ``pi/12``; this behavior could be adjusted.) The poles
+in ``tan`` and ``cot`` evaluate to ``zoo``. Trigonometric functions
+are kept unevaluated at ``-oo`` and ``oo`` (this can be useful
+when computing limits).
+
+If the argument to a trigonometric function contains an explicit
+rational multiple of ``pi`` as a term, this term is replaced by
+a multiple of pi in the interval ``[0, pi/2)`` using
+trigonometric identities. This may involve replacing a sine
+by a cosine, etc.
+
+Explicit signs are moved out of the function, e.g.
+``sin(-x) -> -sin(x)``. If the argument is a sum of several terms,
+a sign is moved out if and only if all terms have an explicit
+minus sign.
+
+Trigonometric functions of products containing an explicit
+imaginary factor ``I`` evaluate to hyperbolic functions and vice versa.
+
+
+
 
 
 References
