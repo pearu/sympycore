@@ -1014,5 +1014,8 @@ def try_power(x, y):
 
 from .evalf import evalf
 
-from .methods import complex_add
+from .methods import complex_add, complex_sub, complex_rsub, complex_mul
 Complex.__add__ = Complex.__radd__ = complex_add
+Complex.__sub__ = complex_sub
+Complex.__rsub__ = complex_rsub
+Complex.__mul__ = Complex.__rmul__ = complex_mul

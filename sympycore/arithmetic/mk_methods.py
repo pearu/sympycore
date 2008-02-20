@@ -15,6 +15,8 @@ def preprocess(source, tmp_cache=[1]):
             tmp_cache[0] += 1
             d = {'TMP':'_tmp%s' % (tmp_cache[0])}
             for arg in rest.strip()[i+1:-1].split(';'):
+                if not arg:
+                    continue
                 key, value = arg.split('=',1)
                 d[key.strip()] = value.strip()
             try:
@@ -51,6 +53,9 @@ from .numbers import Complex, Float, FractionTuple, realtypes
 
 '''
 
+IF_CHECK_REAL = 'if %(T)s is int or %(T)s is long or %(T)s is FractionTuple or %(T)s is float or %(T)s is Float:'
+IF_CHECK_COMPLEX = 'if %(T)s is cls or %(T)s is complex:'
+
 RETURN_COMPLEX = '''\
 %(TMP)s = new(cls)
 %(TMP)s.real = %(REAL)s
@@ -68,6 +73,17 @@ if not %(TMP)s:
 ADD_COMPLEX_REAL = '@RETURN_COMPLEX(REAL=%(LHS)s.real + %(RHS)s; IMAG=%(LHS)s.imag)\n'
 ADD_COMPLEX_COMPLEX = '@RETURN_COMPLEX2(REAL=%(LHS)s.real + %(RHS)s.real; IMAG=%(LHS)s.imag + %(RHS)s.imag)\n'
 
+SUB_COMPLEX_REAL = '@RETURN_COMPLEX(REAL=%(LHS)s.real - %(RHS)s; IMAG=%(LHS)s.imag)\n'
+SUB_COMPLEX_COMPLEX = '@RETURN_COMPLEX2(REAL=%(LHS)s.real - %(RHS)s.real; IMAG=%(LHS)s.imag - %(RHS)s.imag)\n'
+SUB_REAL_COMPLEX = '@RETURN_COMPLEX(REAL=%(LHS)s - %(RHS)s.real; IMAG=-%(RHS)s.imag)\n'
+
+MUL_COMPLEX_REAL = '@RETURN_COMPLEX(REAL=%(LHS)s.real*%(RHS)s; IMAG=%(LHS)s.imag*%(RHS)s)\n'
+MUL_COMPLEX_COMPLEX = '''\
+a, b = %(LHS)s.real, %(LHS)s.imag
+c, d = %(RHS)s.real, %(RHS)s.imag
+@RETURN_COMPLEX2(REAL=a*c-b*d; IMAG=b*c+a*d)
+'''
+
 def main():
     f = open(targetfile_py, 'w')
     print >> f, template
@@ -75,12 +91,35 @@ def main():
 
 def complex_add(self, other, new=object.__new__, cls=Complex):
     t = type(other)
-    if t is int or t is long or t is FractionTuple or t is float or t is Float:
+    @IF_CHECK_REAL(T=t)
         @ADD_COMPLEX_REAL(LHS=self; RHS=other)
-    if t is cls or t is complex:
+    @IF_CHECK_COMPLEX(T=t)
         @ADD_COMPLEX_COMPLEX(LHS=self; RHS=other)
     return NotImplemented
 
+def complex_sub(self, other, new=object.__new__, cls=Complex):
+    t = type(other)
+    @IF_CHECK_REAL(T=t)
+        @SUB_COMPLEX_REAL(LHS=self; RHS=other)
+    @IF_CHECK_COMPLEX(T=t)
+        @SUB_COMPLEX_COMPLEX(LHS=self; RHS=other)
+    return NotImplemented
+
+def complex_rsub(self, other, new=object.__new__, cls=Complex):
+    t = type(other)
+    @IF_CHECK_REAL(T=t)
+        @SUB_REAL_COMPLEX(LHS=other; RHS=self)
+    if t is complex:
+        @SUB_COMPLEX_COMPLEX(LHS=other; RHS=self)
+    return NotImplemented
+
+def complex_mul(self, other, new=object.__new__, cls=Complex):
+    t = type(other)
+    @IF_CHECK_REAL(T=t)
+        @MUL_COMPLEX_REAL(LHS=self; RHS=other)
+    @IF_CHECK_COMPLEX(T=t)
+        @MUL_COMPLEX_COMPLEX(LHS=self; RHS=other)
+    return NotImplemented
     ''')
 
     f.close()

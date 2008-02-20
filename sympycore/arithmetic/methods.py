@@ -10,24 +10,98 @@ from .numbers import Complex, Float, FractionTuple, realtypes
 
 def complex_add(self, other, new=object.__new__, cls=Complex):
     t = type(other)
+    #IF_CHECK_REAL(T=t)
     if t is int or t is long or t is FractionTuple or t is float or t is Float:
         #ADD_COMPLEX_REAL(LHS=self; RHS=other)
         #RETURN_COMPLEX(REAL=self.real + other; IMAG=self.imag)
-        _tmp3 = new(cls)
-        _tmp3.real = self.real + other
-        _tmp3.imag = self.imag
-        return _tmp3
+        _tmp4 = new(cls)
+        _tmp4.real = self.real + other
+        _tmp4.imag = self.imag
+        return _tmp4
+    #IF_CHECK_COMPLEX(T=t)
     if t is cls or t is complex:
         #ADD_COMPLEX_COMPLEX(LHS=self; RHS=other)
         #RETURN_COMPLEX2(REAL=self.real + other.real; IMAG=self.imag + other.imag)
-        _tmp5 = self.imag + other.imag
-        if not _tmp5:
+        _tmp7 = self.imag + other.imag
+        if not _tmp7:
             return self.real + other.real
-        #RETURN_COMPLEX(REAL=self.real + other.real; IMAG=_tmp5)
-        _tmp6 = new(cls)
-        _tmp6.real = self.real + other.real
-        _tmp6.imag = _tmp5
-        return _tmp6
+        #RETURN_COMPLEX(REAL=self.real + other.real; IMAG=_tmp7)
+        _tmp8 = new(cls)
+        _tmp8.real = self.real + other.real
+        _tmp8.imag = _tmp7
+        return _tmp8
     return NotImplemented
 
+def complex_sub(self, other, new=object.__new__, cls=Complex):
+    t = type(other)
+    #IF_CHECK_REAL(T=t)
+    if t is int or t is long or t is FractionTuple or t is float or t is Float:
+        #SUB_COMPLEX_REAL(LHS=self; RHS=other)
+        #RETURN_COMPLEX(REAL=self.real - other; IMAG=self.imag)
+        _tmp11 = new(cls)
+        _tmp11.real = self.real - other
+        _tmp11.imag = self.imag
+        return _tmp11
+    #IF_CHECK_COMPLEX(T=t)
+    if t is cls or t is complex:
+        #SUB_COMPLEX_COMPLEX(LHS=self; RHS=other)
+        #RETURN_COMPLEX2(REAL=self.real - other.real; IMAG=self.imag - other.imag)
+        _tmp14 = self.imag - other.imag
+        if not _tmp14:
+            return self.real - other.real
+        #RETURN_COMPLEX(REAL=self.real - other.real; IMAG=_tmp14)
+        _tmp15 = new(cls)
+        _tmp15.real = self.real - other.real
+        _tmp15.imag = _tmp14
+        return _tmp15
+    return NotImplemented
+
+def complex_rsub(self, other, new=object.__new__, cls=Complex):
+    t = type(other)
+    #IF_CHECK_REAL(T=t)
+    if t is int or t is long or t is FractionTuple or t is float or t is Float:
+        #SUB_REAL_COMPLEX(LHS=other; RHS=self)
+        #RETURN_COMPLEX(REAL=other - self.real; IMAG=-self.imag)
+        _tmp18 = new(cls)
+        _tmp18.real = other - self.real
+        _tmp18.imag = -self.imag
+        return _tmp18
+    if t is complex:
+        #SUB_COMPLEX_COMPLEX(LHS=other; RHS=self)
+        #RETURN_COMPLEX2(REAL=other.real - self.real; IMAG=other.imag - self.imag)
+        _tmp20 = other.imag - self.imag
+        if not _tmp20:
+            return other.real - self.real
+        #RETURN_COMPLEX(REAL=other.real - self.real; IMAG=_tmp20)
+        _tmp21 = new(cls)
+        _tmp21.real = other.real - self.real
+        _tmp21.imag = _tmp20
+        return _tmp21
+    return NotImplemented
+
+def complex_mul(self, other, new=object.__new__, cls=Complex):
+    t = type(other)
+    #IF_CHECK_REAL(T=t)
+    if t is int or t is long or t is FractionTuple or t is float or t is Float:
+        #MUL_COMPLEX_REAL(LHS=self; RHS=other)
+        #RETURN_COMPLEX(REAL=self.real*other; IMAG=self.imag*other)
+        _tmp24 = new(cls)
+        _tmp24.real = self.real*other
+        _tmp24.imag = self.imag*other
+        return _tmp24
+    #IF_CHECK_COMPLEX(T=t)
+    if t is cls or t is complex:
+        #MUL_COMPLEX_COMPLEX(LHS=self; RHS=other)
+        a, b = self.real, self.imag
+        c, d = other.real, other.imag
+        #RETURN_COMPLEX2(REAL=a*c-b*d; IMAG=b*c+a*d)
+        _tmp27 = b*c+a*d
+        if not _tmp27:
+            return a*c-b*d
+        #RETURN_COMPLEX(REAL=a*c-b*d; IMAG=_tmp27)
+        _tmp28 = new(cls)
+        _tmp28.real = a*c-b*d
+        _tmp28.imag = _tmp27
+        return _tmp28
+    return NotImplemented
     
