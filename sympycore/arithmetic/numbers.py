@@ -553,99 +553,6 @@ class Complex(object):
                 self.real.prec, rounding), self.real.prec)
         raise NotImplementedError
 
-    def __add__(self, other):
-        a, b = self.real, self.imag
-        c, d = self.convert(other)
-        if c is NotImplemented:
-            return c
-        return Complex(a+c, b+d)
-
-    __radd__ = __add__
-
-    def __sub__(self, other):
-        a, b = self.real, self.imag
-        c, d = self.convert(other)
-        if c is NotImplemented:
-            return c
-        return Complex(a-c, b-d)
-
-    def __rsub__(self, other):
-        a, b = self.real, self.imag
-        c, d = self.convert(other)
-        if c is NotImplemented:
-            return c
-        return Complex(c-a, d-b)
-
-    def __mul__(self, other):
-        a, b = self.real, self.imag
-        c, d = self.convert(other)
-        if c is NotImplemented:
-            return c
-        return Complex(a*c-b*d, b*c+a*d)
-
-    __rmul__ = __mul__
-
-    def __div__(self, other):
-        a, b = self.real, self.imag
-        c, d = self.convert(other)
-        if c is NotImplemented:
-            return c
-        mag = c*c + d*d
-        re = div(a*c+b*d, mag)
-        im = div(b*c-a*d, mag)
-        return Complex(re, im)
-
-    def __rdiv__(self, other):
-        c, d = self.real, self.imag
-        a, b = self.convert(other)
-        if a is NotImplemented:
-            return a
-        mag = c*c + d*d
-        re = div(a*c+b*d, mag)
-        im = div(b*c-a*d, mag)
-        return Complex(re, im)
-
-    def __pow__(self, n):
-        assert isinstance(n, (int, long))
-        if not n: return 1
-        if n == 1: return self
-        if n == 2: return self * self
-        if n < 0:
-            return (1 / self) ** (-n)
-        a, b = self.real, self.imag
-        if a==0:
-            case = n % 4
-            if case == 0: return b**n
-            if case == 1: return Complex(0, b**n)
-            if case == 2: return -(b**n)
-            if case == 3: return Complex(0, -b**n)
-        m = 1
-        if isinstance(a, FractionTuple):
-            if isinstance(b, FractionTuple):
-                m = (a[1] * b[1]) ** n
-                a, b = a[0]*b[1], a[1]*b[0]
-            elif isinstance(b, inttypes):
-                m = a[1] ** n
-                a, b = a[0], a[1]*b
-        elif isinstance(b, FractionTuple):
-            if isinstance(a, inttypes):
-                m = b[1] ** n
-                a, b = a*b[1], b[0]
-        c, d = 1, 0
-        while n:
-            if n & 1:
-                c, d = a*c-b*d, b*c+a*d
-                n -= 1
-            a, b = a*a-b*b, 2*a*b
-            n //= 2
-        if m==1:
-            if d:
-                return Complex(c, d)
-            return c
-        if d:
-            return Complex(div(c, m), div(d, m))
-        return div(c, m)
-
 #----------------------------------------------------------------------------#
 #                                                                            #
 #                             Extended numbers                               #
@@ -1014,8 +921,12 @@ def try_power(x, y):
 
 from .evalf import evalf
 
-from .methods import complex_add, complex_sub, complex_rsub, complex_mul
+from .methods import (complex_add, complex_sub, complex_rsub, complex_mul,
+                      complex_div, complex_rdiv, complex_pow)
 Complex.__add__ = Complex.__radd__ = complex_add
 Complex.__sub__ = complex_sub
 Complex.__rsub__ = complex_rsub
 Complex.__mul__ = Complex.__rmul__ = complex_mul
+Complex.__div__ = complex_div
+Complex.__rdiv__ = complex_rdiv
+Complex.__pow__ = complex_pow
