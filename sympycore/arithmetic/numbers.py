@@ -55,6 +55,8 @@ from ..basealgebra.primitive import PrimitiveAlgebra, NUMBER, SYMBOL
 from ..basealgebra.utils import get_object_by_name
 from ..utils import RedirectOperation
 
+
+
 inttypes = (int, long)
 
 #----------------------------------------------------------------------------#
@@ -1011,3 +1013,6 @@ def try_power(x, y):
 
 
 from .evalf import evalf
+
+from .methods import complex_add
+Complex.__add__ = Complex.__radd__ = complex_add
