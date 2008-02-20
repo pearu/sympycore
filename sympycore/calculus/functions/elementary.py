@@ -30,13 +30,13 @@ class sqrt(Function):
     def __new__(cls, arg):
         if not isinstance(arg, A):
             arg = A.convert(arg)
-        return A.Pow(arg, half)
+        return arg ** half
 
 class exp(Function):
     def __new__(cls, arg):
         if not isinstance(arg, A):
             arg = A.convert(arg)
-        return A.Pow(E, arg)
+        return E ** arg
 
     @classmethod
     def derivative(cls, arg):
