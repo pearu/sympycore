@@ -921,8 +921,15 @@ def try_power(x, y):
 
 from .evalf import evalf
 
-from .methods import (complex_add, complex_sub, complex_rsub, complex_mul,
-                      complex_div, complex_rdiv, complex_pow)
+from .methods import (\
+    fraction_add, fraction_sub, fraction_rsub,
+    complex_add, complex_sub, complex_rsub, complex_mul,
+    complex_div, complex_rdiv, complex_pow)
+
+FractionTuple.__add__ = FractionTuple.__radd__ = fraction_add
+FractionTuple.__sub__ = fraction_sub
+FractionTuple.__rsub__ = fraction_rsub
+
 Complex.__add__ = Complex.__radd__ = complex_add
 Complex.__sub__ = complex_sub
 Complex.__rsub__ = complex_rsub

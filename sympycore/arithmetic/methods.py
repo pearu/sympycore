@@ -8,28 +8,98 @@ from .numbers import Complex, Float, FractionTuple, div
 
 
 
+def fraction_add(self, other, cls=FractionTuple):
+    t = type(other)
+    #IF_CHECK_INT(T=t)
+    if t is int or t is long:
+        #ADD_FRACTION_INT(LHS=self; RHS=other)
+        p, q = self
+        #RETURN_FRACTION(NUMER=p+q*(other); DENOM=q)
+        return cls((p+q*(other), q))
+    elif t is cls:
+        #ADD_FRACTION_FRACTION(LHS=self; RHS=other)
+        #ADDOP_FRACTION_FRACTION(LHS=self; RHS=other; SIGN=+; MOD=%)
+        p, q = self
+        r, s = other
+        _tmp6 = p*s + q*r
+        if not _tmp6:
+            return 0
+        #RETURN_FRACTION2(NUMER=_tmp6; DENOM=q*s; MOD=%)
+        _p = _x = _tmp6
+        _q = _y = q*s
+        while _y:
+            _x, _y = _y, _x % _y
+        if _x != 1:
+            _p //= _x
+            _q //= _x
+        if _q == 1:
+            return _p
+        #RETURN_FRACTION(NUMER=_p; DENOM=_q)
+        return cls((_p, _q))
+    return NotImplemented
+
+def fraction_sub(self, other, cls=FractionTuple):
+    t = type(other)
+    #IF_CHECK_INT(T=t)
+    if t is int or t is long:
+        #SUB_FRACTION_INT(LHS=self; RHS=other)
+        p, q = self
+        #RETURN_FRACTION(NUMER=p-q*(other); DENOM=q)
+        return cls((p-q*(other), q))
+    elif t is cls:
+        #SUB_FRACTION_FRACTION(LHS=self; RHS=other)
+        #ADDOP_FRACTION_FRACTION(LHS=self; RHS=other; SIGN=-; MOD=%)
+        p, q = self
+        r, s = other
+        _tmp13 = p*s - q*r
+        if not _tmp13:
+            return 0
+        #RETURN_FRACTION2(NUMER=_tmp13; DENOM=q*s; MOD=%)
+        _p = _x = _tmp13
+        _q = _y = q*s
+        while _y:
+            _x, _y = _y, _x % _y
+        if _x != 1:
+            _p //= _x
+            _q //= _x
+        if _q == 1:
+            return _p
+        #RETURN_FRACTION(NUMER=_p; DENOM=_q)
+        return cls((_p, _q))
+    return NotImplemented
+
+def fraction_rsub(self, other, cls=FractionTuple):
+    t = type(other)
+    #IF_CHECK_INT(T=t)
+    if t is int or t is long:
+        #SUB_INT_FRACTION(RHS=self; LHS=other)
+        p, q = self
+        #RETURN_FRACTION(NUMER=q*(other) - p; DENOM=q)
+        return cls((q*(other) - p, q))
+    return NotImplemented
+
 def complex_add(self, other, new=object.__new__, cls=Complex):
     t = type(other)
     #IF_CHECK_REAL(T=t)
     if t is int or t is long or t is FractionTuple or t is float or t is Float:
         #ADD_COMPLEX_REAL(LHS=self; RHS=other)
         #RETURN_COMPLEX(REAL=self.real + other; IMAG=self.imag)
-        _tmp4 = new(cls)
-        _tmp4.real = self.real + other
-        _tmp4.imag = self.imag
-        return _tmp4
+        _tmp21 = new(cls)
+        _tmp21.real = self.real + other
+        _tmp21.imag = self.imag
+        return _tmp21
     #IF_CHECK_COMPLEX(T=t)
     if t is cls or t is complex:
         #ADD_COMPLEX_COMPLEX(LHS=self; RHS=other)
         #RETURN_COMPLEX2(REAL=self.real + other.real; IMAG=self.imag + other.imag)
-        _tmp7 = self.imag + other.imag
-        if not _tmp7:
+        _tmp24 = self.imag + other.imag
+        if not _tmp24:
             return self.real + other.real
-        #RETURN_COMPLEX(REAL=self.real + other.real; IMAG=_tmp7)
-        _tmp8 = new(cls)
-        _tmp8.real = self.real + other.real
-        _tmp8.imag = _tmp7
-        return _tmp8
+        #RETURN_COMPLEX(REAL=self.real + other.real; IMAG=_tmp24)
+        _tmp25 = new(cls)
+        _tmp25.real = self.real + other.real
+        _tmp25.imag = _tmp24
+        return _tmp25
     return NotImplemented
 
 def complex_sub(self, other, new=object.__new__, cls=Complex):
@@ -38,22 +108,22 @@ def complex_sub(self, other, new=object.__new__, cls=Complex):
     if t is int or t is long or t is FractionTuple or t is float or t is Float:
         #SUB_COMPLEX_REAL(LHS=self; RHS=other)
         #RETURN_COMPLEX(REAL=self.real - other; IMAG=self.imag)
-        _tmp11 = new(cls)
-        _tmp11.real = self.real - other
-        _tmp11.imag = self.imag
-        return _tmp11
+        _tmp28 = new(cls)
+        _tmp28.real = self.real - other
+        _tmp28.imag = self.imag
+        return _tmp28
     #IF_CHECK_COMPLEX(T=t)
     if t is cls or t is complex:
         #SUB_COMPLEX_COMPLEX(LHS=self; RHS=other)
         #RETURN_COMPLEX2(REAL=self.real - other.real; IMAG=self.imag - other.imag)
-        _tmp14 = self.imag - other.imag
-        if not _tmp14:
+        _tmp31 = self.imag - other.imag
+        if not _tmp31:
             return self.real - other.real
-        #RETURN_COMPLEX(REAL=self.real - other.real; IMAG=_tmp14)
-        _tmp15 = new(cls)
-        _tmp15.real = self.real - other.real
-        _tmp15.imag = _tmp14
-        return _tmp15
+        #RETURN_COMPLEX(REAL=self.real - other.real; IMAG=_tmp31)
+        _tmp32 = new(cls)
+        _tmp32.real = self.real - other.real
+        _tmp32.imag = _tmp31
+        return _tmp32
     return NotImplemented
 
 def complex_rsub(self, other, new=object.__new__, cls=Complex):
@@ -62,21 +132,21 @@ def complex_rsub(self, other, new=object.__new__, cls=Complex):
     if t is int or t is long or t is FractionTuple or t is float or t is Float:
         #SUB_REAL_COMPLEX(LHS=other; RHS=self)
         #RETURN_COMPLEX(REAL=other - self.real; IMAG=-self.imag)
-        _tmp18 = new(cls)
-        _tmp18.real = other - self.real
-        _tmp18.imag = -self.imag
-        return _tmp18
+        _tmp35 = new(cls)
+        _tmp35.real = other - self.real
+        _tmp35.imag = -self.imag
+        return _tmp35
     if t is complex:
         #SUB_COMPLEX_COMPLEX(LHS=other; RHS=self)
         #RETURN_COMPLEX2(REAL=other.real - self.real; IMAG=other.imag - self.imag)
-        _tmp20 = other.imag - self.imag
-        if not _tmp20:
+        _tmp37 = other.imag - self.imag
+        if not _tmp37:
             return other.real - self.real
-        #RETURN_COMPLEX(REAL=other.real - self.real; IMAG=_tmp20)
-        _tmp21 = new(cls)
-        _tmp21.real = other.real - self.real
-        _tmp21.imag = _tmp20
-        return _tmp21
+        #RETURN_COMPLEX(REAL=other.real - self.real; IMAG=_tmp37)
+        _tmp38 = new(cls)
+        _tmp38.real = other.real - self.real
+        _tmp38.imag = _tmp37
+        return _tmp38
     return NotImplemented
 
 def complex_mul(self, other, new=object.__new__, cls=Complex):
@@ -85,24 +155,24 @@ def complex_mul(self, other, new=object.__new__, cls=Complex):
     if t is int or t is long or t is FractionTuple or t is float or t is Float:
         #MUL_COMPLEX_REAL(LHS=self; RHS=other)
         #RETURN_COMPLEX(REAL=self.real*other; IMAG=self.imag*other)
-        _tmp24 = new(cls)
-        _tmp24.real = self.real*other
-        _tmp24.imag = self.imag*other
-        return _tmp24
+        _tmp41 = new(cls)
+        _tmp41.real = self.real*other
+        _tmp41.imag = self.imag*other
+        return _tmp41
     #IF_CHECK_COMPLEX(T=t)
     if t is cls or t is complex:
         #MUL_COMPLEX_COMPLEX(LHS=self; RHS=other)
         a, b = self.real, self.imag
         c, d = other.real, other.imag
         #RETURN_COMPLEX2(REAL=a*c-b*d; IMAG=b*c+a*d)
-        _tmp27 = b*c+a*d
-        if not _tmp27:
+        _tmp44 = b*c+a*d
+        if not _tmp44:
             return a*c-b*d
-        #RETURN_COMPLEX(REAL=a*c-b*d; IMAG=_tmp27)
-        _tmp28 = new(cls)
-        _tmp28.real = a*c-b*d
-        _tmp28.imag = _tmp27
-        return _tmp28
+        #RETURN_COMPLEX(REAL=a*c-b*d; IMAG=_tmp44)
+        _tmp45 = new(cls)
+        _tmp45.real = a*c-b*d
+        _tmp45.imag = _tmp44
+        return _tmp45
     return NotImplemented
 
 def complex_div(self, other, new=object.__new__, cls=Complex):
@@ -111,10 +181,10 @@ def complex_div(self, other, new=object.__new__, cls=Complex):
     if t is int or t is long or t is FractionTuple or t is float or t is Float:
         #DIV_COMPLEX_REAL(LHS=self; RHS=other)
         #RETURN_COMPLEX(REAL=div(self.real,other); IMAG=div(self.imag,other))
-        _tmp31 = new(cls)
-        _tmp31.real = div(self.real,other)
-        _tmp31.imag = div(self.imag,other)
-        return _tmp31
+        _tmp48 = new(cls)
+        _tmp48.real = div(self.real,other)
+        _tmp48.imag = div(self.imag,other)
+        return _tmp48
     #IF_CHECK_COMPLEX(T=t)
     if t is cls or t is complex:
         #DIV_COMPLEX_COMPLEX(LHS=self; RHS=other)
@@ -127,10 +197,10 @@ def complex_div(self, other, new=object.__new__, cls=Complex):
             return re
         im = div(im, mag)
         #RETURN_COMPLEX(REAL=re; IMAG=im)
-        _tmp34 = new(cls)
-        _tmp34.real = re
-        _tmp34.imag = im
-        return _tmp34
+        _tmp51 = new(cls)
+        _tmp51.real = re
+        _tmp51.imag = im
+        return _tmp51
     return NotImplemented
 
 def complex_rdiv(self, other, new=object.__new__, cls=Complex):
@@ -138,16 +208,16 @@ def complex_rdiv(self, other, new=object.__new__, cls=Complex):
     #IF_CHECK_REAL(T=t)
     if t is int or t is long or t is FractionTuple or t is float or t is Float:
         #DIV_REAL_COMPLEX(LHS=other; RHS=self)
-        _tmp36 = other
+        _tmp53 = other
         c, d = self.real, self.imag
         mag = c*c + d*d
-        im = div(-_tmp36*d, mag)
-        re = div(_tmp36*c, mag)
+        im = div(-_tmp53*d, mag)
+        re = div(_tmp53*c, mag)
         #RETURN_COMPLEX(REAL=re; IMAG=im)
-        _tmp37 = new(cls)
-        _tmp37.real = re
-        _tmp37.imag = im
-        return _tmp37
+        _tmp54 = new(cls)
+        _tmp54.real = re
+        _tmp54.imag = im
+        return _tmp54
     if t is complex:
         #DIV_COMPLEX_COMPLEX(LHS=other; RHS=self)
         a, b = other.real, other.imag
@@ -159,10 +229,10 @@ def complex_rdiv(self, other, new=object.__new__, cls=Complex):
             return re
         im = div(im, mag)
         #RETURN_COMPLEX(REAL=re; IMAG=im)
-        _tmp39 = new(cls)
-        _tmp39.real = re
-        _tmp39.imag = im
-        return _tmp39
+        _tmp56 = new(cls)
+        _tmp56.real = re
+        _tmp56.imag = im
+        return _tmp56
     return NotImplemented
 
 def complex_pow(self, other, m=None, new=object.__new__, cls=Complex):
@@ -188,18 +258,18 @@ def complex_pow(self, other, m=None, new=object.__new__, cls=Complex):
                 return b**n
             elif case == 1:
                 #RETURN_COMPLEX(REAL=0; IMAG=b**n)
-                _tmp42 = new(cls)
-                _tmp42.real = 0
-                _tmp42.imag = b**n
-                return _tmp42
+                _tmp59 = new(cls)
+                _tmp59.real = 0
+                _tmp59.imag = b**n
+                return _tmp59
             elif case == 2:
                 return -(b**n)
             else:
                 #RETURN_COMPLEX(REAL=0; IMAG=-b**n)
-                _tmp43 = new(cls)
-                _tmp43.real = 0
-                _tmp43.imag = -b**n
-                return _tmp43
+                _tmp60 = new(cls)
+                _tmp60.real = 0
+                _tmp60.imag = -b**n
+                return _tmp60
         ta, tb = type(a), type(b)
         m = 1
         if ta is FractionTuple:
@@ -224,20 +294,20 @@ def complex_pow(self, other, m=None, new=object.__new__, cls=Complex):
             n //= 2
         if m==1:
             #RETURN_COMPLEX2(REAL=c; IMAG=d)
-            _tmp46 = d
-            if not _tmp46:
+            _tmp63 = d
+            if not _tmp63:
                 return c
-            #RETURN_COMPLEX(REAL=c; IMAG=_tmp46)
-            _tmp47 = new(cls)
-            _tmp47.real = c
-            _tmp47.imag = _tmp46
-            return _tmp47
+            #RETURN_COMPLEX(REAL=c; IMAG=_tmp63)
+            _tmp64 = new(cls)
+            _tmp64.real = c
+            _tmp64.imag = _tmp63
+            return _tmp64
         if d:
             #RETURN_COMPLEX(REAL=div(c, m); IMAG=div(d, m))
-            _tmp48 = new(cls)
-            _tmp48.real = div(c, m)
-            _tmp48.imag = div(d, m)
-            return _tmp48
+            _tmp65 = new(cls)
+            _tmp65.real = div(c, m)
+            _tmp65.imag = div(d, m)
+            return _tmp65
         return div(c, m)
     return NotImplemented
     

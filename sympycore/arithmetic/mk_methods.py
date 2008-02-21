@@ -14,11 +14,14 @@ def preprocess(source, tmp_cache=[1]):
             name = rest[:i]
             tmp_cache[0] += 1
             d = {'TMP':'_tmp%s' % (tmp_cache[0])}
-            for arg in rest.strip()[i+1:-1].split(';'):
-                if not arg:
-                    continue
-                key, value = arg.split('=',1)
-                d[key.strip()] = value.strip()
+            try:
+                for arg in rest.strip()[i+1:-1].split(';'):
+                    key, value = arg.split('=',1)
+                    d[key.strip()] = value.strip()
+            except Exception, msg:
+                print `rest`
+                print '%s (while processing %r)' % (msg, line.lstrip())
+                continue
             try:
                 templ = eval(name, globals(), {})
             except NameError, msg:
@@ -58,6 +61,27 @@ ELIF_CHECK_INT = 'elif %(T)s is int or %(T)s is long:'
 IF_CHECK_REAL = 'if %(T)s is int or %(T)s is long or %(T)s is FractionTuple or %(T)s is float or %(T)s is Float:'
 IF_CHECK_COMPLEX = 'if %(T)s is cls or %(T)s is complex:'
 
+#=======================================================
+# Constructor macros
+#=======================================================
+
+RETURN_FRACTION = '''\
+return cls((%(NUMER)s, %(DENOM)s))
+'''
+
+RETURN_FRACTION2 = '''\
+_p = _x = %(NUMER)s
+_q = _y = %(DENOM)s
+while _y:
+    _x, _y = _y, _x %(MOD)s _y
+if _x != 1:
+    _p //= _x
+    _q //= _x
+if _q == 1:
+    return _p
+@RETURN_FRACTION(NUMER=_p; DENOM=_q)
+'''
+
 RETURN_COMPLEX = '''\
 %(TMP)s = new(cls)
 %(TMP)s.real = %(REAL)s
@@ -72,12 +96,52 @@ if not %(TMP)s:
 @RETURN_COMPLEX(REAL=%(REAL)s; IMAG=%(TMP)s)
 '''
 
+#=======================================================
+# ADD macros
+#=======================================================
+
+ADD_FRACTION_INT = '''\
+p, q = %(LHS)s
+@RETURN_FRACTION(NUMER=p+q*(%(RHS)s); DENOM=q)
+'''
+ADDOP_FRACTION_FRACTION = '''\
+p, q = %(LHS)s
+r, s = %(RHS)s
+%(TMP)s = p*s %(SIGN)s q*r
+if not %(TMP)s:
+    return 0
+@RETURN_FRACTION2(NUMER=%(TMP)s; DENOM=q*s; MOD=%(MOD)s)
+'''
+ADD_FRACTION_FRACTION = '''\
+@ADDOP_FRACTION_FRACTION(LHS=%(LHS)s; RHS=%(RHS)s; SIGN=+; MOD=%%)
+'''
+
 ADD_COMPLEX_REAL = '@RETURN_COMPLEX(REAL=%(LHS)s.real + %(RHS)s; IMAG=%(LHS)s.imag)\n'
 ADD_COMPLEX_COMPLEX = '@RETURN_COMPLEX2(REAL=%(LHS)s.real + %(RHS)s.real; IMAG=%(LHS)s.imag + %(RHS)s.imag)\n'
+
+#=======================================================
+# SUB macros
+#=======================================================
+
+SUB_FRACTION_INT = '''\
+p, q = %(LHS)s
+@RETURN_FRACTION(NUMER=p-q*(%(RHS)s); DENOM=q)
+'''
+SUB_INT_FRACTION = '''\
+p, q = %(RHS)s
+@RETURN_FRACTION(NUMER=q*(%(LHS)s) - p; DENOM=q)
+'''
+SUB_FRACTION_FRACTION = '''\
+@ADDOP_FRACTION_FRACTION(LHS=%(LHS)s; RHS=%(RHS)s; SIGN=-; MOD=%%)
+'''
 
 SUB_COMPLEX_REAL = '@RETURN_COMPLEX(REAL=%(LHS)s.real - %(RHS)s; IMAG=%(LHS)s.imag)\n'
 SUB_COMPLEX_COMPLEX = '@RETURN_COMPLEX2(REAL=%(LHS)s.real - %(RHS)s.real; IMAG=%(LHS)s.imag - %(RHS)s.imag)\n'
 SUB_REAL_COMPLEX = '@RETURN_COMPLEX(REAL=%(LHS)s - %(RHS)s.real; IMAG=-%(RHS)s.imag)\n'
+
+#=======================================================
+# MUL macros
+#=======================================================
 
 MUL_COMPLEX_REAL = '@RETURN_COMPLEX(REAL=%(LHS)s.real*%(RHS)s; IMAG=%(LHS)s.imag*%(RHS)s)\n'
 MUL_COMPLEX_COMPLEX = '''\
@@ -85,6 +149,11 @@ a, b = %(LHS)s.real, %(LHS)s.imag
 c, d = %(RHS)s.real, %(RHS)s.imag
 @RETURN_COMPLEX2(REAL=a*c-b*d; IMAG=b*c+a*d)
 '''
+
+#=======================================================
+# DIV macros
+#=======================================================
+
 DIV_COMPLEX_REAL = '@RETURN_COMPLEX(REAL=div(%(LHS)s.real,%(RHS)s); IMAG=div(%(LHS)s.imag,%(RHS)s))\n'
 DIV_COMPLEX_COMPLEX = '''\
 a, b = %(LHS)s.real, %(LHS)s.imag
@@ -105,6 +174,10 @@ im = div(-%(TMP)s*d, mag)
 re = div(%(TMP)s*c, mag)
 @RETURN_COMPLEX(REAL=re; IMAG=im)
 '''
+
+#=======================================================
+# POW macros
+#=======================================================
 
 POW_COMPLEX_INT = '''\
 a, b = %(LHS)s.real, %(LHS)s.imag
@@ -150,6 +223,28 @@ def main():
     f = open(targetfile_py, 'w')
     print >> f, template
     print >> f, preprocess('''
+
+def fraction_add(self, other, cls=FractionTuple):
+    t = type(other)
+    @IF_CHECK_INT(T=t)
+        @ADD_FRACTION_INT(LHS=self; RHS=other)
+    elif t is cls:
+        @ADD_FRACTION_FRACTION(LHS=self; RHS=other)
+    return NotImplemented
+
+def fraction_sub(self, other, cls=FractionTuple):
+    t = type(other)
+    @IF_CHECK_INT(T=t)
+        @SUB_FRACTION_INT(LHS=self; RHS=other)
+    elif t is cls:
+        @SUB_FRACTION_FRACTION(LHS=self; RHS=other)
+    return NotImplemented
+
+def fraction_rsub(self, other, cls=FractionTuple):
+    t = type(other)
+    @IF_CHECK_INT(T=t)
+        @SUB_INT_FRACTION(RHS=self; LHS=other)
+    return NotImplemented
 
 def complex_add(self, other, new=object.__new__, cls=Complex):
     t = type(other)
