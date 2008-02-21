@@ -278,7 +278,6 @@ while n:
 if m==1:
     @RETURN_COMPLEX2(REAL=c; IMAG=d)
 if d:
-    print c,d,m
     @DIV_VALUE_VALUE(LHS=c; RHS=m; RESULT=re; MOD=%(MOD)s)
     @DIV_VALUE_VALUE(LHS=d; RHS=m; RESULT=im; MOD=%(MOD)s)
     @RETURN_COMPLEX(REAL=re; IMAG=im)
