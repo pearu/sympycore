@@ -155,7 +155,7 @@ class FractionTuple(tuple):
 from .mpmath.lib import from_int, from_rational, to_str, fadd, fsub, fmul, \
   round_half_even, from_float, to_float, to_int, fpow, from_str, feq, \
   fhash, fcmp, fdiv, fabs, fcabs, fneg, fnan, flog, fexp, fpi, fcos, fsin, \
-  fone, fgamma
+  fone, fgamma, fzero
 
 rounding = round_half_even
 
@@ -204,7 +204,7 @@ class Float(object):
         return to_str(self.val, int((self.prec/3.33) - 3))
 
     def __repr__(self):
-        return "Float(%s)" % to_str(self.val, int((self.prec/3.33)))
+        return "Float(%r, prec=%s)" % (to_str(self.val, int((self.prec/3.33))), self.prec)
 
     def __int__(self): return to_int(self.val)
     def __float__(self): return to_float(self.val)
@@ -213,18 +213,18 @@ class Float(object):
     def __neg__(self): return Float(fneg(self.val), self.prec)
     def __abs__(self): return Float(fabs(self.val), self.prec)
 
-    # XXX: these should handle rationals exactly
+    # XXX: these should handle rationals exactly <- what does it mean?
     def __eq__(self, other):
         other = self.convert_val(other)
         if other is NotImplemented:
             return other
         return feq(self.val, other)
 
-    def __cmp__(self, other):
+    def __ne__(self, other):
         other = self.convert_val(other)
         if other is NotImplemented:
             return other
-        return fcmp(self.val, other)
+        return not feq(self.val, other)
 
     def __lt__(self, other):
         other = self.convert_val(other)
@@ -287,37 +287,56 @@ class Float(object):
     __rmul__ = __mul__
 
     def __div__(self, other):
-        # XXX: check for divide by zero
-        other = self.convert_val(other)
-        if other is NotImplemented:
-            return other
-        return Float(fdiv(self.val, other, self.prec, rounding), self.prec)
+        y = self.convert_val(other)
+        if y is NotImplemented:
+            return y
+        x = self.val
+        if y==fzero and not x==fzero:
+            raise ZeroDivisionError('%r / %r' % (self, other))        
+        return Float(fdiv(x, y, self.prec, rounding), self.prec)
 
     def __rdiv__(self, other):
-        # XXX: check for divide by zero
-        other = self.convert_val(other)
-        if other is NotImplemented:
-            return other
-        return Float(fdiv(other, self.val, self.prec, rounding), self.prec)
+        x = self.convert_val(other)
+        if x is NotImplemented:
+            return x
+        y = self.val
+        if y==fzero and not x==fzero:
+            raise ZeroDivisionError('%r / %r' % (other, self))
+        return Float(fdiv(x, y, self.prec, rounding), self.prec)
 
     def __pow__(self, n):
-        # XXX: check for divide by zero
         if isinstance(n, inttypes):
-            return Float(fpow(self.val, n, self.prec, rounding), self.prec)
+            x = self.val
+            if x==fzero and n<0:
+                raise ZeroDivisionError('%r ** %r' % (self, n))
+            return Float(fpow(x, n, self.prec, rounding), self.prec)
         other = self.convert_val(n)
         if other is NotImplemented:
             return other
-        z,sym = try_power(self, Float(other, self.prec))
-        assert not sym, `z,sym`
-        return z
+        prec = self.prec
+        x, y = self.val, other
+        if self < 0:
+            a = fmul(fpi(prec, rounding), y, prec, rounding)
+            re = Float(fcos(a, prec, rounding))
+            im = Float(fsin(a, prec, rounding))
+            c = Complex(re, im)
+            if self==-1:
+                return c
+            x = fneg(x)
+        else:
+            if x==fzero and fcmp(y, fzero)<0:
+                raise ZeroDivisionError('%r ** %r' % (self, n))
+            c = 1
+        l = flog(x, prec, rounding)
+        m = fmul(l, y, prec, rounding)
+        r = Float(fexp(m, prec, rounding))
+        return r * c
 
     def __rpow__(self, other):
         other = self.convert_val(other)
         if other is NotImplemented:
             return other
-        z,sym = try_power(Float(other, prec), self)
-        assert not sym, `z,sym`
-        return z
+        return other ** self
 
 #----------------------------------------------------------------------------#
 #                                                                            #
@@ -764,27 +783,7 @@ def try_power(x, y):
         ssym = [(b, -e) for b, e in ssym]
         return (div(r,s), rsym + ssym)
     elif isinstance(x, Float) or isinstance(y, Float):
-        if not isinstance(x, Float):
-            prec = y.prec
-            x = Float(x, prec)
-        elif not isinstance(y, Float):
-            prec = x.prec
-            y = Float(y, prec)
-        else:
-            prec = min(x.prec, y.prec)
-        if x < 0:
-            a = fmul(fpi(prec, rounding), y.val, prec, rounding)
-            re = Float(fcos(a, prec, rounding))
-            im = Float(fsin(a, prec, rounding))
-            if x==-1:
-                return Complex(re, im), []
-            z, sym = try_power(-x, y)
-            return z * Complex(re, im), sym
-        else:
-            l = flog(x.val, prec, rounding)
-            m = fmul(l, y.val, prec, rounding)
-            r = fexp(m, prec, rounding)
-            return Float(r, prec), []
+        return x ** y, []
     return 1, [(x, y)]
 
 
