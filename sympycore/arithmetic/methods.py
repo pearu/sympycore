@@ -625,92 +625,38 @@ def complex_pow(self, other, m=None, new=object.__new__, cls=Complex):
             _tmp126.real = c
             _tmp126.imag = _tmp125
             return _tmp126
-        if d:
-            print c,d,m
-            #DIV_VALUE_VALUE(LHS=c; RHS=m; RESULT=re; MOD=%)
-            _p, _q = c, m
-            if not _q:
-                raise ZeroDivisionError(repr(c) + " / " + repr(m))
-            _tp = type(_p)
-            #IF_CHECK_INT(T=_tp)
-            if _tp is int or _tp is long:
-                _tq = type(_q)
-                #IF_CHECK_INT(T=_tq)
-                if _tq is int or _tq is long:
-                    #FRACTION_NORMALIZE(NUMER=_p; DENOM=_q; RNUMER=_rp; RDENOM=_rq; MOD=%)
-                    _rp = _x = _p
-                    _rq = _y = _q
-                    while _y:
-                        _x, _y = _y, _x % _y
-                    if _x != 1:
-                        _rp //= _x
-                        _rq //= _x
-                    if _rq == 1:
-                        re = _rp
-                    else:
-                        re = FractionTuple((_rp, _rq))
-                else:
-                    re = _p / _q
-            else:
-                re = _p / _q
-            #DIV_VALUE_VALUE(LHS=d; RHS=m; RESULT=im; MOD=%)
-            _p, _q = d, m
-            if not _q:
-                raise ZeroDivisionError(repr(d) + " / " + repr(m))
-            _tp = type(_p)
-            #IF_CHECK_INT(T=_tp)
-            if _tp is int or _tp is long:
-                _tq = type(_q)
-                #IF_CHECK_INT(T=_tq)
-                if _tq is int or _tq is long:
-                    #FRACTION_NORMALIZE(NUMER=_p; DENOM=_q; RNUMER=_rp; RDENOM=_rq; MOD=%)
-                    _rp = _x = _p
-                    _rq = _y = _q
-                    while _y:
-                        _x, _y = _y, _x % _y
-                    if _x != 1:
-                        _rp //= _x
-                        _rq //= _x
-                    if _rq == 1:
-                        im = _rp
-                    else:
-                        im = FractionTuple((_rp, _rq))
-                else:
-                    im = _p / _q
-            else:
-                im = _p / _q
-            #RETURN_COMPLEX(REAL=re; IMAG=im)
-            _tmp135 = new(cls)
-            _tmp135.real = re
-            _tmp135.imag = im
-            return _tmp135
-        #DIV_VALUE_VALUE(LHS=c; RHS=m; RESULT=_tmp120; MOD=%)
-        _p, _q = c, m
-        if not _q:
-            raise ZeroDivisionError(repr(c) + " / " + repr(m))
-        _tp = type(_p)
-        #IF_CHECK_INT(T=_tp)
-        if _tp is int or _tp is long:
-            _tq = type(_q)
-            #IF_CHECK_INT(T=_tq)
-            if _tq is int or _tq is long:
-                #FRACTION_NORMALIZE(NUMER=_p; DENOM=_q; RNUMER=_rp; RDENOM=_rq; MOD=%)
-                _rp = _x = _p
-                _rq = _y = _q
-                while _y:
-                    _x, _y = _y, _x % _y
-                if _x != 1:
-                    _rp //= _x
-                    _rq //= _x
-                if _rq == 1:
-                    _tmp120 = _rp
-                else:
-                    _tmp120 = FractionTuple((_rp, _rq))
-            else:
-                _tmp120 = _p / _q
+        # c,d,m are integers
+        #FRACTION_NORMALIZE(NUMER=c; DENOM=m; RNUMER=re_p; RDENOM=re_q; MOD=%)
+        re_p = _x = c
+        re_q = _y = m
+        while _y:
+            _x, _y = _y, _x % _y
+        if _x != 1:
+            re_p //= _x
+            re_q //= _x
+        if re_q==1:
+            re = re_p
         else:
-            _tmp120 = _p / _q
-        return _tmp120
+            re = FractionTuple((re_p, re_q))
+        if not d:
+            return re
+        #FRACTION_NORMALIZE(NUMER=d; DENOM=m; RNUMER=im_p; RDENOM=im_q; MOD=%)
+        im_p = _x = d
+        im_q = _y = m
+        while _y:
+            _x, _y = _y, _x % _y
+        if _x != 1:
+            im_p //= _x
+            im_q //= _x
+        if im_q==1:
+            im = im_p
+        else:
+            im = FractionTuple((im_p, im_q))
+        #RETURN_COMPLEX(REAL=re; IMAG=im)
+        _tmp129 = new(cls)
+        _tmp129.real = re
+        _tmp129.imag = im
+        return _tmp129
     return NotImplemented
     
 def fraction_lt(self, other, cls=FractionTuple):

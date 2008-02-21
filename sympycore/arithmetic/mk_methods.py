@@ -277,12 +277,20 @@ while n:
     n //= 2
 if m==1:
     @RETURN_COMPLEX2(REAL=c; IMAG=d)
-if d:
-    @DIV_VALUE_VALUE(LHS=c; RHS=m; RESULT=re; MOD=%(MOD)s)
-    @DIV_VALUE_VALUE(LHS=d; RHS=m; RESULT=im; MOD=%(MOD)s)
-    @RETURN_COMPLEX(REAL=re; IMAG=im)
-@DIV_VALUE_VALUE(LHS=c; RHS=m; RESULT=%(TMP)s; MOD=%(MOD)s)
-return %(TMP)s
+# c,d,m are integers
+@FRACTION_NORMALIZE(NUMER=c; DENOM=m; RNUMER=re_p; RDENOM=re_q; MOD=%(MOD)s)
+if re_q==1:
+    re = re_p
+else:
+    re = FractionTuple((re_p, re_q))
+if not d:
+    return re
+@FRACTION_NORMALIZE(NUMER=d; DENOM=m; RNUMER=im_p; RDENOM=im_q; MOD=%(MOD)s)
+if im_q==1:
+    im = im_p
+else:
+    im = FractionTuple((im_p, im_q))
+@RETURN_COMPLEX(REAL=re; IMAG=im)
 '''
 
 
