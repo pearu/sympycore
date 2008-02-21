@@ -654,9 +654,11 @@ def int_root(y, n):
         t = x**(n-1)
         xprev, x = x, x - (t*x-y)//(n*t)
     # Compensate
-    while x**n > y:
+    t = x**n
+    while t > y:
         x -= 1
-    return x, x**n == y
+        t = x**n
+    return x, t == y
 
 def try_power(x, y):
     """
