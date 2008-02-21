@@ -88,8 +88,8 @@ def test_mpc():
     assert mpc(0,1)**(10**9+3) == mpc(0,-1)
     assert mpc(3,4)**10 == mpc(-9653287,1476984)
     assert mpc(mpq(1,2), mpq(-5,6))**3 == mpc(mpq(-11,12), mpq(-5,108))
-    assert str(mpc(4,-3)) == '(4 - 3*I)'
-    assert str(mpc(0,mpq(1,2))) == '(1/2)*I'
+    assert str(mpc(4,-3)) == '4 - 3*I'
+    assert str(mpc(0,mpq(1,2))) == '1/2*I'
     assert mpc(0,1)**(-2) == -1
     assert abs(mpc(0,2)) == 2
     assert abs(mpc(mpf(3.0),mpf(4.0))) == 5.0

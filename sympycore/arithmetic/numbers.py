@@ -97,14 +97,14 @@ class FractionTuple(tuple):
 
     def to_str_data(self,sort=True):
         if self[0]<0:
-            return str_SUM, '%s/%s' % (self)
-        return str_PRODUCT, '%s/%s' % (self)
+            return str_SUM, str(self)
+        return str_PRODUCT, str(self)
 
     def __str__(self):
-        return "(%i/%i)" % self
+        return "%i/%i" % self
 
     def __repr__(self):
-        return "FractionTuple((%r, %r))" % (self[0], self[1])
+        return "FractionTuple((%r, %r))" % (self)
 
     def __float__(self):
         p, q = self
@@ -362,9 +362,6 @@ class Complex(object):
         self.imag = imag
         return self
 
-    def __hash__(self):
-        return hash((self, 'Complex'))
-
     def __repr__(self):
         return "Complex(%r, %r)" % (self.real, self.imag)
 
@@ -385,16 +382,7 @@ class Complex(object):
         raise NotImplementedError(`self`)
 
     def __str__(self):
-        re, im = self.real, self.imag
-        if re==0:
-            if im == 1: return "I"
-            if im == -1: return "-I"
-            return str(self.imag) + "*I"
-        restr = innerstr(self.real)
-        if im == 1: return "(%s + I)" % restr
-        if im == -1: return "(%s - I)" % restr
-        if im > 0: return "(%s + %s*I)" % (restr, innerstr(self.imag))
-        if im < 0: return "(%s - %s*I)" % (restr, innerstr(-self.imag))
+        return self.to_str_data()[1]
 
     def as_primitive(self):
         re, im = self.real, self.imag
