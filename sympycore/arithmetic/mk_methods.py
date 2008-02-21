@@ -166,6 +166,16 @@ SUB_REAL_COMPLEX = '@RETURN_COMPLEX(REAL=%(LHS)s - %(RHS)s.real; IMAG=-%(RHS)s.i
 # MUL macros
 #=======================================================
 
+MUL_FRACTION_INT = '''\
+p, q = %(LHS)s
+@RETURN_FRACTION2(NUMER=p*%(RHS)s; DENOM=q; MOD=%(MOD)s)
+'''
+MUL_FRACTION_FRACTION = '''\
+p, q = %(LHS)s
+r, s = %(RHS)s
+@RETURN_FRACTION2(NUMER=p*r; DENOM=q*s; MOD=%(MOD)s)
+'''
+
 MUL_COMPLEX_REAL = '@RETURN_COMPLEX(REAL=%(LHS)s.real*%(RHS)s; IMAG=%(LHS)s.imag*%(RHS)s)\n'
 MUL_COMPLEX_COMPLEX = '''\
 a, b = %(LHS)s.real, %(LHS)s.imag
@@ -177,7 +187,19 @@ c, d = %(RHS)s.real, %(RHS)s.imag
 # DIV macros
 #=======================================================
 
-
+DIV_FRACTION_INT = '''\
+p, q = %(LHS)s
+@RETURN_FRACTION2(NUMER=p; DENOM=q*%(RHS)s; MOD=%(MOD)s)
+'''
+DIV_FRACTION_FRACTION = '''\
+p, q = %(LHS)s
+r, s = %(RHS)s
+@RETURN_FRACTION2(NUMER=p*s; DENOM=q*r; MOD=%(MOD)s)
+'''
+DIV_INT_FRACTION = '''\
+p, q = %(RHS)s
+@RETURN_FRACTION2(NUMER=%(LHS)s*q; DENOM=p; MOD=%(MOD)s)
+'''
 
 DIV_COMPLEX_REAL = '''\
 @DIV_VALUE_VALUE(LHS=%(LHS)s.real; RHS=%(RHS)s; RESULT=re; MOD=%(MOD)s)
@@ -208,6 +230,17 @@ mag = c*c + d*d
 #=======================================================
 # POW macros
 #=======================================================
+
+POW_FRACTION_INT = '''\
+%(TMP)s = %(RHS)s
+p, q = %(LHS)s
+if %(TMP)s > 0:
+    @RETURN_FRACTION(NUMER=p**%(TMP)s; DENOM=q**%(TMP)s)
+%(TMP)s = -%(TMP)s
+if p > 0:
+    @RETURN_FRACTION(NUMER=q**%(TMP)s; DENOM=p**%(TMP)s)
+@RETURN_FRACTION(NUMER=(-q)**%(TMP)s; DENOM=(-p)**%(TMP)s)
+'''
 
 POW_COMPLEX_INT = '''\
 a, b = %(LHS)s.real, %(LHS)s.imag
@@ -253,6 +286,7 @@ if d:
 return %(TMP)s
 '''
 
+
 def main():
     f = open(targetfile_py, 'w')
     print >> f, template
@@ -278,6 +312,38 @@ def fraction_rsub(self, other, cls=FractionTuple):
     t = type(other)
     @IF_CHECK_INT(T=t)
         @SUB_INT_FRACTION(RHS=self; LHS=other)
+    return NotImplemented
+
+def fraction_mul(self, other, cls=FractionTuple):
+    t = type(other)
+    @IF_CHECK_INT(T=t)
+        @MUL_FRACTION_INT(LHS=self; RHS=other; MOD=%)
+    elif t is cls:
+        @MUL_FRACTION_FRACTION(LHS=self; RHS=other; MOD=%)
+    return NotImplemented
+
+def fraction_div(self, other, cls=FractionTuple):
+    t = type(other)
+    @IF_CHECK_INT(T=t)
+        @DIV_FRACTION_INT(LHS=self; RHS=other; MOD=%)
+    elif t is cls:
+        @DIV_FRACTION_FRACTION(LHS=self; RHS=other; MOD=%)
+    return NotImplemented
+
+def fraction_rdiv(self, other, cls=FractionTuple):
+    t = type(other)
+    @IF_CHECK_INT(T=t)
+        @DIV_INT_FRACTION(RHS=self; LHS=other; MOD=%)
+    return NotImplemented
+
+def fraction_pow(self, other, m=None, cls=FractionTuple):
+    t = type(other)
+    @IF_CHECK_INT(T=t)
+        if not other:
+            return 1
+        if other==1:
+            return self
+        @POW_FRACTION_INT(LHS=self; RHS=other)
     return NotImplemented
 
 def complex_add(self, other, new=object.__new__, cls=Complex):
@@ -344,6 +410,19 @@ def complex_pow(self, other, m=None, new=object.__new__, cls=Complex):
         @POW_COMPLEX_INT(LHS=base; RHS=exponent; MOD=%)
     return NotImplemented
     ''')
+
+    for (n,s) in [('lt','<'), ('le','<='), ('gt','>'), ('ge','>=')]:
+        print >> f, preprocess('''\
+def fraction_%s(self, other, cls=FractionTuple):
+    p, q = self
+    t = type(other)
+    @IF_CHECK_INT(T=t)
+        return (p %s q*other)
+    elif t is cls:
+        r, s = other
+        return p*s %s q*r
+    return NotImplemented
+    ''' % (n, s, s))
 
     f.close()
 

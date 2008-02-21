@@ -55,8 +55,6 @@ from ..basealgebra.primitive import PrimitiveAlgebra, NUMBER, SYMBOL
 from ..basealgebra.utils import get_object_by_name
 from ..utils import RedirectOperation
 
-
-
 inttypes = (int, long)
 
 #----------------------------------------------------------------------------#
@@ -79,12 +77,16 @@ def normalized_fraction(p, q=1):
 class FractionTuple(tuple):
 
     # These methods are inherited directly from tuple for speed. This works
-    # as long as all FractionTuples are normalized.
+    # as long as all FractionTuples are normalized:
     # __new__/__init__
     # __nonzero__
     # __eq__
     # __hash__
 
+    # These methods are generated and defined in methods.py:
+    # __add__, __sub__, __rsub__, __mul__, __div__, __rdiv__, __pow__
+    # __lt__, __le__, __gt__, __ge__
+    
     __slots__ = []
 
     def as_primitive(self):
@@ -103,42 +105,6 @@ class FractionTuple(tuple):
 
     def __repr__(self):
         return "FractionTuple((%r, %r))" % (self[0], self[1])
-
-    def __lt__(self, other):
-        p, q = self
-        if isinstance(other, inttypes):
-            return p < q*other
-        if isinstance(other, FractionTuple):
-            r, s = other
-            return p*s < q*r
-        return NotImplemented
-
-    def __le__(self, other):
-        p, q = self
-        if isinstance(other, inttypes):
-            return p <= q*other
-        if isinstance(other, FractionTuple):
-            r, s = other
-            return p*s <= q*r
-        return NotImplemented
-
-    def __gt__(self, other):
-        p, q = self
-        if isinstance(other, inttypes):
-            return p > q*other
-        if isinstance(other, FractionTuple):
-            r, s = other
-            return p*s > q*r
-        return NotImplemented
-
-    def __ge__(self, other):
-        p, q = self
-        if isinstance(other, inttypes):
-            return p >= q*other
-        if isinstance(other, FractionTuple):
-            r, s = other
-            return p*s >= q*r
-        return NotImplemented
 
     def __float__(self):
         p, q = self
@@ -161,82 +127,6 @@ class FractionTuple(tuple):
             return FractionTuple((-p, q))
         return self
 
-    def __add__(self, other):
-        p, q = self
-        if isinstance(other, inttypes):
-            # GCD never needed
-            return FractionTuple((p+q*other, q))
-        if isinstance(other, FractionTuple):
-            r, s = other
-            # GCD reduction inlined for speed
-            p = x = p*s+q*r
-            q = y = q*s
-            while y:
-                x, y = y, x % y
-            if x != 1:
-                p //= x
-                q //= x
-            if q == 1:
-                return p
-            return FractionTuple((p, q))
-        return NotImplemented
-
-    __radd__ = __add__
-
-    def __sub__(self, other):
-        p, q = self
-        if isinstance(other, inttypes):
-            # GCD never needed
-            return FractionTuple((p-q*other, q))
-        if isinstance(other, FractionTuple):
-            r, s = other
-            return normalized_fraction(p*s - q*r, q*s)
-        return NotImplemented
-
-    def __rsub__(self, other):
-        p, q = self
-        if isinstance(other, inttypes):
-            return FractionTuple((q*other-p, q))
-        return NotImplemented
-
-    def __mul__(self, other):
-        p, q = self
-        if isinstance(other, inttypes):
-            return normalized_fraction(p*other, q)
-        if isinstance(other, FractionTuple):
-            r, s = other
-            # GCD reduction inlined for speed
-            p = x = p*r
-            q = y = q*s
-            while y:
-                x, y = y, x % y
-            if x != 1:
-                p //= x
-                q //= x
-            if q == 1:
-                return p
-            return FractionTuple((p, q))
-        return NotImplemented
-
-    __rmul__ = __mul__
-
-    def __div__(self, other):
-        p, q = self
-        if isinstance(other, inttypes):
-            if not other:
-                return cmp(p, 0) * ExtendedNumber.get_oo()
-            return normalized_fraction(p, q*other)
-        if isinstance(other, FractionTuple):
-            r, s = other
-            return normalized_fraction(p*s, q*r)
-        return NotImplemented
-
-    def __rdiv__(self, other):
-        p, q = self
-        if isinstance(other, inttypes):
-            return normalized_fraction(q*other, p)
-        return NotImplemented
-
     def __floordiv__(a, b):
         return int(a / b)
 
@@ -255,26 +145,6 @@ class FractionTuple(tuple):
     def __rdivmod__(a, b):
         return (b-b%a)/a, b%a
 
-    def __pow__(self, n):
-        assert isinstance(n, inttypes)
-        p, q = self
-        if not n:
-            return 1
-        # GCD not needed...
-        if n > 0:
-            return FractionTuple((p**n, q**n))
-        else:
-            if p > 0:
-                return FractionTuple((q**-n, p**-n))
-            else:
-                # ...but we have to handle signs
-                return FractionTuple(((-q)**-n, (-p)**-n))
-
-    def __rpow__(self, n):
-        z,sym = try_power(n, self)
-        if sym:
-            return NotImplemented
-        return z
 
 #----------------------------------------------------------------------------#
 #                                                                            #
@@ -922,13 +792,23 @@ def try_power(x, y):
 from .evalf import evalf
 
 from .methods import (\
-    fraction_add, fraction_sub, fraction_rsub,
+    fraction_add, fraction_sub, fraction_rsub, fraction_mul,
+    fraction_div, fraction_rdiv, fraction_pow,
+    fraction_lt, fraction_le, fraction_gt, fraction_ge,
     complex_add, complex_sub, complex_rsub, complex_mul,
     complex_div, complex_rdiv, complex_pow)
 
 FractionTuple.__add__ = FractionTuple.__radd__ = fraction_add
 FractionTuple.__sub__ = fraction_sub
 FractionTuple.__rsub__ = fraction_rsub
+FractionTuple.__mul__ = FractionTuple.__rmul__ = fraction_mul
+FractionTuple.__div__ = fraction_div
+FractionTuple.__rdiv__ = fraction_rdiv
+FractionTuple.__pow__ = fraction_pow
+FractionTuple.__lt__ = fraction_lt
+FractionTuple.__le__ = fraction_le
+FractionTuple.__gt__ = fraction_gt
+FractionTuple.__ge__ = fraction_ge
 
 Complex.__add__ = Complex.__radd__ = complex_add
 Complex.__sub__ = complex_sub
