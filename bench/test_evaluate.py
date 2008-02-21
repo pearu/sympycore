@@ -18,7 +18,6 @@ def test_cos():
         n -= 1
         cos(n*pi/6)
 
-
 e = 2 + 3*I
 
 def test_complex_power():
@@ -36,6 +35,14 @@ def test_rat_complex_power():
     """
     re ** 1000
 
+def test_inverse_complex():
+    """ evaluate 1/(2+3/4*I), 100x
+    """
+    n = 100
+    while n:
+        n -= 1
+        1/re
+
 if __name__=='__main__':
     from func_timeit import run_tests
-    run_tests([test_sin, test_cos, test_complex_power, test_rat_complex_power])
+    run_tests([test_sin, test_cos, test_complex_power, test_rat_complex_power, test_inverse_complex])
