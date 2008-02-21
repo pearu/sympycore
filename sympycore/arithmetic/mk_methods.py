@@ -69,14 +69,18 @@ RETURN_FRACTION = '''\
 return cls((%(NUMER)s, %(DENOM)s))
 '''
 
-RETURN_FRACTION2 = '''\
-_p = _x = %(NUMER)s
-_q = _y = %(DENOM)s
+FRACTION_NORMALIZE = '''\
+%(RNUMER)s = _x = %(NUMER)s
+%(RDENOM)s = _y = %(DENOM)s
 while _y:
     _x, _y = _y, _x %(MOD)s _y
 if _x != 1:
-    _p //= _x
-    _q //= _x
+    %(RNUMER)s //= _x
+    %(RDENOM)s //= _x
+'''
+
+RETURN_FRACTION2 = '''\
+@FRACTION_NORMALIZE(NUMER=%(NUMER)s; DENOM=%(DENOM)s; RNUMER=_p; RDENOM=_q; MOD=%(MOD)s)
 if _q == 1:
     return _p
 @RETURN_FRACTION(NUMER=_p; DENOM=_q)
@@ -154,16 +158,34 @@ c, d = %(RHS)s.real, %(RHS)s.imag
 # DIV macros
 #=======================================================
 
+DIV_VALUE_VALUE = '''\
+_p, _q = %(LHS)s, %(RHS)s
+if not _q:
+    raise ZeroDivisionError(repr(%(LHS)s) + " / " + repr(%(RHS)s))
+_tp = type(_p)
+@IF_CHECK_INT(T=_tp)
+    _tq = type(_q)
+    @IF_CHECK_INT(T=_tq)
+        @FRACTION_NORMALIZE(NUMER=_p; DENOM=_q; RNUMER=_rp; RDENOM=_rq; MOD=%(MOD)s)
+        if _rq == 1:
+            %(RESULT)s = _rp
+        %(RESULT)s = FractionTuple((_rp, _rq))
+    else:
+        %(RESULT)s = _p / _q
+else:
+    %(RESULT)s = _p / _q
+'''
+
 DIV_COMPLEX_REAL = '@RETURN_COMPLEX(REAL=div(%(LHS)s.real,%(RHS)s); IMAG=div(%(LHS)s.imag,%(RHS)s))\n'
 DIV_COMPLEX_COMPLEX = '''\
 a, b = %(LHS)s.real, %(LHS)s.imag
 c, d = %(RHS)s.real, %(RHS)s.imag
 mag = c*c + d*d
 im = b*c-a*d
-re = div(a*c+b*d, mag)
+@DIV_VALUE_VALUE(LHS=a*c+b*d; RHS=mag; RESULT=re; MOD=%(MOD)s)
 if not im:
     return re
-im = div(im, mag)
+@DIV_VALUE_VALUE(LHS=im; RHS=mag; RESULT=im; MOD=%(MOD)s)
 @RETURN_COMPLEX(REAL=re; IMAG=im)
 '''
 DIV_REAL_COMPLEX = '''\
@@ -281,17 +303,17 @@ def complex_mul(self, other, new=object.__new__, cls=Complex):
 def complex_div(self, other, new=object.__new__, cls=Complex):
     t = type(other)
     @IF_CHECK_REAL(T=t)
-        @DIV_COMPLEX_REAL(LHS=self; RHS=other)
+        @DIV_COMPLEX_REAL(LHS=self; RHS=other; MOD=%)
     @IF_CHECK_COMPLEX(T=t)
-        @DIV_COMPLEX_COMPLEX(LHS=self; RHS=other)
+        @DIV_COMPLEX_COMPLEX(LHS=self; RHS=other; MOD=%)
     return NotImplemented
 
 def complex_rdiv(self, other, new=object.__new__, cls=Complex):
     t = type(other)
     @IF_CHECK_REAL(T=t)
-        @DIV_REAL_COMPLEX(LHS=other; RHS=self)
+        @DIV_REAL_COMPLEX(LHS=other; RHS=self; MOD=%)
     if t is complex:
-        @DIV_COMPLEX_COMPLEX(LHS=other; RHS=self)
+        @DIV_COMPLEX_COMPLEX(LHS=other; RHS=self; MOD=%)
     return NotImplemented
 
 def complex_pow(self, other, m=None, new=object.__new__, cls=Complex):
