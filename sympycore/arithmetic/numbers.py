@@ -624,14 +624,15 @@ complextypes = (complex, Complex)
 def div(a, b):
     """Safely compute a/b (if a or b is an integer, this function makes sure
     to convert it to a rational)."""
-    if isinstance(b, inttypes):
+    tb = type(b)
+    if tb is int or tb is long:
         if not b:
-            raise ZeroDivisionError
-        if isinstance(a, inttypes):
-            return normalized_fraction(a, b)
+            raise ZeroDivisionError('%r / %r' % (a, b))
         if b == 1:
             return a
-        return FractionTuple((1,b)) * a
+        ta = type(a)
+        if ta is int or ta is long:
+            return normalized_fraction(a, b)
     return a / b
 
 def int_root(y, n):
