@@ -80,6 +80,12 @@ class Infinity(object):
             return self
         return NotImplemented
 
+    def __rdiv__(self, other):
+        return NotImplemented
+        if isinstance(other, numbertypes):
+            return 0
+        return NotImplemented
+
     def has_active(self):
         return False
 
@@ -179,11 +185,11 @@ class U1(object):
         return U1(other) - self
 
     def __mul__(self, other):
-        if self.is_origin:
-            return self
         if isinstance(other, numbertypes):
             other = U1(other)
         if isinstance(other, U1):
+            if self.is_origin:
+                return self
             if other.is_origin:
                 return other
             if self.is_circle or other.is_circle:
@@ -192,3 +198,32 @@ class U1(object):
         return NotImplemented        
 
     __rmul__ = __mul__
+
+    def __div__(self, other):
+        if isinstance(other, numbertypes):
+            other = U1(other)
+        if isinstance(other, U1):
+            if self.is_origin:
+                return self
+            if other.is_origin:
+                return other
+            if self.is_circle or other.is_circle:
+                return U1(None)
+            return U1(self.value / other.value)
+        return NotImplemented        
+
+    def __rdiv__(self, other):
+        if self.is_origin:
+            return self
+        return other * 0
+
+    def __pow__(self, other):
+        if isinstance(other, realtypes):
+            if self.is_origin:
+                return self
+            if self.is_circle:
+                return NotImplemented
+            if other > 0:
+                return U1(self.value ** other)
+        return NotImplemented
+            

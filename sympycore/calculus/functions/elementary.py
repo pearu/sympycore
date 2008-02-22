@@ -2,11 +2,12 @@
 # Created January 2008 by Fredrik Johansson
 #
 
-from ..algebra import A, oo, I, undefined, NUMBER, ADD, MUL, SYMBOL
+from ..algebra import A, oo, I, undefined, NUMBER, ADD, MUL, SYMBOL, TERMS
 from ..constants import const_pi, const_E
 from ..function import Function
 from ...arithmetic.evalf import evalf, Float
 from ...arithmetic.numbers import Complex, realtypes, inttypes
+from ...arithmetic import infinity
 
 import math
 
@@ -45,8 +46,6 @@ class exp(Function):
 log_number_table = {
     zero.data : -oo,
     one.data : zero,
-    oo.data : oo,
-    undefined.data : undefined,
     I.data : Ipi2,
     (-I).data : -Ipi2
 }
@@ -66,6 +65,10 @@ class log(Function):
                 if bd**l == ad:
                     return A(l)
             return cls(arg) / cls(base)
+        if arg==oo:
+            return oo
+        if arg==undefined:
+            return undefined
         head = arg.head
         data = arg.data
         if head is NUMBER:

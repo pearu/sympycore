@@ -174,7 +174,7 @@ class Float(object):
         return int((self.prec-12)/3.33+0.5)
 
     def __nonzero__(self):
-        raise RedirectOperation(self)
+        return self.val != fzero
 
     def convert_val(self, x):
         if isinstance(x, Float):
@@ -742,7 +742,7 @@ def try_power(x, y):
         elif x==0:
             return ExtendedNumber.get_zoo(), []
         elif isinstance(x, inttypes):
-            return normalized_fraction(1, x**(-y)), []
+            return FractionTuple((1, x**(-y))), []
         elif isinstance(x, (FractionTuple, Float, Complex)):
             return x**y, []
     elif isinstance(x, inttypes) and isinstance(y, FractionTuple):
