@@ -155,7 +155,7 @@ class FractionTuple(tuple):
 from .mpmath.lib import from_int, from_rational, to_str, fadd, fsub, fmul, \
   round_half_even, from_float, to_float, to_int, fpow, from_str, feq, \
   fhash, fcmp, fdiv, fabs, fcabs, fneg, fnan, flog, fexp, fpi, fcos, fsin, \
-  fone, fgamma, fzero
+  fone, fgamma, fzero, fsqrt
 
 rounding = round_half_even
 
@@ -425,7 +425,21 @@ class Complex(object):
         if isinstance(self.real, Float) and isinstance(self.imag, Float):
             return Float(fcabs(self.real.val, self.imag.val,
                                self.real.prec, rounding), self.real.prec)
-        raise NotImplementedError
+        m2 = self.real**2 + self.imag**2
+        if isinstance(m2, (int, long)):
+            m,flag = int_root(m2,2)
+            if flag:
+                return m
+        if isinstance(m2, FractionTuple):
+            p,fp = int_root(m2[0],2)
+            q,fq = int_root(m2[1],2)
+            if fp and fq:
+                return FractionTuple((p,q))
+        if isinstance(m2, float):
+            return m2**(0.5)
+        if isinstance(m2, Float):
+            return Float(fsqrt(m2.val, m2.prec, rounding), self.prec)
+        raise NotImplementedError('abs(%r)' % (self))
 
 #----------------------------------------------------------------------------#
 #                                                                            #
