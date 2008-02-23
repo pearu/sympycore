@@ -3,7 +3,8 @@ from ..arithmetic.numbers import inttypes
 from .algebra import Calculus, algebra_numbers, zero, one
 from .functions import log
 
-cache = {}
+cache_generic = {}
+cache_factors = {}
 
 def is_constant(expr, xdata):
     return xdata not in expr._get_symbols_data()
@@ -38,19 +39,23 @@ def diff_callable(f, arg, xdata, order):
     raise NotImplementedError
 
 def diff_factor(base, exp, xdata, order):
+    key = (base, exp, order)
+    c = cache_factors.get(key)
+    if c is not None:
+        return c
     # Handle f(x)**r where r is constant
     if is_constant_exponent(exp, xdata):
         # Generalized monomials x**r
         if base.head is SYMBOL:
             # Note: this shouldn't be reached, but just to be sure...
             if base.data != xdata:
-                return zero
-            if order == 1:
-                return exp * base**(exp-1)
+                res = zero
+            elif order == 1:
+                res = exp * base**(exp-1)
             # Don't waste time if some tries to calculate the 1 millionth
             # derivative of x**3
-            if isinstance(exp, inttypes) and exp > 0 and order > exp:
-                return zero
+            elif isinstance(exp, inttypes) and exp > 0 and order > exp:
+                res = zero
             # Repeatedly apply D(x**r) = r * x**(r-1)
             # (Could be calculated for symbolic orders using Pochhammer.)
             else:
@@ -58,35 +63,39 @@ def diff_factor(base, exp, xdata, order):
                 for i in xrange(order):
                     p *= exp
                     exp -= 1
-                return p * base ** exp
+                res = p * base ** exp
         # f(x)**r
         else:
             d = exp * base**(exp-1) * diff_generic(base, xdata, 1)
-            return diff_repeated(d, xdata, order-1)
+            res = diff_repeated(d, xdata, order-1)
     # Handle a**f(x) where a is constant
     elif xdata not in base._get_symbols_data():
         # a**x
         if exp.head is SYMBOL:
             # Should not happen
             if exp.data != xdata:
-                return zero
-            return base**exp * log(base)**order
+                res = zero
+            else:
+                res = base**exp * log(base)**order
         # a**f(x)
         else:
             de = diff_generic(exp, xdata, 1)
             # Special case:
             # D^n a**(b*x+c) = a**(b*x+c) * b**n * log(a)**10
             if is_constant(de, xdata):
-                return base**exp * de**order * log(base)**order
-            # TODO: maybe use the formula http://functions.wolfram.com/..
-            # ..ElementaryFunctions/Power/20/02/01/0003/ for high order
-            d = base**exp * log(base) * de
-            return diff_repeated(d, xdata, order-1)
+                res = base**exp * de**order * log(base)**order
+            else:
+                # TODO: maybe use the formula http://functions.wolfram.com/..
+                # ..ElementaryFunctions/Power/20/02/01/0003/ for high order
+                d = base**exp * log(base) * de
+                res = diff_repeated(d, xdata, order-1)
     # General case, f(x)**g(x)
     else:
         db = diff_generic(base, xdata, 1)
         de = diff_generic(exp, xdata, 1)
-        return diff_repeated(base**exp * (exp*db / base + log(base)*de), xdata, order-1)
+        res = diff_repeated(base**exp * (exp*db / base + log(base)*de), xdata, order-1)
+    cache_factors[key] = res
+    return res
 
 def diff_product(pairs, xdata, order=1, NUMBER=NUMBER, SYMBOL=SYMBOL, ADD=ADD, MUL=MUL):
     l = len(pairs)
@@ -116,7 +125,7 @@ def diff_product(pairs, xdata, order=1, NUMBER=NUMBER, SYMBOL=SYMBOL, ADD=ADD, M
 
 def diff_generic(expr, xdata, order, NUMBER=NUMBER, SYMBOL=SYMBOL, ADD=ADD, MUL=MUL):
     key = (expr, xdata, order)
-    c = cache.get(key)
+    c = cache_generic.get(key)
     if c is not None:
         return c
     if xdata not in expr._get_symbols_data():
@@ -154,7 +163,7 @@ def diff_generic(expr, xdata, order, NUMBER=NUMBER, SYMBOL=SYMBOL, ADD=ADD, MUL=
         r = diff_product(data, xdata, order)
     else:
         r = diff_callable(head, data, xdata, order)
-    cache[key] = r
+    cache_generic[key] = r
     return r
 
 def diff(expr, symbol, order=1):
@@ -166,6 +175,7 @@ def diff(expr, symbol, order=1):
         return diff_generic(expr, symbol.data, order)
     finally:
         #print len(cache)
-        cache.clear()
+        cache_generic.clear()
+        cache_factors.clear()
 
 __all__ = ['diff']
