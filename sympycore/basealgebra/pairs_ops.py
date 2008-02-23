@@ -2090,11 +2090,11 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                     _tmp442 = new(cls)
                     _tmp442.head = FACTORS
                     _tmp442.data = {t1:1, other:-1}
-                #RETURN_NEW(HEAD=TERMS; DATA={_tmp442:c})
-                #NEWINSTANCE(OBJ=_tmp447; HEAD=TERMS; DATA={_tmp442:c})
+                #RETURN_NEW(HEAD=TERMS; DATA={_tmp442:c1})
+                #NEWINSTANCE(OBJ=_tmp447; HEAD=TERMS; DATA={_tmp442:c1})
                 _tmp447 = new(cls)
                 _tmp447.head = TERMS
-                _tmp447.data = {_tmp442:c}
+                _tmp447.data = {_tmp442:c1}
                 return _tmp447
             elif len(rpairs)==1:
                 t2, c2 = rpairs.items()[0]

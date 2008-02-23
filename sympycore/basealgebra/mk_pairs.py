@@ -566,7 +566,7 @@ if len(lpairs)==1:
         @NEWINSTANCE(OBJ=%(TMP)s; HEAD=FACTORS; DATA={t1:1, t2:-1})
     else:
         @NEWINSTANCE(OBJ=%(TMP)s; HEAD=FACTORS; DATA={t1:1, %(RHS)s:-1})
-    @RETURN_NEW(HEAD=TERMS; DATA={%(TMP)s:c})
+    @RETURN_NEW(HEAD=TERMS; DATA={%(TMP)s:c1})
 elif len(rpairs)==1:
     t2, c2 = rpairs.items()[0]
     c = div(1, c2)
