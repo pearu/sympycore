@@ -7,6 +7,7 @@ from ..constants import const_pi, const_E
 from ..function import Function
 from ...arithmetic.evalf import evalf, Float
 from ...arithmetic.numbers import Complex, realtypes, inttypes
+from ...arithmetic.number_theory import factorial
 from ...arithmetic import infinity
 
 import math
@@ -99,6 +100,10 @@ class log(Function):
     def derivative(cls, arg):
         return 1/arg
 
+    @classmethod
+    def nth_derivative(cls, arg, n=1):
+        return (-1)**(n-1) * factorial(n-1) * arg**(-n)
+
 #---------------------------------------------------------------------------#
 #                          Trigonometric functions                          #
 #---------------------------------------------------------------------------#
@@ -159,6 +164,7 @@ class TrigonometricFunction(Function):
         if arg.is_Number and isinstance(arg.data, Float):
             return A.Number(evalf('%s(%s)' % (cls.__name__, arg)))
         x, m = get_pi_shift(arg, 12)
+        m %= (12*cls.period)
         if x == zero:
             v = cls.eval_direct(m)
             if v is not None:
@@ -175,8 +181,9 @@ class TrigonometricFunction(Function):
                 negate_result = True
             # Quarter-period symmetry
             elif not m % 6:
-                sign = (-1)**(((m-6)//12) % period)
-                return sign * conjugates[cls](-x)
+                f = conjugates[cls]
+                sign = (-1)**((((m-6)//12) % period) + (f.parity == 'odd'))
+                return sign * f(x)
         if has_leading_sign(arg):
             arg = -arg
             negate_result ^= (cls.parity == 'odd')
@@ -193,23 +200,34 @@ class sin(TrigonometricFunction):
         return sine_table[m % 24]
 
     @classmethod
-    def derivative(cls, arg):
-        return cos(arg)
+    def derivative(cls, arg, n=1):
+        if n == 1:
+            return cos(arg)
+
+    @classmethod
+    def nth_derivative(cls, arg, n):
+        return sin(arg + n*pi/2)
 
 class cos(TrigonometricFunction):
     parity = 'even'
     period = 2
+
     @classmethod
     def eval_direct(cls, m):
         return sine_table[(m+6) % 24]
 
     @classmethod
-    def derivative(cls, arg):
+    def derivative(cls, arg, n=1):
         return -sin(arg)
+
+    @classmethod
+    def nth_derivative(cls, arg, n=1):
+        return cos(arg + n*pi/2)
 
 class tan(TrigonometricFunction):
     parity = 'odd'
     period = 1
+
     @classmethod
     def eval_direct(cls, m):
         a = sine_table[m % 24]
@@ -225,6 +243,7 @@ class tan(TrigonometricFunction):
 class cot(TrigonometricFunction):
     parity = 'odd'
     period = 1
+
     @classmethod
     def eval_direct(cls, arg):
         a = sine_table[m % 24]
@@ -234,7 +253,7 @@ class cot(TrigonometricFunction):
         return b / a
 
     @classmethod
-    def derivative(cls, arg):
+    def derivative(cls, arg, n=1):
         return -(1+cot(arg)**2)
 
 # pi/2-x symmetry
