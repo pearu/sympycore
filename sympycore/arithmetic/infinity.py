@@ -51,7 +51,7 @@ class Infinity(object):
             return 0
         raise NotImplementedError('%s(%r)' % (cls.IsUnbounded, x))
 
-    @clasmethod
+    @classmethod
     def IsZero(cls, x):
         if not x:
             return 1
