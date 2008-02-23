@@ -22,6 +22,11 @@ def test_diff_powers():
     assert diff(2**(3*x+1), x, 1000) == 3**1000 * 2**(3*x+1) * log(2)**1000
     assert diff((2*x+1)**(3*x), x) == (2*x+1)**(3*x) * (6*x/(2*x+1)+3*log(2*x+1))
 
+def test_diff_products():
+    assert diff((1+x)*(2+x), x) == 3+2*x
+    assert diff((1+x)**3*(2+x)**2, x) == 2*(1+x)**3*(2+x) + 3*(1+x)**2 * (2+x)**2
+    assert diff(pi**2 * 2**Number(1,2) * x, x) == pi**2 * 2**Number(1,2)
+
 def test_diff_log():
     assert diff(log(x), x) == 1/x
     assert diff(log(3*x), x) == 1/x
@@ -40,4 +45,5 @@ def test_diff_trig():
     assert diff(cos(x), x, M+1) == -sin(x)
     assert diff(sin(3*x+1), x, 5) == 3**5 * cos(3*x+1)
     assert diff(cos(3*x+1), x, 5) == -3**5 * sin(3*x+1)
-    #assert diff(x*sin(x), x) == x*cos(x) + sin(x)
+    assert diff(x*sin(x), x) == x*cos(x) + sin(x)
+    assert diff(x*sin(x)*cos(x), x) == x*cos(x)**2 + cos(x)*sin(x) - x*sin(x)**2

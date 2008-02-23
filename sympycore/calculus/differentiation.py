@@ -1,7 +1,9 @@
 from ..utils import SYMBOL, NUMBER, ADD, MUL
 from ..arithmetic.numbers import inttypes
-from .algebra import algebra_numbers, zero, one
+from .algebra import Calculus, algebra_numbers, zero, one
 from .functions import log
+
+cache = {}
 
 def is_constant(expr, xdata):
     return xdata not in expr._get_symbols_data()
@@ -14,6 +16,8 @@ def is_constant_exponent(exp, xdata):
 def diff_repeated(expr, xdata, order):
     for k in xrange(order):
         expr = diff_generic(expr, xdata, 1)
+        if expr == 0:
+            break
     return expr
 
 def diff_callable(f, arg, xdata, order):
@@ -86,26 +90,46 @@ def diff_factor(base, exp, xdata, order):
 
 def diff_product(pairs, xdata, order=1, NUMBER=NUMBER, SYMBOL=SYMBOL, ADD=ADD, MUL=MUL):
     l = len(pairs)
+    args = pairs.items()
     if l == 1:
-        base, exp = pairs.items()[0]
+        base, exp = args[0]
         return diff_factor(base, exp, xdata, order)
-    elif l == 2:
-        # Maybe use the generalized Leibniz rule for high-order derivatives
-        raise NotImplementedError
+    if l == 2:
+        b1, e1 = args[0]
+        b2, e2 = args[1]
+        dt1 = diff_factor(b1, e1, xdata, 1)
+        dt2 = diff_factor(b2, e2, xdata, 1)
+        if e1 == 1: t1 = b1
+        else:       t1 = b1 ** e1
+        if e2 == 1: t2 = b2
+        else:       t2 = b2 ** e2
+        return diff_repeated(t1*dt2 + t2*dt1, xdata, order-1)
     else:
-        raise NotImplementedError
+        s = zero
+        for i in xrange(l):
+            b, e = args[i]
+            dt = diff_factor(b, e, xdata, 1)
+            if dt != zero:
+                d1 = Calculus(dict(args[:i] + args[i+1:]), head=MUL)
+                s += dt * d1
+        return diff_repeated(s, xdata, order-1)
 
 def diff_generic(expr, xdata, order, NUMBER=NUMBER, SYMBOL=SYMBOL, ADD=ADD, MUL=MUL):
+    key = (expr, xdata, order)
+    c = cache.get(key)
+    if c is not None:
+        return c
     if xdata not in expr._get_symbols_data():
         return zero
     head = expr.head
     data = expr.data
     if head is NUMBER:
-        return zero
+        r = zero
     elif head is SYMBOL:
         if data == xdata and order == 1:
-            return one
-        return zero
+            r = one
+        else:
+            r = zero
     elif head is ADD:
         # Differentiate term by term. Note that coefficients are constants.
         # TODO: build dict on the spot
@@ -125,17 +149,23 @@ def diff_generic(expr, xdata, order, NUMBER=NUMBER, SYMBOL=SYMBOL, ADD=ADD, MUL=
             # General case
             else:
                 s += coeff * diff_generic(term, xdata, order)
-        return s
+        r = s
     elif head is MUL:
-        return diff_product(data, xdata, order)
+        r = diff_product(data, xdata, order)
     else:
-        return diff_callable(head, data, xdata, order)
+        r = diff_callable(head, data, xdata, order)
+    cache[key] = r
+    return r
 
 def diff(expr, symbol, order=1):
     # It should eventually be possible to support symbolic orders
-    order = int(order)
-    if not order:
-        return expr
-    return diff_generic(expr, symbol.data, order)
+    try:
+        order = int(order)
+        if not order:
+            return expr
+        return diff_generic(expr, symbol.data, order)
+    finally:
+        #print len(cache)
+        cache.clear()
 
 __all__ = ['diff']
