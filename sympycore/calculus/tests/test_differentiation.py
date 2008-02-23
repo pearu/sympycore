@@ -20,8 +20,7 @@ def test_diff_powers():
     assert diff(exp(3*x+1), x) == 3*exp(3*x+1)
     assert diff(2**(3*x+1), x) == 3*2**(3*x+1)*log(2)
     assert diff(2**(3*x+1), x, 1000) == 3**1000 * 2**(3*x+1) * log(2)**1000
-    # pairs failure?
-    #assert diff((2*x+1)**(3*x), x) == (2*x+1)**(3*x) * (6*x/(2*x+1)+3*log(2*x+1))
+    assert diff((2*x+1)**(3*x), x) == (2*x+1)**(3*x) * (6*x/(2*x+1)+3*log(2*x+1))
 
 def test_diff_log():
     assert diff(log(x), x) == 1/x
