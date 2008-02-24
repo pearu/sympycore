@@ -2,7 +2,8 @@
 # Created January 2008 by Fredrik Johansson
 #
 
-from ..algebra import A, oo, I, undefined, NUMBER, ADD, MUL, SYMBOL, TERMS
+from ..algebra import A, I,  NUMBER, ADD, MUL, SYMBOL, TERMS
+from ..infinity import oo, undefined, CalculusInfinity
 from ..constants import const_pi, const_E
 from ..function import Function
 from ...arithmetic.evalf import evalf, Float
@@ -28,6 +29,12 @@ E = const_E.as_algebra(A)
 Ipi = I*pi
 Ipi2 = Ipi/2
 
+class sign(Function):
+    def __new__(cls, arg):
+        if not isinstance(arg, A):
+            arg = A.convert(arg)
+        return A(arg, head=cls)
+
 class sqrt(Function):
     def __new__(cls, arg):
         if not isinstance(arg, A):
@@ -36,7 +43,14 @@ class sqrt(Function):
 
 class exp(Function):
     def __new__(cls, arg):
-        if not isinstance(arg, A):
+        if isinstance(arg, CalculusInfinity):
+            if arg==oo:
+                return oo
+            if arg==undefined:
+                return undefined
+            if arg==-oo:
+                return A.zero
+        elif not isinstance(arg, A):
             arg = A.convert(arg)
         return E ** arg
 
@@ -53,6 +67,12 @@ log_number_table = {
 
 class log(Function):
     def __new__(cls, arg, base=E):
+        if isinstance(arg, CalculusInfinity):
+            if arg==oo:
+                return oo
+            if arg==undefined:
+                return undefined
+            return A(arg, head=cls)
         if not isinstance(arg, A):
             arg = A.convert(arg)
         if base != E:
@@ -66,10 +86,7 @@ class log(Function):
                 if bd**l == ad:
                     return A(l)
             return cls(arg) / cls(base)
-        if arg==oo:
-            return oo
-        if arg==undefined:
-            return undefined
+
         head = arg.head
         data = arg.data
         if head is NUMBER:

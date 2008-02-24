@@ -145,6 +145,11 @@ class FractionTuple(tuple):
     def __rdivmod__(a, b):
         return (b-b%a)/a, b%a
 
+    def __rpow__(a, b):
+        z, sym = try_power(b, a)
+        if not sym:
+            return z
+        return NotImplemented
 
 #----------------------------------------------------------------------------#
 #                                                                            #
@@ -336,7 +341,7 @@ class Float(object):
         other = self.convert_val(other)
         if other is NotImplemented:
             return other
-        return other ** self
+        return Float(other) ** self
 
 #----------------------------------------------------------------------------#
 #                                                                            #

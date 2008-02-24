@@ -7,18 +7,18 @@ from ..utils import NUMBER, SYMBOL, TERMS, FACTORS, RedirectOperation
 from ..arithmetic.numbers import (ExtendedNumber, normalized_fraction,
  FractionTuple, try_power, numbertypes)
 
-def div(a, b, inttypes = (int, long)):
-    if isinstance(b, inttypes):
-        if isinstance(a, inttypes):
+def div(a, b, cls):
+    tb = type(b)
+    if tb is int or tb is long:
+        ta = type(a)
+        if ta is int or tb is long:
             if not b:
                 if not a:
-                    return ExtendedNumber.get_undefined()
-                return ExtendedNumber.get_zoo()
+                    return cls.undefined
+                return cls.zoo
             return normalized_fraction(a, b)
         if not b:
-            if isinstance(a, ExtendedNumber):
-                return a / b
-            return ExtendedNumber.get_zoo()
+            return a / b
         if b == 1:
             return a
         return FractionTuple((1,b)) * a
@@ -162,11 +162,14 @@ def rdiv_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=ob
     if isinstance(other, cls.coefftypes):
         if lhead is NUMBER:
             #DIV_VALUE_NUMBER(VALUE=other; RHS=self)
-            #RETURN_NEW(HEAD=NUMBER; DATA=div(other, self.data))
-            #NEWINSTANCE(OBJ=_tmp35; HEAD=NUMBER; DATA=div(other, self.data))
+            rhs = self.data
+            if not rhs:
+                return other * cls.zoo
+            #RETURN_NEW(HEAD=NUMBER; DATA=div(other, rhs, cls))
+            #NEWINSTANCE(OBJ=_tmp35; HEAD=NUMBER; DATA=div(other, rhs, cls))
             _tmp35 = new(cls)
             _tmp35.head = NUMBER
-            _tmp35.data = div(other, self.data)
+            _tmp35.data = div(other, rhs, cls)
             return _tmp35
         elif lhead is TERMS:
             #DIV_VALUE_TERMS(VALUE=other; RHS=self)
@@ -187,7 +190,7 @@ def rdiv_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=ob
             pairs = self.data
             if len(pairs)==1:
                 t, c = pairs.items()[0]
-                c = div(other, c)
+                c = div(other, c, cls)
                 t = 1/t
                 if c==1:
                     return t
@@ -239,11 +242,8 @@ def rdiv_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=ob
         else:
             #DIV_VALUE_SYMBOL(VALUE=other; RHS=self)
             _tmp51 = other
-            try:
-                if not _tmp51:
-                    return cls.zero
-            except RedirectOperation:
-                pass
+            if not _tmp51:
+                return cls.zero
             #NEWINSTANCE(OBJ=obj2; HEAD=FACTORS; DATA={self: -1})
             obj2 = new(cls)
             obj2.head = FACTORS
@@ -276,11 +276,11 @@ def pow_method(self, other, z = None, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTOR
         if lhead is NUMBER:
             #POW_NUMBER_INT(VALUE=other; LHS=self)
             if other < 0:
-                #RETURN_NEW(HEAD=NUMBER; DATA=div(1, (self.data)**(-other)))
-                #NEWINSTANCE(OBJ=_tmp56; HEAD=NUMBER; DATA=div(1, (self.data)**(-other)))
+                #RETURN_NEW(HEAD=NUMBER; DATA=div(1, (self.data)**(-other), cls))
+                #NEWINSTANCE(OBJ=_tmp56; HEAD=NUMBER; DATA=div(1, (self.data)**(-other), cls))
                 _tmp56 = new(cls)
                 _tmp56.head = NUMBER
-                _tmp56.data = div(1, (self.data)**(-other))
+                _tmp56.data = div(1, (self.data)**(-other), cls)
                 return _tmp56
             #RETURN_NEW(HEAD=NUMBER; DATA=(self.data)**(other))
             #NEWINSTANCE(OBJ=_tmp58; HEAD=NUMBER; DATA=(self.data)**(other))
@@ -294,7 +294,7 @@ def pow_method(self, other, z = None, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTOR
             if len(pairs)==1:
                 t,c = pairs.items()[0]
                 if other < 0:
-                    c = div(1, c**(-other))
+                    c = div(1, c**(-other), cls)
                 else:
                     c = c ** (other)
                 t = t**(other)
@@ -1755,17 +1755,17 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
         if isinstance(other, cls.coefftypes):
             if lhead is NUMBER:
                 #DIV_NUMBER_VALUE(VALUE=other; LHS=self)
-                #RETURN_NEW(HEAD=NUMBER; DATA=div(self.data, other))
-                #NEWINSTANCE(OBJ=_tmp374; HEAD=NUMBER; DATA=div(self.data, other))
+                #RETURN_NEW(HEAD=NUMBER; DATA=div(self.data, other, cls))
+                #NEWINSTANCE(OBJ=_tmp374; HEAD=NUMBER; DATA=div(self.data, other, cls))
                 _tmp374 = new(cls)
                 _tmp374.head = NUMBER
-                _tmp374.data = div(self.data, other)
+                _tmp374.data = div(self.data, other, cls)
                 return _tmp374
             elif lhead is TERMS:
                 #DIV_TERMS_VALUE(VALUE=other; LHS=self)
-                #MUL_TERMS_VALUE(LHS=self; VALUE=div(1,other))
-                #MUL_VALUE_TERMS(VALUE=div(1,other); RHS=self)
-                _tmp378 = div(1,other)
+                #MUL_TERMS_VALUE(LHS=self; VALUE=div(1,other,cls))
+                #MUL_VALUE_TERMS(VALUE=div(1,other,cls); RHS=self)
+                _tmp378 = div(1,other,cls)
                 pairs = self.data
                 #MUL_ZERO_OP(VALUE=_tmp378; OP=self)
                 try:
@@ -1832,10 +1832,10 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                 return obj
             elif lhead is FACTORS:
                 #DIV_FACTORS_VALUE(VALUE=other; LHS=self)
-                #MUL_FACTORS_VALUE(LHS=self; VALUE=div(1,other))
-                #MUL_SYMBOL_VALUE(VALUE=div(1,other); LHS=self)
-                #MUL_VALUE_SYMBOL(VALUE=div(1,other); RHS=self)
-                _tmp391 = div(1,other)
+                #MUL_FACTORS_VALUE(LHS=self; VALUE=div(1,other,cls))
+                #MUL_SYMBOL_VALUE(VALUE=div(1,other,cls); LHS=self)
+                #MUL_VALUE_SYMBOL(VALUE=div(1,other,cls); RHS=self)
+                _tmp391 = div(1,other,cls)
                 #MUL_ZERO_OP(VALUE=_tmp391; OP=self)
                 try:
                     if not _tmp391:
@@ -1860,8 +1860,8 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                 return _tmp395
             else:
                 #DIV_SYMBOL_VALUE(VALUE=other; LHS=self)
-                #MUL_VALUE_SYMBOL(VALUE=div(1, other); RHS=self)
-                _tmp398 = div(1, other)
+                #MUL_VALUE_SYMBOL(VALUE=div(1, other, cls); RHS=self)
+                _tmp398 = div(1, other, cls)
                 #MUL_ZERO_OP(VALUE=_tmp398; OP=self)
                 try:
                     if not _tmp398:
@@ -1892,11 +1892,14 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
         if rhead is NUMBER:
             #DIV_NUMBER_NUMBER(LHS=self; RHS=other)
             #DIV_VALUE_NUMBER(VALUE=self.data; RHS=other)
-            #RETURN_NEW(HEAD=NUMBER; DATA=div(self.data, other.data))
-            #NEWINSTANCE(OBJ=_tmp406; HEAD=NUMBER; DATA=div(self.data, other.data))
+            rhs = other.data
+            if not rhs:
+                return self.data * cls.zoo
+            #RETURN_NEW(HEAD=NUMBER; DATA=div(self.data, rhs, cls))
+            #NEWINSTANCE(OBJ=_tmp406; HEAD=NUMBER; DATA=div(self.data, rhs, cls))
             _tmp406 = new(cls)
             _tmp406.head = NUMBER
-            _tmp406.data = div(self.data, other.data)
+            _tmp406.data = div(self.data, rhs, cls)
             return _tmp406
         elif rhead is TERMS:
             #DIV_NUMBER_TERMS(LHS=self; RHS=other)
@@ -1918,7 +1921,7 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
             pairs = other.data
             if len(pairs)==1:
                 t, c = pairs.items()[0]
-                c = div(self.data, c)
+                c = div(self.data, c, cls)
                 t = 1/t
                 if c==1:
                     return t
@@ -1972,11 +1975,8 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
             #DIV_NUMBER_SYMBOL(LHS=self; RHS=other)
             #DIV_VALUE_SYMBOL(VALUE=self.data; RHS=other)
             _tmp425 = self.data
-            try:
-                if not _tmp425:
-                    return cls.zero
-            except RedirectOperation:
-                pass
+            if not _tmp425:
+                return cls.zero
             #NEWINSTANCE(OBJ=obj2; HEAD=FACTORS; DATA={other: -1})
             obj2 = new(cls)
             obj2.head = FACTORS
@@ -1993,9 +1993,9 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
         if rhead is NUMBER:
             #DIV_TERMS_NUMBER(LHS=self; RHS=other)
             #DIV_TERMS_VALUE(VALUE=other.data; LHS=self)
-            #MUL_TERMS_VALUE(LHS=self; VALUE=div(1,other.data))
-            #MUL_VALUE_TERMS(VALUE=div(1,other.data); RHS=self)
-            _tmp432 = div(1,other.data)
+            #MUL_TERMS_VALUE(LHS=self; VALUE=div(1,other.data,cls))
+            #MUL_VALUE_TERMS(VALUE=div(1,other.data,cls); RHS=self)
+            _tmp432 = div(1,other.data,cls)
             pairs = self.data
             #MUL_ZERO_OP(VALUE=_tmp432; OP=self)
             try:
@@ -2071,7 +2071,7 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                 t1, c1 = lpairs.items()[0]
                 if len(rpairs)==1:
                     t2, c2 = rpairs.items()[0]
-                    c = div(c1, c2)
+                    c = div(c1, c2, cls)
                     if t2==t1:
                         return cls.convert(c)
                     if c==1:
@@ -2098,7 +2098,7 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
                 return _tmp447
             elif len(rpairs)==1:
                 t2, c2 = rpairs.items()[0]
-                c = div(1, c2)
+                c = div(1, c2, cls)
                 if t2==self:
                     return cls.convert(c)
                 _tmp442 = self / t2
@@ -2309,10 +2309,10 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
         if rhead is NUMBER:
             #DIV_FACTORS_NUMBER(LHS=self; RHS=other)
             #DIV_FACTORS_VALUE(VALUE=other.data; LHS=self)
-            #MUL_FACTORS_VALUE(LHS=self; VALUE=div(1,other.data))
-            #MUL_SYMBOL_VALUE(VALUE=div(1,other.data); LHS=self)
-            #MUL_VALUE_SYMBOL(VALUE=div(1,other.data); RHS=self)
-            _tmp495 = div(1,other.data)
+            #MUL_FACTORS_VALUE(LHS=self; VALUE=div(1,other.data,cls))
+            #MUL_SYMBOL_VALUE(VALUE=div(1,other.data,cls); LHS=self)
+            #MUL_VALUE_SYMBOL(VALUE=div(1,other.data,cls); RHS=self)
+            _tmp495 = div(1,other.data,cls)
             #MUL_ZERO_OP(VALUE=_tmp495; OP=self)
             try:
                 if not _tmp495:
@@ -2341,7 +2341,7 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
             if len(rpairs)==1:
                 t, c = rpairs.items()[0]
                 t = self / t
-                c = div(1, c)
+                c = div(1, c, cls)
                 if t==cls.one:
                     return cls.convert(c)
                 head = t.head
@@ -2570,8 +2570,8 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
         if rhead is NUMBER:
             #DIV_SYMBOL_NUMBER(LHS=self; RHS=other)
             #DIV_SYMBOL_VALUE(VALUE=other.data; LHS=self)
-            #MUL_VALUE_SYMBOL(VALUE=div(1, other.data); RHS=self)
-            _tmp544 = div(1, other.data)
+            #MUL_VALUE_SYMBOL(VALUE=div(1, other.data, cls); RHS=self)
+            _tmp544 = div(1, other.data, cls)
             #MUL_ZERO_OP(VALUE=_tmp544; OP=self)
             try:
                 if not _tmp544:
@@ -2600,16 +2600,16 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
             if len(pairs)==1:
                 t,c = pairs.items()[0]
                 if self==t:
-                    return cls.convert(div(1, c))
+                    return cls.convert(div(1, c, cls))
                 #NEWINSTANCE(OBJ=_tmp550; HEAD=FACTORS; DATA={self:1, t:-1})
                 _tmp550 = new(cls)
                 _tmp550.head = FACTORS
                 _tmp550.data = {self:1, t:-1}
-                #RETURN_NEW(HEAD=TERMS; DATA={_tmp550: div(1, c)})
-                #NEWINSTANCE(OBJ=_tmp552; HEAD=TERMS; DATA={_tmp550: div(1, c)})
+                #RETURN_NEW(HEAD=TERMS; DATA={_tmp550: div(1, c, cls)})
+                #NEWINSTANCE(OBJ=_tmp552; HEAD=TERMS; DATA={_tmp550: div(1, c, cls)})
                 _tmp552 = new(cls)
                 _tmp552.head = TERMS
-                _tmp552.data = {_tmp550: div(1, c)}
+                _tmp552.data = {_tmp550: div(1, c, cls)}
                 return _tmp552
             #RETURN_NEW(HEAD=FACTORS; DATA={self:1, other:-1})
             #NEWINSTANCE(OBJ=_tmp554; HEAD=FACTORS; DATA={self:1, other:-1})

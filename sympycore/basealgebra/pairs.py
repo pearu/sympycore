@@ -97,9 +97,12 @@ class CommutativeRingWithPairs(CommutativeRing):
             return False
         if callable(head):
             for a in self.args:
-                if a.has_active():
-                    self._has_active = True
-                    return True
+                try:
+                    if a.has_active():
+                        self._has_active = True
+                        return True
+                except:
+                    pass
         self._has_active = False
         return False
     

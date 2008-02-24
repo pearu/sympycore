@@ -52,18 +52,18 @@ from ..utils import NUMBER, SYMBOL, TERMS, FACTORS, RedirectOperation
 from ..arithmetic.numbers import (ExtendedNumber, normalized_fraction,
  FractionTuple, try_power, numbertypes)
 
-def div(a, b, inttypes = (int, long)):
-    if isinstance(b, inttypes):
-        if isinstance(a, inttypes):
+def div(a, b, cls):
+    tb = type(b)
+    if tb is int or tb is long:
+        ta = type(a)
+        if ta is int or tb is long:
             if not b:
                 if not a:
-                    return ExtendedNumber.get_undefined()
-                return ExtendedNumber.get_zoo()
+                    return cls.undefined
+                return cls.zoo
             return normalized_fraction(a, b)
         if not b:
-            if isinstance(a, ExtendedNumber):
-                return a / b
-            return ExtendedNumber.get_zoo()
+            return a / b
         if b == 1:
             return a
         return FractionTuple((1,b)) * a
@@ -476,32 +476,34 @@ return obj * number
 # DIV macros
 #======================================
 
-DIV_VALUE_NUMBER='@RETURN_NEW(HEAD=NUMBER; DATA=div(%(VALUE)s, %(RHS)s.data))\n'
-DIV_NUMBER_VALUE='@RETURN_NEW(HEAD=NUMBER; DATA=div(%(LHS)s.data, %(VALUE)s))\n'
+DIV_VALUE_NUMBER='''\
+rhs = %(RHS)s.data
+if not rhs:
+    return %(VALUE)s * cls.zoo
+@RETURN_NEW(HEAD=NUMBER; DATA=div(%(VALUE)s, rhs, cls))
+'''
+DIV_NUMBER_VALUE='@RETURN_NEW(HEAD=NUMBER; DATA=div(%(LHS)s.data, %(VALUE)s, cls))\n'
 DIV_NUMBER_NUMBER = '@DIV_VALUE_NUMBER(VALUE=%(LHS)s.data; RHS=%(RHS)s)\n'
 DIV_VALUE_SYMBOL = '''\
 %(TMP)s = %(VALUE)s
-try:
-    if not %(TMP)s:
-        return cls.zero
-except RedirectOperation:
-    pass
+if not %(TMP)s:
+    return cls.zero
 @NEWINSTANCE(OBJ=obj2; HEAD=FACTORS; DATA={%(RHS)s: -1})
 if %(TMP)s==1:
     return obj2
 @RETURN_NEW(HEAD=TERMS; DATA={obj2: %(TMP)s})
 '''
-DIV_SYMBOL_VALUE = '@MUL_VALUE_SYMBOL(VALUE=div(1, %(VALUE)s); RHS=%(LHS)s)\n'
+DIV_SYMBOL_VALUE = '@MUL_VALUE_SYMBOL(VALUE=div(1, %(VALUE)s, cls); RHS=%(LHS)s)\n'
 DIV_NUMBER_SYMBOL = '@DIV_VALUE_SYMBOL(VALUE=%(LHS)s.data; RHS=%(RHS)s)\n'
 DIV_SYMBOL_NUMBER = '@DIV_SYMBOL_VALUE(VALUE=%(RHS)s.data; LHS=%(LHS)s)\n'
-DIV_TERMS_VALUE = '@MUL_TERMS_VALUE(LHS=%(LHS)s; VALUE=div(1,%(VALUE)s))\n'
+DIV_TERMS_VALUE = '@MUL_TERMS_VALUE(LHS=%(LHS)s; VALUE=div(1,%(VALUE)s,cls))\n'
 
 DIV_VALUE_TERMS = '''\
 @MUL_ZERO_OP(VALUE=%(VALUE)s; OP=%(RHS)s)
 pairs = %(RHS)s.data
 if len(pairs)==1:
     t, c = pairs.items()[0]
-    c = div(%(VALUE)s, c)
+    c = div(%(VALUE)s, c, cls)
     t = 1/t
     if c==1:
         return t
@@ -514,7 +516,7 @@ if %(VALUE)s==1:
 @RETURN_NEW(HEAD=TERMS; DATA={%(TMP)s: %(VALUE)s})
 '''
 
-DIV_FACTORS_VALUE = '@MUL_FACTORS_VALUE(LHS=%(LHS)s; VALUE=div(1,%(VALUE)s))\n'
+DIV_FACTORS_VALUE = '@MUL_FACTORS_VALUE(LHS=%(LHS)s; VALUE=div(1,%(VALUE)s,cls))\n'
 DIV_VALUE_FACTORS = '''
 pairs = %(RHS)s.data
 if len(pairs)==1:
@@ -558,7 +560,7 @@ if len(lpairs)==1:
     t1, c1 = lpairs.items()[0]
     if len(rpairs)==1:
         t2, c2 = rpairs.items()[0]
-        c = div(c1, c2)
+        c = div(c1, c2, cls)
         if t2==t1:
             return cls.convert(c)
         if c==1:
@@ -569,7 +571,7 @@ if len(lpairs)==1:
     @RETURN_NEW(HEAD=TERMS; DATA={%(TMP)s:c1})
 elif len(rpairs)==1:
     t2, c2 = rpairs.items()[0]
-    c = div(1, c2)
+    c = div(1, c2, cls)
     if t2==%(LHS)s:
         return cls.convert(c)
     %(TMP)s = %(LHS)s / t2
@@ -581,9 +583,9 @@ pairs = %(RHS)s.data
 if len(pairs)==1:
     t,c = pairs.items()[0]
     if %(LHS)s==t:
-        return cls.convert(div(1, c))
+        return cls.convert(div(1, c, cls))
     @NEWINSTANCE(OBJ=%(TMP)s; HEAD=FACTORS; DATA={%(LHS)s:1, t:-1})
-    @RETURN_NEW(HEAD=TERMS; DATA={%(TMP)s: div(1, c)})
+    @RETURN_NEW(HEAD=TERMS; DATA={%(TMP)s: div(1, c, cls)})
 @RETURN_NEW(HEAD=FACTORS; DATA={%(LHS)s:1, %(RHS)s:-1})
 '''
 DIV_SYMBOL_FACTORS = '''\
@@ -635,7 +637,7 @@ rpairs = %(RHS)s.data
 if len(rpairs)==1:
     t, c = rpairs.items()[0]
     t = %(LHS)s / t
-    c = div(1, c)
+    c = div(1, c, cls)
     if t==cls.one:
         return cls.convert(c)
     head = t.head
@@ -666,7 +668,7 @@ if number==1:
 
 POW_NUMBER_INT = '''\
 if %(VALUE)s < 0:
-    @RETURN_NEW(HEAD=NUMBER; DATA=div(1, (%(LHS)s.data)**(-%(VALUE)s)))
+    @RETURN_NEW(HEAD=NUMBER; DATA=div(1, (%(LHS)s.data)**(-%(VALUE)s), cls))
 @RETURN_NEW(HEAD=NUMBER; DATA=(%(LHS)s.data)**(%(VALUE)s))
 '''
 POW_TERMS_INT = '''\
@@ -674,7 +676,7 @@ pairs = %(LHS)s.data
 if len(pairs)==1:
     t,c = pairs.items()[0]
     if %(VALUE)s < 0:
-        c = div(1, c**(-%(VALUE)s))
+        c = div(1, c**(-%(VALUE)s), cls)
     else:
         c = c ** (%(VALUE)s)
     t = t**(%(VALUE)s)

@@ -3,7 +3,7 @@
 #
 
 from ..core import classes
-from ..utils import TERMS
+from ..utils import TERMS, str_PRODUCT
 from ..basealgebra import BasicAlgebra
 from ..basealgebra.primitive import PrimitiveAlgebra, SYMBOL, NUMBER, ADD, MUL
 
@@ -13,6 +13,7 @@ from ..arithmetic.numbers import FractionTuple, normalized_fraction, Float, Comp
     try_power, ExtendedNumber
 
 from ..arithmetic.evalf import evalf
+
 
 algebra_numbers = (int, long, FractionTuple, Float, Complex, ExtendedNumber)
 
@@ -159,6 +160,15 @@ class Calculus(CommutativeRingWithPairs):
         return log(arg)/log(base)
 
     @classmethod
+    def Exp(cls, arg):
+        return cls.defined_functions['exp'](arg)
+
+    @classmethod
+    def Sign(cls, arg):
+        sign = cls.defined_functions['sign']
+        return sign(arg)
+
+    @classmethod
     def npower(cls, base, exp):
         num, sym = try_power(base, exp)
         if not sym:
@@ -191,6 +201,13 @@ class Calculus(CommutativeRingWithPairs):
             if isinstance(value, (int, long)):
                 return value
             return getattr(value, 'get_direction', lambda : NotImplemented)()
+        if head is TERMS:
+            data = self.data
+            if len(data)==1:
+                t, c = data.items()[0]
+                r = t.get_direction()
+                if r is not NotImplemented:
+                    return r * c
         if head is MUL:
             direction = 1
             for t,c in self.data.iteritems():
@@ -233,7 +250,7 @@ class Calculus(CommutativeRingWithPairs):
         if self is other:
             return True
         if other.__class__ is self.__class__:
-            return self.head is other.head and self.data == other.data
+            return self.head == other.head and self.data == other.data
         if self.head is NUMBER and isinstance(other, algebra_numbers):
             return self.data == other
         return False
@@ -320,10 +337,6 @@ A.one = one
 A.zero = zero
 
 I = A(Complex(0,1), head=NUMBER)
-oo = A(ExtendedNumber.get_oo(), head=NUMBER)
-moo = A(ExtendedNumber.get_moo(), head=NUMBER)
-zoo = A(ExtendedNumber.get_zoo(), head=NUMBER)
-undefined = A(ExtendedNumber.get_undefined(), head=NUMBER)
 
 def integrate(expr, x):
     return Calculus(expr).integrate(x)

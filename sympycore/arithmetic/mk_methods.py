@@ -176,7 +176,7 @@ r, s = %(RHS)s
 @RETURN_FRACTION2(NUMER=p*r; DENOM=q*s; MOD=%(MOD)s)
 '''
 
-MUL_COMPLEX_REAL = '@RETURN_COMPLEX(REAL=%(LHS)s.real*%(RHS)s; IMAG=%(LHS)s.imag*%(RHS)s)\n'
+MUL_COMPLEX_REAL = '@RETURN_COMPLEX2(REAL=%(LHS)s.real*%(RHS)s; IMAG=%(LHS)s.imag*%(RHS)s)\n'
 MUL_COMPLEX_COMPLEX = '''\
 a, b = %(LHS)s.real, %(LHS)s.imag
 c, d = %(RHS)s.real, %(RHS)s.imag
