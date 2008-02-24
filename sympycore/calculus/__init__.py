@@ -2,6 +2,9 @@
 from .algebra import Calculus, I, integrate
 from .infinity import  oo, undefined, moo, zoo
 from .functions import exp, log, sqrt, sin, cos, tan, cot, pi, E, sign
+from differentiation import diff
+
+Calculus.diff = diff
 
 Symbol = Calculus.Symbol
 
