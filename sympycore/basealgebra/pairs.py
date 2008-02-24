@@ -659,6 +659,8 @@ class CommutativeRingWithPairs(CommutativeRing):
             num = 1
             for t,c in self.data.iteritems():
                 r = t._subs(subexpr, newexpr)
+                if hasattr(c,'_subs'):
+                    c = c._subs(subexpr, newexpr)
                 n = inplace_MUL_dict[r.head](result, r, c, cls)
                 if n is not None:
                     num = num * n
