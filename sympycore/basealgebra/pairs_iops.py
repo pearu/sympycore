@@ -47,16 +47,18 @@ def inplace_add(cls, obj, pairs, pairs_get, one):
     if tobj is cls:
         head = obj.head
         if head is NUMBER:
-            #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=obj.data; SIGN=+)
-            _tmp6 = pairs_get(one)
-            if _tmp6 is None:
-                pairs[one] = + obj.data
-            else:
-                _tmp6 = _tmp6 + obj.data
-                if _tmp6:
-                    pairs[one] = _tmp6
+            value = obj.data
+            if value:
+                #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=+)
+                _tmp6 = pairs_get(one)
+                if _tmp6 is None:
+                    pairs[one] = + value
                 else:
-                    del pairs[one]
+                    _tmp6 = _tmp6 + value
+                    if _tmp6:
+                        pairs[one] = _tmp6
+                    else:
+                        del pairs[one]
         elif head is TERMS:
             for t,c in obj.data.iteritems():
                 #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=t; VALUE=c; SIGN=+)
@@ -82,70 +84,132 @@ def inplace_add(cls, obj, pairs, pairs_get, one):
                     del pairs[obj]
     #ELIF_CHECK_NUMBER(T=tobj)
     elif tobj is int or tobj is long or tobj is FractionTuple or tobj is float or tobj is Float or tobj is Complex or tobj is complex:
-        #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=obj; SIGN=+)
-        _tmp10 = pairs_get(one)
-        if _tmp10 is None:
-            pairs[one] = + obj
-        else:
-            _tmp10 = _tmp10 + obj
-            if _tmp10:
-                pairs[one] = _tmp10
+        if obj:
+            #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=obj; SIGN=+)
+            _tmp10 = pairs_get(one)
+            if _tmp10 is None:
+                pairs[one] = + obj
             else:
-                del pairs[one]
+                _tmp10 = _tmp10 + obj
+                if _tmp10:
+                    pairs[one] = _tmp10
+                else:
+                    del pairs[one]
     else:
         inplace_add(cls, cls.convert(obj), pairs, pairs_get, one)
 
-
-def inplace_sub(cls, obj, pairs, pairs_get, one):
+def inplace_add2(cls, obj, coeff, pairs, pairs_get, one):
+    if not coeff:
+        return
     tobj = type(obj)
     if tobj is cls:
         head = obj.head
         if head is NUMBER:
-            #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=obj.data; SIGN=-)
-            _tmp11 = pairs_get(one)
-            if _tmp11 is None:
-                pairs[one] = - obj.data
-            else:
-                _tmp11 = _tmp11 - obj.data
-                if _tmp11:
-                    pairs[one] = _tmp11
+            value = coeff * obj.data
+            if value:
+                #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=+)
+                _tmp11 = pairs_get(one)
+                if _tmp11 is None:
+                    pairs[one] = + value
                 else:
-                    del pairs[one]
-        elif HEAD is TERMS:
+                    _tmp11 = _tmp11 + value
+                    if _tmp11:
+                        pairs[one] = _tmp11
+                    else:
+                        del pairs[one]
+        elif head is TERMS:
             for t,c in obj.data.iteritems():
-                #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=t; VALUE=c; SIGN=-)
+                #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=t; VALUE=coeff*c; SIGN=+)
                 _tmp12 = pairs_get(t)
                 if _tmp12 is None:
-                    pairs[t] = - c
+                    pairs[t] = + coeff*c
                 else:
-                    _tmp12 = _tmp12 - c
+                    _tmp12 = _tmp12 + coeff*c
                     if _tmp12:
                         pairs[t] = _tmp12
                     else:
                         del pairs[t]
         else:
-            #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=obj; VALUE=1; SIGN=-)
+            #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=obj; VALUE=coeff; SIGN=+)
             _tmp13 = pairs_get(obj)
             if _tmp13 is None:
-                pairs[obj] = - 1
+                pairs[obj] = + coeff
             else:
-                _tmp13 = _tmp13 - 1
+                _tmp13 = _tmp13 + coeff
                 if _tmp13:
                     pairs[obj] = _tmp13
                 else:
                     del pairs[obj]
     #ELIF_CHECK_NUMBER(T=tobj)
     elif tobj is int or tobj is long or tobj is FractionTuple or tobj is float or tobj is Float or tobj is Complex or tobj is complex:
-        #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=obj; SIGN=-)
-        _tmp15 = pairs_get(one)
-        if _tmp15 is None:
-            pairs[one] = - obj
-        else:
-            _tmp15 = _tmp15 - obj
-            if _tmp15:
-                pairs[one] = _tmp15
+        value = coeff * obj
+        if value:
+            #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=+)
+            _tmp15 = pairs_get(one)
+            if _tmp15 is None:
+                pairs[one] = + value
             else:
-                del pairs[one]
+                _tmp15 = _tmp15 + value
+                if _tmp15:
+                    pairs[one] = _tmp15
+                else:
+                    del pairs[one]
+    else:
+        inplace_add2(cls, cls.convert(obj), coeff, pairs, pairs_get, one)
+
+def inplace_sub(cls, obj, pairs, pairs_get, one):
+    tobj = type(obj)
+    if tobj is cls:
+        head = obj.head
+        if head is NUMBER:
+            value = obj.data
+            if value:
+                #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=-)
+                _tmp16 = pairs_get(one)
+                if _tmp16 is None:
+                    pairs[one] = - value
+                else:
+                    _tmp16 = _tmp16 - value
+                    if _tmp16:
+                        pairs[one] = _tmp16
+                    else:
+                        del pairs[one]
+        elif HEAD is TERMS:
+            for t,c in obj.data.iteritems():
+                #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=t; VALUE=c; SIGN=-)
+                _tmp17 = pairs_get(t)
+                if _tmp17 is None:
+                    pairs[t] = - c
+                else:
+                    _tmp17 = _tmp17 - c
+                    if _tmp17:
+                        pairs[t] = _tmp17
+                    else:
+                        del pairs[t]
+        else:
+            #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=obj; VALUE=1; SIGN=-)
+            _tmp18 = pairs_get(obj)
+            if _tmp18 is None:
+                pairs[obj] = - 1
+            else:
+                _tmp18 = _tmp18 - 1
+                if _tmp18:
+                    pairs[obj] = _tmp18
+                else:
+                    del pairs[obj]
+    #ELIF_CHECK_NUMBER(T=tobj)
+    elif tobj is int or tobj is long or tobj is FractionTuple or tobj is float or tobj is Float or tobj is Complex or tobj is complex:
+        if obj:
+            #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=obj; SIGN=-)
+            _tmp20 = pairs_get(one)
+            if _tmp20 is None:
+                pairs[one] = - obj
+            else:
+                _tmp20 = _tmp20 - obj
+                if _tmp20:
+                    pairs[one] = _tmp20
+                else:
+                    del pairs[one]
     else:
         inplace_add(cls, cls.convert(obj), pairs, pairs_get, one)
 
@@ -160,17 +224,17 @@ def inplace_mul(cls, obj, pairs, pairs_get):
             if len(data)==1:
                 t, number = data.items()[0]
                 #MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=t; VALUE=1; SIGN=+; NUMBER=number)
-                _tmp16 = pairs_get(t)
-                if _tmp16 is None:
+                _tmp21 = pairs_get(t)
+                if _tmp21 is None:
                     pairs[t] = + 1
                 else:
-                    _tmp16 = _tmp16 + 1
-                    if type(_tmp16) is cls and _tmp16.head is NUMBER:
-                        _tmp16 = _tmp16.data
-                    if _tmp16:
+                    _tmp21 = _tmp21 + 1
+                    if type(_tmp21) is cls and _tmp21.head is NUMBER:
+                        _tmp21 = _tmp21.data
+                    if _tmp21:
                         if t.head is NUMBER:
                             del pairs[t]
-                            z, sym = try_power(t.data, _tmp16)
+                            z, sym = try_power(t.data, _tmp21)
                             if sym:
                                 for t1, c1 in sym:
                                     #NEWINSTANCE(OBJ=tt; HEAD=NUMBER; DATA=t1)
@@ -178,35 +242,35 @@ def inplace_mul(cls, obj, pairs, pairs_get):
                                     tt.head = NUMBER
                                     tt.data = t1
                                     #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+)
-                                    _tmp18 = pairs_get(tt)
-                                    if _tmp18 is None:
+                                    _tmp23 = pairs_get(tt)
+                                    if _tmp23 is None:
                                         pairs[tt] = + c1
                                     else:
-                                        _tmp18 = _tmp18 + c1
-                                        if _tmp18:
-                                            pairs[tt] = _tmp18
+                                        _tmp23 = _tmp23 + c1
+                                        if _tmp23:
+                                            pairs[tt] = _tmp23
                                         else:
                                             del pairs[tt]
                             number = number * z
                             
                         else:
-                            pairs[t] = _tmp16
+                            pairs[t] = _tmp21
                     else:
                         del pairs[t]
                 return number
             number = 1
             #MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=obj; VALUE=1; SIGN=+; NUMBER=number)
-            _tmp19 = pairs_get(obj)
-            if _tmp19 is None:
+            _tmp24 = pairs_get(obj)
+            if _tmp24 is None:
                 pairs[obj] = + 1
             else:
-                _tmp19 = _tmp19 + 1
-                if type(_tmp19) is cls and _tmp19.head is NUMBER:
-                    _tmp19 = _tmp19.data
-                if _tmp19:
+                _tmp24 = _tmp24 + 1
+                if type(_tmp24) is cls and _tmp24.head is NUMBER:
+                    _tmp24 = _tmp24.data
+                if _tmp24:
                     if obj.head is NUMBER:
                         del pairs[obj]
-                        z, sym = try_power(obj.data, _tmp19)
+                        z, sym = try_power(obj.data, _tmp24)
                         if sym:
                             for t1, c1 in sym:
                                 #NEWINSTANCE(OBJ=tt; HEAD=NUMBER; DATA=t1)
@@ -214,19 +278,19 @@ def inplace_mul(cls, obj, pairs, pairs_get):
                                 tt.head = NUMBER
                                 tt.data = t1
                                 #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+)
-                                _tmp21 = pairs_get(tt)
-                                if _tmp21 is None:
+                                _tmp26 = pairs_get(tt)
+                                if _tmp26 is None:
                                     pairs[tt] = + c1
                                 else:
-                                    _tmp21 = _tmp21 + c1
-                                    if _tmp21:
-                                        pairs[tt] = _tmp21
+                                    _tmp26 = _tmp26 + c1
+                                    if _tmp26:
+                                        pairs[tt] = _tmp26
                                     else:
                                         del pairs[tt]
                         number = number * z
                         
                     else:
-                        pairs[obj] = _tmp19
+                        pairs[obj] = _tmp24
                 else:
                     del pairs[obj]
             return number
@@ -234,17 +298,17 @@ def inplace_mul(cls, obj, pairs, pairs_get):
             number = 1
             for t, c in obj.data.iteritems():
                 #MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=t; VALUE=c; SIGN=+; NUMBER=number)
-                _tmp22 = pairs_get(t)
-                if _tmp22 is None:
+                _tmp27 = pairs_get(t)
+                if _tmp27 is None:
                     pairs[t] = + c
                 else:
-                    _tmp22 = _tmp22 + c
-                    if type(_tmp22) is cls and _tmp22.head is NUMBER:
-                        _tmp22 = _tmp22.data
-                    if _tmp22:
+                    _tmp27 = _tmp27 + c
+                    if type(_tmp27) is cls and _tmp27.head is NUMBER:
+                        _tmp27 = _tmp27.data
+                    if _tmp27:
                         if t.head is NUMBER:
                             del pairs[t]
-                            z, sym = try_power(t.data, _tmp22)
+                            z, sym = try_power(t.data, _tmp27)
                             if sym:
                                 for t1, c1 in sym:
                                     #NEWINSTANCE(OBJ=tt; HEAD=NUMBER; DATA=t1)
@@ -252,36 +316,36 @@ def inplace_mul(cls, obj, pairs, pairs_get):
                                     tt.head = NUMBER
                                     tt.data = t1
                                     #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+)
-                                    _tmp24 = pairs_get(tt)
-                                    if _tmp24 is None:
+                                    _tmp29 = pairs_get(tt)
+                                    if _tmp29 is None:
                                         pairs[tt] = + c1
                                     else:
-                                        _tmp24 = _tmp24 + c1
-                                        if _tmp24:
-                                            pairs[tt] = _tmp24
+                                        _tmp29 = _tmp29 + c1
+                                        if _tmp29:
+                                            pairs[tt] = _tmp29
                                         else:
                                             del pairs[tt]
                             number = number * z
                             
                         else:
-                            pairs[t] = _tmp22
+                            pairs[t] = _tmp27
                     else:
                         del pairs[t]
             return number
         else:
             number = 1
             #MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=obj; VALUE=1; SIGN=+; NUMBER=number)
-            _tmp25 = pairs_get(obj)
-            if _tmp25 is None:
+            _tmp30 = pairs_get(obj)
+            if _tmp30 is None:
                 pairs[obj] = + 1
             else:
-                _tmp25 = _tmp25 + 1
-                if type(_tmp25) is cls and _tmp25.head is NUMBER:
-                    _tmp25 = _tmp25.data
-                if _tmp25:
+                _tmp30 = _tmp30 + 1
+                if type(_tmp30) is cls and _tmp30.head is NUMBER:
+                    _tmp30 = _tmp30.data
+                if _tmp30:
                     if obj.head is NUMBER:
                         del pairs[obj]
-                        z, sym = try_power(obj.data, _tmp25)
+                        z, sym = try_power(obj.data, _tmp30)
                         if sym:
                             for t1, c1 in sym:
                                 #NEWINSTANCE(OBJ=tt; HEAD=NUMBER; DATA=t1)
@@ -289,19 +353,19 @@ def inplace_mul(cls, obj, pairs, pairs_get):
                                 tt.head = NUMBER
                                 tt.data = t1
                                 #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+)
-                                _tmp27 = pairs_get(tt)
-                                if _tmp27 is None:
+                                _tmp32 = pairs_get(tt)
+                                if _tmp32 is None:
                                     pairs[tt] = + c1
                                 else:
-                                    _tmp27 = _tmp27 + c1
-                                    if _tmp27:
-                                        pairs[tt] = _tmp27
+                                    _tmp32 = _tmp32 + c1
+                                    if _tmp32:
+                                        pairs[tt] = _tmp32
                                     else:
                                         del pairs[tt]
                         number = number * z
                         
                     else:
-                        pairs[obj] = _tmp25
+                        pairs[obj] = _tmp30
                 else:
                     del pairs[obj]
             return number
@@ -310,4 +374,5 @@ def inplace_mul(cls, obj, pairs, pairs_get):
         return obj
     else:
         return inplace_mul(cls, cls.convert(obj), pairs, pairs_get)
+
     

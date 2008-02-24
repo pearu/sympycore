@@ -143,31 +143,58 @@ def inplace_add(cls, obj, pairs, pairs_get, one):
     if tobj is cls:
         head = obj.head
         if head is NUMBER:
-            @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=obj.data; SIGN=+)
+            value = obj.data
+            if value:
+                @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=+)
         elif head is TERMS:
             for t,c in obj.data.iteritems():
                 @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=t; VALUE=c; SIGN=+)
         else:
             @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=obj; VALUE=1; SIGN=+)
     @ELIF_CHECK_NUMBER(T=tobj)
-        @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=obj; SIGN=+)
+        if obj:
+            @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=obj; SIGN=+)
     else:
         inplace_add(cls, cls.convert(obj), pairs, pairs_get, one)
 
+def inplace_add2(cls, obj, coeff, pairs, pairs_get, one):
+    if not coeff:
+        return
+    tobj = type(obj)
+    if tobj is cls:
+        head = obj.head
+        if head is NUMBER:
+            value = coeff * obj.data
+            if value:
+                @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=+)
+        elif head is TERMS:
+            for t,c in obj.data.iteritems():
+                @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=t; VALUE=coeff*c; SIGN=+)
+        else:
+            @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=obj; VALUE=coeff; SIGN=+)
+    @ELIF_CHECK_NUMBER(T=tobj)
+        value = coeff * obj
+        if value:
+            @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=+)
+    else:
+        inplace_add2(cls, cls.convert(obj), coeff, pairs, pairs_get, one)
 
 def inplace_sub(cls, obj, pairs, pairs_get, one):
     tobj = type(obj)
     if tobj is cls:
         head = obj.head
         if head is NUMBER:
-            @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=obj.data; SIGN=-)
+            value = obj.data
+            if value:
+                @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=-)
         elif HEAD is TERMS:
             for t,c in obj.data.iteritems():
                 @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=t; VALUE=c; SIGN=-)
         else:
             @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=obj; VALUE=1; SIGN=-)
     @ELIF_CHECK_NUMBER(T=tobj)
-        @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=obj; SIGN=-)
+        if obj:
+            @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=obj; SIGN=-)
     else:
         inplace_add(cls, cls.convert(obj), pairs, pairs_get, one)
 
@@ -199,6 +226,7 @@ def inplace_mul(cls, obj, pairs, pairs_get):
         return obj
     else:
         return inplace_mul(cls, cls.convert(obj), pairs, pairs_get)
+
     ''')
 
 if __name__=='__main__':

@@ -19,7 +19,8 @@ from ..arithmetic.number_theory import multinomial_coefficients
 from .pairs_ops import (add_method, sub_method, rsub_method, neg_method,
                         mul_method, div_method, rdiv_method, pow_method)
 
-from .pairs_iops import (inplace_add, inplace_sub, return_terms, return_factors,
+from .pairs_iops import (inplace_add, inplace_add2, inplace_sub,
+                         return_terms, return_factors,
                          inplace_mul)
 
 def newinstance(cls, head, data, new = object.__new__):
@@ -475,6 +476,15 @@ class CommutativeRingWithPairs(CommutativeRing):
         return return_terms(cls, d)
 
     @classmethod
+    def Terms(cls, *seq):
+        d = {}
+        d_get = d.get
+        one = cls.one
+        for t,c in seq:
+            inplace_add2(cls, t, c, d, d_get, one)
+        return return_terms(cls, d)
+
+    @classmethod
     def Mul(cls, *seq):
         d = {}
         d_get = d.get
@@ -504,15 +514,7 @@ class CommutativeRingWithPairs(CommutativeRing):
             return pow_dict1[base.head](base, exp, cls)
         return pow_dict2[base.head][NUMBER](base, newinstance(cls, NUMBER, exp), cls)
 
-    @classmethod
-    def Terms(cls, *seq):
-        d = {}
-        result = newinstance(cls, ADD, d)
-        for t,c in seq:
-            inplace_ADD_dict[t.head](result, t, c, cls)
-        if len(d)<=1:
-            return result.canonize()
-        return result
+
 
     @classmethod
     def Factors(cls, *seq):
@@ -614,13 +616,12 @@ class CommutativeRingWithPairs(CommutativeRing):
 
         if head is ADD:
             d = {}
-            result = newinstance(cls, head, d)
+            d_get = d.get
+            one = cls.one
             for t,c in self.data.iteritems():
                 r = t._subs(subexpr, newexpr)
-                inplace_ADD_dict[r.head](result, r, c, cls)
-            if len(d)<=1:
-                return result.canonize()
-            return result
+                inplace_add2(cls, r, c, d, d_get, one)
+            return return_terms(cls, d)
 
         elif head is MUL:
             d = {}
@@ -797,15 +798,14 @@ def diff_ADD_SYMBOL(expr, x, zero, cls):
             return dt
         return dt * c
     d = {}
-    result = newinstance(cls, ADD, d)
+    d_get = d.get
+    one = cls.one
     for t, c in pairs.iteritems():
         dt = t._diff(x, zero, cls)
         if dt is zero:
             continue
-        inplace_ADD_dict[dt.head](result, dt, c, cls)
-    if len(d)<=1:
-        return result.canonize()
-    return result
+        inplace_add2(cls, dt, c, d, d_get, one)
+    return return_terms(cls, d)
 
 def diff_FACTOR_SYMBOL(expr, base, exp, x, zero, log, cls):
     db = base._diff(x, zero, cls)
@@ -850,7 +850,8 @@ def diff_MUL_SYMBOL(expr, x, zero, cls):
         dt2 = diff_FACTOR_SYMBOL(t2, b2, e2, x, zero, log, cls)
         return t1 * dt2 + t2 * dt1
     d = {}
-    result = newinstance(cls, ADD, d)
+    d_get = d.get
+    one = cls.one
     for i in xrange(n):
         b, e = args[i]
         dt = diff_FACTOR_SYMBOL(None, b, e, x, zero, log, cls)
@@ -863,10 +864,8 @@ def diff_MUL_SYMBOL(expr, x, zero, cls):
             t = t.canonize()
         if n is None:
             n = 1
-        inplace_ADD_dict[t.head](result, t, n, cls)
-    if len(d)<=1:
-        return result.canonize()
-    return result
+        inplace_add2(cls, t, n, d, d_get, one)
+    return return_terms(cls, d)
 
 diff_SYMBOL_dict = {
     NUMBER: diff_NUMBER_SYMBOL,
@@ -1141,13 +1140,12 @@ def imul_MUL_MUL(lhs, rhs, one_e, cls):
 
 def expand_ADD(obj, cls):
     d = {}
-    result = newinstance(obj.__class__, ADD, d)
+    d_get = d.get
+    one = cls.one
     for t,c in obj.data.iteritems():
         t = t.expand()
-        inplace_ADD_dict[t.head](result, t, c, cls)
-    if len(d)<=1:
-        return result.canonize()
-    return result
+        inplace_add2(cls, t, c, d, d_get, one)
+    return return_terms(cls, d)
 
 def expand_MUL(obj, cls):
     cls = type(obj)
@@ -1507,12 +1505,6 @@ pow_dict2 = defaultdict(lambda: pow_SYMBOL_dict,
                         {NUMBER: pow_NUMBER_dict,
                          ADD: pow_ADD_dict,
                          MUL: pow_MUL_dict})
-
-inplace_ADD_dict = defaultdict(lambda: iadd_ADD_SYMBOL,
-                               {NUMBER: iadd_ADD_NUMBER,
-                                ADD: iadd_ADD_ADD,
-                                MUL: iadd_ADD_MUL,
-                                })
 
 inplace_MUL_dict = defaultdict(lambda: imul_MUL_SYMBOL,
                                {NUMBER: imul_MUL_NUMBER,
