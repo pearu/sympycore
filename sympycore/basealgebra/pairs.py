@@ -10,15 +10,16 @@ from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_
 from ..utils import ADD, MUL, SYMBOL, NUMBER, APPLY, POW, TUPLE, head_to_string, TERMS, FACTORS
 
 from .utils import generate_swapped_first_arguments
-#from ..utils import RedirectOperation
 from .algebra import BasicAlgebra
 from .ring import CommutativeRing
 from .primitive import PrimitiveAlgebra
-from ..arithmetic.numbers import FractionTuple, ExtendedNumber
+from ..arithmetic.numbers import FractionTuple
 from ..arithmetic.number_theory import multinomial_coefficients
 
 from .pairs_ops import (add_method, sub_method, rsub_method, neg_method,
                         mul_method, div_method, rdiv_method, pow_method)
+
+from .pairs_iops import (inplace_add, inplace_sub, return_terms)
 
 def newinstance(cls, head, data, new = object.__new__):
     o = new(cls)
@@ -455,12 +456,11 @@ class CommutativeRingWithPairs(CommutativeRing):
     @classmethod
     def Add(cls, *seq):
         d = {}
-        result = newinstance(cls, ADD, d)
+        d_get = d.get
+        one = cls.one
         for t in seq:
-            inplace_ADD_dict[t.head](result, t, 1, cls)
-        if len(d)<=1:
-            return result.canonize()
-        return result
+            inplace_add(cls, t, d, d_get, one)
+        return return_terms(cls, d)
 
     @classmethod
     def Mul(cls, *seq):
