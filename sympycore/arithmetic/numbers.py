@@ -462,6 +462,7 @@ cmp_error = "no ordering relation is defined for complex numbers"
 class ExtendedNumber(object):
 
     def __init__(self, infinite, direction):
+        raise
         self.infinite = infinite
         self.direction = direction
 
@@ -704,62 +705,13 @@ def try_power(x, y):
         # (anything)**0 -> 1
         # 1**(anything) -> 1
         return 1, []
-    if isinstance(x, ExtendedNumber) and x.is_undefined:
-        return x, []
-    if isinstance(y, ExtendedNumber) and y.is_undefined:
-        return y, []
-    if isinstance(x, ExtendedNumber):
-        d = getattr(y, 'get_direction', lambda : NotImplemented)()
-        if isinstance(d, realtypes):
-            y = d
-        if isinstance(y, realtypes):
-            if y == 0:
-                return 1, []
-            elif y < 0:
-                return 0, []
-            elif y > 0:
-                if not x.direction: # zoo ** 2
-                    return x, []
-                z, sym = try_power(x.direction, y)
-                return ExtendedNumber(1, z), sym
-        elif isinstance(y, ExtendedNumber):
-            if y.direction < 0:
-                return 0, []
-            elif y.direction > 0:
-                if x.direction > 0: # oo**oo
-                    return ExtendedNumber.get_oo(), []
-                return ExtendedNumber.get_zoo(), []
-            else:
-                return ExtendedNumber.get_undefined(), []
-    elif isinstance(y, ExtendedNumber):
-        if isinstance(x, realtypes):
-            if y.direction > 0:
-                # x**(oo)
-                if x<-1:
-                    return ExtendedNumber.get_zoo(), []
-                if x==-1:
-                    return ExtendedNumber.get_undefined(), []
-                if x<1:
-                    return 0,[]
-                if x>1:
-                    return ExtendedNumber.get_oo(), []
-            elif y.direction < 0:
-                # x**(-oo)
-                if x<-1 or x>1:
-                    return 0,[]
-                if x==-1:
-                    return ExtendedNumber.get_undefined(), []
-                return ExtendedNumber.get_zoo(), []
-            else:
-                return ExtendedNumber.get_undefined(), []
-        elif isinstance(x, complextypes):
-            #XXX: handle pure imaginary powers
-            pass
-    elif isinstance(y, inttypes):
+    if isinstance(x, Infinity) or isinstance(y, Infinity):
+        return x**y, []
+    if isinstance(y, inttypes):
         if y >= 0:
             return x**y, []
         elif x==0:
-            return ExtendedNumber.get_zoo(), []
+            return Infinity.get_zoo(), []
         elif isinstance(x, inttypes):
             return FractionTuple((1, x**(-y))), []
         elif isinstance(x, (FractionTuple, Float, Complex)):
@@ -796,6 +748,7 @@ def try_power(x, y):
 
 
 from .evalf import evalf
+from .infinity import Infinity
 
 from .methods import (\
     fraction_add, fraction_sub, fraction_rsub, fraction_mul,

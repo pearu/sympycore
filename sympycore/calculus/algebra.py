@@ -76,23 +76,6 @@ class Calculus(CommutativeRingWithPairs):
                     return t
         return self
 
-    def _add_active(self, obj):
-        if isinstance(obj, Float):
-            r = self.evalf(obj.digits)
-            return r.__add__(obj, active=False)
-        if isinstance(obj, ExtendedNumber):
-            if obj.is_undefined:
-                return self.Number(obj)
-            r = self.Add(*[a for a in self.as_Add_args() if not a.is_bounded])
-            r = r.__add__(obj, active=False)
-            if r.head is TERMS:
-                # (oo + x) + (-oo) -> undefined
-                c = r.data.get(self.one, None)
-                if isinstance(c, ExtendedNumber) and c.is_undefined:
-                    return self.Number(c)
-            return r
-        raise NotImplementedError(`self, obj`)
-
     @classmethod
     def convert_coefficient(cls, obj, typeerror=True):
         """ Convert obj to coefficient algebra.

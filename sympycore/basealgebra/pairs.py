@@ -10,7 +10,7 @@ from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_
 from ..utils import ADD, MUL, SYMBOL, NUMBER, APPLY, POW, TUPLE, head_to_string, TERMS, FACTORS
 
 from .utils import generate_swapped_first_arguments
-from ..utils import RedirectOperation
+#from ..utils import RedirectOperation
 from .algebra import BasicAlgebra
 from .ring import CommutativeRing
 from .primitive import PrimitiveAlgebra
@@ -67,45 +67,6 @@ class CommutativeRingWithPairs(CommutativeRing):
     __rdiv__ = rdiv_method
     __pow__ = pow_method
 
-    _has_active = None
-    def has_active(self):
-        cls = type(self)
-        r = self._has_active
-        if r is not None:
-            return r
-        head = self.head
-        if head is NUMBER:
-            r = type(self.data) is ExtendedNumber
-            self._has_active = r
-            return r
-        if head is TERMS or head is FACTORS:
-            for t,c in self.data.iteritems():
-                tc = type(c)
-                if tc is ExtendedNumber:
-                    self._has_active = True
-                    return True
-                if t.has_active():
-                    self._has_active = True
-                    return True
-                if tc is cls and c.has_active():
-                    self._has_active = True
-                    return True
-            self._has_active = False
-            return False
-        if head is SYMBOL:
-            self._has_active = False
-            return False
-        if callable(head):
-            for a in self.args:
-                try:
-                    if a.has_active():
-                        self._has_active = True
-                        return True
-                except:
-                    pass
-        self._has_active = False
-        return False
-    
     def __new__(cls, data, head=None):
         if head is None:
             if isinstance(data, cls):
@@ -983,12 +944,9 @@ def pow_NUMBER_MUL(lhs, rhs, cls):
     return newinstance(cls, MUL, {lhs:rhs})
 
 def pow_NUMBER_SYMBOL(lhs, rhs, cls):
-    try:
-        bool(lhs.data)
-    except RedirectOperation:
-        r = lhs.data.__pow__(rhs)
-        if r is not NotImplemented:
-            return cls.convert(r)
+    r = lhs.data.__pow__(rhs)
+    if r is not NotImplemented:
+        return cls.convert(r)
     return newinstance(cls, MUL, {lhs:rhs})
 
 def pow_ADD_NUMBER(lhs, rhs, cls):
@@ -1047,12 +1005,9 @@ def pow_SYMBOL_NUMBER(lhs, rhs, cls):
     value = rhs.data
     if isinstance(value, inttypes):
         return pow_SYMBOL_int(lhs, value, cls)
-    try:
-        bool(value)
-    except RedirectOperation:
-        r = value.__rpow__(lhs)
-        if r is not NotImplemented:
-            return cls.convert(r)
+    r = value.__rpow__(lhs)
+    if r is not NotImplemented:
+        return cls.convert(r)
     return newinstance(cls, MUL, {lhs:rhs})
 
 def pow_SYMBOL_ADD(lhs, rhs, cls):
@@ -1072,11 +1027,8 @@ def pow_SYMBOL_SYMBOL(lhs, rhs, cls):
 
 def iadd_ADD_NUMBER(lhs, rhs, one_c, cls):
     value = rhs.data * one_c
-    try:
-        if not value:
-            return
-    except RedirectOperation:
-        pass
+    if not value:
+        return
     pairs = lhs.data
     one = cls.one
     b = pairs.get(one)
@@ -1084,13 +1036,10 @@ def iadd_ADD_NUMBER(lhs, rhs, one_c, cls):
         pairs[one] = value
     else:
         c = b + value
-        try:
-            if c:
-                pairs[one] = c
-            else:
-                del pairs[one]
-        except RedirectOperation:
+        if c:
             pairs[one] = c
+        else:
+            del pairs[one]
     return
 
 def iadd_ADD_SYMBOL(lhs, rhs, one_c, cls):
@@ -1100,13 +1049,10 @@ def iadd_ADD_SYMBOL(lhs, rhs, one_c, cls):
         pairs[rhs] = one_c
     else:
         c = b + one_c
-        try:
-            if c:
-                pairs[rhs] = c
-            else:
-                del pairs[rhs]
-        except RedirectOperation:
+        if c:
             pairs[rhs] = c
+        else:
+            del pairs[rhs]
     return
 
 def iadd_ADD_ADD(lhs, rhs, one_c, cls):
@@ -1117,13 +1063,10 @@ def iadd_ADD_ADD(lhs, rhs, one_c, cls):
         b = get(t)
         if b is not None:
             c = b + c
-        try:
-            if c:
-                pairs[t] = c
-            elif b is not None:
-                del pairs[t]
-        except RedirectOperation:
+        if c:
             pairs[t] = c
+        elif b is not None:
+            del pairs[t]
     return
 
 def iadd_ADD_MUL(lhs, rhs, one_c, cls):
@@ -1238,143 +1181,6 @@ def expand_MUL(obj, cls):
 
 ####################################################################
 # Implementation of binary operations +, *, and expanding products.
-
-def add_NUMBER_NUMBER(lhs, rhs, cls):
-    return newinstance(cls, NUMBER, lhs.data + rhs.data)
-
-def add_NUMBER_SYMBOL(lhs, rhs, cls):
-    value = lhs.data
-    try:
-        if not value:
-            return rhs
-    except RedirectOperation:
-        r = value.__add__(rhs)
-        if r is not NotImplemented:
-            return cls.convert(r)
-    return newinstance(cls, ADD, {lhs.one: lhs.data, rhs: 1})
-
-generate_swapped_first_arguments(add_NUMBER_SYMBOL)
-
-def add_NUMBER_ADD(lhs, rhs, cls):
-    value = lhs.data
-    try:
-        if not value:
-            return rhs
-    except RedirectOperation:
-        r = value.__add__(rhs)
-        if r is not NotImplemented:
-            return cls.convert(r)
-    result = rhs.copy()
-    pairs = result.data
-    one = cls.one
-    b = pairs.get(one)
-    if b is None:
-        pairs[one] = value
-    else:
-        c = b + value
-        try:
-            if c:
-                pairs[one] = c
-            else:
-                del pairs[one]
-        except RedirectOperation:
-            pairs[one] = c
-
-    if len(pairs)<=1:
-        return result.canonize()
-    return result
-
-generate_swapped_first_arguments(add_NUMBER_ADD)
-
-def add_NUMBER_MUL(lhs, rhs, cls):
-    value = lhs.data
-    try:
-        if not value:
-            return rhs
-    except RedirectOperation:
-        r = value.__add__(rhs)
-        if r is not NotImplemented:
-            return cls.convert(r)
-    return newinstance(cls,ADD, {cls.one: value, rhs: 1})
-
-generate_swapped_first_arguments(add_NUMBER_MUL)
-
-def add_SYMBOL_SYMBOL(lhs, rhs, cls):
-    if lhs == rhs:
-        return newinstance(cls,ADD,{lhs: 2})
-    return newinstance(cls,ADD,{lhs: 1, rhs: 1})
-
-def add_SYMBOL_ADD(lhs, rhs, cls):
-    result = rhs.copy()
-    pairs = result.data
-    b = pairs.get(lhs)
-    if b is None:
-        pairs[lhs] = 1
-    else:
-        c = b + 1
-        try:
-            if c:
-                pairs[lhs] = c
-            else:
-                del pairs[lhs]
-        except RedirectOperation:
-            pairs[lhs] = c
-    if len(pairs)<=1:
-        return result.canonize()
-    return result
-
-generate_swapped_first_arguments(add_SYMBOL_ADD)
-
-def add_SYMBOL_MUL(lhs, rhs, cls):
-    return newinstance(cls,ADD,{lhs: 1, rhs: 1})
-
-generate_swapped_first_arguments(add_SYMBOL_MUL)
-
-def add_ADD_ADD(lhs, rhs, cls):
-    if len(lhs.data) < len(rhs.data):
-        rhs, lhs = lhs, rhs
-    result = lhs.copy()
-    pairs = result.data
-    get = pairs.get
-    for t,c in rhs.data.iteritems():
-        b = get(t)
-        if b is None:
-            pairs[t] = c
-        else:
-            c = b + c
-            try:
-                if c:
-                    pairs[t] = c
-                else:
-                    del pairs[t]
-            except RedirectOperation:
-                pairs[t] = c
-    if len(pairs)<=1:
-        return result.canonize()
-    return result
-
-def add_ADD_MUL(lhs, rhs, cls):
-    result = lhs.copy()
-    pairs = result.data
-    b = pairs.get(rhs)
-    if b is None:
-        pairs[rhs] = 1
-    else:
-        c = b + 1
-        if c:
-            pairs[rhs] = c
-        else:
-            del pairs[rhs]
-    if len(pairs)<=1:
-        return result.canonize()
-    return result
-
-generate_swapped_first_arguments(add_ADD_MUL)
-
-def add_MUL_MUL(lhs, rhs, cls):
-    if lhs.data==rhs.data:
-        return newinstance(cls,ADD,{lhs: 2})
-    return newinstance(cls,ADD,{lhs: 1, rhs: 1})
 
 def multiply_NUMBER_NUMBER(lhs, rhs, cls):
     return newinstance(cls, NUMBER, lhs.data * rhs.data)
@@ -1771,34 +1577,4 @@ multiply_dict2 = defaultdict(lambda:mul_SYMBOL_dict,
                               ADD:mul_ADD_dict,
                               MUL:mul_MUL_dict,
                               })
-
-add_NUMBER_dict = defaultdict(lambda:add_NUMBER_SYMBOL,
-                              {NUMBER: add_NUMBER_NUMBER,
-                               ADD: add_NUMBER_ADD,
-                               MUL: add_NUMBER_MUL,
-                               })
-
-add_ADD_dict = defaultdict(lambda:add_ADD_SYMBOL,
-                           {NUMBER: add_ADD_NUMBER,
-                            ADD: add_ADD_ADD,
-                            MUL: add_ADD_MUL,
-                            })
-
-add_MUL_dict = defaultdict(lambda:add_MUL_SYMBOL,
-                           {NUMBER: add_MUL_NUMBER,
-                            ADD: add_MUL_ADD,
-                            MUL: add_MUL_MUL,
-                            })
-
-add_SYMBOL_dict = defaultdict(lambda:add_SYMBOL_SYMBOL,
-                              {NUMBER: add_SYMBOL_NUMBER,
-                               ADD: add_SYMBOL_ADD,
-                               MUL: add_SYMBOL_MUL,
-                               })
-
-add_dict2 = defaultdict(lambda:add_SYMBOL_dict,
-                        {NUMBER:add_NUMBER_dict,
-                         ADD:add_ADD_dict,
-                         MUL:add_MUL_dict,
-                         })
 

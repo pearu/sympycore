@@ -285,3 +285,52 @@ class Infinity(object):
                 return self
         return NotImplemented
 
+    def __lt__(self, other):
+        if is_undefined(self) or is_undefined(other) or is_zoo(self) or is_zoo(other):
+            return False
+        x = self.data
+        if isinstance(other, type(self)):
+            y = other.data
+            if x in [-1,1] and y in [-1,1]:
+                return x < y
+        if isinstance(other, realtypes):
+            if x in [-1, 1]:
+                return 2*x < cmp(other, 0)
+        return NotImplemented
+
+    __le__ = __lt__
+
+    def __gt__(self, other):
+        if is_undefined(self) or is_undefined(other) or is_zoo(self) or is_zoo(other):
+            return False
+        x = self.data
+        if isinstance(other, type(self)):
+            y = other.data
+            if x in [-1,1] and y in [-1,1]:
+                return x > y
+        if isinstance(other, realtypes):
+            if x in [-1, 1]:
+                return 2*x > cmp(other, 0)
+        return NotImplemented
+
+    __ge__ = __gt__
+
+    @classmethod
+    def get_oo(cls):
+        return cls(1)
+
+    @classmethod
+    def get_moo(cls):
+        return cls(-1)
+
+    @classmethod
+    def get_zoo(cls):
+        return cls(cls(0))
+
+    @classmethod
+    def get_undefined(cls):
+        return cls(0)
+
+    def is_undefined(self):
+        return self.data==0
+    
