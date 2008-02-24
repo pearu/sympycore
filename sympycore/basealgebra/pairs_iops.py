@@ -76,7 +76,8 @@ def inplace_add(cls, obj, pairs, pairs_get, one):
             else:
                 del pairs[one]
     else:
-        raise NotImplementedError("inplace_add(%r, %r)" % (cls, obj))
+        inplace_add(cls, cls.convert(obj), pairs, pairs_get, one)
+
 
 def inplace_sub(cls, obj, pairs, pairs_get, one):
     tobj = type(obj)
@@ -129,6 +130,6 @@ def inplace_sub(cls, obj, pairs, pairs_get, one):
             else:
                 del pairs[one]
     else:
-        raise NotImplementedError("inplace_sub(%r, %r)" % (cls, obj))
+        inplace_add(cls, cls.convert(obj), pairs, pairs_get, one)
 
     

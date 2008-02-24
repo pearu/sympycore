@@ -18,7 +18,8 @@ def Rational(num, denom):
     #XXX: use Div
     return Calculus.Number(Calculus.convert_coefficient(num)) / denom
 
-Add = lambda *args: Calculus.Add(*map(Calculus.convert, args))
+Add = Calculus.Add
+#Add = lambda *args: Calculus.Add(*map(Calculus.convert, args))
 Mul = lambda *args: Calculus.Mul(*map(Calculus.convert, args))
 Pow = lambda *args: Calculus.Pow(*map(Calculus.convert, args))
 
