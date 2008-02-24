@@ -19,8 +19,7 @@ def Rational(num, denom):
     return Calculus.Number(Calculus.convert_coefficient(num)) / denom
 
 Add = Calculus.Add
-#Add = lambda *args: Calculus.Add(*map(Calculus.convert, args))
-Mul = lambda *args: Calculus.Mul(*map(Calculus.convert, args))
+Mul = Calculus.Mul
 Pow = lambda *args: Calculus.Pow(*map(Calculus.convert, args))
 
 from ..arithmetic.number_theory import factorial as _factorial

@@ -19,7 +19,8 @@ from ..arithmetic.number_theory import multinomial_coefficients
 from .pairs_ops import (add_method, sub_method, rsub_method, neg_method,
                         mul_method, div_method, rdiv_method, pow_method)
 
-from .pairs_iops import (inplace_add, inplace_sub, return_terms)
+from .pairs_iops import (inplace_add, inplace_sub, return_terms, return_factors,
+                         inplace_mul)
 
 def newinstance(cls, head, data, new = object.__new__):
     o = new(cls)
@@ -463,21 +464,28 @@ class CommutativeRingWithPairs(CommutativeRing):
         return return_terms(cls, d)
 
     @classmethod
+    def Sub(cls, *seq):
+        d = {}
+        d_get = d.get
+        one = cls.one
+        if seq:
+            inplace_sub(cls, seq[0], d, d_get, one)
+        for t in seq[1:]:
+            inplace_sub(cls, t, d, d_get, one)
+        return return_terms(cls, d)
+
+    @classmethod
     def Mul(cls, *seq):
         d = {}
-        result = newinstance(cls, MUL, d)
+        d_get = d.get
         number = 1
         for t in seq:
-            head = t.head
-            n = inplace_MUL_dict[head](result, t, 1, cls)
+            n = inplace_mul(cls, t, d, d_get)
             if n is not None:
                 number = number * n
-        if len(d)<=1:
-            result = result.canonize()
         if number is 1:
-            return result
-        number = newinstance(cls, NUMBER, number)
-        return mul_NUMBER_dict[result.head](number, result, cls)
+            return return_factors(cls, d)
+        return return_factors(cls, d) * number
 
     @classmethod
     def npower(cls, base, exp):
