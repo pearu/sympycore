@@ -1,0 +1,71 @@
+# This file provides preprocess function and macros used by the
+# mk_*.py scripts.
+#
+# Created by Pearu Peterson in Febuary 2008
+#
+
+def preprocess(source, globals_dict, tmp_cache=[1]):
+    """ Preprocess source using macros from macros.py file and ones in
+    globals_dict dictionary (the caller usually uses globals_dict=globals()).
+
+    Macros start with `@` symbol and take 0 or more arguments separated
+    with `;` symbol. Macros may use temporary symbols TMP, TMP0, ..., TMP5,
+    that names are unique for every macro body.
+    """
+    g_dict = dict(globals())
+    g_dict.update(globals_dict)
+    result = []
+    for line in source.splitlines():
+        if line.lstrip().startswith('@'):
+            prefix, rest = line.split('@',1)
+            i = rest.index('(')
+            name = rest[:i]
+            tmp_cache[0] += 1
+            d = {'TMP':'_tmp%s' % (tmp_cache[0])}
+            for j in range(6):
+                tmp_cache[0] += 1
+                d['TMP'+str(j)] = '_tmp%s' % (tmp_cache[0])
+            try:
+                for arg in rest.strip()[i+1:-1].split(';'):
+                    key, value = arg.split('=',1)
+                    d[key.strip()] = value.strip()
+            except Exception, msg:
+                print '%s (while processing %r)' % (msg, line.lstrip())
+                continue
+            try:
+                templ = eval(name, g_dict, {})
+            except NameError, msg:
+                templ = '@' + rest
+                print 'NameError: %s (while processing %r)' % (msg, line.strip())
+            else:
+                if '@' in templ:
+                    templ = preprocess(templ, globals_dict)
+            result.append(prefix + '#' + rest)
+            try:
+                templ_d = templ % d
+            except Exception, msg:
+                print '%s (while processing %r)' % (msg, line.lstrip())
+                #print d, `templ`
+                continue
+            for l in templ_d.splitlines():
+                result.append(prefix + l)
+        else:
+            result.append(line)
+    return '\n'.join(result)
+
+NEWINSTANCE = '''\
+%(OBJ)s = new(cls)
+%(OBJ)s.head = %(HEAD)s
+%(OBJ)s.data = %(DATA)s
+'''
+RETURN_NEW = '''\
+@NEWINSTANCE(OBJ=%(TMP)s; HEAD=%(HEAD)s; DATA=%(DATA)s)
+return %(TMP)s
+'''
+
+IF_CHECK_INT = 'if %(T)s is int or %(T)s is long:'
+ELIF_CHECK_INT = 'elif %(T)s is int or %(T)s is long:'
+IF_CHECK_REAL = 'if %(T)s is int or %(T)s is long or %(T)s is FractionTuple or %(T)s is float or %(T)s is Float:'
+IF_CHECK_COMPLEX = 'if %(T)s is cls or %(T)s is complex:'
+
+ELIF_CHECK_NUMBER = 'elif %(T)s is int or %(T)s is long or %(T)s is FractionTuple or %(T)s is float or %(T)s is Float or %(T)s is Complex or %(T)s is complex:'
