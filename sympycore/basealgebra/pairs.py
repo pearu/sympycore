@@ -105,17 +105,17 @@ class CommutativeRingWithPairs(CommutativeRing):
 
     def copy(self):
         if self.head in [ADD, MUL]:
-            return newinstance(self.__class__, self.head, dict(self.data))
+            return newinstance(type(self), self.head, dict(self.data))
         return self
 
     #def __repr__(self):
-    #    return '%s(%r, head=%s)' % (self.__class__.__name__, self.data, head_to_string[self.head])
+    #    return '%s(%r, head=%s)' % (type(self).__name__, self.data, head_to_string[self.head])
 
     def as_tree(self, tab='', level=0):
         if level:
             r = []
         else:
-            r = [self.__class__.__name__+':']
+            r = [type(self).__name__+':']
         data = self.data
         head = self.head
         if head in [SYMBOL, NUMBER]:
@@ -165,7 +165,7 @@ class CommutativeRingWithPairs(CommutativeRing):
     def to_str_data(self, sort=True):
         head = self.head
         one = self.one
-        cls = self.__class__
+        cls = type(self)
         if head is NUMBER:
             return cls.coefficient_to_str_data(self.data, sort)
         if head is ADD:
@@ -445,7 +445,7 @@ class CommutativeRingWithPairs(CommutativeRing):
         return r
 
     def expand(self):
-        return expand_dict1[self.head](self, self.__class__)
+        return expand_dict1[self.head](self, type(self))
 
     @classmethod
     def Symbol(cls, obj):
@@ -573,7 +573,7 @@ class CommutativeRingWithPairs(CommutativeRing):
                     _symbols_data |= k._get_symbols_data()
             elif head is MUL:
                 _symbols_data = set()
-                cls = self.__class__
+                cls = type(self)
                 for k, c in self.data.iteritems():
                     _symbols_data |= k._get_symbols_data()
                     if isinstance(c, cls):
@@ -589,7 +589,7 @@ class CommutativeRingWithPairs(CommutativeRing):
     def symbols(self):
         symbols = self._symbols
         if symbols is None:
-            cls = self.__class__
+            cls = type(self)
             symbols = self._symbols = set([newinstance(cls, SYMBOL, d) for d in self._get_symbols_data()])
         return symbols
 
@@ -600,7 +600,7 @@ class CommutativeRingWithPairs(CommutativeRing):
         subexpr = self.convert(subexpr)
         if subexpr.head is SYMBOL:
             return subexpr.data in self._get_symbols_data()
-        raise NotImplementedError('%s.has(%r)' % (self.__class__.__name__, subexpr))
+        raise NotImplementedError('%s.has(%r)' % (type(self).__name__, subexpr))
 
     def _subs(self, subexpr, newexpr):
         head = self.head
@@ -612,7 +612,7 @@ class CommutativeRingWithPairs(CommutativeRing):
         if head is SYMBOL or head is NUMBER:
             return self
             
-        cls = self.__class__
+        cls = type(self)
 
         if head is ADD:
             d = {}
@@ -697,9 +697,10 @@ class CommutativeRingWithPairs(CommutativeRing):
         if self.head is MUL:
             product = self.one
             have_x = False
+            cls = type(self)
             for b, e in self.data.iteritems():
                 # We don't know how to do exponentials yet
-                if isinstance(e, self.__class__) and e.has_symbol(x):
+                if type(e) is cls and e.has_symbol(x):
                     return integrator(self, x)
                 if b == x:
                     if have_x:
@@ -730,9 +731,10 @@ class CommutativeRingWithPairs(CommutativeRing):
         if head is MUL:
             product = self.one
             have_x = False
+            cls = type(self)
             for base, e in self.data.iteritems():
                 # We don't know how to do exponentials yet
-                if isinstance(e, self.__class__) and e.has_symbol(x):
+                if type(e) is cls and e.has_symbol(x):
                     return integrator(self, x, a, b)
                 if base.head is SYMBOL and base.data == x:
                     if have_x:
@@ -746,7 +748,7 @@ class CommutativeRingWithPairs(CommutativeRing):
                 elif x in base._get_symbols_data():
                     return integrator(self, x, a, b)
                 else:
-                    product *= newinstance(self.__class__, MUL, {base:e})
+                    product *= newinstance(cls, MUL, {base:e})
             return product
         if head is ADD:
             return self.Add(*(coef*term._integrate_definite(x, a, b, integrator) \
