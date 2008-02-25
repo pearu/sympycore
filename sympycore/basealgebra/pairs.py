@@ -21,7 +21,7 @@ from .pairs_ops import (add_method, sub_method, rsub_method, neg_method,
 
 from .pairs_iops import (inplace_add, inplace_add2, inplace_sub,
                          return_terms, return_factors,
-                         inplace_mul)
+                         inplace_mul, inplace_mul2)
 
 def newinstance(cls, head, data, new = object.__new__):
     o = new(cls)
@@ -491,11 +491,26 @@ class CommutativeRingWithPairs(CommutativeRing):
         number = 1
         for t in seq:
             n = inplace_mul(cls, t, d, d_get)
-            if n is not None:
+            if n is not 1:
                 number = number * n
+        r = return_factors(cls, d)
         if number is 1:
-            return return_factors(cls, d)
-        return return_factors(cls, d) * number
+            return r
+        return r * number
+
+    @classmethod
+    def Factors(cls, *seq):
+        d = {}
+        d_get = d.get
+        number = 1
+        for t, c in seq:
+            n = inplace_mul2(cls, t, c, d, d_get)
+            if n is not 1:
+                number = number * n
+        r = return_factors(cls, d)
+        if number is 1:
+            return r
+        return r * number
 
     @classmethod
     def npower(cls, base, exp):
@@ -516,22 +531,7 @@ class CommutativeRingWithPairs(CommutativeRing):
 
 
 
-    @classmethod
-    def Factors(cls, *seq):
-        d = {}
-        result = newinstance(cls, MUL, d)
-        number = 1
-        for t,c in seq:
-            head = t.head
-            n = inplace_MUL_dict[head](result, t, c, cls)
-            if n is not None:
-                number = number * n
-        if len(d)<=1:
-            result = result.canonize()
-        if number is 1:
-            return result
-        else:
-            return result * number
+
 
     def __int__(self):
         assert self.head is NUMBER,`self`
@@ -620,25 +620,30 @@ class CommutativeRingWithPairs(CommutativeRing):
             one = cls.one
             for t,c in self.data.iteritems():
                 r = t._subs(subexpr, newexpr)
-                inplace_add2(cls, r, c, d, d_get, one)
+                if c is 1:
+                    inplace_add(cls, r, d, d_get, one)
+                else:
+                    inplace_add2(cls, r, c, d, d_get, one)
             return return_terms(cls, d)
 
         elif head is MUL:
             d = {}
-            result = newinstance(cls, head, d)
+            d_get = d.get
             num = 1
             for t,c in self.data.iteritems():
                 r = t._subs(subexpr, newexpr)
                 if hasattr(c,'_subs'):
                     c = c._subs(subexpr, newexpr)
-                n = inplace_MUL_dict[r.head](result, r, c, cls)
+                if c is 1:
+                    n = inplace_mul(cls, r, d, d_get)
+                else:
+                    n = inplace_mul2(cls, r, c, d, d_get)
                 if n is not None:
                     num = num * n
-            if len(d)<=1:
-                result = result.canonize()
+            r = return_factors(cls, d)
             if num is 1:
-                return result
-            return result * num
+                return r
+            return r * num
 
         elif callable(head):
             args = self.data
@@ -858,12 +863,8 @@ def diff_MUL_SYMBOL(expr, x, zero, cls):
         if dt is zero:
             continue
         d1 = dict(args[:i]+args[i+1:])
-        t = newinstance(cls, MUL, d1)
-        n = inplace_MUL_dict[dt.head](t, dt, 1, cls)
-        if len(d1)<=1:
-            t = t.canonize()
-        if n is None:
-            n = 1
+        n = inplace_mul(cls, dt, d1, d1.get)
+        t = return_factors(cls, d1)
         inplace_add2(cls, t, n, d, d_get, one)
     return return_terms(cls, d)
 
@@ -1031,112 +1032,6 @@ def pow_SYMBOL_MUL(lhs, rhs, cls):
 
 def pow_SYMBOL_SYMBOL(lhs, rhs, cls):
     return newinstance(cls, MUL, {lhs:rhs})
-
-def iadd_ADD_NUMBER(lhs, rhs, one_c, cls):
-    value = rhs.data * one_c
-    if not value:
-        return
-    pairs = lhs.data
-    one = cls.one
-    b = pairs.get(one)
-    if b is None:
-        pairs[one] = value
-    else:
-        c = b + value
-        if c:
-            pairs[one] = c
-        else:
-            del pairs[one]
-    return
-
-def iadd_ADD_SYMBOL(lhs, rhs, one_c, cls):
-    pairs = lhs.data
-    b = pairs.get(rhs)
-    if b is None:
-        pairs[rhs] = one_c
-    else:
-        c = b + one_c
-        if c:
-            pairs[rhs] = c
-        else:
-            del pairs[rhs]
-    return
-
-def iadd_ADD_ADD(lhs, rhs, one_c, cls):
-    pairs = lhs.data
-    get = pairs.get
-    for t,c in rhs.data.iteritems():
-        c = c * one_c
-        b = get(t)
-        if b is not None:
-            c = b + c
-        if c:
-            pairs[t] = c
-        elif b is not None:
-            del pairs[t]
-    return
-
-def iadd_ADD_MUL(lhs, rhs, one_c, cls):
-    pairs = lhs.data
-    b = pairs.get(rhs)
-    if b is None:
-        pairs[rhs] = one_c
-    else:
-        c = b + one_c
-        if c:
-            pairs[rhs] = c
-        else:
-            del pairs[rhs]
-    return
-
-def imul_MUL_NUMBER(lhs, rhs, one_e, cls):
-    return rhs.data ** one_e
-
-def imul_MUL_SYMBOL(lhs, rhs, one_e, cls):
-    pairs = lhs.data
-    b = pairs.get(rhs)
-    if b is None:
-        pairs[rhs] = one_e
-    else:
-        c = b + one_e
-        if c:
-            pairs[rhs] = c
-        else:
-            del pairs[rhs]
-    return
-
-def imul_MUL_ADD(lhs, rhs, one_e, cls):
-    pairs = lhs.data
-    d = rhs.data
-    if len(d)==1:
-        t,c = d.items()[0]
-        inplace_MUL_dict[t.head](lhs, t, one_e, cls)
-        return c ** one_e
-    b = pairs.get(rhs)
-    if b is None:
-        pairs[rhs] = one_e
-    else:
-        c = b + one_e
-        if c:
-            pairs[rhs] = c
-        else:
-            del pairs[rhs]
-    return
-
-def imul_MUL_MUL(lhs, rhs, one_e, cls):
-    pairs = lhs.data
-    get = pairs.get
-    for t,c in rhs.data.iteritems():
-        b = get(t)
-        if b is None:
-            pairs[t] = c * one_e
-        else:
-            c = b + c * one_e
-            if c:
-                pairs[t] = c
-            else:
-                del pairs[t]
-    return
 
 def expand_ADD(obj, cls):
     d = {}
@@ -1505,12 +1400,6 @@ pow_dict2 = defaultdict(lambda: pow_SYMBOL_dict,
                         {NUMBER: pow_NUMBER_dict,
                          ADD: pow_ADD_dict,
                          MUL: pow_MUL_dict})
-
-inplace_MUL_dict = defaultdict(lambda: imul_MUL_SYMBOL,
-                               {NUMBER: imul_MUL_NUMBER,
-                                ADD: imul_MUL_ADD,
-                                MUL: imul_MUL_MUL,
-                                })
 
 expand_NUMBER_dict = defaultdict(lambda:multiply_NUMBER_SYMBOL,
                                  {NUMBER: multiply_NUMBER_NUMBER,

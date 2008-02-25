@@ -227,6 +227,37 @@ def inplace_mul(cls, obj, pairs, pairs_get):
     else:
         return inplace_mul(cls, cls.convert(obj), pairs, pairs_get)
 
+def inplace_mul2(cls, obj, exp, pairs, pairs_get):
+    if not exp:
+        return 1
+    tobj = type(obj)
+    if tobj is cls:
+        head = obj.head
+        if head is NUMBER:
+            return obj.data * exp
+        elif head is TERMS:
+            data = obj.data
+            if len(data)==1:
+                t, number = data.items()[0]
+                @MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=t; VALUE=exp; SIGN=+; NUMBER=number)
+                return number
+            number = 1
+            @MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=obj; VALUE=exp; SIGN=+; NUMBER=number)
+            return number
+        elif head is FACTORS:
+            number = 1
+            for t, c in obj.data.iteritems():
+                @MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=t; VALUE=c*exp; SIGN=+; NUMBER=number)
+            return number
+        else:
+            number = 1
+            @MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=obj; VALUE=exp; SIGN=+; NUMBER=number)
+            return number
+    @ELIF_CHECK_NUMBER(T=tobj)
+        return obj * exp
+    else:
+        return inplace_mul2(cls, cls.convert(obj), exp, pairs, pairs_get)
+
     ''')
 
 if __name__=='__main__':

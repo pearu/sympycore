@@ -375,4 +375,168 @@ def inplace_mul(cls, obj, pairs, pairs_get):
     else:
         return inplace_mul(cls, cls.convert(obj), pairs, pairs_get)
 
+def inplace_mul2(cls, obj, exp, pairs, pairs_get):
+    if not exp:
+        return 1
+    tobj = type(obj)
+    if tobj is cls:
+        head = obj.head
+        if head is NUMBER:
+            return obj.data * exp
+        elif head is TERMS:
+            data = obj.data
+            if len(data)==1:
+                t, number = data.items()[0]
+                #MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=t; VALUE=exp; SIGN=+; NUMBER=number)
+                _tmp34 = pairs_get(t)
+                if _tmp34 is None:
+                    pairs[t] = + exp
+                else:
+                    _tmp34 = _tmp34 + exp
+                    if type(_tmp34) is cls and _tmp34.head is NUMBER:
+                        _tmp34 = _tmp34.data
+                    if _tmp34:
+                        if t.head is NUMBER:
+                            del pairs[t]
+                            z, sym = try_power(t.data, _tmp34)
+                            if sym:
+                                for t1, c1 in sym:
+                                    #NEWINSTANCE(OBJ=tt; HEAD=NUMBER; DATA=t1)
+                                    tt = new(cls)
+                                    tt.head = NUMBER
+                                    tt.data = t1
+                                    #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+)
+                                    _tmp36 = pairs_get(tt)
+                                    if _tmp36 is None:
+                                        pairs[tt] = + c1
+                                    else:
+                                        _tmp36 = _tmp36 + c1
+                                        if _tmp36:
+                                            pairs[tt] = _tmp36
+                                        else:
+                                            del pairs[tt]
+                            number = number * z
+                            
+                        else:
+                            pairs[t] = _tmp34
+                    else:
+                        del pairs[t]
+                return number
+            number = 1
+            #MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=obj; VALUE=exp; SIGN=+; NUMBER=number)
+            _tmp37 = pairs_get(obj)
+            if _tmp37 is None:
+                pairs[obj] = + exp
+            else:
+                _tmp37 = _tmp37 + exp
+                if type(_tmp37) is cls and _tmp37.head is NUMBER:
+                    _tmp37 = _tmp37.data
+                if _tmp37:
+                    if obj.head is NUMBER:
+                        del pairs[obj]
+                        z, sym = try_power(obj.data, _tmp37)
+                        if sym:
+                            for t1, c1 in sym:
+                                #NEWINSTANCE(OBJ=tt; HEAD=NUMBER; DATA=t1)
+                                tt = new(cls)
+                                tt.head = NUMBER
+                                tt.data = t1
+                                #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+)
+                                _tmp39 = pairs_get(tt)
+                                if _tmp39 is None:
+                                    pairs[tt] = + c1
+                                else:
+                                    _tmp39 = _tmp39 + c1
+                                    if _tmp39:
+                                        pairs[tt] = _tmp39
+                                    else:
+                                        del pairs[tt]
+                        number = number * z
+                        
+                    else:
+                        pairs[obj] = _tmp37
+                else:
+                    del pairs[obj]
+            return number
+        elif head is FACTORS:
+            number = 1
+            for t, c in obj.data.iteritems():
+                #MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=t; VALUE=c*exp; SIGN=+; NUMBER=number)
+                _tmp40 = pairs_get(t)
+                if _tmp40 is None:
+                    pairs[t] = + c*exp
+                else:
+                    _tmp40 = _tmp40 + c*exp
+                    if type(_tmp40) is cls and _tmp40.head is NUMBER:
+                        _tmp40 = _tmp40.data
+                    if _tmp40:
+                        if t.head is NUMBER:
+                            del pairs[t]
+                            z, sym = try_power(t.data, _tmp40)
+                            if sym:
+                                for t1, c1 in sym:
+                                    #NEWINSTANCE(OBJ=tt; HEAD=NUMBER; DATA=t1)
+                                    tt = new(cls)
+                                    tt.head = NUMBER
+                                    tt.data = t1
+                                    #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+)
+                                    _tmp42 = pairs_get(tt)
+                                    if _tmp42 is None:
+                                        pairs[tt] = + c1
+                                    else:
+                                        _tmp42 = _tmp42 + c1
+                                        if _tmp42:
+                                            pairs[tt] = _tmp42
+                                        else:
+                                            del pairs[tt]
+                            number = number * z
+                            
+                        else:
+                            pairs[t] = _tmp40
+                    else:
+                        del pairs[t]
+            return number
+        else:
+            number = 1
+            #MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=obj; VALUE=exp; SIGN=+; NUMBER=number)
+            _tmp43 = pairs_get(obj)
+            if _tmp43 is None:
+                pairs[obj] = + exp
+            else:
+                _tmp43 = _tmp43 + exp
+                if type(_tmp43) is cls and _tmp43.head is NUMBER:
+                    _tmp43 = _tmp43.data
+                if _tmp43:
+                    if obj.head is NUMBER:
+                        del pairs[obj]
+                        z, sym = try_power(obj.data, _tmp43)
+                        if sym:
+                            for t1, c1 in sym:
+                                #NEWINSTANCE(OBJ=tt; HEAD=NUMBER; DATA=t1)
+                                tt = new(cls)
+                                tt.head = NUMBER
+                                tt.data = t1
+                                #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+)
+                                _tmp45 = pairs_get(tt)
+                                if _tmp45 is None:
+                                    pairs[tt] = + c1
+                                else:
+                                    _tmp45 = _tmp45 + c1
+                                    if _tmp45:
+                                        pairs[tt] = _tmp45
+                                    else:
+                                        del pairs[tt]
+                        number = number * z
+                        
+                    else:
+                        pairs[obj] = _tmp43
+                else:
+                    del pairs[obj]
+            return number
+    #ELIF_CHECK_NUMBER(T=tobj)
+    elif tobj is int or tobj is long or tobj is FractionTuple or tobj is float or tobj is Float or tobj is Complex or tobj is complex:
+        return obj * exp
+    else:
+        return inplace_mul2(cls, cls.convert(obj), exp, pairs, pairs_get)
+
     
