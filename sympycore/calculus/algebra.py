@@ -321,7 +321,4 @@ A.zero = zero
 
 I = A(Complex(0,1), head=NUMBER)
 
-def integrate(expr, x):
-    return Calculus(expr).integrate(x)
-
 from ..polynomials.algebra import PolynomialRing, AdditiveTuple

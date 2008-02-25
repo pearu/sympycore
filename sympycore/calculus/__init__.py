@@ -1,10 +1,13 @@
 
-from .algebra import Calculus, I, integrate
+from .algebra import Calculus, I
 from .infinity import  oo, undefined, moo, zoo
 from .functions import exp, log, sqrt, sin, cos, tan, cot, pi, E, sign
 from differentiation import diff
+from integration import integrate
 
+# Backwards compatibility
 Calculus.diff = diff
+Calculus.integrate = integrate
 
 Symbol = Calculus.Symbol
 
