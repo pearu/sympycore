@@ -52,7 +52,7 @@ def integrate_definite(expr, x, a, b):
         for base, e in expr.data.iteritems():
             # We don't know how to do exponentials yet
             if type(e) is cls and x in expr._get_symbols_data():
-                unknown()
+                unknown(expr)
             if base.head is SYMBOL and base.data == x:
                 if have_x:
                     unknown(expr)
