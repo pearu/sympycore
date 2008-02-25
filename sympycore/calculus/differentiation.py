@@ -22,6 +22,13 @@ def diff_repeated(expr, xdata, order):
             break
     return expr
 
+def partial_derivative(func, n):
+    dname = '%s_%s' % (func.__name__, n)
+    def dfunc(*args):
+        raise NotImplementedError('%s%s' % (dname, str(args)))
+    dfunc.__name__ = dname
+    return dfunc
+
 def diff_callable(f, arg, xdata, order):
     if order != 1:
         # D^n f(a*x+b) -> a**n * [D^n f](a*x+b)]
@@ -31,13 +38,23 @@ def diff_callable(f, arg, xdata, order):
                 return zero
             if is_constant(a, xdata):
                 return a**order * f.nth_derivative(arg, order)
-        raise NotImplementedError
+        raise NotImplementedError(`f,arg`)
+    if type(arg) is tuple:
+        terms = []
+        for i, a in enumerate(arg):
+            da = diff_generic(a, xdata, 1)
+            if da == zero:
+                continue
+            df = Calculus(arg, head=partial_derivative(f, i+1))
+            terms.append(da * df)
+        return Calculus.Add(*terms)
+    da = diff_generic(arg, xdata, 1)
+    if da == zero:
+        return zero
     if hasattr(f, 'derivative'):
-        a = diff_generic(arg, xdata, 1)
-        if a == zero:
-            return zero
-        return diff_repeated(a * f.derivative(arg), xdata, order-1)
-    raise NotImplementedError
+        return diff_repeated(da * f.derivative(arg), xdata, order-1)
+    df = Calculus(arg, head=partial_derivative(f, 1))
+    return df * da
 
 def diff_factor(base, exp, xdata, order):
     key = (base, exp, order)
@@ -173,6 +190,11 @@ def diff_generic(expr, xdata, order, NUMBER=NUMBER, SYMBOL=SYMBOL, ADD=ADD, MUL=
     return r
 
 def diff(expr, symbol, order=1):
+    """ Return derivative of the expression with respect to symbols.
+    Examples:
+          expr.diff(x,y) - 2nd derivative with respect to x and y
+          expr.diff(x,4) is equivalent to expr.diff(x,x,x,x).
+    """
     # It should eventually be possible to support symbolic orders
     try:
         order = int(order)

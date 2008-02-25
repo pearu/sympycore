@@ -529,15 +529,6 @@ def test_expand():
     assert str((x**2*(1/x+x)**2).expand()) in ['1 + 2*x**2 + x**4',
                                                '1 + x**4 + 2*x**2']
 
-def test_diff():
-    x = Symbol('x')
-    assert Number(2).diff(x) == 0
-    assert x.diff(x) == 1
-    assert (3*x).diff(x) == 3
-    assert (3*x+1).diff(x) == 3
-    assert (2*x**2 + x).diff(x) == 4*x + 1
-    assert (x**3).diff(x) == 3*x**2
-    assert ((1+x)*(2+x)*(3+x)**2).diff(x) == ((1+x)*(2+x)*(6+2*x) + (1+x)*(3+x)**2 + (2+x)*(3+x)**2)
 
 def test_has_symbol():
     x, y = map(Symbol, 'xy')

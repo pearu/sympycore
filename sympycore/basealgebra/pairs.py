@@ -32,13 +32,6 @@ def newinstance(cls, head, data, new = object.__new__):
 def inspect(obj):
     obj.inspect()
 
-def partial_derivative(func, n):
-    dname = '%s_%s' % (func.__name__, n)
-    def dfunc(*args):
-        raise NotImplementedError('%s%s' % (dname, str(args)))
-    dfunc.__name__ = dname
-    return dfunc
-
 inttypes = (int, long)
 
 class CommutativeRingWithPairs(CommutativeRing):
@@ -529,10 +522,6 @@ class CommutativeRingWithPairs(CommutativeRing):
             return pow_dict1[base.head](base, exp, cls)
         return pow_dict2[base.head][NUMBER](base, newinstance(cls, NUMBER, exp), cls)
 
-
-
-
-
     def __int__(self):
         assert self.head is NUMBER,`self`
         return int(self.data)
@@ -654,141 +643,6 @@ class CommutativeRingWithPairs(CommutativeRing):
                 return head(args._subs(subexpr, newexpr))
 
         raise NotImplementedError(`self`)
-
-    def _diff(self, x, zero, cls):
-        head = self.head
-        if head is NUMBER:
-            return zero
-        elif head is SYMBOL:
-            if self.data == x:
-                return cls.one
-            return zero
-        elif callable(head):
-            return diff_callable_SYMBOL(self, x, zero, cls)
-        if x not in self._get_symbols_data():
-            return zero
-        return diff_SYMBOL_dict[head](self, x, zero, cls)
-
-def diff_callable_SYMBOL(expr, x, zero, cls):
-    head = expr.head
-    data = expr.data
-    if hasattr(head, 'derivative'):
-        derivative = head.derivative
-        if type(derivative) is tuple:
-            terms = []
-            for df, arg in zip(derivative, data):
-                da = arg._diff(x, zero, cls)
-                if da is zero:
-                    continue
-                terms.append(df(*data) * da)
-            return cls.Add(*terms)
-        darg = data._diff(x, zero, cls)
-        if darg is zero:
-            return zero
-        return derivative(data) * darg
-    if type(data) is tuple:
-        terms = []
-        for i,arg in enumerate(data):
-            da = arg._diff(x, zero, cls)
-            if da is zero:
-                continue
-            df = newinstance(cls, partial_derivative(head, i+1), data)
-            terms.append(df * da)
-        return cls.Add(*terms)
-    da = data._diff(x, zero, cls)
-    if da is zero:
-        return da
-    df = newinstance(cls, partial_derivative(head, 1), data)
-    return df * da    
-
-def diff_NUMBER_SYMBOL(expr, x, zero, cls):
-    return zero
-
-def diff_SYMBOL_SYMBOL(expr, x, zero, cls):
-    if expr.data == x:
-        return cls.one
-    return zero
-
-def diff_ADD_SYMBOL(expr, x, zero, cls):
-    pairs = expr.data
-    if len(pairs)==1:
-        t, c = pairs.items()[0]
-        dt = t._diff(x, zero, cls)
-        if c is 1:
-            return dt
-        return dt * c
-    d = {}
-    d_get = d.get
-    one = cls.one
-    for t, c in pairs.iteritems():
-        dt = t._diff(x, zero, cls)
-        if dt is zero:
-            continue
-        inplace_add2(cls, dt, c, d, d_get, one)
-    return return_terms(cls, d)
-
-def diff_FACTOR_SYMBOL(expr, base, exp, x, zero, log, cls):
-    db = base._diff(x, zero, cls)
-    if isinstance(exp, inttypes):
-        if exp is 1:
-            return db
-        if exp is 2:
-            return base * db * exp
-        expr2 = newinstance(cls, MUL, {base:exp-1})
-        return expr2 * db * exp
-
-    de = exp._diff(x, zero, cls)
-    if de is zero:
-        expr2 = newinstance(cls, MUL, {base:exp-1})
-        return expr2 * db * exp
-    if expr is None:
-        expr = newinstance(cls, MUL, {base:exp})
-    if db is zero:
-        return expr * de * log(base)
-    return expr * (de * log(base) + exp * newinstance(cls, MUL, {base:-1}) * db)
-
-def diff_MUL_SYMBOL(expr, x, zero, cls):
-    pairs = expr.data
-    n = len(pairs)
-    args = pairs.items()
-    log = cls.Log
-    if n==1:
-        b, e = args[0]
-        return diff_FACTOR_SYMBOL(None, b, e, x, zero, log, cls)
-    if n==2:
-        b1, e1 = args[0]
-        b2, e2 = args[1]
-        if e1 is 1:
-            t1 = b1
-        else:
-            t1 = b1 ** e1
-        if e2 is 1:
-            t2 = b2
-        else:
-            t2 = b2 ** e2
-        dt1 = diff_FACTOR_SYMBOL(t1, b1, e1, x, zero, log, cls)
-        dt2 = diff_FACTOR_SYMBOL(t2, b2, e2, x, zero, log, cls)
-        return t1 * dt2 + t2 * dt1
-    d = {}
-    d_get = d.get
-    one = cls.one
-    for i in xrange(n):
-        b, e = args[i]
-        dt = diff_FACTOR_SYMBOL(None, b, e, x, zero, log, cls)
-        if dt is zero:
-            continue
-        d1 = dict(args[:i]+args[i+1:])
-        n = inplace_mul(cls, dt, d1, d1.get)
-        t = return_factors(cls, d1)
-        inplace_add2(cls, t, n, d, d_get, one)
-    return return_terms(cls, d)
-
-diff_SYMBOL_dict = {
-    NUMBER: diff_NUMBER_SYMBOL,
-    SYMBOL: diff_SYMBOL_SYMBOL,
-    ADD: diff_ADD_SYMBOL,
-    MUL: diff_MUL_SYMBOL,
-    }
 
 A = CommutativeRingWithPairs
 A.one = A.Number(1)

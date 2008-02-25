@@ -1,5 +1,5 @@
 
-from sympycore import CommutativeRingWithPairs as Algebra
+from sympycore import Calculus as Algebra
 
 Symbol = Algebra.Symbol
 Number = Algebra.Number
@@ -124,11 +124,24 @@ def test_fun():
 
     assert str(((fun(x)+fun(y))**2).expand()) in ['2*fun(x)*fun(y) + fun(x)**2 + fun(y)**2','fun(x)**2 + fun(y)**2 + 2*fun(x)*fun(y)']
 
+def test_diff():
+    assert str(mysin(x))=='mysin(x)'
+    assert str(mysin(x).diff(x))=='mycos(x)'
+    assert str(mycos(x).diff(x))=='-mysin(x)'
+    assert str(mysin(mysin(x)).diff(x)) in ['mycos(x)*mycos(mysin(x))','mycos(mysin(x))*mycos(x)']
+
 def test_foo2():
     assert str(foo2(x,x))=='1'
     assert str(foo2(x,y))=='foo2(x, y)'
     assert str(foo2(x,y).subs(x,z))=='foo2(z, y)'
 
+    assert str(foo2(x,y).diff(x))=='foo2_1(x, y)'
+    assert str(foo2(x,y).diff(y))=='foo2_2(x, y)'
+    assert str(foo2(foo(x),bar(x)).diff(x)) in ['bar_1(x)*foo2_2(foo(x), bar(x)) + foo_1(x)*foo2_1(foo(x), bar(x))','bar_1(x)*foo2_2(foo(x), bar(x)) + foo2_1(foo(x), bar(x))*foo_1(x)']
+
 def test_bar2():
     assert str(bar2(x,y))=='bar2(x, y)'
     assert str(bar2(x,y).subs(x,z))=='bar2(z, y)'
+    assert str(bar2(x,y).diff(x))=='bar2_1(x, y)'
+    assert str(bar2(x,y).diff(y))=='bar2_2(x, y)'
+    assert str(bar2(x,x).diff(x))=='bar2_1(x, x) + bar2_2(x, x)'

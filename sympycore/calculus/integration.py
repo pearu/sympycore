@@ -1,4 +1,4 @@
-from .algebra import Calculus, one
+from .algebra import Calculus, one, newinstance
 from ..utils import NUMBER, SYMBOL, TERMS, FACTORS
 
 Symbol = Calculus.Symbol
