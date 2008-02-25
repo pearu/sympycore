@@ -10,12 +10,12 @@ from ..basealgebra.primitive import PrimitiveAlgebra, SYMBOL, NUMBER, ADD, MUL
 from ..basealgebra.pairs import CommutativeRingWithPairs, newinstance
 
 from ..arithmetic.numbers import FractionTuple, normalized_fraction, Float, Complex, \
-    try_power, ExtendedNumber
+    try_power
 
 from ..arithmetic.evalf import evalf
 
 
-algebra_numbers = (int, long, FractionTuple, Float, Complex, ExtendedNumber)
+algebra_numbers = (int, long, FractionTuple, Float, Complex)
 
 class Calculus(CommutativeRingWithPairs):
     """ Represents an element of a symbolic algebra. The set of a
@@ -29,8 +29,8 @@ class Calculus(CommutativeRingWithPairs):
     __slots__ = ['head', 'data', '_hash', 'one', 'zero']
     _hash = None
 
-    coefftypes = (int, long, FractionTuple, Complex, ExtendedNumber, Float)
-    exptypes = (int, long, FractionTuple, Complex, ExtendedNumber, Float)
+    coefftypes = (int, long, FractionTuple, Complex, Float)
+    exptypes = (int, long, FractionTuple, Complex, Float)
 
     def as_algebra(self, cls):
         """ Convert algebra to another algebra.
@@ -61,7 +61,7 @@ class Calculus(CommutativeRingWithPairs):
                 t, c = pairs.items()[0]
                 if c==1:
                     return t
-                if self.one==t or (isinstance(c, ExtendedNumber) and c.is_undefined):
+                if self.one==t:
                     return self.convert(c)
         elif head is MUL:
             pairs = self.data
