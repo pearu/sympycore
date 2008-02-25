@@ -723,7 +723,7 @@ class CommutativeRingWithPairs(CommutativeRing):
     def _integrate_definite(self, x, a, b, integrator=None):
         head = self.head
         if head is NUMBER or x not in self._get_symbols_data():
-            return self*(a-b)
+            return self*(b-a)
         if head is SYMBOL and self.data == x:
             return (b**2-a**2) / 2
         if integrator is None:

@@ -574,3 +574,12 @@ def test_integrate():
             assert 0, ("integration of %s expected to fail" % f)
         except NotImplementedError:
             pass
+
+def test_integrate_defined():
+    x, y = map(Symbol, 'xy')
+    for g in [Number(4), 2*x, 6*x**2, 2*x+100*x**3]:
+        f = g.integrate(x)
+        f1 = f.subs(x,5)-f.subs(x,2)
+        f2 = g.integrate((x,2,5))
+        assert f2==f1,`str(g), str(f), str(f1), str(f2)`
+

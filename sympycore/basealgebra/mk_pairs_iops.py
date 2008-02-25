@@ -233,7 +233,7 @@ def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NU
     if tobj is cls:
         head = obj.head
         if head is NUMBER:
-            return obj.data * exp
+            return obj.data ** exp
         elif head is TERMS:
             data = obj.data
             if len(data)==1:
@@ -253,7 +253,7 @@ def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NU
             @MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=obj; VALUE=exp; SIGN=+; NUMBER=number)
             return number
     @ELIF_CHECK_NUMBER(T=tobj)
-        return obj * exp
+        return obj ** exp
     else:
         return inplace_mul2(cls, cls.convert(obj), exp, pairs, pairs_get)
 

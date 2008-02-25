@@ -381,7 +381,7 @@ def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NU
     if tobj is cls:
         head = obj.head
         if head is NUMBER:
-            return obj.data * exp
+            return obj.data ** exp
         elif head is TERMS:
             data = obj.data
             if len(data)==1:
@@ -534,7 +534,7 @@ def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NU
             return number
     #ELIF_CHECK_NUMBER(T=tobj)
     elif tobj is int or tobj is long or tobj is FractionTuple or tobj is float or tobj is Float or tobj is Complex or tobj is complex:
-        return obj * exp
+        return obj ** exp
     else:
         return inplace_mul2(cls, cls.convert(obj), exp, pairs, pairs_get)
 
