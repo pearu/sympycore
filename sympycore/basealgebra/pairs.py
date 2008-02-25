@@ -1344,17 +1344,21 @@ def expand_ADD_INTPOW(lhs, m, cls):
     Factors = cls.Factors
     one = cls.one
     for exps, c in data.iteritems():
-        t = []
         n = 1
+        d1 = {}
+        d1_get = d1.get
         for i,e in enumerate(exps):
-            if e==0: continue
+            if not e:
+                continue
             t1, c1 = terms[i]
-            t.append((t1, e))
+            num = inplace_mul2(cls, t1, e, d1, d1_get)
+            if num is not 1:
+                n = n * num
             if c1!=1:
                 n = n * c1**e
-        t = Factors(*t)
+        t = return_factors(cls, d1)
         if t.head is NUMBER:
-            n = t * n
+            n = t.data * n
             t = one
         b = get(t)
         if b is None:
