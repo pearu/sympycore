@@ -632,7 +632,7 @@ class CommutativeRingWithPairs(CommutativeRing):
             num = 1
             for t,c in self.data.iteritems():
                 r = t._subs(subexpr, newexpr)
-                if hasattr(c,'_subs'):
+                if type(c) is cls:
                     c = c._subs(subexpr, newexpr)
                 if c is 1:
                     n = inplace_mul(cls, r, d, d_get)
