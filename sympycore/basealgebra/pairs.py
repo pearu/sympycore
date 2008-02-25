@@ -84,7 +84,7 @@ class CommutativeRingWithPairs(CommutativeRing):
             return True
         to = type(other)
         if to is type(self):
-            return self.head is other.head and self.data == other.data
+            return self.head == other.head and self.data == other.data
         if self.head is NUMBER and (to is int or to is long):
             return self.data == other
         return False
@@ -101,7 +101,7 @@ class CommutativeRingWithPairs(CommutativeRing):
         return h
 
     def __nonzero__(self):
-        return self.head is not NUMBER or not (self.data==0)
+        return self.head is not NUMBER or bool(self.data)
 
     def copy(self):
         if self.head in [ADD, MUL]:
@@ -638,7 +638,7 @@ class CommutativeRingWithPairs(CommutativeRing):
                     n = inplace_mul(cls, r, d, d_get)
                 else:
                     n = inplace_mul2(cls, r, c, d, d_get)
-                if n is not None:
+                if n is not 1:
                     num = num * n
             r = return_factors(cls, d)
             if num is 1:

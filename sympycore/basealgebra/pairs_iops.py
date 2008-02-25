@@ -26,10 +26,9 @@ def return_terms(cls, pairs, new=object.__new__):
     return _tmp2
 
 def return_factors(cls, pairs, new=object.__new__):
-    pairs.pop(cls.one, None)
     if not pairs:
         return cls.one
-    if len(pairs)==1:
+    elif len(pairs)==1:
         t, c = pairs.items()[0]
         if c==1:
             return t
@@ -213,7 +212,7 @@ def inplace_sub(cls, obj, pairs, pairs_get, one):
     else:
         inplace_add(cls, cls.convert(obj), pairs, pairs_get, one)
 
-def inplace_mul(cls, obj, pairs, pairs_get):
+def inplace_mul(cls, obj, pairs, pairs_get, try_power=try_power, NUMBER=NUMBER):
     tobj = type(obj)
     if tobj is cls:
         head = obj.head
@@ -375,7 +374,7 @@ def inplace_mul(cls, obj, pairs, pairs_get):
     else:
         return inplace_mul(cls, cls.convert(obj), pairs, pairs_get)
 
-def inplace_mul2(cls, obj, exp, pairs, pairs_get):
+def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NUMBER):
     if not exp:
         return 1
     tobj = type(obj)
