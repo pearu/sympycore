@@ -1,5 +1,6 @@
 from ..utils import SYMBOL, NUMBER, ADD, MUL
 from ..arithmetic.numbers import inttypes
+from ..basealgebra.pairs import inplace_add2, inplace_add, return_terms
 from .algebra import Calculus, algebra_numbers, zero, one
 from .functions import log
 
@@ -143,6 +144,9 @@ def diff_generic(expr, xdata, order, NUMBER=NUMBER, SYMBOL=SYMBOL, ADD=ADD, MUL=
         # Differentiate term by term. Note that coefficients are constants.
         # TODO: build dict on the spot
         s = zero
+        d = {}
+        cls = type(expr)
+        d_get = d.get
         for term, coeff in data.iteritems():
             # Inline common cases
             th = term.head
@@ -151,14 +155,16 @@ def diff_generic(expr, xdata, order, NUMBER=NUMBER, SYMBOL=SYMBOL, ADD=ADD, MUL=
                 continue
             elif th is SYMBOL:
                 if td == xdata and order == 1:
-                    s += coeff
+                    inplace_add(cls, coeff, d, d_get, one)
                 # else: zero
-            elif th is MUL:
-                s += coeff * diff_product(term.data, xdata, order)
+                continue
+            if th is MUL:
+                dterm = diff_product(term.data, xdata, order)
             # General case
             else:
-                s += coeff * diff_generic(term, xdata, order)
-        r = s
+                dterm = diff_generic(term, xdata, order)
+            inplace_add2(cls, dterm, coeff, d, d_get, one)
+        r = return_terms(cls, d)
     elif head is MUL:
         r = diff_product(data, xdata, order)
     else:
