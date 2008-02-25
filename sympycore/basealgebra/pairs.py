@@ -857,13 +857,8 @@ def multiply_NUMBER_NUMBER(lhs, rhs, cls):
 
 def multiply_NUMBER_SYMBOL(lhs, rhs, cls):
     value = lhs.data
-    try:
-        if not value:
-            return lhs
-    except RedirectOperation:
-        r = value.__mul__(rhs)
-        if r is not NotImplemented:
-            return cls.convert(r)
+    if not value:
+        return lhs
     if value==1:
         return rhs
     return newinstance(cls, ADD, {rhs:value})
@@ -872,23 +867,13 @@ generate_swapped_first_arguments(multiply_NUMBER_SYMBOL)
 
 def multiply_NUMBER_ADD(lhs, rhs, cls):
     value = lhs.data
-    try:
-        bool(value)
-    except RedirectOperation:
-        r = value.__mul__(rhs)
-        if r is not NotImplemented:
-            return cls.convert(r)
-        return newinstance(cls, ADD, {rhs:value})
     if value==1:
         return rhs
     d = {}
     result = newinstance(cls, ADD, d)
     for t,c in rhs.data.iteritems():
         c = c * value
-        try:
-            if c:
-                d[t] = c
-        except RedirectOperation:
+        if c:
             d[t] = c
     if len(d)<=1:
         return result.canonize()
@@ -898,14 +883,8 @@ generate_swapped_first_arguments(multiply_NUMBER_ADD)
 
 def multiply_NUMBER_MUL(lhs, rhs, cls):
     value = lhs.data
-    try:
-        if not value:
-            return lhs
-    except RedirectOperation:
-        r = value.__mul__(rhs)
-        if r is not NotImplemented:
-            return cls.convert(r)
-        return newinstance(cls, ADD, {rhs:value})
+    if not value:
+        return lhs
     if value==1:
         return rhs
     b = rhs.data.get(lhs)
@@ -1072,9 +1051,8 @@ def expand_ADD_ADD(lhs, rhs, cls):
     result = newinstance(cls, ADD, d)
     get = d.get
     for t1, c1 in pairs1.iteritems():
-        mdict = multiply_dict2[t1.head]
         for t2, c2 in pairs2.iteritems():
-            t = mdict[t2.head](t1, t2, cls)
+            t = t1 * t2
             c = c1 * c2
             b = get(t)
             if b is None:
@@ -1233,10 +1211,3 @@ mul_SYMBOL_dict = defaultdict(lambda:multiply_SYMBOL_SYMBOL,
                                ADD: multiply_SYMBOL_ADD,
                                MUL: multiply_SYMBOL_MUL,
                                })
-
-multiply_dict2 = defaultdict(lambda:mul_SYMBOL_dict,
-                             {NUMBER:mul_NUMBER_dict,
-                              ADD:mul_ADD_dict,
-                              MUL:mul_MUL_dict,
-                              })
-
