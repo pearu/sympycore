@@ -69,3 +69,39 @@ IF_CHECK_REAL = 'if %(T)s is int or %(T)s is long or %(T)s is FractionTuple or %
 IF_CHECK_COMPLEX = 'if %(T)s is cls or %(T)s is complex:'
 
 ELIF_CHECK_NUMBER = 'elif %(T)s is int or %(T)s is long or %(T)s is FractionTuple or %(T)s is float or %(T)s is Float or %(T)s is Complex or %(T)s is complex:'
+
+ADD_TERM_VALUE_DICT='''\
+%(TMP)s = %(DICT_GET)s(%(TERM)s)
+if %(TMP)s is None:
+    %(DICT)s[%(TERM)s] = %(USIGN)s %(VALUE)s
+else:
+    %(TMP)s = %(TMP)s %(SIGN)s %(VALUE)s
+    if %(TMP)s:
+        %(DICT)s[%(TERM)s] = %(TMP)s
+    else:
+        del %(DICT)s[%(TERM)s]
+'''
+
+MUL_FACTOR_VALUE_DICT='''\
+%(TMP)s = %(DICT_GET)s(%(FACTOR)s)
+if %(TMP)s is None:
+    %(DICT)s[%(FACTOR)s] = %(SIGN)s %(VALUE)s
+else:
+    %(TMP)s = %(TMP)s %(SIGN)s %(VALUE)s
+    if type(%(TMP)s) is cls and %(TMP)s.head is NUMBER:
+        %(TMP)s = %(TMP)s.data
+    if %(TMP)s:
+        if %(FACTOR)s.head is NUMBER:
+            del %(DICT)s[%(FACTOR)s]
+            z, sym = try_power(%(FACTOR)s.data, %(TMP)s)
+            if sym:
+                for t1, c1 in sym:
+                    @NEWINSTANCE(OBJ=tt; HEAD=NUMBER; DATA=t1)
+                    @ADD_TERM_VALUE_DICT(DICT=%(DICT)s; DICT_GET=%(DICT_GET)s; TERM=tt; VALUE=c1; SIGN=+; USIGN=)
+            %(NUMBER)s = %(NUMBER)s * z
+        else:
+            %(DICT)s[%(FACTOR)s] = %(TMP)s
+    else:
+        del %(DICT)s[%(FACTOR)s]
+'''
+

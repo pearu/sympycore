@@ -46,55 +46,11 @@ def div(a, b, cls):
 # General macros
 #======================================
 
-NEWINSTANCE = '''\
-%(OBJ)s = new(cls)
-%(OBJ)s.head = %(HEAD)s
-%(OBJ)s.data = %(DATA)s
-'''
-RETURN_NEW = '''\
-@NEWINSTANCE(OBJ=%(TMP)s; HEAD=%(HEAD)s; DATA=%(DATA)s)
-return %(TMP)s
-'''
-
 RETURN_NEW2 = '''\
 %(TMP)s = %(DATA)s
 if isinstance(%(TMP)s, Infinity):
     return %(TMP)s
 @RETURN_NEW(HEAD=%(HEAD)s; DATA=%(TMP)s)
-'''
-
-ADD_TERM_VALUE_DICT='''\
-b = %(DICT_GET)s(%(TERM)s)
-if b is None:
-    %(DICT)s[%(TERM)s] = %(VALUE)s
-else:
-    c = b + %(VALUE)s
-    if c:
-        %(DICT)s[%(TERM)s] = c
-    else:
-        del %(DICT)s[%(TERM)s]
-'''
-
-MUL_FACTOR_VALUE_DICT='''\
-b = %(DICT_GET)s(%(FACTOR)s)
-if b is None:
-    %(DICT)s[%(FACTOR)s] = %(SIGN)s %(VALUE)s
-else:
-    %(TMP)s = b %(SIGN)s %(VALUE)s
-    if type(%(TMP)s) is cls and %(TMP)s.head is NUMBER:
-        %(TMP)s = %(TMP)s.data
-    if %(TMP)s:
-        if %(FACTOR)s.head is NUMBER:
-            r = %(FACTOR)s ** %(TMP)s
-            if r.head is NUMBER:
-                %(NUMBER)s *= r
-                del %(DICT)s[%(FACTOR)s]
-            else:
-                %(DICT)s[%(FACTOR)s] = %(TMP)s
-        else:
-            %(DICT)s[%(FACTOR)s] = %(TMP)s
-    else:
-        del %(DICT)s[%(FACTOR)s]
 '''
 
 CANONIZE_TERMS_DICT = '''\
@@ -133,7 +89,7 @@ if len(%(DICT)s)==1:
 '''
 
 ADD_VALUE_DICT='''\
-@ADD_TERM_VALUE_DICT(TERM=cls.one; VALUE=%(VALUE)s; DICT=%(DICT)s; DICT_GET=%(DICT)s.get)
+@ADD_TERM_VALUE_DICT(TERM=cls.one; VALUE=%(VALUE)s; DICT=%(DICT)s; DICT_GET=%(DICT)s.get; SIGN=+; USIGN=)
 '''
 
 NEG_DICT_VALUES = '''\
@@ -199,7 +155,7 @@ ADD_TERMS_NUMBER = '@ADD_TERMS_VALUE(VALUE=%(RHS)s.data; LHS=%(LHS)s)\n'
 
 ADD_TERMS_SYMBOL = '''\
 pairs = dict(%(LHS)s.data)
-@ADD_TERM_VALUE_DICT(TERM=%(RHS)s; VALUE=1; DICT=pairs; DICT_GET=pairs.get)
+@ADD_TERM_VALUE_DICT(TERM=%(RHS)s; VALUE=1; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
 @CANONIZE_TERMS_DICT(DICT=pairs)
 @RETURN_NEW(HEAD=TERMS; DATA=pairs)
 '''
@@ -208,7 +164,7 @@ ADD_TERMS_TERMS = '''\
 pairs = dict(%(LHS)s.data)
 pairs_get = pairs.get
 for t,c in %(RHS)s.data.iteritems():
-    @ADD_TERM_VALUE_DICT(TERM=t; VALUE=c; DICT=pairs; DICT_GET=pairs_get)
+    @ADD_TERM_VALUE_DICT(TERM=t; VALUE=c; DICT=pairs; DICT_GET=pairs_get; SIGN=+; USIGN=)
 @CANONIZE_TERMS_DICT(DICT=pairs)
 @RETURN_NEW(HEAD=TERMS; DATA=pairs)
 '''
@@ -247,13 +203,13 @@ SUB_NUMBER_TERMS = '@SUB_VALUE_TERMS(VALUE=%(LHS)s.data; RHS=%(RHS)s)\n'
 SUB_TERMS_NUMBER = '@SUB_TERMS_VALUE(VALUE=%(RHS)s.data; LHS=%(LHS)s)\n'
 SUB_TERMS_SYMBOL = '''\
 pairs = dict(%(LHS)s.data)
-@ADD_TERM_VALUE_DICT(TERM=%(RHS)s; VALUE=-1; DICT=pairs; DICT_GET=pairs.get)
+@ADD_TERM_VALUE_DICT(TERM=%(RHS)s; VALUE=-1; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
 @CANONIZE_TERMS_DICT(DICT=pairs)
 @RETURN_NEW(HEAD=TERMS; DATA=pairs)
 '''
 SUB_SYMBOL_TERMS = '''\
 @NEG_DICT_VALUES(DICT_IN=%(RHS)s.data; DICT_OUT=pairs)
-@ADD_TERM_VALUE_DICT(TERM=%(LHS)s; VALUE=1; DICT=pairs; DICT_GET=pairs.get)
+@ADD_TERM_VALUE_DICT(TERM=%(LHS)s; VALUE=1; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
 @CANONIZE_TERMS_DICT(DICT=pairs)
 @RETURN_NEW(HEAD=TERMS; DATA=pairs)
 '''
@@ -261,7 +217,7 @@ SUB_TERMS_TERMS = '''\
 pairs = dict(%(LHS)s.data)
 pairs_get = pairs.get
 for t,c in %(RHS)s.data.iteritems():
-    @ADD_TERM_VALUE_DICT(TERM=t; VALUE=-c; DICT=pairs; DICT_GET=pairs_get)
+    @ADD_TERM_VALUE_DICT(TERM=t; VALUE=-c; DICT=pairs; DICT_GET=pairs_get; SIGN=+; USIGN=)
 @CANONIZE_TERMS_DICT(DICT=pairs)
 @RETURN_NEW(HEAD=TERMS; DATA=pairs)
 '''
@@ -385,7 +341,7 @@ if c==1:
 @RETURN_NEW(HEAD=TERMS; DATA={%(TMP)s: c})
 '''
 MUL_DICT_SYMBOL = '''\
-@ADD_TERM_VALUE_DICT(TERM=%(RHS)s; VALUE=1; DICT=%(DICT)s; DICT_GET=%(DICT)s.get)
+@ADD_TERM_VALUE_DICT(TERM=%(RHS)s; VALUE=1; DICT=%(DICT)s; DICT_GET=%(DICT)s.get; SIGN=+; USIGN=)
 @CANONIZE_FACTORS_DICT1(DICT=%(DICT)s)
 @RETURN_NEW(HEAD=FACTORS; DATA=%(DICT)s)
 '''
@@ -565,7 +521,7 @@ if len(lpairs)==1:
 @DIV_SYMBOL_FACTORS(LHS=%(LHS)s; RHS=%(RHS)s)
 '''
 DIV_DICT_SYMBOL = '''\
-@ADD_TERM_VALUE_DICT(TERM=%(RHS)s; VALUE=-1; DICT=%(DICT)s; DICT_GET=%(DICT)s.get)
+@ADD_TERM_VALUE_DICT(TERM=%(RHS)s; VALUE=-1; DICT=%(DICT)s; DICT_GET=%(DICT)s.get; SIGN=+; USIGN=)
 @CANONIZE_FACTORS_DICT1(DICT=%(DICT)s)
 @RETURN_NEW(HEAD=FACTORS; DATA=%(DICT)s)
 '''

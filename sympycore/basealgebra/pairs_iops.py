@@ -50,10 +50,10 @@ def inplace_add(cls, obj, pairs, pairs_get, one):
         if head is NUMBER:
             value = obj.data
             if value:
-                #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=+)
+                #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=+; USIGN=)
                 _tmp30 = pairs_get(one)
                 if _tmp30 is None:
-                    pairs[one] = + value
+                    pairs[one] =  value
                 else:
                     _tmp30 = _tmp30 + value
                     if _tmp30:
@@ -62,10 +62,10 @@ def inplace_add(cls, obj, pairs, pairs_get, one):
                         del pairs[one]
         elif head is TERMS:
             for t,c in obj.data.iteritems():
-                #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=t; VALUE=c; SIGN=+)
+                #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=t; VALUE=c; SIGN=+; USIGN=)
                 _tmp37 = pairs_get(t)
                 if _tmp37 is None:
-                    pairs[t] = + c
+                    pairs[t] =  c
                 else:
                     _tmp37 = _tmp37 + c
                     if _tmp37:
@@ -73,10 +73,10 @@ def inplace_add(cls, obj, pairs, pairs_get, one):
                     else:
                         del pairs[t]
         else:
-            #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=obj; VALUE=1; SIGN=+)
+            #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=obj; VALUE=1; SIGN=+; USIGN=)
             _tmp44 = pairs_get(obj)
             if _tmp44 is None:
-                pairs[obj] = + 1
+                pairs[obj] =  1
             else:
                 _tmp44 = _tmp44 + 1
                 if _tmp44:
@@ -86,10 +86,10 @@ def inplace_add(cls, obj, pairs, pairs_get, one):
     #ELIF_CHECK_NUMBER(T=tobj)
     elif tobj is int or tobj is long or tobj is FractionTuple or tobj is float or tobj is Float or tobj is Complex or tobj is complex:
         if obj:
-            #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=obj; SIGN=+)
+            #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=obj; SIGN=+; USIGN=)
             _tmp58 = pairs_get(one)
             if _tmp58 is None:
-                pairs[one] = + obj
+                pairs[one] =  obj
             else:
                 _tmp58 = _tmp58 + obj
                 if _tmp58:
@@ -108,10 +108,10 @@ def inplace_add2(cls, obj, coeff, pairs, pairs_get, one):
         if head is NUMBER:
             value = coeff * obj.data
             if value:
-                #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=+)
+                #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=+; USIGN=)
                 _tmp65 = pairs_get(one)
                 if _tmp65 is None:
-                    pairs[one] = + value
+                    pairs[one] =  value
                 else:
                     _tmp65 = _tmp65 + value
                     if _tmp65:
@@ -120,10 +120,10 @@ def inplace_add2(cls, obj, coeff, pairs, pairs_get, one):
                         del pairs[one]
         elif head is TERMS:
             for t,c in obj.data.iteritems():
-                #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=t; VALUE=coeff*c; SIGN=+)
+                #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=t; VALUE=coeff*c; SIGN=+; USIGN=)
                 _tmp72 = pairs_get(t)
                 if _tmp72 is None:
-                    pairs[t] = + coeff*c
+                    pairs[t] =  coeff*c
                 else:
                     _tmp72 = _tmp72 + coeff*c
                     if _tmp72:
@@ -131,10 +131,10 @@ def inplace_add2(cls, obj, coeff, pairs, pairs_get, one):
                     else:
                         del pairs[t]
         else:
-            #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=obj; VALUE=coeff; SIGN=+)
+            #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=obj; VALUE=coeff; SIGN=+; USIGN=)
             _tmp79 = pairs_get(obj)
             if _tmp79 is None:
-                pairs[obj] = + coeff
+                pairs[obj] =  coeff
             else:
                 _tmp79 = _tmp79 + coeff
                 if _tmp79:
@@ -145,10 +145,10 @@ def inplace_add2(cls, obj, coeff, pairs, pairs_get, one):
     elif tobj is int or tobj is long or tobj is FractionTuple or tobj is float or tobj is Float or tobj is Complex or tobj is complex:
         value = coeff * obj
         if value:
-            #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=+)
+            #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=+; USIGN=)
             _tmp93 = pairs_get(one)
             if _tmp93 is None:
-                pairs[one] = + value
+                pairs[one] =  value
             else:
                 _tmp93 = _tmp93 + value
                 if _tmp93:
@@ -165,7 +165,7 @@ def inplace_sub(cls, obj, pairs, pairs_get, one):
         if head is NUMBER:
             value = obj.data
             if value:
-                #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=-)
+                #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=-; USIGN=-)
                 _tmp100 = pairs_get(one)
                 if _tmp100 is None:
                     pairs[one] = - value
@@ -177,7 +177,7 @@ def inplace_sub(cls, obj, pairs, pairs_get, one):
                         del pairs[one]
         elif HEAD is TERMS:
             for t,c in obj.data.iteritems():
-                #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=t; VALUE=c; SIGN=-)
+                #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=t; VALUE=c; SIGN=-; USIGN=-)
                 _tmp107 = pairs_get(t)
                 if _tmp107 is None:
                     pairs[t] = - c
@@ -188,7 +188,7 @@ def inplace_sub(cls, obj, pairs, pairs_get, one):
                     else:
                         del pairs[t]
         else:
-            #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=obj; VALUE=1; SIGN=-)
+            #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=obj; VALUE=1; SIGN=-; USIGN=-)
             _tmp114 = pairs_get(obj)
             if _tmp114 is None:
                 pairs[obj] = - 1
@@ -201,7 +201,7 @@ def inplace_sub(cls, obj, pairs, pairs_get, one):
     #ELIF_CHECK_NUMBER(T=tobj)
     elif tobj is int or tobj is long or tobj is FractionTuple or tobj is float or tobj is Float or tobj is Complex or tobj is complex:
         if obj:
-            #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=obj; SIGN=-)
+            #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=obj; SIGN=-; USIGN=-)
             _tmp128 = pairs_get(one)
             if _tmp128 is None:
                 pairs[one] = - obj
@@ -242,10 +242,10 @@ def inplace_mul(cls, obj, pairs, pairs_get, try_power=try_power, NUMBER=NUMBER):
                                     tt = new(cls)
                                     tt.head = NUMBER
                                     tt.data = t1
-                                    #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+)
+                                    #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+; USIGN=)
                                     _tmp149 = pairs_get(tt)
                                     if _tmp149 is None:
-                                        pairs[tt] = + c1
+                                        pairs[tt] =  c1
                                     else:
                                         _tmp149 = _tmp149 + c1
                                         if _tmp149:
@@ -253,7 +253,6 @@ def inplace_mul(cls, obj, pairs, pairs_get, try_power=try_power, NUMBER=NUMBER):
                                         else:
                                             del pairs[tt]
                             number = number * z
-                            
                         else:
                             pairs[t] = _tmp135
                     else:
@@ -278,10 +277,10 @@ def inplace_mul(cls, obj, pairs, pairs_get, try_power=try_power, NUMBER=NUMBER):
                                 tt = new(cls)
                                 tt.head = NUMBER
                                 tt.data = t1
-                                #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+)
+                                #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+; USIGN=)
                                 _tmp170 = pairs_get(tt)
                                 if _tmp170 is None:
-                                    pairs[tt] = + c1
+                                    pairs[tt] =  c1
                                 else:
                                     _tmp170 = _tmp170 + c1
                                     if _tmp170:
@@ -289,7 +288,6 @@ def inplace_mul(cls, obj, pairs, pairs_get, try_power=try_power, NUMBER=NUMBER):
                                     else:
                                         del pairs[tt]
                         number = number * z
-                        
                     else:
                         pairs[obj] = _tmp156
                 else:
@@ -316,10 +314,10 @@ def inplace_mul(cls, obj, pairs, pairs_get, try_power=try_power, NUMBER=NUMBER):
                                     tt = new(cls)
                                     tt.head = NUMBER
                                     tt.data = t1
-                                    #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+)
+                                    #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+; USIGN=)
                                     _tmp191 = pairs_get(tt)
                                     if _tmp191 is None:
-                                        pairs[tt] = + c1
+                                        pairs[tt] =  c1
                                     else:
                                         _tmp191 = _tmp191 + c1
                                         if _tmp191:
@@ -327,7 +325,6 @@ def inplace_mul(cls, obj, pairs, pairs_get, try_power=try_power, NUMBER=NUMBER):
                                         else:
                                             del pairs[tt]
                             number = number * z
-                            
                         else:
                             pairs[t] = _tmp177
                     else:
@@ -353,10 +350,10 @@ def inplace_mul(cls, obj, pairs, pairs_get, try_power=try_power, NUMBER=NUMBER):
                                 tt = new(cls)
                                 tt.head = NUMBER
                                 tt.data = t1
-                                #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+)
+                                #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+; USIGN=)
                                 _tmp212 = pairs_get(tt)
                                 if _tmp212 is None:
-                                    pairs[tt] = + c1
+                                    pairs[tt] =  c1
                                 else:
                                     _tmp212 = _tmp212 + c1
                                     if _tmp212:
@@ -364,7 +361,6 @@ def inplace_mul(cls, obj, pairs, pairs_get, try_power=try_power, NUMBER=NUMBER):
                                     else:
                                         del pairs[tt]
                         number = number * z
-                        
                     else:
                         pairs[obj] = _tmp198
                 else:
@@ -406,10 +402,10 @@ def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NU
                                     tt = new(cls)
                                     tt.head = NUMBER
                                     tt.data = t1
-                                    #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+)
+                                    #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+; USIGN=)
                                     _tmp240 = pairs_get(tt)
                                     if _tmp240 is None:
-                                        pairs[tt] = + c1
+                                        pairs[tt] =  c1
                                     else:
                                         _tmp240 = _tmp240 + c1
                                         if _tmp240:
@@ -417,7 +413,6 @@ def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NU
                                         else:
                                             del pairs[tt]
                             number = number * z
-                            
                         else:
                             pairs[t] = _tmp226
                     else:
@@ -442,10 +437,10 @@ def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NU
                                 tt = new(cls)
                                 tt.head = NUMBER
                                 tt.data = t1
-                                #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+)
+                                #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+; USIGN=)
                                 _tmp261 = pairs_get(tt)
                                 if _tmp261 is None:
-                                    pairs[tt] = + c1
+                                    pairs[tt] =  c1
                                 else:
                                     _tmp261 = _tmp261 + c1
                                     if _tmp261:
@@ -453,7 +448,6 @@ def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NU
                                     else:
                                         del pairs[tt]
                         number = number * z
-                        
                     else:
                         pairs[obj] = _tmp247
                 else:
@@ -480,10 +474,10 @@ def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NU
                                     tt = new(cls)
                                     tt.head = NUMBER
                                     tt.data = t1
-                                    #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+)
+                                    #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+; USIGN=)
                                     _tmp282 = pairs_get(tt)
                                     if _tmp282 is None:
-                                        pairs[tt] = + c1
+                                        pairs[tt] =  c1
                                     else:
                                         _tmp282 = _tmp282 + c1
                                         if _tmp282:
@@ -491,7 +485,6 @@ def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NU
                                         else:
                                             del pairs[tt]
                             number = number * z
-                            
                         else:
                             pairs[t] = _tmp268
                     else:
@@ -517,10 +510,10 @@ def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NU
                                 tt = new(cls)
                                 tt.head = NUMBER
                                 tt.data = t1
-                                #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+)
+                                #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+; USIGN=)
                                 _tmp303 = pairs_get(tt)
                                 if _tmp303 is None:
-                                    pairs[tt] = + c1
+                                    pairs[tt] =  c1
                                 else:
                                     _tmp303 = _tmp303 + c1
                                     if _tmp303:
@@ -528,7 +521,6 @@ def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NU
                                     else:
                                         del pairs[tt]
                         number = number * z
-                        
                     else:
                         pairs[obj] = _tmp289
                 else:

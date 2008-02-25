@@ -22,43 +22,6 @@ from ..utils import NUMBER, TERMS, FACTORS
 
 '''
 
-
-ADD_TERM_VALUE_DICT='''\
-%(TMP)s = %(DICT_GET)s(%(TERM)s)
-if %(TMP)s is None:
-    %(DICT)s[%(TERM)s] = %(SIGN)s %(VALUE)s
-else:
-    %(TMP)s = %(TMP)s %(SIGN)s %(VALUE)s
-    if %(TMP)s:
-        %(DICT)s[%(TERM)s] = %(TMP)s
-    else:
-        del %(DICT)s[%(TERM)s]
-'''
-
-MUL_FACTOR_VALUE_DICT='''\
-%(TMP)s = %(DICT_GET)s(%(FACTOR)s)
-if %(TMP)s is None:
-    %(DICT)s[%(FACTOR)s] = %(SIGN)s %(VALUE)s
-else:
-    %(TMP)s = %(TMP)s %(SIGN)s %(VALUE)s
-    if type(%(TMP)s) is cls and %(TMP)s.head is NUMBER:
-        %(TMP)s = %(TMP)s.data
-    if %(TMP)s:
-        if %(FACTOR)s.head is NUMBER:
-            del %(DICT)s[%(FACTOR)s]
-            z, sym = try_power(%(FACTOR)s.data, %(TMP)s)
-            if sym:
-                for t1, c1 in sym:
-                    @NEWINSTANCE(OBJ=tt; HEAD=NUMBER; DATA=t1)
-                    @ADD_TERM_VALUE_DICT(DICT=%(DICT)s; DICT_GET=%(DICT_GET)s; TERM=tt; VALUE=c1; SIGN=+)
-            %(NUMBER)s = %(NUMBER)s * z
-            
-        else:
-            %(DICT)s[%(FACTOR)s] = %(TMP)s
-    else:
-        del %(DICT)s[%(FACTOR)s]
-'''
-
 def main():
     f = open(targetfile_py, 'w')
     print >> f, template
@@ -93,15 +56,15 @@ def inplace_add(cls, obj, pairs, pairs_get, one):
         if head is NUMBER:
             value = obj.data
             if value:
-                @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=+)
+                @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=+; USIGN=)
         elif head is TERMS:
             for t,c in obj.data.iteritems():
-                @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=t; VALUE=c; SIGN=+)
+                @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=t; VALUE=c; SIGN=+; USIGN=)
         else:
-            @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=obj; VALUE=1; SIGN=+)
+            @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=obj; VALUE=1; SIGN=+; USIGN=)
     @ELIF_CHECK_NUMBER(T=tobj)
         if obj:
-            @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=obj; SIGN=+)
+            @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=obj; SIGN=+; USIGN=)
     else:
         inplace_add(cls, cls.convert(obj), pairs, pairs_get, one)
 
@@ -114,16 +77,16 @@ def inplace_add2(cls, obj, coeff, pairs, pairs_get, one):
         if head is NUMBER:
             value = coeff * obj.data
             if value:
-                @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=+)
+                @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=+; USIGN=)
         elif head is TERMS:
             for t,c in obj.data.iteritems():
-                @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=t; VALUE=coeff*c; SIGN=+)
+                @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=t; VALUE=coeff*c; SIGN=+; USIGN=)
         else:
-            @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=obj; VALUE=coeff; SIGN=+)
+            @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=obj; VALUE=coeff; SIGN=+; USIGN=)
     @ELIF_CHECK_NUMBER(T=tobj)
         value = coeff * obj
         if value:
-            @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=+)
+            @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=+; USIGN=)
     else:
         inplace_add2(cls, cls.convert(obj), coeff, pairs, pairs_get, one)
 
@@ -134,15 +97,15 @@ def inplace_sub(cls, obj, pairs, pairs_get, one):
         if head is NUMBER:
             value = obj.data
             if value:
-                @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=-)
+                @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=-; USIGN=-)
         elif HEAD is TERMS:
             for t,c in obj.data.iteritems():
-                @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=t; VALUE=c; SIGN=-)
+                @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=t; VALUE=c; SIGN=-; USIGN=-)
         else:
-            @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=obj; VALUE=1; SIGN=-)
+            @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=obj; VALUE=1; SIGN=-; USIGN=-)
     @ELIF_CHECK_NUMBER(T=tobj)
         if obj:
-            @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=obj; SIGN=-)
+            @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=obj; SIGN=-; USIGN=-)
     else:
         inplace_add(cls, cls.convert(obj), pairs, pairs_get, one)
 
