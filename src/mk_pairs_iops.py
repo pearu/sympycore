@@ -119,19 +119,19 @@ def inplace_mul(cls, obj, pairs, pairs_get, try_power=try_power, NUMBER=NUMBER):
             data = obj.data
             if len(data)==1:
                 t, number = data.items()[0]
-                @MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=t; VALUE=1; SIGN=+; NUMBER=number)
+                @MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=t; VALUE=1; SIGN=+; USIGN=; NUMBER=number)
                 return number
             number = 1
-            @MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=obj; VALUE=1; SIGN=+; NUMBER=number)
+            @MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=obj; VALUE=1; SIGN=+; USIGN=; NUMBER=number)
             return number
         elif head is FACTORS:
             number = 1
             for t, c in obj.data.iteritems():
-                @MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=t; VALUE=c; SIGN=+; NUMBER=number)
+                @MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=t; VALUE=c; SIGN=+; USIGN=; NUMBER=number)
             return number
         else:
             number = 1
-            @MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=obj; VALUE=1; SIGN=+; NUMBER=number)
+            @MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=obj; VALUE=1; SIGN=+; USIGN=; NUMBER=number)
             return number
     @ELIF_CHECK_NUMBER(T=tobj)
         return obj
@@ -150,19 +150,19 @@ def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NU
             data = obj.data
             if len(data)==1:
                 t, number = data.items()[0]
-                @MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=t; VALUE=exp; SIGN=+; NUMBER=number)
+                @MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=t; VALUE=exp; SIGN=+; USIGN=; NUMBER=number)
                 return number
             number = 1
-            @MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=obj; VALUE=exp; SIGN=+; NUMBER=number)
+            @MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=obj; VALUE=exp; SIGN=+; USIGN=; NUMBER=number)
             return number
         elif head is FACTORS:
             number = 1
             for t, c in obj.data.iteritems():
-                @MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=t; VALUE=c*exp; SIGN=+; NUMBER=number)
+                @MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=t; VALUE=c*exp; SIGN=+; USIGN=; NUMBER=number)
             return number
         else:
             number = 1
-            @MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=obj; VALUE=exp; SIGN=+; NUMBER=number)
+            @MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=obj; VALUE=exp; SIGN=+; USIGN=; NUMBER=number)
             return number
     @ELIF_CHECK_NUMBER(T=tobj)
         return obj ** exp

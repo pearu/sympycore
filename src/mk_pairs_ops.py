@@ -72,7 +72,9 @@ if not %(DICT)s:
 if len(%(DICT)s)==1:
    t, c = %(DICT)s.items()[0]
    if c==1:
-       return t * %(NUMBER)s
+       if %(NUMBER)s==1:
+           return t
+       @RETURN_NEW(HEAD=TERMS; DATA={t: %(NUMBER)s})
    if t==cls.one:
        return %(NUMBER)s
 '''
@@ -272,7 +274,6 @@ if %(TMP)s==1:
 pairs = {}
 for t,c in %(RHS)s.data.iteritems():
     pairs[t] = %(TMP)s * c
-@CANONIZE_TERMS_DICT(DICT=pairs)
 @NEWINSTANCE(OBJ=obj;HEAD=TERMS; DATA=pairs)
 coeff, terms = %(RHS)s._coeff_terms
 if terms is not None:
@@ -359,7 +360,11 @@ if len(rpairs)==1:
 coeff, terms = %(RHS)s._coeff_terms
 if terms is None:
     @MUL_FACTORS_SYMBOL(LHS=%(LHS)s; RHS=%(RHS)s)
-return (%(LHS)s * terms) * coeff
+pairs = dict(%(LHS)s.data)
+@ADD_TERM_VALUE_DICT(TERM=terms; VALUE=1; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
+@CANONIZE_FACTORS_DICT(DICT=pairs; NUMBER=coeff)
+@NEWINSTANCE(OBJ=%(TMP)s; HEAD=FACTORS; DATA=pairs)
+@RETURN_NEW(HEAD=TERMS; DATA={%(TMP)s: coeff})
 '''
 MUL_TERMS_FACTORS = '@MUL_FACTORS_TERMS(LHS=%(RHS)s; RHS=%(LHS)s)\n'
 MUL_FACTORS_FACTORS = '''\
@@ -367,12 +372,12 @@ pairs = dict(%(LHS)s.data)
 pairs_get = pairs.get
 number = 1
 for t,c in %(RHS)s.data.iteritems():
-    @MUL_FACTOR_VALUE_DICT(FACTOR=t; SIGN=+; VALUE=c; DICT=pairs; DICT_GET=pairs_get; NUMBER=number)
+    @MUL_FACTOR_VALUE_DICT(FACTOR=t; SIGN=+; USIGN=; VALUE=c; DICT=pairs; DICT_GET=pairs_get; NUMBER=number)
 @CANONIZE_FACTORS_DICT(DICT=pairs; NUMBER=number)
-if number is 1:
+if number == 1:
     @RETURN_NEW(HEAD=FACTORS; DATA=pairs)
 @NEWINSTANCE(OBJ=obj; HEAD=FACTORS; DATA=pairs)
-return obj * number
+@RETURN_NEW(HEAD=TERMS; DATA={obj: number})
 '''
 
 #======================================
@@ -551,7 +556,7 @@ pairs = dict(%(LHS)s.data)
 pairs_get = pairs.get
 number = 1
 for t,c in %(RHS)s.data.iteritems():
-    @MUL_FACTOR_VALUE_DICT(FACTOR=t; SIGN=-; VALUE=c; DICT=pairs; DICT_GET=pairs_get; NUMBER=number)
+    @MUL_FACTOR_VALUE_DICT(FACTOR=t; SIGN=-; USIGN=-; VALUE=c; DICT=pairs; DICT_GET=pairs_get; NUMBER=number)
 @CANONIZE_FACTORS_DICT(DICT=pairs; NUMBER=number)
 if number==1:
     @RETURN_NEW(HEAD=FACTORS; DATA=pairs)

@@ -224,10 +224,10 @@ def inplace_mul(cls, obj, pairs, pairs_get, try_power=try_power, NUMBER=NUMBER):
             data = obj.data
             if len(data)==1:
                 t, number = data.items()[0]
-                #MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=t; VALUE=1; SIGN=+; NUMBER=number)
+                #MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=t; VALUE=1; SIGN=+; USIGN=; NUMBER=number)
                 _tmp135 = pairs_get(t)
                 if _tmp135 is None:
-                    pairs[t] = + 1
+                    pairs[t] =  1
                 else:
                     _tmp135 = _tmp135 + 1
                     if type(_tmp135) is cls and _tmp135.head is NUMBER:
@@ -259,10 +259,10 @@ def inplace_mul(cls, obj, pairs, pairs_get, try_power=try_power, NUMBER=NUMBER):
                         del pairs[t]
                 return number
             number = 1
-            #MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=obj; VALUE=1; SIGN=+; NUMBER=number)
+            #MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=obj; VALUE=1; SIGN=+; USIGN=; NUMBER=number)
             _tmp156 = pairs_get(obj)
             if _tmp156 is None:
-                pairs[obj] = + 1
+                pairs[obj] =  1
             else:
                 _tmp156 = _tmp156 + 1
                 if type(_tmp156) is cls and _tmp156.head is NUMBER:
@@ -296,10 +296,10 @@ def inplace_mul(cls, obj, pairs, pairs_get, try_power=try_power, NUMBER=NUMBER):
         elif head is FACTORS:
             number = 1
             for t, c in obj.data.iteritems():
-                #MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=t; VALUE=c; SIGN=+; NUMBER=number)
+                #MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=t; VALUE=c; SIGN=+; USIGN=; NUMBER=number)
                 _tmp177 = pairs_get(t)
                 if _tmp177 is None:
-                    pairs[t] = + c
+                    pairs[t] =  c
                 else:
                     _tmp177 = _tmp177 + c
                     if type(_tmp177) is cls and _tmp177.head is NUMBER:
@@ -332,10 +332,10 @@ def inplace_mul(cls, obj, pairs, pairs_get, try_power=try_power, NUMBER=NUMBER):
             return number
         else:
             number = 1
-            #MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=obj; VALUE=1; SIGN=+; NUMBER=number)
+            #MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=obj; VALUE=1; SIGN=+; USIGN=; NUMBER=number)
             _tmp198 = pairs_get(obj)
             if _tmp198 is None:
-                pairs[obj] = + 1
+                pairs[obj] =  1
             else:
                 _tmp198 = _tmp198 + 1
                 if type(_tmp198) is cls and _tmp198.head is NUMBER:
@@ -384,10 +384,10 @@ def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NU
             data = obj.data
             if len(data)==1:
                 t, number = data.items()[0]
-                #MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=t; VALUE=exp; SIGN=+; NUMBER=number)
+                #MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=t; VALUE=exp; SIGN=+; USIGN=; NUMBER=number)
                 _tmp226 = pairs_get(t)
                 if _tmp226 is None:
-                    pairs[t] = + exp
+                    pairs[t] =  exp
                 else:
                     _tmp226 = _tmp226 + exp
                     if type(_tmp226) is cls and _tmp226.head is NUMBER:
@@ -419,10 +419,10 @@ def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NU
                         del pairs[t]
                 return number
             number = 1
-            #MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=obj; VALUE=exp; SIGN=+; NUMBER=number)
+            #MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=obj; VALUE=exp; SIGN=+; USIGN=; NUMBER=number)
             _tmp247 = pairs_get(obj)
             if _tmp247 is None:
-                pairs[obj] = + exp
+                pairs[obj] =  exp
             else:
                 _tmp247 = _tmp247 + exp
                 if type(_tmp247) is cls and _tmp247.head is NUMBER:
@@ -456,10 +456,10 @@ def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NU
         elif head is FACTORS:
             number = 1
             for t, c in obj.data.iteritems():
-                #MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=t; VALUE=c*exp; SIGN=+; NUMBER=number)
+                #MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=t; VALUE=c*exp; SIGN=+; USIGN=; NUMBER=number)
                 _tmp268 = pairs_get(t)
                 if _tmp268 is None:
-                    pairs[t] = + c*exp
+                    pairs[t] =  c*exp
                 else:
                     _tmp268 = _tmp268 + c*exp
                     if type(_tmp268) is cls and _tmp268.head is NUMBER:
@@ -492,10 +492,10 @@ def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NU
             return number
         else:
             number = 1
-            #MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=obj; VALUE=exp; SIGN=+; NUMBER=number)
+            #MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=obj; VALUE=exp; SIGN=+; USIGN=; NUMBER=number)
             _tmp289 = pairs_get(obj)
             if _tmp289 is None:
-                pairs[obj] = + exp
+                pairs[obj] =  exp
             else:
                 _tmp289 = _tmp289 + exp
                 if type(_tmp289) is cls and _tmp289.head is NUMBER:

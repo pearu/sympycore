@@ -23,6 +23,8 @@ from .pairs_iops import (inplace_add, inplace_add2, inplace_sub,
                          return_terms, return_factors,
                          inplace_mul, inplace_mul2)
 
+from .pairs_expand import expand
+
 def newinstance(cls, head, data, new = object.__new__):
     o = new(cls)
     o.head = head
@@ -62,6 +64,7 @@ class CommutativeRingWithPairs(CommutativeRing):
     __div__ = div_method
     __rdiv__ = rdiv_method
     __pow__ = pow_method
+    expand = expand
 
     def __new__(cls, data, head=None):
         if head is None:
@@ -437,7 +440,7 @@ class CommutativeRingWithPairs(CommutativeRing):
                 r = PrimitiveAlgebra((SYMBOL, (self.head,self.data)))
         return r
 
-    def expand(self):
+    def old_expand(self):
         return expand_dict1[self.head](self, type(self))
 
     @classmethod
@@ -802,53 +805,6 @@ def pow_SYMBOL_MUL(lhs, rhs, cls):
 def pow_SYMBOL_SYMBOL(lhs, rhs, cls):
     return newinstance(cls, MUL, {lhs:rhs})
 
-def expand_ADD(obj, cls):
-    d = {}
-    d_get = d.get
-    one = cls.one
-    for t,c in obj.data.iteritems():
-        t = t.expand()
-        inplace_add2(cls, t, c, d, d_get, one)
-    return return_terms(cls, d)
-
-def expand_MUL(obj, cls):
-    cls = type(obj)
-    pairs = obj.data
-    if len(pairs)==1:
-        t, c = pairs.items()[0]
-        t = t.expand()
-        if c==1:
-            return t
-        if c < 1:
-            return t ** c
-        head = t.head
-        if head is NUMBER:
-            return t ** c
-        elif head is MUL:
-            t._multiply_values(c, 1, 0)
-            return t
-        elif head is ADD:
-            return expand_ADD_INTPOW(t, c, cls)
-        return newinstance(cls, MUL, {t:c})
-
-    # split product into lhs * rhs:
-    it = pairs.iteritems()
-    t, c = it.next()
-    if c==1:
-        lhs = t.expand()
-    else:
-        lhs = newinstance(cls, MUL, {t:c}).expand()
-    if len(pairs)==2:
-        t, c = it.next()
-        if c==1:
-            rhs = t.expand()
-        else:
-            rhs = newinstance(cls, MUL, {t:c}).expand()
-    else:
-        rhs = newinstance(cls, MUL, dict(it)).expand()
-    return expand_dict2[lhs.head][rhs.head](lhs, rhs, cls)
-
-
 ####################################################################
 # Implementation of binary operations +, *, and expanding products.
 
@@ -1016,108 +972,6 @@ def multiply_MUL_MUL(lhs, rhs, cls):
         return result
     return result * number
 
-def expand_NUMBER_ADD(lhs, rhs, cls):
-    value = lhs.data
-    if value:
-        if value==1:
-            return rhs
-        d = {}
-        result = newinstance(cls, ADD, d)
-        for t,c in rhs.data.iteritems():
-            d[t] = c * value
-        if len(d)<=1:
-            return result.canonize()
-        return result
-    return lhs
-
-generate_swapped_first_arguments(expand_NUMBER_ADD)
-
-def expand_SYMBOL_ADD(lhs, rhs, cls):
-    d = {}
-    result = newinstance(cls, ADD, d)
-    for t,c in rhs.data.iteritems():
-        d[t * lhs] = c
-    return result
-
-generate_swapped_first_arguments(expand_SYMBOL_ADD)
-
-def expand_ADD_ADD(lhs, rhs, cls):
-    pairs1 = lhs.data
-    pairs2 = rhs.data
-    if len(pairs1) < len(pairs2):
-        lhs, rhs = rhs, lhs
-        pairs1, pairs2 = pairs2, pairs1
-    d = {}
-    result = newinstance(cls, ADD, d)
-    get = d.get
-    for t1, c1 in pairs1.iteritems():
-        for t2, c2 in pairs2.iteritems():
-            t = t1 * t2
-            c = c1 * c2
-            b = get(t)
-            if b is None:
-                d[t] = c
-            else:
-                c = b + c
-                if c:
-                    d[t] = c
-                else:
-                    del d[t]
-    if len(d)<=1:
-        return result.canonize()
-    return result
-
-def expand_ADD_MUL(lhs, rhs, cls):
-    pairs = lhs.data
-    if len(pairs)==1:
-        t,c = pairs.items()[0]
-        return expand_dict2[t.head][rhs.head](t, rhs, cls) * cls.convert(c)
-    d = {}
-    result = newinstance(cls, ADD, d)
-    for t,c in pairs.iteritems():
-        d[t * rhs] = c
-    if len(d)<=1:
-        return result.canonize()
-    return result
-
-generate_swapped_first_arguments(expand_ADD_MUL)
-
-def expand_ADD_INTPOW(lhs, m, cls):
-    terms = lhs.data.items()
-    data = multinomial_coefficients(len(terms), int(m))
-    d = {}
-    result = newinstance(cls, ADD, d)
-    get = d.get
-    Factors = cls.Factors
-    one = cls.one
-    for exps, c in data.iteritems():
-        n = 1
-        d1 = {}
-        d1_get = d1.get
-        for i,e in enumerate(exps):
-            if not e:
-                continue
-            t1, c1 = terms[i]
-            num = inplace_mul2(cls, t1, e, d1, d1_get)
-            if num is not 1:
-                n = n * num
-            if c1!=1:
-                n = n * c1**e
-        t = return_factors(cls, d1)
-        if t.head is NUMBER:
-            n = t.data * n
-            t = one
-        b = get(t)
-        if b is None:
-            d[t] = n * c
-        else:
-            c = b + n * c
-            if c:
-                d[t] = c
-            else:
-                del d[t]
-    return result
-
 # function maps:
 
 pow_dict1 = defaultdict(lambda: pow_SYMBOL_int,
@@ -1152,41 +1006,6 @@ pow_dict2 = defaultdict(lambda: pow_SYMBOL_dict,
                          ADD: pow_ADD_dict,
                          MUL: pow_MUL_dict})
 
-expand_NUMBER_dict = defaultdict(lambda:multiply_NUMBER_SYMBOL,
-                                 {NUMBER: multiply_NUMBER_NUMBER,
-                                  ADD: expand_NUMBER_ADD,
-                                  MUL: multiply_NUMBER_MUL,
-                                  })
-
-expand_ADD_dict = defaultdict(lambda:expand_ADD_SYMBOL,
-                              {NUMBER: expand_ADD_NUMBER,
-                               ADD: expand_ADD_ADD,
-                               MUL: expand_ADD_MUL,
-                               })
-
-expand_MUL_dict = defaultdict(lambda:multiply_MUL_SYMBOL,
-                              {NUMBER: multiply_MUL_NUMBER,
-                               ADD: expand_MUL_ADD,
-                               MUL: multiply_MUL_MUL,
-                               })
-
-expand_SYMBOL_dict = defaultdict(lambda:multiply_SYMBOL_SYMBOL,
-                                 {NUMBER: multiply_SYMBOL_NUMBER,
-                                  ADD: expand_SYMBOL_ADD,
-                                  MUL: multiply_SYMBOL_MUL,
-                                  })
-
-expand_dict2 = defaultdict(lambda:expand_SYMBOL_dict,
-                           {NUMBER:expand_NUMBER_dict,
-                            ADD:expand_ADD_dict,
-                            MUL:expand_MUL_dict,
-                            })
-
-expand_dict1 = defaultdict(lambda: (lambda obj, cls: obj),
-                           {NUMBER: lambda obj, cls: obj,
-                            ADD: expand_ADD,
-                            MUL: expand_MUL,
-                            })
 
 mul_NUMBER_dict = defaultdict(lambda:multiply_NUMBER_SYMBOL,
                               {NUMBER: multiply_NUMBER_NUMBER,

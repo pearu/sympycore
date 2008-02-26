@@ -85,7 +85,7 @@ else:
 MUL_FACTOR_VALUE_DICT='''\
 %(TMP)s = %(DICT_GET)s(%(FACTOR)s)
 if %(TMP)s is None:
-    %(DICT)s[%(FACTOR)s] = %(SIGN)s %(VALUE)s
+    %(DICT)s[%(FACTOR)s] = %(USIGN)s %(VALUE)s
 else:
     %(TMP)s = %(TMP)s %(SIGN)s %(VALUE)s
     if type(%(TMP)s) is cls and %(TMP)s.head is NUMBER:

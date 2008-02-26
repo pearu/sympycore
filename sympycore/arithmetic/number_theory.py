@@ -96,7 +96,7 @@ def binomial_coefficients_list(n):
         d[k] = d[n-k] = a
     return d
 
-def multinomial_coefficients(m, n):
+def multinomial_coefficients(m, n, tuple_=tuple, zip_=zip):
     """Return a dictionary containing pairs {(k1,k2,..,km) : C_kn}
     where C_kn are multinomial coefficients and n=k1+k2+..+km.
     """
@@ -112,13 +112,12 @@ def multinomial_coefficients(m, n):
     ## where a(n,0) = p_0^n.
     if m==2:
         return binomial_coefficients(n)
-    tuple_ = tuple
-    zip_ = zip
     symbols = [(0,)*i + (1,) + (0,)*(m-i-1) for i in range(m)]
     s0 = symbols[0]
-    p0 = [tuple_([aa-bb for aa,bb in zip_(s,s0)]) for s in symbols]
+    p0 = [tuple_(aa-bb for aa,bb in zip_(s,s0)) for s in symbols]
     r = {tuple_(aa*n for aa in s0):1}
     r_get = r.get
+    r_update = r.update
     l = [0] * (n*(m-1)+1)
     l[0] = r.items()
     for k in xrange(1, n*(m-1)+1):
@@ -130,7 +129,7 @@ def multinomial_coefficients(m, n):
                 continue
             t = p0[i]
             for t2, c2 in l[k-i]:
-                tt = tuple_([aa+bb for aa,bb in zip_(t2,t)])
+                tt = tuple_(aa+bb for aa,bb in zip_(t2,t))
                 cc = nn * c2
                 b = d_get(tt)
                 if b is None:
@@ -141,7 +140,7 @@ def multinomial_coefficients(m, n):
                         d[tt] = cc
                     else:
                         del d[tt]
-        r1 = [(t, c//k) for (t, c) in d.items()]
+        r1 = [(t, c//k) for (t, c) in d.iteritems()]
         l[k] = r1
-        r.update(r1)
+        r_update(r1)
     return r
