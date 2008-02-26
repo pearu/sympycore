@@ -668,7 +668,7 @@ def generate_if_blocks(heads, prefix='', tab=' '*4):
 
 OP3_TEMPLATE = '''
 def %(op)s_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
-    cls = self.__class__
+    cls = type(self)
     lhead = self.head
     if type(other) is not cls:
         if isinstance(other, cls.coefftypes):
@@ -686,7 +686,7 @@ def %(op)s_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=
 
 OP4_TEMPLATE = '''
 def %(op)s_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
-    cls = self.__class__
+    cls = type(self)
     lhead = self.head
     if type(other) is not cls:
         if isinstance(other, cls.coefftypes):
@@ -711,7 +711,7 @@ def main():
     print >> f, preprocess('''
 
 def neg_method(self, NUMBER=NUMBER, TERMS=TERMS, new=object.__new__):
-    cls = self.__class__
+    cls = type(self)
     lhead = self.head
     if lhead is NUMBER:
         @NEG_NUMBER(OP=self)
@@ -721,7 +721,7 @@ def neg_method(self, NUMBER=NUMBER, TERMS=TERMS, new=object.__new__):
         @NEG_SYMBOL(OP=self)
 
 def rsub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
-    cls = self.__class__
+    cls = type(self)
     lhead = self.head
     if isinstance(other, cls.coefftypes):
         if lhead is NUMBER:
@@ -736,7 +736,7 @@ def rsub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=ob
     return other - self
 
 def rdiv_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
-    cls = self.__class__
+    cls = type(self)
     lhead = self.head
     if isinstance(other, cls.coefftypes):
         if lhead is NUMBER:
@@ -753,7 +753,7 @@ def rdiv_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=ob
     return other / self
 
 def pow_method(self, other, z = None, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
-    cls = self.__class__
+    cls = type(self)
     lhead = self.head
     type_other = type(other)
     if type_other is cls and other.head is NUMBER:

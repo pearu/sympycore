@@ -32,7 +32,7 @@ def div(a, b, cls):
 
 
 def neg_method(self, NUMBER=NUMBER, TERMS=TERMS, new=object.__new__):
-    cls = self.__class__
+    cls = type(self)
     lhead = self.head
     if lhead is NUMBER:
         #NEG_NUMBER(OP=self)
@@ -74,7 +74,7 @@ def neg_method(self, NUMBER=NUMBER, TERMS=TERMS, new=object.__new__):
         return _tmp72
 
 def rsub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
-    cls = self.__class__
+    cls = type(self)
     lhead = self.head
     if isinstance(other, cls.coefftypes):
         if lhead is NUMBER:
@@ -151,7 +151,7 @@ def rsub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=ob
     return other - self
 
 def rdiv_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
-    cls = self.__class__
+    cls = type(self)
     lhead = self.head
     if isinstance(other, cls.coefftypes):
         if lhead is NUMBER:
@@ -246,7 +246,7 @@ def rdiv_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=ob
     return other / self
 
 def pow_method(self, other, z = None, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
-    cls = self.__class__
+    cls = type(self)
     lhead = self.head
     type_other = type(other)
     if type_other is cls and other.head is NUMBER:
@@ -413,7 +413,7 @@ def pow_method(self, other, z = None, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTOR
     return NotImplemented
 
 def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
-    cls = self.__class__
+    cls = type(self)
     lhead = self.head
     if type(other) is not cls:
         if isinstance(other, cls.coefftypes):
@@ -652,7 +652,7 @@ def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
             return _tmp1024
 
 def sub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
-    cls = self.__class__
+    cls = type(self)
     lhead = self.head
     if type(other) is not cls:
         if isinstance(other, cls.coefftypes):
@@ -917,7 +917,7 @@ def sub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
             return _tmp1507
 
 def mul_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
-    cls = self.__class__
+    cls = type(self)
     lhead = self.head
     if type(other) is not cls:
         if isinstance(other, cls.coefftypes):
@@ -1570,7 +1570,7 @@ def mul_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=obj
             return _tmp2459
 
 def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
-    cls = self.__class__
+    cls = type(self)
     lhead = self.head
     if type(other) is not cls:
         if isinstance(other, cls.coefftypes):
