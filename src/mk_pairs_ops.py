@@ -704,11 +704,30 @@ def %(op)s_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=
     rhead = other.head
 ''' + generate_if_blocks(['NUMBER', 'TERMS', 'FACTORS', 'SYMBOL'], prefix=' '*4)
 
-
 def main():
     f = open(targetfile_py, 'w')
     print >> f, template
     print >> f, preprocess('''
+
+def expand_mul_method(cls, self, other, new=object.__new__):
+    lhead = self.head
+    rhead = other.head
+    if lhead is FACTORS:
+        if rhead is FACTORS:
+            @MUL_FACTORS_FACTORS(LHS=self; RHS=other)
+        elif rhead is NUMBER:
+            return self # other must be one
+        else:
+            @MUL_FACTORS_SYMBOL(LHS=self; RHS=other)
+    elif lhead is NUMBER:
+        return other # self must be one
+    else:
+        if rhead is FACTORS:
+            @MUL_SYMBOL_FACTORS(LHS=self; RHS=other)
+        elif rhead is NUMBER:
+            return self # other must be one
+        else:
+            @MUL_SYMBOL_SYMBOL(LHS=self; RHS=other)
 
 def neg_method(self, NUMBER=NUMBER, TERMS=TERMS, new=object.__new__):
     cls = type(self)
