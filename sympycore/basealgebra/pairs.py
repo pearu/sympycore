@@ -71,7 +71,7 @@ class CommutativeRingWithPairs(CommutativeRing):
             if isinstance(data, cls):
                 return data
             return cls.convert(data)
-        if head in [ADD, MUL] and not isinstance(data, dict):
+        if head in [TERMS, FACTORS] and not isinstance(data, dict):
             data = dict(data)
         return newinstance(cls, head, data)
 

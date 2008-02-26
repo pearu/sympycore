@@ -129,7 +129,7 @@ def expand_FACTORS(cls, self, one, new = object.__new__):
         elif h is TERMS:
             d = {}
             d_get = d.get
-            if len(data) < len(ed):
+            if len(data) > len(ed):
                 iter1 = data.iteritems
                 iter2 = ed.iteritems
             else:
