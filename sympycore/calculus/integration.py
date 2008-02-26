@@ -8,14 +8,14 @@ def unknown(expr):
 
 def integrate_indefinite(expr, x):
     head = expr.head
+    cls = type(expr)
     if head is NUMBER or x not in expr._get_symbols_data():
-        return expr*x
+        return expr*newinstance(cls, SYMBOL, x)
     elif head is SYMBOL and expr.data == x:
         return expr**2 / 2
-    elif expr.head is FACTORS:
+    elif head is FACTORS:
         product = one
         have_x = False
-        cls = type(expr)
         for base, e in expr.data.iteritems():
             # We don't know how to do exponentials yet
             if type(e) is cls and x in expr._get_symbols_data():
@@ -34,7 +34,7 @@ def integrate_indefinite(expr, x):
             else:
                 product *= base**e
         return product
-    elif expr.head is TERMS:
+    elif head is TERMS:
         return expr.Add(*(coef*integrate_indefinite(term, x) \
             for term, coef in expr.data.iteritems()))
     unknown(expr)
