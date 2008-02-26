@@ -82,7 +82,18 @@ def expand_FACTORS(cls, self, one):
             d_get = d.get
             for t1, c1 in t.data.iteritems():
                 for t2, c2 in ed.iteritems():
-                    inplace_add2(cls, t1*t2, c1*c2, d, d_get, one)
+                    #inplace_add2(cls, t1*t2, c1*c2, d, d_get, one)
+                    t = t1*t2
+                    c = c1*c2
+                    b = d_get(t)
+                    if b is None:
+                        d[t] = c
+                    else:
+                        c = b + c
+                        if c:
+                            d[t] = c
+                        else:
+                            del d[t]
             ed = d
         elif h is NUMBER:
             b = ed.get(one)
