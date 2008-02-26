@@ -43,9 +43,9 @@ def expand_FACTORS(cls, self, one):
                 ed = {t: 1}
             else:
                 d = {}
-                d_get = d.get
                 for t2, c2 in ed.iteritems():
-                    inplace_add2(cls, t * t2, c2, d, d_get, one)
+                    #inplace_add2(cls, t * t2, c2, d, d_get, one)
+                    d[t * t2] = c2
                 ed = d
             continue
         if h is TERMS:
@@ -63,9 +63,16 @@ def expand_FACTORS(cls, self, one):
             for exps, n in mdata.iteritems():
                 d1 = {}
                 d1_get = d1.get
-                for (t1, c1), e in zip(terms, exps):
+                for i,e in enumerate(exps):
+                    if not e:
+                        continue
+                    t1, c1 = terms[i]
+                    #d1[t1] = e
                     num = inplace_mul2(cls, t1, e, d1, d1_get)
-                    n = n * num * c1**e
+                    if num is not 1:
+                        n = n * num
+                    if c1 is not 1:
+                        n = n * c1**e
                 t1 = return_factors(cls, d1)
                 inplace_add2(cls, t1, n, d, d_get, one)
             t = return_terms(cls, d)
@@ -80,9 +87,9 @@ def expand_FACTORS(cls, self, one):
         elif h is TERMS:
             d = {}
             d_get = d.get
+            ed_iter = ed.iteritems
             for t1, c1 in t.data.iteritems():
-                for t2, c2 in ed.iteritems():
-                    #inplace_add2(cls, t1*t2, c1*c2, d, d_get, one)
+                for t2, c2 in ed_iter():
                     t = t1*t2
                     c = c1*c2
                     b = d_get(t)
@@ -109,8 +116,8 @@ def expand_FACTORS(cls, self, one):
             d = {}
             d_get = d.get
             for t2, c2 in ed.iteritems():
-                d[t * t2] = c2
                 #inplace_add2(cls, t * t2, c2, d, d_get, one)
+                d[t * t2] = c2
             ed = d
     if ed is None:
         return cls.one
