@@ -2,7 +2,7 @@
 from ..arithmetic.numbers import Complex, Float, FractionTuple, try_power
 from ..arithmetic.number_theory import multinomial_coefficients
 from ..utils import SYMBOL, NUMBER, TERMS, FACTORS
-from .pairs_iops import inplace_add2, inplace_add, return_terms, inplace_mul2, return_factors, inplace_mul
+from .pairs_iops import inplace_add2, inplace_add, return_terms, inplace_mul2, return_factors, inplace_mul, expand_inplace_mul2
 from .pairs_ops import expand_mul_method
 
 def newinstance(cls, head, data, new = object.__new__):
@@ -45,8 +45,7 @@ def expand_FACTORS(cls, self, one):
             else:
                 d = {}
                 for t2, c2 in ed.iteritems():
-                    #inplace_add2(cls, t * t2, c2, d, d_get, one)
-                    d[t * t2] = c2
+                    d[expand_mul_method(cls, t, t2)] = c2
                 ed = d
             continue
         if h is TERMS:
@@ -68,8 +67,7 @@ def expand_FACTORS(cls, self, one):
                     if not e:
                         continue
                     t1, c1 = terms[i]
-                    #d1[t1] = e
-                    num = inplace_mul2(cls, t1, e, d1, d1_get)
+                    num = expand_inplace_mul2(cls, t1, e, d1, d1_get)
                     if num is not 1:
                         n = n * num
                     if c1 is not 1:
@@ -123,8 +121,7 @@ def expand_FACTORS(cls, self, one):
             d = {}
             d_get = d.get
             for t2, c2 in ed.iteritems():
-                #inplace_add2(cls, t * t2, c2, d, d_get, one)
-                d[t * t2] = c2
+                d[expand_mul_method(cls, t, t2)] = c2
             ed = d
     if ed is None:
         return cls.one

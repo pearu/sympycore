@@ -532,4 +532,81 @@ def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NU
     else:
         return inplace_mul2(cls, cls.convert(obj), exp, pairs, pairs_get)
 
+def expand_inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power):
+    head = obj.head
+    data = obj.data
+    if head is NUMBER:
+        return data ** exp
+    if head is FACTORS:
+        number = 1
+        for t, c in obj.data.iteritems():
+            #MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=t; VALUE=c*exp; SIGN=+; USIGN=; NUMBER=number)
+            _tmp317 = pairs_get(t)
+            if _tmp317 is None:
+                pairs[t] =  c*exp
+            else:
+                _tmp317 = _tmp317 + c*exp
+                if type(_tmp317) is cls and _tmp317.head is NUMBER:
+                    _tmp317 = _tmp317.data
+                if _tmp317:
+                    if t.head is NUMBER:
+                        del pairs[t]
+                        z, sym = try_power(t.data, _tmp317)
+                        if sym:
+                            for t1, c1 in sym:
+                                #NEWINSTANCE(OBJ=tt; HEAD=NUMBER; DATA=t1)
+                                tt = new(cls)
+                                tt.head = NUMBER
+                                tt.data = t1
+                                #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+; USIGN=)
+                                _tmp331 = pairs_get(tt)
+                                if _tmp331 is None:
+                                    pairs[tt] =  c1
+                                else:
+                                    _tmp331 = _tmp331 + c1
+                                    if _tmp331:
+                                        pairs[tt] = _tmp331
+                                    else:
+                                        del pairs[tt]
+                        number = number * z
+                    else:
+                        pairs[t] = _tmp317
+                else:
+                    del pairs[t]
+        return number
+    number = 1
+    #MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=obj; VALUE=exp; SIGN=+; USIGN=; NUMBER=number)
+    _tmp338 = pairs_get(obj)
+    if _tmp338 is None:
+        pairs[obj] =  exp
+    else:
+        _tmp338 = _tmp338 + exp
+        if type(_tmp338) is cls and _tmp338.head is NUMBER:
+            _tmp338 = _tmp338.data
+        if _tmp338:
+            if obj.head is NUMBER:
+                del pairs[obj]
+                z, sym = try_power(obj.data, _tmp338)
+                if sym:
+                    for t1, c1 in sym:
+                        #NEWINSTANCE(OBJ=tt; HEAD=NUMBER; DATA=t1)
+                        tt = new(cls)
+                        tt.head = NUMBER
+                        tt.data = t1
+                        #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+; USIGN=)
+                        _tmp352 = pairs_get(tt)
+                        if _tmp352 is None:
+                            pairs[tt] =  c1
+                        else:
+                            _tmp352 = _tmp352 + c1
+                            if _tmp352:
+                                pairs[tt] = _tmp352
+                            else:
+                                del pairs[tt]
+                number = number * z
+            else:
+                pairs[obj] = _tmp338
+        else:
+            del pairs[obj]
+    return number
     
