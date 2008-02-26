@@ -169,19 +169,6 @@ def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NU
     else:
         return inplace_mul2(cls, cls.convert(obj), exp, pairs, pairs_get)
 
-def expand_inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power):
-    head = obj.head
-    data = obj.data
-    if head is NUMBER:
-        return data ** exp
-    if head is FACTORS:
-        number = 1
-        for t, c in obj.data.iteritems():
-            @MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=t; VALUE=c*exp; SIGN=+; USIGN=; NUMBER=number)
-        return number
-    number = 1
-    @MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=obj; VALUE=exp; SIGN=+; USIGN=; NUMBER=number)
-    return number
     ''', globals())
 
 if __name__=='__main__':

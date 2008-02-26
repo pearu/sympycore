@@ -1,8 +1,8 @@
 
 from ..arithmetic.numbers import Complex, Float, FractionTuple, try_power
 from ..arithmetic.number_theory import multinomial_coefficients
-from ..utils import SYMBOL, NUMBER, TERMS, FACTORS
-from .pairs_iops import inplace_add2, inplace_add, return_terms, inplace_mul2, return_factors, inplace_mul, expand_inplace_mul2
+from ..utils import NUMBER, TERMS, FACTORS
+from .pairs_iops import inplace_add2, return_terms, return_factors
 from .pairs_ops import expand_mul_method
 
 def newinstance(cls, head, data, new = object.__new__):
@@ -32,7 +32,7 @@ def expand_TERMS(cls, self, one):
         inplace_add2(cls, t, c, d, d_get, one)
     return return_terms(cls, d)
 
-def expand_FACTORS(cls, self, one):
+def expand_FACTORS(cls, self, one, new = object.__new__):
     ed = None
     for t, c in self.data.iteritems():
         h = t.head
@@ -67,14 +67,56 @@ def expand_FACTORS(cls, self, one):
                     if not e:
                         continue
                     t1, c1 = terms[i]
-                    num = expand_inplace_mul2(cls, t1, e, d1, d1_get)
-                    if num is not 1:
-                        n = n * num
+                    h1 = t1.head
+                    if h1 is NUMBER:
+                        assert t1.data==1,`t1`
+                    elif h1 is FACTORS:
+                        for t2, c2 in t1.data.iteritems():
+                            b = d1_get(t2)
+                            if b is None:
+                                d1[t2] = e * c2
+                            else:
+                                b = b + e * c2
+                                if b:
+                                    d1[t2] = b
+                                else:
+                                    del d1[t2]
+                    else:
+                        b = d1_get(t1)
+                        if b is None:
+                            d1[t1] = e
+                        else:
+                            b = b + e
+                            if b:
+                                d1[t1] = b
+                            else:
+                                del d1[t1]
                     if c1 is not 1:
-                        n = n * c1**e
-                t1 = return_factors(cls, d1)
-                inplace_add2(cls, t1, n, d, d_get, one)
-            t = return_terms(cls, d)
+                        if e is 1:
+                            n = n * c1
+                        else:
+                            n = n * c1**e
+                if len(d1)>1:
+                    t1 = new(cls)
+                    t1.head = FACTORS
+                    t1.data = d1
+                else:
+                    t1 = return_factors(cls, d1)
+                b = d_get(t1)
+                if b is None:
+                    d[t1] = n
+                else:
+                    n = n + b
+                    if n:
+                        d[t1] = n
+                    else:
+                        del d[t1]
+            if len(d)>1:
+                t = new(cls)
+                t.head = TERMS
+                t.data = d
+            else:
+                t = return_terms(cls, d)
             h = t.head
         data = t.data
         if ed is None:
