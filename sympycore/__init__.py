@@ -1,8 +1,9 @@
 """
-SympyCore - A pure Python CAS
------------------------------
+---------------------------------
+`SympyCore - A pure Python CAS`__
+---------------------------------
 
-http://sympycore.googlecode.org/
+__  http://sympycore.googlecode.com/
 
 """
 __docformat__ = "restructuredtext en"
