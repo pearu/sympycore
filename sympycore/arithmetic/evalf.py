@@ -1,4 +1,4 @@
-from .numbers import Float, Complex, ExtendedNumber
+from .numbers import Float, Complex
 
 import math
 import cmath

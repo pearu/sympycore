@@ -48,12 +48,10 @@ they become real.
 import math
 
 __all__ = ['FractionTuple', 'Float', 'Complex', 'div', 'int_root', 'try_power',
-           'ExtendedNumber', 'normalized_fraction']
+           'normalized_fraction']
 
 from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_NUMBER
 from ..basealgebra.primitive import PrimitiveAlgebra, NUMBER, SYMBOL
-from ..basealgebra.utils import get_object_by_name
-from ..utils import RedirectOperation
 
 inttypes = (int, long)
 
@@ -446,200 +444,16 @@ class Complex(object):
             return Float(fsqrt(m2.val, m2.prec, rounding), self.prec)
         raise NotImplementedError('abs(%r)' % (self))
 
-#----------------------------------------------------------------------------#
-#                                                                            #
-#                             Extended numbers                               #
-#                                                                            #
-#----------------------------------------------------------------------------#
-
-def as_direction(x):
-    if isinstance(x, (Complex, complex)):
-        return Complex(cmp(x.real, 0), cmp(x.imag, 0))
-    return cmp(x, 0)
-
-cmp_error = "no ordering relation is defined for complex numbers"
-
-class ExtendedNumber(object):
-
-    def __init__(self, infinite, direction):
-        raise
-        self.infinite = infinite
-        self.direction = direction
-
-    def __repr__(self):
-        if not self.infinite: return 'undefined'
-        if self.direction == 0: return 'zoo'
-        if self.direction == 1: return 'oo'
-        if self.direction == -1: return '-oo'
-        return "(%s)*oo" % self.direction
-
-    def to_str_data(self,sort=True):
-        if not self.infinite: return str_SYMBOL, 'undefined'
-        if self.direction == 0: return str_SYMBOL, 'zoo'
-        if self.direction == 1: return str_SYMBOL, 'oo'
-        if self.direction == -1: return str_SUM, '-oo'
-        return str_PRODUCT, "(%s)*oo" % self.direction
-
-    def __nonzero__(self):
-        raise RedirectOperation(self)
-
-    def __abs__(self):
-        if not self.infinite: return self
-        return self.get_oo()
-
-    def __eq__(self, other):
-        if isinstance(other, ExtendedNumber):
-            return self.infinite == other.infinite and \
-                self.direction == other.direction
-        return False
-
-    def __lt__(self, other):
-        if self.direction == 0:
-            return False
-        if self.direction not in (1, -1):
-            raise TypeError(cmp_error)
-        if isinstance(other, ExtendedNumber):
-            if other.direction not in (1, -1):
-                raise TypeError(cmp_error)
-            return (self.direction, other.direction) == (-1, 1)
-        if isinstance(other, (complex, Complex)):
-            raise TypeError(cmp_error)
-        return self.direction == -1
-
-    def __gt__(self, other):
-        if self.direction == 0:
-            return False
-        if self.direction not in (1, -1):
-            raise TypeError(cmp_error)
-        if isinstance(other, ExtendedNumber):
-            if other.direction not in (1, -1):
-                raise TypeError(cmp_error)
-            return (self.direction, other.direction) == (1, -1)
-        if isinstance(other, (complex, Complex)):
-            raise TypeError(cmp_error)
-        return self.direction == 1
-
-    def __le__(self, other):
-        return self == other or self.__lt__(other)
-
-    def __ge__(self, other):
-        return self == other or self.__gt__(other)
-
-    def __hash__(self):
-        return hash(('ExtendedNumber', self.infinite, self.direction))
-
-    def __neg__(self):
-        return ExtendedNumber(self.infinite, -self.direction)
-
-    def __pos__(self):
-        return self
-
-    def __add__(self, other):
-        if isinstance(other, ExtendedNumber):
-            if self.direction and other.direction and  self.direction == other.direction:
-                return ExtendedNumber(self.infinite*other.infinite, self.direction)
-            return ExtendedNumber.get_undefined()
-        if not isinstance(other, numbertypes):
-            bounded = getattr(other, 'is_bounded', None)
-            if bounded:
-                return self
-            return NotImplemented
-        return self
-
-    __radd__ = __add__
-
-    def __sub__(self, other):
-        return self + (-other)
-
-    def __rsub__(self, other):
-        return (-self) + other
-
-    def __mul__(self, other):
-        if isinstance(other, ExtendedNumber):
-            return ExtendedNumber(self.infinite*other.infinite,
-                                   as_direction(self.direction*other.direction))
-        if not isinstance(other, numbertypes):
-            direction = getattr(other, 'get_direction',lambda: other)()
-            if isinstance(direction, numbertypes):
-                other = direction
-            else:
-                return NotImplemented
-        if other==0:
-            return ExtendedNumber.get_undefined()
-        return ExtendedNumber(self.infinite, as_direction(self.direction*other))
-
-    __rmul__ = __mul__
-
-    def __div__(self, other):
-        if isinstance(other, ExtendedNumber):
-            return self * other**(-1)
-        if isinstance(other, numbertypes):
-            try:
-                if not other:
-                    return self * self.get_zoo()
-            except RedirectOperation:
-                pass
-            return self * div(1, other)
-        return NotImplemented
-
-    def __rdiv__(self, other):
-        if isinstance(other, numbertypes):
-            return other * self**(-1)
-        return NotImplemented
-
-    def __pow__(self, n):
-        z, symbolic = try_power(self, n)
-        if not symbolic:
-            return z
-        return NotImplemented
-
-    def __rpow__(self, n):
-        z, symbolic = try_power(n, self)
-        if not symbolic:
-            return z
-        return NotImplemented
-
-    @classmethod
-    def get_oo(cls):
-        return cls(1,1)
-
-    @classmethod
-    def get_moo(cls):
-        return cls(1,-1)
-
-    @classmethod
-    def get_zoo(cls):
-        return cls(1,0)
-
-    @classmethod
-    def get_undefined(cls):
-        return cls(0,0)
-
-    @property
-    def is_oo(self):
-        return (self.infinite, self.direction)==(1,1)
-
-    @property
-    def is_moo(self):
-        return (self.infinite, self.direction)==(1,-1)
-
-    @property
-    def is_zoo(self):
-        return (self.infinite, self.direction)==(1,0)
-
-    @property
-    def is_undefined(self):
-        return (self.infinite, self.direction)==(0,0)
-
-numbertypes = (int, long, float, complex, FractionTuple, Float, Complex, ExtendedNumber)
-realtypes = (int, long, float, FractionTuple, Float)
-complextypes = (complex, Complex)
 
 #----------------------------------------------------------------------------#
 #                                                                            #
 #                            Interface functions                             #
 #                                                                            #
 #----------------------------------------------------------------------------#
+
+numbertypes = (int, long, float, complex, FractionTuple, Float, Complex)
+realtypes = (int, long, float, FractionTuple, Float)
+complextypes = (complex, Complex)
 
 def div(a, b):
     """Safely compute a/b (if a or b is an integer, this function makes sure

@@ -23,7 +23,7 @@ def Rational(num, denom):
 
 Add = Calculus.Add
 Mul = Calculus.Mul
-Pow = lambda *args: Calculus.Pow(*map(Calculus.convert, args))
+Pow = Calculus.Pow
 
 from ..arithmetic.number_theory import factorial as _factorial
 def factorial(n):

@@ -1,4 +1,4 @@
-from sympycore.arithmetic.numbers import numbertypes, realtypes, ExtendedNumber
+from sympycore.arithmetic.numbers import numbertypes, realtypes
 from sympycore.calculus import Calculus, pi, E
 from sympycore.calculus.algebra import Positive, Nonnegative
 from sympycore.utils import NUMBER, ADD, MUL, POW
@@ -81,8 +81,6 @@ class Assumptions:
             val = x.data
             if isinstance(x.data, realtypes):
                 return val > 0
-            if isinstance(x.data, ExtendedNumber) and x.direction:
-                return x.direction > 0
         elif x.is_Add:
             args = x.as_Add_args()
             if any(s.positive(a) for a in args) and all(s.nonnegative(a) for a in args): return True
@@ -112,8 +110,6 @@ class Assumptions:
             val = x.data
             if isinstance(x.data, realtypes):
                 return val >= 0
-            if isinstance(x.data, ExtendedNumber) and x.direction:
-                return x.direction > 0
         elif x.is_Add:
             args = x.as_Add_args()
             if all(s.nonnegative(a) for a in args): return True
