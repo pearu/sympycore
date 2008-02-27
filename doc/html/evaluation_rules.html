@@ -5,7 +5,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="Docutils 0.4.1: http://docutils.sourceforge.net/" />
 <title>Automatic evaluation rules of symbolic expressions</title>
-<meta name="authors" content="Pearu Peterson &lt;pearu.peterson AT gmail DOT com&gt; Fredrik Johansson" />
+<meta name="authors" content="Pearu Peterson &lt;pearu.peterson AT gmail DOT com&gt;  Fredrik Johansson" />
 <style type="text/css">
 
 /*
@@ -299,7 +299,7 @@ ul.auto-toc {
 <tbody valign="top">
 <tr><th class="docinfo-name">Authors:</th>
 <td>Pearu Peterson &lt;pearu.peterson AT gmail DOT com&gt;
-Fredrik Johansson</td></tr>
+<br />Fredrik Johansson</td></tr>
 <tr class="field"><th class="docinfo-name">Created:</th><td class="field-body">February 2008</td>
 </tr>
 </tbody>
@@ -437,11 +437,10 @@ contain extended numbers explicitly.</p>
 <p>For example:</p>
 <pre class="literal-block">
 0 * x -&gt; 0
-0 * (x + oo) -&gt; undefined
 </pre>
 <p>Division a non-zero number by zero is infinity with undefined direction:</p>
 <pre class="literal-block">
-1/0 -&gt; oo(+oo)
+1/0 -&gt; zoo
 0/0 -&gt; undefined
 </pre>
 <p>Exponentiation by zero results one.</p>
@@ -463,16 +462,6 @@ number.</p>
 oo*(2 + x) -&gt; oo*(2 + x)
 </pre>
 </div>
-<p>The reason why distributivity law is not used in case of extended numbers
-is that it might lead to undefined results that otherwise would be defined.
-For example, if <tt class="docutils literal"><span class="pre">x=-1</span></tt> then:</p>
-<pre class="literal-block">
-oo*(2 + x) -&gt; oo*1 -&gt; oo
-</pre>
-<p>but</p>
-<pre class="literal-block">
-oo*(2 + x) -&gt; oo + oo*x -&gt; oo + oo*(-1) -&gt; oo - oo -&gt; undefined
-</pre>
 <p>All number sets (integers, rationals, complex numbers) are closed with
 respect to addition and multiplication operations.  Hence:</p>
 <div class="admonition-rule-6-additing-and-multiplying-numbers admonition">
@@ -501,24 +490,12 @@ imaginary complex number.</p>
 <p class="last">If <tt class="docutils literal"><span class="pre">n</span></tt> is negative then the result is <tt class="docutils literal"><span class="pre">1/(m**(-n))</span></tt> (or
 <tt class="docutils literal"><span class="pre">(1/m)**(-n)</span></tt>).</p>
 </div>
-<div class="admonition-rule-8-z-n-for-extended-number-z-oo-theta-and-integer-n admonition">
-<p class="first admonition-title">Rule 8: <tt class="docutils literal"><span class="pre">z</span> <span class="pre">**</span> <span class="pre">n</span></tt> for extended number <tt class="docutils literal"><span class="pre">z=oo(theta)</span></tt> and integer <tt class="docutils literal"><span class="pre">n</span></tt>.</p>
-<p>If <tt class="docutils literal"><span class="pre">n</span></tt> is <tt class="docutils literal"><span class="pre">0</span></tt> then the result is <tt class="docutils literal"><span class="pre">1</span></tt>.</p>
-<p>If <tt class="docutils literal"><span class="pre">n</span></tt> is positive then:</p>
-<pre class="literal-block">
-oo(theta)**n -&gt; oo(n*theta)
-</pre>
-<p>If <tt class="docutils literal"><span class="pre">n</span></tt> is negative then:</p>
-<pre class="last literal-block">
-oo(theta)**n -&gt; 0
-</pre>
-</div>
-<div class="admonition-rule-9-w-z-n-for-symbols-w-z-and-integer-n admonition">
-<p class="first admonition-title">Rule 9: <tt class="docutils literal"><span class="pre">(w*z)</span> <span class="pre">**</span> <span class="pre">n</span></tt> for symbols <tt class="docutils literal"><span class="pre">w</span></tt>, <tt class="docutils literal"><span class="pre">z</span></tt>, and integer <tt class="docutils literal"><span class="pre">n</span></tt>.</p>
+<div class="admonition-rule-8-w-z-n-for-symbols-w-z-and-integer-n admonition">
+<p class="first admonition-title">Rule 8: <tt class="docutils literal"><span class="pre">(w*z)</span> <span class="pre">**</span> <span class="pre">n</span></tt> for symbols <tt class="docutils literal"><span class="pre">w</span></tt>, <tt class="docutils literal"><span class="pre">z</span></tt>, and integer <tt class="docutils literal"><span class="pre">n</span></tt>.</p>
 <p class="last">The result is <tt class="docutils literal"><span class="pre">w**n</span> <span class="pre">*</span> <span class="pre">z**n</span></tt>.</p>
 </div>
-<div class="admonition-rule-10-w-z-n-for-symbols-w-z-and-integer-n admonition">
-<p class="first admonition-title">Rule 10: <tt class="docutils literal"><span class="pre">(w**z)</span> <span class="pre">**</span> <span class="pre">n</span></tt> for symbols <tt class="docutils literal"><span class="pre">w</span></tt>, <tt class="docutils literal"><span class="pre">z</span></tt>, and integer <tt class="docutils literal"><span class="pre">n</span></tt>.</p>
+<div class="admonition-rule-9-w-z-n-for-symbols-w-z-and-integer-n admonition">
+<p class="first admonition-title">Rule 9: <tt class="docutils literal"><span class="pre">(w**z)</span> <span class="pre">**</span> <span class="pre">n</span></tt> for symbols <tt class="docutils literal"><span class="pre">w</span></tt>, <tt class="docutils literal"><span class="pre">z</span></tt>, and integer <tt class="docutils literal"><span class="pre">n</span></tt>.</p>
 <p class="last">The result is <tt class="docutils literal"><span class="pre">w**(n*z)</span></tt>.</p>
 </div>
 </div>
@@ -539,6 +516,17 @@ oo(theta)**n -&gt; 0
 <div class="section">
 <h1><a class="toc-backref" href="#id8" id="extended-numbers" name="extended-numbers">3&nbsp;&nbsp;&nbsp;Extended numbers</a></h1>
 <p>See also <a class="reference" href="http://code.google.com/p/sympycore/wiki/ExtendedNumbers">http://code.google.com/p/sympycore/wiki/ExtendedNumbers</a>.</p>
+<p>The reason why distributivity law is not used in case of extended
+numbers, such as infinities, is that it might lead to undefined
+results that otherwise would be defined.  For example, if <tt class="docutils literal"><span class="pre">x=-1</span></tt>
+then:</p>
+<pre class="literal-block">
+oo*(2 + x) -&gt; oo*1 -&gt; oo
+</pre>
+<p>but</p>
+<pre class="literal-block">
+oo*(2 + x) -&gt; oo + oo*x -&gt; oo + oo*(-1) -&gt; oo - oo -&gt; undefined
+</pre>
 <p>An extended number is defined as a quantity that has infinite or
 undefined magnitude and has specified or undefined direction in the
 complex plane.</p>

@@ -5,7 +5,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="Docutils 0.4.1: http://docutils.sourceforge.net/" />
 <title>SympyCore User's Guide</title>
-<meta name="authors" content="Pearu Peterson &lt;pearu.peterson&#64;gmail.com&gt; Fredrik Johansson" />
+<meta name="authors" content="Pearu Peterson &lt;pearu.peterson&#64;gmail.com&gt;  Fredrik Johansson" />
 <style type="text/css">
 
 /*
@@ -298,8 +298,8 @@ ul.auto-toc {
 <col class="docinfo-content" />
 <tbody valign="top">
 <tr><th class="docinfo-name">Authors:</th>
-<td>Pearu Peterson &lt;pearu.peterson&#64;gmail.com&gt;
-Fredrik Johansson</td></tr>
+<td>Pearu Peterson &lt;<a class="reference" href="mailto:pearu.peterson&#64;gmail.com">pearu.peterson&#64;gmail.com</a>&gt;
+<br />Fredrik Johansson</td></tr>
 <tr class="field"><th class="docinfo-name">Created:</th><td class="field-body">January 2008</td>
 </tr>
 </tbody>
@@ -733,7 +733,7 @@ For example,</p>
 <pre class="last doctest-block">
 &gt;&gt;&gt; print sin(x*y).diff(x)
 y*cos(x*y)
-&gt;&gt;&gt; print sin(x*y).diff(x,y)
+&gt;&gt;&gt; print sin(x*y).diff(x).diff(y)
 cos(x*y) - x*y*sin(x*y)
 &gt;&gt;&gt; print sin(x*y).diff(x,4)
 sin(x*y)*y**4
@@ -762,7 +762,8 @@ For example,</p>
 &gt;&gt;&gt; from sympycore import *
 &gt;&gt;&gt; print (x**2 + x*y).integrate(x)
 1/2*y*x**2 + 1/3*x**3
-&gt;&gt;&gt; print (x**2 + x*y).integrate((x, 2, 5))
+&gt;&gt;&gt; print (x**2 + x*y).integrate((x, 1, 3))
+26/3 + 4*y
 </pre>
 </dd>
 </dl>

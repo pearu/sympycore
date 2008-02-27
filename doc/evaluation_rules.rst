@@ -6,6 +6,7 @@ Automatic evaluation rules of symbolic expressions
 
 :Authors:
   Pearu Peterson <pearu.peterson AT gmail DOT com>
+
   Fredrik Johansson
 
 :Created:
@@ -135,11 +136,10 @@ __ http://en.wikipedia.org/wiki/Commutativity
   For example::
 
     0 * x -> 0
-    0 * (x + oo) -> undefined
 
   Division a non-zero number by zero is infinity with undefined direction::
 
-    1/0 -> oo(+oo)
+    1/0 -> zoo
     0/0 -> undefined
 
   Exponentiation by zero results one.
@@ -163,17 +163,6 @@ __ http://en.wikipedia.org/wiki/Commutativity
 
 __ http://en.wikipedia.org/wiki/Distributivity
 
-The reason why distributivity law is not used in case of extended numbers
-is that it might lead to undefined results that otherwise would be defined.
-For example, if ``x=-1`` then::
-
-  oo*(2 + x) -> oo*1 -> oo
-
-but
-
-::
-
-  oo*(2 + x) -> oo + oo*x -> oo + oo*(-1) -> oo - oo -> undefined
 
 All number sets (integers, rationals, complex numbers) are closed with
 respect to addition and multiplication operations.  Hence:
@@ -207,23 +196,11 @@ Integer powers
   If ``n`` is negative then the result is ``1/(m**(-n))`` (or
   ``(1/m)**(-n)``).
 
-.. admonition:: Rule 8: ``z ** n`` for extended number ``z=oo(theta)`` and integer ``n``.
-
-  If ``n`` is ``0`` then the result is ``1``.
-
-  If ``n`` is positive then::
-
-    oo(theta)**n -> oo(n*theta)
-
-  If ``n`` is negative then::
-
-    oo(theta)**n -> 0
-
-.. admonition:: Rule 9: ``(w*z) ** n`` for symbols ``w``, ``z``, and integer ``n``.
+.. admonition:: Rule 8: ``(w*z) ** n`` for symbols ``w``, ``z``, and integer ``n``.
 
   The result is ``w**n * z**n``.
 
-.. admonition:: Rule 10: ``(w**z) ** n`` for symbols ``w``, ``z``, and integer ``n``.
+.. admonition:: Rule 9: ``(w**z) ** n`` for symbols ``w``, ``z``, and integer ``n``.
 
   The result is ``w**(n*z)``.
 
@@ -245,6 +222,19 @@ Extended numbers
 ================
 
 See also http://code.google.com/p/sympycore/wiki/ExtendedNumbers.
+
+The reason why distributivity law is not used in case of extended
+numbers, such as infinities, is that it might lead to undefined
+results that otherwise would be defined.  For example, if ``x=-1``
+then::
+
+  oo*(2 + x) -> oo*1 -> oo
+
+but
+
+::
+
+  oo*(2 + x) -> oo + oo*x -> oo + oo*(-1) -> oo - oo -> undefined
 
 An extended number is defined as a quantity that has infinite or
 undefined magnitude and has specified or undefined direction in the

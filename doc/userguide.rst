@@ -9,6 +9,7 @@ SympyCore User's Guide
 
 :Authors:
   Pearu Peterson <pearu.peterson@gmail.com>
+
   Fredrik Johansson
 
 :Created:
