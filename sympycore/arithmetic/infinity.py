@@ -1,3 +1,7 @@
+"""Provides base class for extended numbers: Infinity.
+"""
+
+__all__ = ['Infinity']
 
 from .numbers import realtypes, complextypes, Complex, numbertypes, div
 

@@ -1,4 +1,12 @@
+"""Provides algorithms from number theory.
+"""
 from .numbers import FractionTuple, normalized_fraction, Complex, Float, div
+
+__all__ = ['gcd', 'lcm', 'factorial',
+           'integer_digits', 'real_digits',
+           'multinomial_coefficients']
+
+__docformat__ = "restructuredtext en"
 
 def factorial(n, memo=[1, 1]):
     """Return n factorial (for integers n >= 0 only)."""
@@ -51,12 +59,14 @@ def integer_digits(n, base=10):
 
 # TODO: this could (also?) be implemented as an endless generator
 def real_digits(x, base=10, truncation=10):
-    """Return (L, d) where L is a list of digits of abs(x) in the given
-    base and d is the (signed) distance from the leading digit to the
-    radix point. For example, 1234.56 becomes ([1, 2, 3, 4, 5, 6], 4)
-    and 0.001 becomes ([1], -2). If, during the generation of
-    fractional digits, the length reaches `truncation` digits, the
-    iteration is stopped."""
+    """Return ``(L, d)`` where L is a list of digits of ``abs(x)`` in
+    the given base and ``d`` is the (signed) distance from the leading
+    digit to the radix point.
+
+    For example, 1234.56 becomes ``([1, 2, 3, 4, 5, 6], 4)`` and 0.001
+    becomes ``([1], -2)``. If, during the generation of fractional
+    digits, the length reaches `truncation` digits, the iteration is
+    stopped."""
     assert base > 1
     assert isinstance(x, (int, long, FractionTuple))
     if x == 0:
@@ -96,26 +106,39 @@ def binomial_coefficients_list(n):
         d[k] = d[n-k] = a
     return d
 
-def multinomial_coefficients(m, n, tuple_=tuple, zip_=zip):
-    """Return a dictionary containing pairs {(k1,k2,..,km) : C_kn}
-    where C_kn are multinomial coefficients and n=k1+k2+..+km.
+def multinomial_coefficients(m, n, _tuple=tuple, _zip=zip):
+    """Return a dictionary containing pairs ``{(k1,k2,..,km) : C_kn}``
+    where ``C_kn`` are multinomial coefficients such that
+    ``n=k1+k2+..+km``.
+
+    For example:
+
+    >>> print multinomial_coefficients(2,5)
+    {(3, 2): 10, (1, 4): 5, (2, 3): 10, (5, 0): 1, (0, 5): 1, (4, 1): 5}
+
+    The algorithm is based on the following result:
+    
+       Consider a polynomial and it's ``m``-th exponent::
+       
+         P(x) = sum_{i=0}^m p_i x^k
+         P(x)^n = sum_{k=0}^{m n} a(n,k) x^k
+
+       The coefficients ``a(n,k)`` can be computed using the
+       J.C.P. Miller Pure Recurrence [see D.E.Knuth, Seminumerical
+       Algorithms, The art of Computer Programming v.2, Addison
+       Wesley, Reading, 1981;]::
+       
+         a(n,k) = 1/(k p_0) sum_{i=1}^m p_i ((n+1)i-k) a(n,k-i),
+
+       where ``a(n,0) = p_0^n``.
     """
-    ## Consider polynomial
-    ##   P(x) = sum_{i=0}^m p_i x^k
-    ## and its m-th exponent
-    ##   P(x)^n = sum_{k=0}^{m n} a(n,k) x^k
-    ## The coefficients a(n,k) can be computed using the
-    ## J.C.P. Miller Pure Recurrence [see D.E.Knuth,
-    ## Seminumerical Algorithms, The art of Computer
-    ## Programming v.2, Addison Wesley, Reading, 1981;]:
-    ##  a(n,k) = 1/(k p_0) sum_{i=1}^m p_i ((n+1)i-k) a(n,k-i),
-    ## where a(n,0) = p_0^n.
+
     if m==2:
         return binomial_coefficients(n)
     symbols = [(0,)*i + (1,) + (0,)*(m-i-1) for i in range(m)]
     s0 = symbols[0]
-    p0 = [tuple_(aa-bb for aa,bb in zip_(s,s0)) for s in symbols]
-    r = {tuple_(aa*n for aa in s0):1}
+    p0 = [_tuple(aa-bb for aa,bb in _zip(s,s0)) for s in symbols]
+    r = {_tuple(aa*n for aa in s0):1}
     r_get = r.get
     r_update = r.update
     l = [0] * (n*(m-1)+1)
@@ -129,7 +152,7 @@ def multinomial_coefficients(m, n, tuple_=tuple, zip_=zip):
                 continue
             t = p0[i]
             for t2, c2 in l[k-i]:
-                tt = tuple_(aa+bb for aa,bb in zip_(t2,t))
+                tt = _tuple(aa+bb for aa,bb in _zip(t2,t))
                 cc = nn * c2
                 b = d_get(tt)
                 if b is None:

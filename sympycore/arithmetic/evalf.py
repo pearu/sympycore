@@ -1,3 +1,8 @@
+"""Provides low-level evalf function.
+"""
+
+__all__ = ['evalf']
+
 from .numbers import Float, Complex
 
 import math

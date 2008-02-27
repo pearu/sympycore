@@ -1,5 +1,5 @@
 from sympycore.arithmetic.evalf import *
-from sympycore.arithmetic.evalf import mpmath
+from sympycore.arithmetic.evalf import mpmath, compile_mpmath
 from sympycore.calculus import Symbol, I, Number, exp, sin, cos, E, pi
 import math
 import cmath

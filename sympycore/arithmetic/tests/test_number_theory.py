@@ -1,6 +1,5 @@
+from sympycore.arithmetic.numbers import normalized_fraction as mpq
 from sympycore.arithmetic.number_theory import *
-
-mpq = normalized_fraction
 
 def test_factorial():
     assert factorial(0) == 1

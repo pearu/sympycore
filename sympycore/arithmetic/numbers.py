@@ -1,4 +1,5 @@
-"""
+"""Low-level numbers support.
+
 This module implements "low-level" number types which may be used
 by algebras to represent coefficients internally, for purely numerical
 calculations, etc. In the interest of speed, the classes implemented
