@@ -3,9 +3,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.4: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.4.1: http://docutils.sourceforge.net/" />
 <title>SympyCore User's Guide</title>
-<meta name="authors" content="Pearu Peterson &lt;pearu.peterson&#64;gmail.com&gt;" />
+<meta name="authors" content="Pearu Peterson &lt;pearu.peterson&#64;gmail.com&gt; Fredrik Johansson" />
 <style type="text/css">
 
 /*
@@ -298,7 +298,8 @@ ul.auto-toc {
 <col class="docinfo-content" />
 <tbody valign="top">
 <tr><th class="docinfo-name">Authors:</th>
-<td>Pearu Peterson &lt;pearu.peterson&#64;gmail.com&gt;</td></tr>
+<td>Pearu Peterson &lt;pearu.peterson&#64;gmail.com&gt;
+Fredrik Johansson</td></tr>
 <tr class="field"><th class="docinfo-name">Created:</th><td class="field-body">January 2008</td>
 </tr>
 </tbody>
@@ -311,44 +312,44 @@ ul.auto-toc {
 <p class="first sidebar-title">Table of contents</p>
 <div class="contents local last topic">
 <ul class="auto-toc simple">
-<li><a class="reference" href="#introduction" id="id2" name="id2">1&nbsp;&nbsp;&nbsp;Introduction</a></li>
-<li><a class="reference" href="#getting-started" id="id3" name="id3">2&nbsp;&nbsp;&nbsp;Getting Started</a></li>
-<li><a class="reference" href="#the-cas-model" id="id4" name="id4">3&nbsp;&nbsp;&nbsp;The CAS model</a></li>
-<li><a class="reference" href="#package-structure" id="id5" name="id5">4&nbsp;&nbsp;&nbsp;Package structure</a></li>
-<li><a class="reference" href="#basic-methods" id="id6" name="id6">5&nbsp;&nbsp;&nbsp;Basic methods</a><ul class="auto-toc">
-<li><a class="reference" href="#output-methods" id="id7" name="id7">5.1&nbsp;&nbsp;&nbsp;Output methods</a></li>
-<li><a class="reference" href="#conversation-methods" id="id8" name="id8">5.2&nbsp;&nbsp;&nbsp;Conversation methods</a></li>
-<li><a class="reference" href="#substitution-of-expressions" id="id9" name="id9">5.3&nbsp;&nbsp;&nbsp;Substitution of expressions</a></li>
-<li><a class="reference" href="#pattern-matching" id="id10" name="id10">5.4&nbsp;&nbsp;&nbsp;Pattern matching</a></li>
-<li><a class="reference" href="#checking-for-atomic-objects" id="id11" name="id11">5.5&nbsp;&nbsp;&nbsp;Checking for atomic objects</a></li>
+<li><a class="reference" href="#introduction" id="id3" name="id3">1&nbsp;&nbsp;&nbsp;Introduction</a></li>
+<li><a class="reference" href="#getting-started" id="id4" name="id4">2&nbsp;&nbsp;&nbsp;Getting Started</a></li>
+<li><a class="reference" href="#the-cas-model" id="id5" name="id5">3&nbsp;&nbsp;&nbsp;The CAS model</a></li>
+<li><a class="reference" href="#package-structure" id="id6" name="id6">4&nbsp;&nbsp;&nbsp;Package structure</a></li>
+<li><a class="reference" href="#basic-methods" id="id7" name="id7">5&nbsp;&nbsp;&nbsp;Basic methods</a><ul class="auto-toc">
+<li><a class="reference" href="#output-methods" id="id8" name="id8">5.1&nbsp;&nbsp;&nbsp;Output methods</a></li>
+<li><a class="reference" href="#conversation-methods" id="id9" name="id9">5.2&nbsp;&nbsp;&nbsp;Conversation methods</a></li>
+<li><a class="reference" href="#substitution-of-expressions" id="id10" name="id10">5.3&nbsp;&nbsp;&nbsp;Substitution of expressions</a></li>
+<li><a class="reference" href="#pattern-matching" id="id11" name="id11">5.4&nbsp;&nbsp;&nbsp;Pattern matching</a></li>
+<li><a class="reference" href="#checking-for-atomic-objects" id="id12" name="id12">5.5&nbsp;&nbsp;&nbsp;Checking for atomic objects</a></li>
 </ul>
 </li>
-<li><a class="reference" href="#primitive-algebra" id="id12" name="id12">6&nbsp;&nbsp;&nbsp;Primitive algebra</a></li>
-<li><a class="reference" href="#commutative-ring" id="id13" name="id13">7&nbsp;&nbsp;&nbsp;Commutative ring</a><ul class="auto-toc">
-<li><a class="reference" href="#operations" id="id14" name="id14">7.1&nbsp;&nbsp;&nbsp;Operations</a></li>
-<li><a class="reference" href="#expanding" id="id15" name="id15">7.2&nbsp;&nbsp;&nbsp;Expanding</a></li>
-<li><a class="reference" href="#differentation" id="id16" name="id16">7.3&nbsp;&nbsp;&nbsp;Differentation</a></li>
-<li><a class="reference" href="#integration" id="id17" name="id17">7.4&nbsp;&nbsp;&nbsp;Integration</a></li>
+<li><a class="reference" href="#primitive-algebra" id="id13" name="id13">6&nbsp;&nbsp;&nbsp;Primitive algebra</a></li>
+<li><a class="reference" href="#commutative-ring" id="id14" name="id14">7&nbsp;&nbsp;&nbsp;Commutative ring</a><ul class="auto-toc">
+<li><a class="reference" href="#operations" id="id15" name="id15">7.1&nbsp;&nbsp;&nbsp;Operations</a></li>
+<li><a class="reference" href="#expanding" id="id16" name="id16">7.2&nbsp;&nbsp;&nbsp;Expanding</a></li>
+<li><a class="reference" href="#differentation" id="id17" name="id17">7.3&nbsp;&nbsp;&nbsp;Differentation</a></li>
+<li><a class="reference" href="#integration" id="id18" name="id18">7.4&nbsp;&nbsp;&nbsp;Integration</a></li>
 </ul>
 </li>
-<li><a class="reference" href="#commutative-ring-implementation" id="id18" name="id18">8&nbsp;&nbsp;&nbsp;Commutative ring implementation</a><ul class="auto-toc">
-<li><a class="reference" href="#defining-functions-for-commutativeringwithpairs" id="id19" name="id19">8.1&nbsp;&nbsp;&nbsp;Defining functions for <tt class="docutils literal"><span class="pre">CommutativeRingWithPairs</span></tt></a></li>
+<li><a class="reference" href="#commutative-ring-implementation" id="id19" name="id19">8&nbsp;&nbsp;&nbsp;Commutative ring implementation</a><ul class="auto-toc">
+<li><a class="reference" href="#defining-functions-for-commutativeringwithpairs" id="id20" name="id20">8.1&nbsp;&nbsp;&nbsp;Defining functions for <tt class="docutils literal"><span class="pre">CommutativeRingWithPairs</span></tt></a></li>
 </ul>
 </li>
-<li><a class="reference" href="#calculus" id="id20" name="id20">9&nbsp;&nbsp;&nbsp;Calculus</a></li>
-<li><a class="reference" href="#arithemetics" id="id21" name="id21">10&nbsp;&nbsp;&nbsp;Arithemetics</a></li>
-<li><a class="reference" href="#polynomials" id="id22" name="id22">11&nbsp;&nbsp;&nbsp;Polynomials</a><ul class="auto-toc">
-<li><a class="reference" href="#univariatepolynomial" id="id23" name="id23">11.1&nbsp;&nbsp;&nbsp;<tt class="docutils literal"><span class="pre">UnivariatePolynomial</span></tt></a></li>
-<li><a class="reference" href="#polynomialring" id="id24" name="id24">11.2&nbsp;&nbsp;&nbsp;<tt class="docutils literal"><span class="pre">PolynomialRing</span></tt></a></li>
+<li><a class="reference" href="#calculus" id="id21" name="id21">9&nbsp;&nbsp;&nbsp;Calculus</a></li>
+<li><a class="reference" href="#arithemetics" id="id22" name="id22">10&nbsp;&nbsp;&nbsp;Arithemetics</a></li>
+<li><a class="reference" href="#polynomials" id="id23" name="id23">11&nbsp;&nbsp;&nbsp;Polynomials</a><ul class="auto-toc">
+<li><a class="reference" href="#univariatepolynomial" id="id24" name="id24">11.1&nbsp;&nbsp;&nbsp;<tt class="docutils literal"><span class="pre">UnivariatePolynomial</span></tt></a></li>
+<li><a class="reference" href="#polynomialring" id="id25" name="id25">11.2&nbsp;&nbsp;&nbsp;<tt class="docutils literal"><span class="pre">PolynomialRing</span></tt></a></li>
 </ul>
 </li>
-<li><a class="reference" href="#matrices" id="id25" name="id25">12&nbsp;&nbsp;&nbsp;Matrices</a></li>
-<li><a class="reference" href="#canonical-forms-and-suppressed-evaluation" id="id26" name="id26">13&nbsp;&nbsp;&nbsp;Canonical forms and suppressed evaluation</a></li>
+<li><a class="reference" href="#matrices" id="id26" name="id26">12&nbsp;&nbsp;&nbsp;Matrices</a></li>
+<li><a class="reference" href="#canonical-forms-and-suppressed-evaluation" id="id27" name="id27">13&nbsp;&nbsp;&nbsp;Canonical forms and suppressed evaluation</a></li>
 </ul>
 </div>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id2" id="introduction" name="introduction">1&nbsp;&nbsp;&nbsp;Introduction</a></h1>
+<h1><a class="toc-backref" href="#id3" id="introduction" name="introduction">1&nbsp;&nbsp;&nbsp;Introduction</a></h1>
 <p>The aim of the SympyCore project is to develop a robust, consistent,
 and easy to extend Computer Algebra System model for Python.</p>
 <p>SympyCore projects home page is <a class="reference" href="http://sympycore.googlecode.com/">http://sympycore.googlecode.com/</a>.</p>
@@ -356,7 +357,7 @@ and easy to extend Computer Algebra System model for Python.</p>
 - This document is written in <a class="reference" href="http://docutils.sourceforge.net/rst.html">reStructuredText</a> format.</p>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id3" id="getting-started" name="getting-started">2&nbsp;&nbsp;&nbsp;Getting Started</a></h1>
+<h1><a class="toc-backref" href="#id4" id="getting-started" name="getting-started">2&nbsp;&nbsp;&nbsp;Getting Started</a></h1>
 <p>To use SympyCore from Python, one needs to import the <tt class="docutils literal"><span class="pre">sympycore</span></tt> package:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; from sympycore import *
@@ -382,7 +383,7 @@ Calculus('y + x**2 + 1/4 + 2*x')
 <p>XXX: need more examples on elementaty operations.</p>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id4" id="the-cas-model" name="the-cas-model">3&nbsp;&nbsp;&nbsp;The CAS model</a></h1>
+<h1><a class="toc-backref" href="#id5" id="the-cas-model" name="the-cas-model">3&nbsp;&nbsp;&nbsp;The CAS model</a></h1>
 <p>Symbolic expressions represent mathematical concepts like numbers,
 constants, variables, functions, operators, and various relations
 between them. Symbolic objects, on the other hand, represent symbolic
@@ -441,7 +442,7 @@ Calculus('a + b**2 - 3/4')
 </pre>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id5" id="package-structure" name="package-structure">4&nbsp;&nbsp;&nbsp;Package structure</a></h1>
+<h1><a class="toc-backref" href="#id6" id="package-structure" name="package-structure">4&nbsp;&nbsp;&nbsp;Package structure</a></h1>
 <p>SympyCore project provides a python package <tt class="docutils literal"><span class="pre">sympycore</span></tt> that consists of
 several modules and subpackages:</p>
 <ol class="arabic">
@@ -499,7 +500,7 @@ see [section on polynomials].</p>
 </ol>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id6" id="basic-methods" name="basic-methods">5&nbsp;&nbsp;&nbsp;Basic methods</a></h1>
+<h1><a class="toc-backref" href="#id7" id="basic-methods" name="basic-methods">5&nbsp;&nbsp;&nbsp;Basic methods</a></h1>
 <p>In <tt class="docutils literal"><span class="pre">sympycore</span></tt> all symbolic objects are assumed to be immutable. So, the
 manipulation of symbolic objects means creating new symbolic objects
 from the parts of existing ones.</p>
@@ -514,7 +515,7 @@ objects representing addition, multiplication, etc operations. For
 more information about such methods, see sections describing the
 particular algebra classes.</p>
 <div class="section">
-<h2><a class="toc-backref" href="#id7" id="output-methods" name="output-methods">5.1&nbsp;&nbsp;&nbsp;Output methods</a></h2>
+<h2><a class="toc-backref" href="#id8" id="output-methods" name="output-methods">5.1&nbsp;&nbsp;&nbsp;Output methods</a></h2>
 <dl class="docutils">
 <dt><tt class="docutils literal"><span class="pre">str(&lt;symbolic</span> <span class="pre">object&gt;)</span></tt></dt>
 <dd><p class="first">return a nice string representation of the symbolic object. For example,</p>
@@ -555,7 +556,7 @@ subexpressions.</p>
 </dl>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id8" id="conversation-methods" name="conversation-methods">5.2&nbsp;&nbsp;&nbsp;Conversation methods</a></h2>
+<h2><a class="toc-backref" href="#id9" id="conversation-methods" name="conversation-methods">5.2&nbsp;&nbsp;&nbsp;Conversation methods</a></h2>
 <dl class="docutils">
 <dt><tt class="docutils literal"><span class="pre">&lt;symbolic</span> <span class="pre">object&gt;.as_primitive()</span></tt></dt>
 <dd><p class="first">return symbolic object as an instance of <tt class="docutils literal"><span class="pre">PrimitiveAlgebra</span></tt> class. All
@@ -605,7 +606,7 @@ ADD[
 </dl>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id9" id="substitution-of-expressions" name="substitution-of-expressions">5.3&nbsp;&nbsp;&nbsp;Substitution of expressions</a></h2>
+<h2><a class="toc-backref" href="#id10" id="substitution-of-expressions" name="substitution-of-expressions">5.3&nbsp;&nbsp;&nbsp;Substitution of expressions</a></h2>
 <dl class="docutils">
 <dt><tt class="docutils literal"><span class="pre">&lt;symbolic</span> <span class="pre">object&gt;.subs(&lt;sub-expr&gt;,</span> <span class="pre">&lt;new-expr&gt;)</span></tt></dt>
 <dd><p class="first">return a copy of <tt class="docutils literal"><span class="pre">&lt;symbolic</span> <span class="pre">object&gt;</span></tt> with all occurances of
@@ -631,7 +632,7 @@ Calculus('66 - x')
 </dl>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id10" id="pattern-matching" name="pattern-matching">5.4&nbsp;&nbsp;&nbsp;Pattern matching</a></h2>
+<h2><a class="toc-backref" href="#id11" id="pattern-matching" name="pattern-matching">5.4&nbsp;&nbsp;&nbsp;Pattern matching</a></h2>
 <dl class="docutils">
 <dt><tt class="docutils literal"><span class="pre">&lt;symbolic</span> <span class="pre">object&gt;.match(&lt;pattern-expr&gt;</span> <span class="pre">[,</span> <span class="pre">&lt;wildcard1&gt;,</span> <span class="pre">&lt;wildcard2&gt;</span> <span class="pre">...])</span></tt></dt>
 <dd><p class="first">check if the give symbolic object matches given pattern. Pattern
@@ -662,7 +663,7 @@ True
 </dl>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id11" id="checking-for-atomic-objects" name="checking-for-atomic-objects">5.5&nbsp;&nbsp;&nbsp;Checking for atomic objects</a></h2>
+<h2><a class="toc-backref" href="#id12" id="checking-for-atomic-objects" name="checking-for-atomic-objects">5.5&nbsp;&nbsp;&nbsp;Checking for atomic objects</a></h2>
 <p>A symbolic object is atomic if <tt class="docutils literal"><span class="pre">&lt;symbolic</span> <span class="pre">object&gt;.args</span> <span class="pre">==</span> <span class="pre">()</span></tt>.</p>
 <dl class="docutils">
 <dt><tt class="docutils literal"><span class="pre">&lt;symbolic</span> <span class="pre">object&gt;.symbols</span></tt></dt>
@@ -674,17 +675,17 @@ symbolic expression.</dd>
 </div>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id12" id="primitive-algebra" name="primitive-algebra">6&nbsp;&nbsp;&nbsp;Primitive algebra</a></h1>
+<h1><a class="toc-backref" href="#id13" id="primitive-algebra" name="primitive-algebra">6&nbsp;&nbsp;&nbsp;Primitive algebra</a></h1>
 <p>XXX: explain <tt class="docutils literal"><span class="pre">PrimitiveAlgebra</span></tt> class.</p>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id13" id="commutative-ring" name="commutative-ring">7&nbsp;&nbsp;&nbsp;Commutative ring</a></h1>
+<h1><a class="toc-backref" href="#id14" id="commutative-ring" name="commutative-ring">7&nbsp;&nbsp;&nbsp;Commutative ring</a></h1>
 <p>In SympyCore a commutative ring is represented by an abstract class
 <tt class="docutils literal"><span class="pre">CommutativeRing</span></tt>.  The <tt class="docutils literal"><span class="pre">CommutativeRing</span></tt> class defines support
 for addition, substraction, multiplication, division, and
 exponentiation operations.</p>
 <div class="section">
-<h2><a class="toc-backref" href="#id14" id="operations" name="operations">7.1&nbsp;&nbsp;&nbsp;Operations</a></h2>
+<h2><a class="toc-backref" href="#id15" id="operations" name="operations">7.1&nbsp;&nbsp;&nbsp;Operations</a></h2>
 <p>Classes deriving from <tt class="docutils literal"><span class="pre">CommutativeRing</span></tt> must define a number of
 method pairs <tt class="docutils literal"><span class="pre">(Operation,</span> <span class="pre">as_Operation_args)</span></tt> that satisfy the
 following condition:</p>
@@ -705,7 +706,7 @@ cls.Operation(*obj.as_Operation_args()) == obj
 </pre>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id15" id="expanding" name="expanding">7.2&nbsp;&nbsp;&nbsp;Expanding</a></h2>
+<h2><a class="toc-backref" href="#id16" id="expanding" name="expanding">7.2&nbsp;&nbsp;&nbsp;Expanding</a></h2>
 <p>Expanding means applying distributivity law to open parenthesis.</p>
 <dl class="docutils">
 <dt><tt class="docutils literal"><span class="pre">&lt;symbolic</span> <span class="pre">object&gt;.expand()</span></tt></dt>
@@ -721,7 +722,7 @@ x**3 + 2*y*x**2 + x*y**2
 </dl>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id16" id="differentation" name="differentation">7.3&nbsp;&nbsp;&nbsp;Differentation</a></h2>
+<h2><a class="toc-backref" href="#id17" id="differentation" name="differentation">7.3&nbsp;&nbsp;&nbsp;Differentation</a></h2>
 <dl class="docutils">
 <dt><tt class="docutils literal"><span class="pre">&lt;symbolic</span> <span class="pre">object&gt;.diff(*symbols)</span></tt></dt>
 <dd><p class="first">return a derivative of symbolic expression with respect to given
@@ -741,7 +742,7 @@ sin(x*y)*y**4
 </dl>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id17" id="integration" name="integration">7.4&nbsp;&nbsp;&nbsp;Integration</a></h2>
+<h2><a class="toc-backref" href="#id18" id="integration" name="integration">7.4&nbsp;&nbsp;&nbsp;Integration</a></h2>
 <dl class="docutils">
 <dt><tt class="docutils literal"><span class="pre">&lt;symbolic</span> <span class="pre">object&gt;.integrate(&lt;symbol&gt;,</span> <span class="pre">integrator=None)</span></tt></dt>
 <dd><p class="first">return an antiderivative of a symbolic expression with respect to
@@ -753,11 +754,22 @@ For example,</p>
 1/2*y*x**2 + 1/3*x**3
 </pre>
 </dd>
+<dt><tt class="docutils literal"><span class="pre">&lt;symbolic</span> <span class="pre">object&gt;.integrate((&lt;symbol&gt;,</span> <span class="pre">&lt;a&gt;,</span> <span class="pre">&lt;b&gt;)</span></tt></dt>
+<dd><p class="first">return a defined integral of a symbolic expression with respect to
+<tt class="docutils literal"><span class="pre">&lt;symbol&gt;</span></tt> over the interval <tt class="docutils literal"><span class="pre">[&lt;a&gt;,</span> <span class="pre">&lt;b&gt;]</span></tt>.
+For example,</p>
+<pre class="last doctest-block">
+&gt;&gt;&gt; from sympycore import *
+&gt;&gt;&gt; print (x**2 + x*y).integrate(x)
+1/2*y*x**2 + 1/3*x**3
+&gt;&gt;&gt; print (x**2 + x*y).integrate((x, 2, 5))
+</pre>
+</dd>
 </dl>
 </div>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id18" id="commutative-ring-implementation" name="commutative-ring-implementation">8&nbsp;&nbsp;&nbsp;Commutative ring implementation</a></h1>
+<h1><a class="toc-backref" href="#id19" id="commutative-ring-implementation" name="commutative-ring-implementation">8&nbsp;&nbsp;&nbsp;Commutative ring implementation</a></h1>
 <p>Commutative ring operations are implemented in the class
 <tt class="docutils literal"><span class="pre">CommutativeRingWithPairs</span></tt> (derived from <tt class="docutils literal"><span class="pre">CommutativeRing</span></tt>).</p>
 <p>The class <tt class="docutils literal"><span class="pre">CommutativeRingWithPairs</span></tt> holds two attributes, <tt class="docutils literal"><span class="pre">head</span></tt>
@@ -776,14 +788,14 @@ can be also any other number-like object that supports arithmetic
 operations with Python numbers. An examples are <tt class="docutils literal"><span class="pre">Fraction</span></tt>,
 <tt class="docutils literal"><span class="pre">Float</span></tt>, <tt class="docutils literal"><span class="pre">Complex</span></tt> classes defined in <tt class="docutils literal"><span class="pre">sympycore.arithmetic</span></tt>
 package.</li>
-<li>If <tt class="docutils literal"><span class="pre">&lt;obj&gt;.head==ADD</span></tt> then <tt class="docutils literal"><span class="pre">&lt;obj&gt;.data</span></tt> contains a Python
+<li>If <tt class="docutils literal"><span class="pre">&lt;obj&gt;.head==TERMS</span></tt> then <tt class="docutils literal"><span class="pre">&lt;obj&gt;.data</span></tt> contains a Python
 dictionary holding the pairs <tt class="docutils literal"><span class="pre">(&lt;ring</span> <span class="pre">element&gt;,</span> <span class="pre">&lt;coefficient&gt;)</span></tt>.
 The values of <tt class="docutils literal"><span class="pre">&lt;coefficients&gt;</span></tt> can be Python numbers or
 number-like objects or elements of some other ring (for example,
 see <tt class="docutils literal"><span class="pre">Unit</span></tt> class where the coefficients are <tt class="docutils literal"><span class="pre">Calculus</span></tt>
 instances). For example, if <tt class="docutils literal"><span class="pre">&lt;obj&gt;.data</span></tt> is <tt class="docutils literal"><span class="pre">{x:2,</span> <span class="pre">y:1}</span></tt> then
 <tt class="docutils literal"><span class="pre">&lt;obj&gt;</span></tt> represents an expression <em>y + 2*x</em>.</li>
-<li>If <tt class="docutils literal"><span class="pre">&lt;obj&gt;.head==MUL</span></tt> then <tt class="docutils literal"><span class="pre">&lt;obj&gt;.data</span></tt> contains a Python
+<li>If <tt class="docutils literal"><span class="pre">&lt;obj&gt;.head==FACTORS</span></tt> then <tt class="docutils literal"><span class="pre">&lt;obj&gt;.data</span></tt> contains a Python
 dictionary holding the pairs <tt class="docutils literal"><span class="pre">(&lt;ring</span> <span class="pre">element&gt;,</span> <span class="pre">&lt;exponent&gt;)</span></tt>.  The
 values of <tt class="docutils literal"><span class="pre">&lt;coefficients&gt;</span></tt> can be Python numbers of number-like
 objects or elements of some ring (for exapmle, see <tt class="docutils literal"><span class="pre">Calculus</span></tt>
@@ -794,7 +806,7 @@ performs evaluation and <tt class="docutils literal"><span class="pre">&lt;obj&g
 instance (for example, an instance of some algebra elements)
 or a Python <tt class="docutils literal"><span class="pre">tuple</span></tt> containing argument instances.</li>
 </ol>
-<p>The constants <tt class="docutils literal"><span class="pre">SYMBOL</span></tt>, <tt class="docutils literal"><span class="pre">NUMBER</span></tt>, <tt class="docutils literal"><span class="pre">ADD</span></tt>, <tt class="docutils literal"><span class="pre">MUL</span></tt> are defined
+<p>The constants <tt class="docutils literal"><span class="pre">SYMBOL</span></tt>, <tt class="docutils literal"><span class="pre">NUMBER</span></tt>, <tt class="docutils literal"><span class="pre">TERMS</span></tt>, <tt class="docutils literal"><span class="pre">FACTORS</span></tt> are defined
 in <tt class="docutils literal"><span class="pre">sympycore/utils.py</span></tt>.</p>
 <p>For example,</p>
 <pre class="doctest-block">
@@ -817,7 +829,7 @@ True
 Calculus('x')
 </pre>
 <div class="section">
-<h2><a class="toc-backref" href="#id19" id="defining-functions-for-commutativeringwithpairs" name="defining-functions-for-commutativeringwithpairs">8.1&nbsp;&nbsp;&nbsp;Defining functions for <tt class="docutils literal"><span class="pre">CommutativeRingWithPairs</span></tt></a></h2>
+<h2><a class="toc-backref" href="#id20" id="defining-functions-for-commutativeringwithpairs" name="defining-functions-for-commutativeringwithpairs">8.1&nbsp;&nbsp;&nbsp;Defining functions for <tt class="docutils literal"><span class="pre">CommutativeRingWithPairs</span></tt></a></h2>
 <p>The representation of an applied function within the class
 <tt class="docutils literal"><span class="pre">CommutativeRingWithPairs</span></tt> can hold any Python callable object that
 satisfies the following basic condition: it must return an instance of
@@ -840,7 +852,7 @@ mysin(x + y)
 </div>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id20" id="calculus" name="calculus">9&nbsp;&nbsp;&nbsp;Calculus</a></h1>
+<h1><a class="toc-backref" href="#id21" id="calculus" name="calculus">9&nbsp;&nbsp;&nbsp;Calculus</a></h1>
 <p>The default algebra of symbolic expressions with commutative ring
 operations is represented by the <tt class="docutils literal"><span class="pre">Calculus</span></tt> class (derived from
 <tt class="docutils literal"><span class="pre">CommutativeAlgebraWithPairs</span></tt>). The <tt class="docutils literal"><span class="pre">Calculus</span></tt> class can handle
@@ -854,20 +866,20 @@ constants <tt class="docutils literal"><span class="pre">E</span></tt>, <tt clas
 <tt class="docutils literal"><span class="pre">undefined</span></tt>.</p>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id21" id="arithemetics" name="arithemetics">10&nbsp;&nbsp;&nbsp;Arithemetics</a></h1>
+<h1><a class="toc-backref" href="#id22" id="arithemetics" name="arithemetics">10&nbsp;&nbsp;&nbsp;Arithemetics</a></h1>
 <p>The <tt class="docutils literal"><span class="pre">sympycore.arithmetic</span></tt> package is not an algebra package but it
 implements fractions, multi-precision floating point numbers, rational
-complex numbers, and extended numbers. In addition, it implements
+complex numbers, and <a class="reference" href="evaluation_rules.html#extended-numbers">extended numbers</a>. In addition, it implements
 various algorithms from number theory and provides methods to compute
 the values of constants like pi and Eulers number, etc.</p>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id22" id="polynomials" name="polynomials">11&nbsp;&nbsp;&nbsp;Polynomials</a></h1>
+<h1><a class="toc-backref" href="#id23" id="polynomials" name="polynomials">11&nbsp;&nbsp;&nbsp;Polynomials</a></h1>
 <p>The <tt class="docutils literal"><span class="pre">sympycore.polynomials</span></tt> package has two different
 implementations for polynomials: <tt class="docutils literal"><span class="pre">UnivariatePolynomial</span></tt> and
 <tt class="docutils literal"><span class="pre">PolynomialRing</span></tt>.</p>
 <div class="section">
-<h2><a class="toc-backref" href="#id23" id="univariatepolynomial" name="univariatepolynomial">11.1&nbsp;&nbsp;&nbsp;<tt class="docutils literal"><span class="pre">UnivariatePolynomial</span></tt></a></h2>
+<h2><a class="toc-backref" href="#id24" id="univariatepolynomial" name="univariatepolynomial">11.1&nbsp;&nbsp;&nbsp;<tt class="docutils literal"><span class="pre">UnivariatePolynomial</span></tt></a></h2>
 <p>The <tt class="docutils literal"><span class="pre">UnivariatePolynomial</span></tt> class stores polynomial coefficients in a
 Python list. The exponents are implicitly defined as indices of the
 list so that the degree of a polynomial is equal to the length of the
@@ -891,7 +903,7 @@ variable symbol is <tt class="docutils literal"><span class="pre">x</span></tt>)
 </pre>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id24" id="polynomialring" name="polynomialring">11.2&nbsp;&nbsp;&nbsp;<tt class="docutils literal"><span class="pre">PolynomialRing</span></tt></a></h2>
+<h2><a class="toc-backref" href="#id25" id="polynomialring" name="polynomialring">11.2&nbsp;&nbsp;&nbsp;<tt class="docutils literal"><span class="pre">PolynomialRing</span></tt></a></h2>
 <p>The <tt class="docutils literal"><span class="pre">PolynomialRing</span></tt> based classes store polynomial exponenets and
 coefficients information in a Python dictionary object where keys are
 exponenents (in univariate case Python integers, in multivariate case
@@ -934,7 +946,7 @@ PolynomialRing[X0, Calculus]('X0**3 + 2*X0**2 + 3*X0 + 4')
 </div>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id25" id="matrices" name="matrices">12&nbsp;&nbsp;&nbsp;Matrices</a></h1>
+<h1><a class="toc-backref" href="#id26" id="matrices" name="matrices">12&nbsp;&nbsp;&nbsp;Matrices</a></h1>
 <p>The <tt class="docutils literal"><span class="pre">sympycore.matrices</span></tt> package defines <tt class="docutils literal"><span class="pre">MatrixRing</span></tt> that is base
 class to matrix algebras. Matrix algebras are represented as classes
 (derived from <tt class="docutils literal"><span class="pre">MatrixRing</span></tt>) parametrized with matrix shape and
@@ -993,7 +1005,7 @@ content:</p>
 </pre>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id26" id="canonical-forms-and-suppressed-evaluation" name="canonical-forms-and-suppressed-evaluation">13&nbsp;&nbsp;&nbsp;Canonical forms and suppressed evaluation</a></h1>
+<h1><a class="toc-backref" href="#id27" id="canonical-forms-and-suppressed-evaluation" name="canonical-forms-and-suppressed-evaluation">13&nbsp;&nbsp;&nbsp;Canonical forms and suppressed evaluation</a></h1>
 <p>See also <a class="reference" href="evaluation_rules.html">Automatic evaluation rules of symbolic expressions</a>.</p>
 <p>The <tt class="docutils literal"><span class="pre">Calculus</span></tt> algebra automatically applies some transformations to
 expressions. The purpose of these transformations is to permit quick

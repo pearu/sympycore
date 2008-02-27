@@ -3,9 +3,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.4: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.4.1: http://docutils.sourceforge.net/" />
 <title>Automatic evaluation rules of symbolic expressions</title>
-<meta name="authors" content="Pearu Peterson &lt;pearu.peterson AT gmail DOT com&gt;" />
+<meta name="authors" content="Pearu Peterson &lt;pearu.peterson AT gmail DOT com&gt; Fredrik Johansson" />
 <style type="text/css">
 
 /*
@@ -298,7 +298,8 @@ ul.auto-toc {
 <col class="docinfo-content" />
 <tbody valign="top">
 <tr><th class="docinfo-name">Authors:</th>
-<td>Pearu Peterson &lt;pearu.peterson AT gmail DOT com&gt;</td></tr>
+<td>Pearu Peterson &lt;pearu.peterson AT gmail DOT com&gt;
+Fredrik Johansson</td></tr>
 <tr class="field"><th class="docinfo-name">Created:</th><td class="field-body">February 2008</td>
 </tr>
 </tbody>
@@ -314,14 +315,15 @@ ul.auto-toc {
 <li><a class="reference" href="#operations" id="id7" name="id7">2.2&nbsp;&nbsp;&nbsp;Operations</a></li>
 </ul>
 </li>
-<li><a class="reference" href="#function-evaluations" id="id8" name="id8">3&nbsp;&nbsp;&nbsp;Function evaluations</a><ul class="auto-toc">
-<li><a class="reference" href="#general-rules" id="id9" name="id9">3.1&nbsp;&nbsp;&nbsp;General rules</a></li>
-<li><a class="reference" href="#exponentials" id="id10" name="id10">3.2&nbsp;&nbsp;&nbsp;Exponentials</a></li>
-<li><a class="reference" href="#logarithms" id="id11" name="id11">3.3&nbsp;&nbsp;&nbsp;Logarithms</a></li>
-<li><a class="reference" href="#trigonometric-functions" id="id12" name="id12">3.4&nbsp;&nbsp;&nbsp;Trigonometric functions</a></li>
+<li><a class="reference" href="#extended-numbers" id="id8" name="id8">3&nbsp;&nbsp;&nbsp;Extended numbers</a></li>
+<li><a class="reference" href="#function-evaluations" id="id9" name="id9">4&nbsp;&nbsp;&nbsp;Function evaluations</a><ul class="auto-toc">
+<li><a class="reference" href="#general-rules" id="id10" name="id10">4.1&nbsp;&nbsp;&nbsp;General rules</a></li>
+<li><a class="reference" href="#exponentials" id="id11" name="id11">4.2&nbsp;&nbsp;&nbsp;Exponentials</a></li>
+<li><a class="reference" href="#logarithms" id="id12" name="id12">4.3&nbsp;&nbsp;&nbsp;Logarithms</a></li>
+<li><a class="reference" href="#trigonometric-functions" id="id13" name="id13">4.4&nbsp;&nbsp;&nbsp;Trigonometric functions</a></li>
 </ul>
 </li>
-<li><a class="reference" href="#references" id="id13" name="id13">4&nbsp;&nbsp;&nbsp;References</a></li>
+<li><a class="reference" href="#references" id="id14" name="id14">5&nbsp;&nbsp;&nbsp;References</a></li>
 </ul>
 </div>
 </div>
@@ -364,43 +366,9 @@ are replaced by numbers.</p>
 <h3><a id="notes-on-extended-numbers" name="notes-on-extended-numbers">2.1.1&nbsp;&nbsp;&nbsp;Notes on extended numbers</a></h3>
 <p>Expressions containing extended numbers require special rules as
 distributivity laws are not valid for extended numbers. An extended
-number is defined as a quantity that has infinite magnitude and has
-either specified or unspecified direction in the complex
-plane. Infinity with direction <tt class="docutils literal"><span class="pre">theta</span></tt> can be defined as follows:</p>
-<div class="admonition-definition-1-infinity-with-direction admonition">
-<p class="first admonition-title">Definition 1: infinity with direction</p>
-<pre class="last literal-block">
-oo(theta) =  lim     r * exp(I*theta)
-            r -&gt; oo
-</pre>
-</div>
-<p>The following notation is used:</p>
-<pre class="literal-block">
-+oo = oo(0)
--oo = oo(pi)
-zoo = oo(+oo)
-</pre>
-<p>An operation <tt class="docutils literal"><span class="pre">&lt;op&gt;</span></tt> with an infinity and a finite number is defined
-as follows:</p>
-<div class="admonition-definition-2-operations-with-finite-numbers admonition">
-<p class="first admonition-title">Definition 2: operations with finite numbers</p>
-<pre class="last literal-block">
-oo(theta) &lt;op&gt; number =   lim    r * exp(I*theta) &lt;op&gt; number
-                        r -&gt; oo
-</pre>
-</div>
-<p>An operation <tt class="docutils literal"><span class="pre">&lt;op&gt;</span></tt> with two infinities with different
-directions is defined as follows:</p>
-<div class="admonition-definition-3-operations-with-infinite-numbers admonition">
-<p class="first admonition-title">Definition 3: operations with infinite numbers</p>
-<pre class="literal-block">
-oo(theta1) &lt;op&gt; oo(theta2) =   lim      r1 * exp(I*theta1) &lt;op&gt; r2 * exp(I*theta2)
-                            r1, r2 -&gt; oo
-</pre>
-<p>where the limit processes <tt class="docutils literal"><span class="pre">r1-&gt;oo</span></tt> and <tt class="docutils literal"><span class="pre">r2-&gt;oo</span></tt> are independent.</p>
-<p class="last">If <tt class="docutils literal"><span class="pre">lim(r1-&gt;oo,</span> <span class="pre">r2-&gt;oo)</span></tt> is different from <tt class="docutils literal"><span class="pre">lim(r2-&gt;oo,</span> <span class="pre">r1-&gt;oo)</span></tt> then the
-result is defined as <tt class="docutils literal"><span class="pre">undefined</span></tt>.</p>
-</div>
+number is defined as a quantity that has infinite or undefined
+magnitude and has specified or undefined direction in the complex
+plane. See below for detailed information.</p>
 </div>
 <div class="section">
 <h3><a id="notes-on-floating-point-numbers" name="notes-on-floating-point-numbers">2.1.2&nbsp;&nbsp;&nbsp;Notes on floating point numbers</a></h3>
@@ -569,56 +537,154 @@ oo(theta)**n -&gt; 0
 </div>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id8" id="function-evaluations" name="function-evaluations">3&nbsp;&nbsp;&nbsp;Function evaluations</a></h1>
-<div class="section">
-<h2><a class="toc-backref" href="#id9" id="general-rules" name="general-rules">3.1&nbsp;&nbsp;&nbsp;General rules</a></h2>
-<p>A function should automatically evaluate back to a number
-when given an input for which it assumes a rational
-or complex rational value. An exception to this rule can be
-made if the computation required to produce the number
-is extremely time-consuming.</p>
-<p>Given a floating-point number <tt class="docutils literal"><span class="pre">x</span></tt>, <tt class="docutils literal"><span class="pre">f(x)</span></tt> should return
-a floating-point approximation.</p>
+<h1><a class="toc-backref" href="#id8" id="extended-numbers" name="extended-numbers">3&nbsp;&nbsp;&nbsp;Extended numbers</a></h1>
+<p>See also <a class="reference" href="http://code.google.com/p/sympycore/wiki/ExtendedNumbers">http://code.google.com/p/sympycore/wiki/ExtendedNumbers</a>.</p>
+<p>An extended number is defined as a quantity that has infinite or
+undefined magnitude and has specified or undefined direction in the
+complex plane.</p>
+<p>Infinity with direction <tt class="docutils literal"><span class="pre">theta</span> <span class="pre">=</span> <span class="pre">Arg(direction)</span></tt> can be defined as
+follows:</p>
+<div class="admonition-definition-infinity-with-direction admonition">
+<p class="first admonition-title">Definition: infinity with direction</p>
+<pre class="literal-block">
+oo(direction) =  lim     r * direction
+                r -&gt; oo
+</pre>
+<p class="last">where <tt class="docutils literal"><span class="pre">direction</span></tt> is a complex number.</p>
+</div>
+<div class="admonition-definition-quantity-with-undefined-magnitude admonition">
+<p class="first admonition-title">Definition: quantity with undefined magnitude.</p>
+<p class="last">A quantity with undefined magnitude and undefined direction is defined as <tt class="docutils literal"><span class="pre">oo(0)</span></tt>.</p>
+</div>
+<div class="admonition-definition-projective-infinity admonition">
+<p class="first admonition-title">Definition: projective infinity.</p>
+<p class="last">Infinity with undefined direction is defined as <tt class="docutils literal"><span class="pre">oo(undefined)</span></tt>.</p>
+</div>
+<p>The following notation is used:</p>
+<pre class="literal-block">
++oo = oo(1)
+-oo = oo(-1)
+zoo = oo(oo(0))
+</pre>
+<p>An operation <tt class="docutils literal"><span class="pre">&lt;op&gt;</span></tt> with an infinity and a finite number is defined
+as follows:</p>
+<div class="admonition-definition-operations-with-finite-numbers admonition">
+<p class="first admonition-title">Definition: operations with finite numbers</p>
+<pre class="last literal-block">
+oo(direction) &lt;op&gt; number =   lim    r * direction &lt;op&gt; number
+                            r -&gt; oo
+</pre>
+</div>
+<p>An operation <tt class="docutils literal"><span class="pre">&lt;op&gt;</span></tt> with two infinities with different directions is
+defined as follows:</p>
+<div class="admonition-definition-operations-with-infinite-numbers admonition">
+<p class="first admonition-title">Definition: operations with infinite numbers</p>
+<pre class="literal-block">
+oo(dir1) &lt;op&gt; oo(dir2) =   lim      r1 * dir1 &lt;op&gt; r2 * dir2
+                        r1, r2 -&gt; oo
+</pre>
+<p>where the limit processes <tt class="docutils literal"><span class="pre">r1-&gt;oo</span></tt> and <tt class="docutils literal"><span class="pre">r2-&gt;oo</span></tt> are independent.</p>
+<p class="last">If <tt class="docutils literal"><span class="pre">lim(r1-&gt;oo,</span> <span class="pre">r2-&gt;oo)</span></tt> is different from <tt class="docutils literal"><span class="pre">lim(r2-&gt;oo,</span> <span class="pre">r1-&gt;oo)</span></tt>
+then the result is defined as <tt class="docutils literal"><span class="pre">undefined</span></tt>.</p>
+</div>
+<div class="admonition-addition-with-infinities admonition">
+<p class="first admonition-title">Addition with infinities</p>
+<pre class="last literal-block">
+oo(x) + oo(y) -&gt; oo(EqualArg(x,y)*x)
+oo(x) + z     -&gt; oo((1+IsUnbounded(z)*(EqualArg(x,y)-1))*x)
+</pre>
+</div>
+<div class="admonition-multiplication-with-infinities admonition">
+<p class="first admonition-title">Multiplication with infinities</p>
+<pre class="last literal-block">
+oo(x) * oo(y) -&gt; oo(x*y)
+oo(x) * z     -&gt; oo(x*z)
+</pre>
+</div>
+<div class="admonition-dividing-by-infinity admonition">
+<p class="first admonition-title">Dividing by infinity</p>
+<pre class="last literal-block">
+1/oo(x)       -&gt; 0 for nonzero x
+</pre>
+</div>
+<div class="admonition-exponentiation-with-infinities admonition">
+<p class="first admonition-title">Exponentiation with infinities</p>
+<pre class="last literal-block">
+oo(x) ** 0     -&gt; 1
+1 ** oo(x)     -&gt; 1
+oo(x) ** oo(y) -&gt; 0                 if y &lt; 0
+oo(x) ** oo(y) -&gt; oo(IsPositive(x)) if y &gt; 0
+oo(x) ** z     -&gt; 0 if z &lt; 0
+oo(x) ** z     -&gt; oo(x**z) if z&gt;0
+z ** oo(x)     -&gt; (z**x) ** oo(1)
+</pre>
+</div>
+<p>TODO: define more rules for defined results.</p>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id10" id="exponentials" name="exponentials">3.2&nbsp;&nbsp;&nbsp;Exponentials</a></h2>
+<h1><a class="toc-backref" href="#id9" id="function-evaluations" name="function-evaluations">4&nbsp;&nbsp;&nbsp;Function evaluations</a></h1>
+<div class="section">
+<h2><a class="toc-backref" href="#id10" id="general-rules" name="general-rules">4.1&nbsp;&nbsp;&nbsp;General rules</a></h2>
+<div class="admonition-function-evaluation admonition">
+<p class="first admonition-title">Function evaluation.</p>
+<p class="last">A function should automatically evaluate back to a number when given
+an input for which it assumes a rational or complex rational
+value.</p>
+</div>
+<p>An exception to this rule can be made if the computation required to
+produce the number is extremely time-consuming.</p>
+<div class="admonition-floating-point-function-evaluation admonition">
+<p class="first admonition-title">Floating-point function evaluation.</p>
+<p class="last">Given a floating-point number <tt class="docutils literal"><span class="pre">x</span></tt>, <tt class="docutils literal"><span class="pre">f(x)</span></tt> should return a
+floating-point approximation.</p>
+</div>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id11" id="exponentials" name="exponentials">4.2&nbsp;&nbsp;&nbsp;Exponentials</a></h2>
 <p><tt class="docutils literal"><span class="pre">exp(x)</span></tt> is equivalent to <tt class="docutils literal"><span class="pre">E**x</span></tt>, and implemented as a simple
 wrapper for this operation.</p>
 <p>Likewise, <tt class="docutils literal"><span class="pre">sqrt(x)</span></tt> is equivalent to <tt class="docutils literal"><span class="pre">x**(1/2)</span></tt>.</p>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id11" id="logarithms" name="logarithms">3.3&nbsp;&nbsp;&nbsp;Logarithms</a></h2>
-<p><tt class="docutils literal"><span class="pre">log(x,b)</span></tt> is defined as <tt class="docutils literal"><span class="pre">log(x)/log(b)</span></tt>. <tt class="docutils literal"><span class="pre">log(x)</span></tt> denotes
-the natural logarithm with base <tt class="docutils literal"><span class="pre">b</span></tt> = <tt class="docutils literal"><span class="pre">E</span></tt>. In general <tt class="docutils literal"><span class="pre">x</span></tt>
-and <tt class="docutils literal"><span class="pre">b</span></tt> are assumed to be complex numbers (meaning that some
-transformations familiar for positive real numbers cannot be
-performed automatically with symbolic arguments). If no
-simplifications can be found, <tt class="docutils literal"><span class="pre">log(x,b)</span></tt> is expanded
-automatically to <tt class="docutils literal"><span class="pre">log(x)/log(b)</span></tt>.</p>
-<p>If <tt class="docutils literal"><span class="pre">x</span></tt> and <tt class="docutils literal"><span class="pre">b</span></tt> are both positive integers, <tt class="docutils literal"><span class="pre">log(x,</span> <span class="pre">b)</span></tt>
-evaluates to an integer when exact (note that <tt class="docutils literal"><span class="pre">log(x)/log(b)</span></tt>
-does not).</p>
-<p>For complex arguments, <tt class="docutils literal"><span class="pre">log(x)</span></tt> is taken to be the principal
+<h2><a class="toc-backref" href="#id12" id="logarithms" name="logarithms">4.3&nbsp;&nbsp;&nbsp;Logarithms</a></h2>
+<p><tt class="docutils literal"><span class="pre">log(x,b)</span></tt> is defined as <tt class="docutils literal"><span class="pre">log(x)/log(b)</span></tt>. <tt class="docutils literal"><span class="pre">log(x)</span></tt> denotes the
+natural logarithm with base <tt class="docutils literal"><span class="pre">b</span></tt> = <tt class="docutils literal"><span class="pre">E</span></tt>. In general <tt class="docutils literal"><span class="pre">x</span></tt> and <tt class="docutils literal"><span class="pre">b</span></tt>
+are assumed to be complex numbers (meaning that some transformations
+familiar for positive real numbers cannot be performed automatically
+with symbolic arguments). If no simplifications can be found,
+<tt class="docutils literal"><span class="pre">log(x,b)</span></tt> is expanded automatically to <tt class="docutils literal"><span class="pre">log(x)/log(b)</span></tt>.</p>
+<div class="admonition-evaluating-log-integer-input admonition">
+<p class="first admonition-title">Evaluating <tt class="docutils literal"><span class="pre">log</span></tt>: integer input.</p>
+<p class="last">If <tt class="docutils literal"><span class="pre">x</span></tt> and <tt class="docutils literal"><span class="pre">b</span></tt> are both positive integers, <tt class="docutils literal"><span class="pre">log(x,</span> <span class="pre">b)</span></tt>
+evaluates to an integer when exact (note that <tt class="docutils literal"><span class="pre">log(x)/log(b)</span></tt> does
+not).</p>
+</div>
+<div class="admonition-evaluating-log-complex-input admonition">
+<p class="first admonition-title">Evaluating <tt class="docutils literal"><span class="pre">log</span></tt>: complex input.</p>
+<p class="last">For complex arguments, <tt class="docutils literal"><span class="pre">log(x)</span></tt> is taken to be the principal
 branch of the natural logarithm, with the branch cut placed
 infinitesimally below the negative real half axis.</p>
+</div>
 <p><tt class="docutils literal"><span class="pre">log(x)</span></tt> evaluates to an explicit value at <tt class="docutils literal"><span class="pre">x</span></tt> = <tt class="docutils literal"><span class="pre">1</span></tt>, <tt class="docutils literal"><span class="pre">E</span></tt>,
 <tt class="docutils literal"><span class="pre">I</span></tt> and <tt class="docutils literal"><span class="pre">-I</span></tt>. <tt class="docutils literal"><span class="pre">log(0)</span></tt> evaluates to <tt class="docutils literal"><span class="pre">-oo</span></tt> and <tt class="docutils literal"><span class="pre">log(oo)</span></tt>
 evaluates to <tt class="docutils literal"><span class="pre">oo</span></tt>.</p>
-<p><tt class="docutils literal"><span class="pre">log(b**x,</span> <span class="pre">b)</span></tt> evaluates to <tt class="docutils literal"><span class="pre">x</span></tt> if <tt class="docutils literal"><span class="pre">b</span></tt> is positive and <tt class="docutils literal"><span class="pre">x</span></tt>
+<div class="admonition-evaluating-log-power-input admonition">
+<p class="first admonition-title">Evaluating <tt class="docutils literal"><span class="pre">log</span></tt>: power input.</p>
+<p class="last"><tt class="docutils literal"><span class="pre">log(b**x,</span> <span class="pre">b)</span></tt> evaluates to <tt class="docutils literal"><span class="pre">x</span></tt> if <tt class="docutils literal"><span class="pre">b</span></tt> is positive and <tt class="docutils literal"><span class="pre">x</span></tt>
 is real (in particular, if <tt class="docutils literal"><span class="pre">b</span></tt> is <tt class="docutils literal"><span class="pre">E</span></tt> and <tt class="docutils literal"><span class="pre">y</span></tt> is rational).
-By extension, <tt class="docutils literal"><span class="pre">log(b**x,</span> <span class="pre">b**y)</span></tt> evaluates to <tt class="docutils literal"><span class="pre">x/y</span></tt> if <tt class="docutils literal"><span class="pre">b</span></tt>
-is positive and <tt class="docutils literal"><span class="pre">x</span></tt> and <tt class="docutils literal"><span class="pre">y</span></tt> are both real.</p>
+By extension, <tt class="docutils literal"><span class="pre">log(b**x,</span> <span class="pre">b**y)</span></tt> evaluates to <tt class="docutils literal"><span class="pre">x/y</span></tt> if <tt class="docutils literal"><span class="pre">b</span></tt> is
+positive and <tt class="docutils literal"><span class="pre">x</span></tt> and <tt class="docutils literal"><span class="pre">y</span></tt> are both real.</p>
+</div>
 <p>TODO: log(-x), log(I*x), log(-I*x), ...</p>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id12" id="trigonometric-functions" name="trigonometric-functions">3.4&nbsp;&nbsp;&nbsp;Trigonometric functions</a></h2>
-<p>Trigonometric functions are automatically evaluated
-to algebraic values if the argument is an integral multiple of <tt class="docutils literal"><span class="pre">pi/6</span></tt>.
-(Direct evaluation is currently also performed at all multiples
-of <tt class="docutils literal"><span class="pre">pi/12</span></tt>; this behavior could be adjusted.) The poles
-in <tt class="docutils literal"><span class="pre">tan</span></tt> and <tt class="docutils literal"><span class="pre">cot</span></tt> evaluate to <tt class="docutils literal"><span class="pre">zoo</span></tt>. Trigonometric functions
-are kept unevaluated at <tt class="docutils literal"><span class="pre">-oo</span></tt> and <tt class="docutils literal"><span class="pre">oo</span></tt> (this can be useful
-when computing limits).</p>
+<h2><a class="toc-backref" href="#id13" id="trigonometric-functions" name="trigonometric-functions">4.4&nbsp;&nbsp;&nbsp;Trigonometric functions</a></h2>
+<p>Trigonometric functions are automatically evaluated to algebraic
+values if the argument is an integral multiple of <tt class="docutils literal"><span class="pre">pi/6</span></tt>.  (Direct
+evaluation is currently also performed at all multiples of <tt class="docutils literal"><span class="pre">pi/12</span></tt>;
+this behavior could be adjusted.) The poles in <tt class="docutils literal"><span class="pre">tan</span></tt> and <tt class="docutils literal"><span class="pre">cot</span></tt>
+evaluate to <tt class="docutils literal"><span class="pre">zoo</span></tt>. Trigonometric functions are kept unevaluated at
+<tt class="docutils literal"><span class="pre">-oo</span></tt> and <tt class="docutils literal"><span class="pre">oo</span></tt> (this can be useful when computing limits).</p>
 <p>If the argument to a trigonometric function contains an explicit
 rational multiple of <tt class="docutils literal"><span class="pre">pi</span></tt> as a term, this term is replaced by
 a multiple of pi in the interval <tt class="docutils literal"><span class="pre">[0,</span> <span class="pre">pi/2)</span></tt> using
@@ -633,7 +699,7 @@ imaginary factor <tt class="docutils literal"><span class="pre">I</span></tt> ev
 </div>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id13" id="references" name="references">4&nbsp;&nbsp;&nbsp;References</a></h1>
+<h1><a class="toc-backref" href="#id14" id="references" name="references">5&nbsp;&nbsp;&nbsp;References</a></h1>
 <p><a class="reference" href="http://code.google.com/p/sympycore/wiki/ExtendedNumbers">http://code.google.com/p/sympycore/wiki/ExtendedNumbers</a></p>
 </div>
 </div>

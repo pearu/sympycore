@@ -6,6 +6,7 @@ Automatic evaluation rules of symbolic expressions
 
 :Authors:
   Pearu Peterson <pearu.peterson AT gmail DOT com>
+  Fredrik Johansson
 
 :Created:
   February 2008
@@ -59,47 +60,9 @@ Notes on extended numbers
 
 Expressions containing extended numbers require special rules as
 distributivity laws are not valid for extended numbers. An extended
-number is defined as a quantity that has infinite magnitude and has
-either specified or unspecified direction in the complex
-plane. Infinity with direction ``theta`` can be defined as follows:
-
-.. admonition:: Definition 1: infinity with direction
-
-  ::
-
-    oo(theta) =  lim     r * exp(I*theta)
-                r -> oo
-
-The following notation is used::
-
-  +oo = oo(0)
-  -oo = oo(pi)
-  zoo = oo(+oo)
-
-An operation ``<op>`` with an infinity and a finite number is defined
-as follows:
-
-.. admonition:: Definition 2: operations with finite numbers
-
-  ::
-
-    oo(theta) <op> number =   lim    r * exp(I*theta) <op> number
-                            r -> oo
-
-An operation ``<op>`` with two infinities with different
-directions is defined as follows:
-
-.. admonition:: Definition 3: operations with infinite numbers
-
-  ::
-
-    oo(theta1) <op> oo(theta2) =   lim      r1 * exp(I*theta1) <op> r2 * exp(I*theta2)
-                                r1, r2 -> oo
-
-  where the limit processes ``r1->oo`` and ``r2->oo`` are independent.
-
-  If ``lim(r1->oo, r2->oo)`` is different from ``lim(r2->oo, r1->oo)`` then the
-  result is defined as ``undefined``.
+number is defined as a quantity that has infinite or undefined
+magnitude and has specified or undefined direction in the complex
+plane. See below for detailed information.
 
 Notes on floating point numbers
 ```````````````````````````````
@@ -278,20 +241,119 @@ Fraction powers
   The result is evaluated result of ``(m ** (1/q))**p``.
 
 
+Extended numbers
+================
+
+See also http://code.google.com/p/sympycore/wiki/ExtendedNumbers.
+
+An extended number is defined as a quantity that has infinite or
+undefined magnitude and has specified or undefined direction in the
+complex plane.
+
+Infinity with direction ``theta = Arg(direction)`` can be defined as
+follows:
+
+.. admonition:: Definition: infinity with direction
+
+  ::
+
+    oo(direction) =  lim     r * direction
+                    r -> oo
+
+  where ``direction`` is a complex number. 
+
+.. admonition:: Definition: quantity with undefined magnitude.
+
+  A quantity with undefined magnitude and undefined direction is defined as ``oo(0)``.
+
+.. admonition:: Definition: projective infinity.
+
+  Infinity with undefined direction is defined as ``oo(undefined)``.
+
+The following notation is used::
+
+  +oo = oo(1)
+  -oo = oo(-1)
+  zoo = oo(oo(0))
+
+An operation ``<op>`` with an infinity and a finite number is defined
+as follows:
+
+.. admonition:: Definition: operations with finite numbers
+
+  ::
+
+    oo(direction) <op> number =   lim    r * direction <op> number
+                                r -> oo
+
+An operation ``<op>`` with two infinities with different directions is
+defined as follows:
+
+.. admonition:: Definition: operations with infinite numbers
+
+  ::
+
+    oo(dir1) <op> oo(dir2) =   lim      r1 * dir1 <op> r2 * dir2
+                            r1, r2 -> oo
+
+  where the limit processes ``r1->oo`` and ``r2->oo`` are independent.
+
+  If ``lim(r1->oo, r2->oo)`` is different from ``lim(r2->oo, r1->oo)``
+  then the result is defined as ``undefined``.
+
+.. admonition:: Addition with infinities
+
+  ::
+
+    oo(x) + oo(y) -> oo(EqualArg(x,y)*x)
+    oo(x) + z     -> oo((1+IsUnbounded(z)*(EqualArg(x,y)-1))*x)
+
+.. admonition:: Multiplication with infinities
+
+  ::
+
+    oo(x) * oo(y) -> oo(x*y)
+    oo(x) * z     -> oo(x*z)
+
+.. admonition:: Dividing by infinity
+
+  ::
+
+    1/oo(x)       -> 0 for nonzero x
+
+.. admonition:: Exponentiation with infinities
+
+  ::
+
+     oo(x) ** 0     -> 1
+     1 ** oo(x)     -> 1
+     oo(x) ** oo(y) -> 0                 if y < 0
+     oo(x) ** oo(y) -> oo(IsPositive(x)) if y > 0
+     oo(x) ** z     -> 0 if z < 0
+     oo(x) ** z     -> oo(x**z) if z>0
+     z ** oo(x)     -> (z**x) ** oo(1)
+
+TODO: define more rules for defined results.
+
 Function evaluations
 ====================
 
 General rules
 -------------
 
-A function should automatically evaluate back to a number
-when given an input for which it assumes a rational
-or complex rational value. An exception to this rule can be
-made if the computation required to produce the number
-is extremely time-consuming.
+.. admonition:: Function evaluation.
 
-Given a floating-point number ``x``, ``f(x)`` should return
-a floating-point approximation.
+  A function should automatically evaluate back to a number when given
+  an input for which it assumes a rational or complex rational
+  value.
+
+An exception to this rule can be made if the computation required to
+produce the number is extremely time-consuming.
+
+.. admonition:: Floating-point function evaluation.
+
+  Given a floating-point number ``x``, ``f(x)`` should return a
+  floating-point approximation.
 
 Exponentials
 ------------
@@ -304,30 +366,35 @@ Likewise, ``sqrt(x)`` is equivalent to ``x**(1/2)``.
 Logarithms
 ----------
 
-``log(x,b)`` is defined as ``log(x)/log(b)``. ``log(x)`` denotes
-the natural logarithm with base ``b`` = ``E``. In general ``x``
-and ``b`` are assumed to be complex numbers (meaning that some
-transformations familiar for positive real numbers cannot be
-performed automatically with symbolic arguments). If no
-simplifications can be found, ``log(x,b)`` is expanded
-automatically to ``log(x)/log(b)``.
+``log(x,b)`` is defined as ``log(x)/log(b)``. ``log(x)`` denotes the
+natural logarithm with base ``b`` = ``E``. In general ``x`` and ``b``
+are assumed to be complex numbers (meaning that some transformations
+familiar for positive real numbers cannot be performed automatically
+with symbolic arguments). If no simplifications can be found,
+``log(x,b)`` is expanded automatically to ``log(x)/log(b)``.
 
-If ``x`` and ``b`` are both positive integers, ``log(x, b)``
-evaluates to an integer when exact (note that ``log(x)/log(b)``
-does not).
+.. admonition:: Evaluating ``log``: integer input.
 
-For complex arguments, ``log(x)`` is taken to be the principal
-branch of the natural logarithm, with the branch cut placed
-infinitesimally below the negative real half axis.
+  If ``x`` and ``b`` are both positive integers, ``log(x, b)``
+  evaluates to an integer when exact (note that ``log(x)/log(b)`` does
+  not).
+
+.. admonition:: Evaluating ``log``: complex input.
+
+  For complex arguments, ``log(x)`` is taken to be the principal
+  branch of the natural logarithm, with the branch cut placed
+  infinitesimally below the negative real half axis.
 
 ``log(x)`` evaluates to an explicit value at ``x`` = ``1``, ``E``,
 ``I`` and ``-I``. ``log(0)`` evaluates to ``-oo`` and ``log(oo)``
 evaluates to ``oo``.
 
-``log(b**x, b)`` evaluates to ``x`` if ``b`` is positive and ``x``
-is real (in particular, if ``b`` is ``E`` and ``y`` is rational).
-By extension, ``log(b**x, b**y)`` evaluates to ``x/y`` if ``b``
-is positive and ``x`` and ``y`` are both real.
+.. admonition:: Evaluating ``log``: power input.
+
+  ``log(b**x, b)`` evaluates to ``x`` if ``b`` is positive and ``x``
+  is real (in particular, if ``b`` is ``E`` and ``y`` is rational).
+  By extension, ``log(b**x, b**y)`` evaluates to ``x/y`` if ``b`` is
+  positive and ``x`` and ``y`` are both real.
 
 TODO: log(-x), log(I*x), log(-I*x), ...
 
@@ -335,13 +402,12 @@ TODO: log(-x), log(I*x), log(-I*x), ...
 Trigonometric functions
 -----------------------
 
-Trigonometric functions are automatically evaluated
-to algebraic values if the argument is an integral multiple of ``pi/6``.
-(Direct evaluation is currently also performed at all multiples
-of ``pi/12``; this behavior could be adjusted.) The poles
-in ``tan`` and ``cot`` evaluate to ``zoo``. Trigonometric functions
-are kept unevaluated at ``-oo`` and ``oo`` (this can be useful
-when computing limits).
+Trigonometric functions are automatically evaluated to algebraic
+values if the argument is an integral multiple of ``pi/6``.  (Direct
+evaluation is currently also performed at all multiples of ``pi/12``;
+this behavior could be adjusted.) The poles in ``tan`` and ``cot``
+evaluate to ``zoo``. Trigonometric functions are kept unevaluated at
+``-oo`` and ``oo`` (this can be useful when computing limits).
 
 If the argument to a trigonometric function contains an explicit
 rational multiple of ``pi`` as a term, this term is replaced by
@@ -356,8 +422,6 @@ minus sign.
 
 Trigonometric functions of products containing an explicit
 imaginary factor ``I`` evaluate to hyperbolic functions and vice versa.
-
-
 
 
 

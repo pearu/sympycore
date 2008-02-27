@@ -9,6 +9,7 @@ SympyCore User's Guide
 
 :Authors:
   Pearu Peterson <pearu.peterson@gmail.com>
+  Fredrik Johansson
 
 :Created:
   January 2008
@@ -406,7 +407,7 @@ Differentation
 
   >>> print sin(x*y).diff(x)
   y*cos(x*y)
-  >>> print sin(x*y).diff(x,y)
+  >>> print sin(x*y).diff(x).diff(y)
   cos(x*y) - x*y*sin(x*y)
   >>> print sin(x*y).diff(x,4)
   sin(x*y)*y**4
@@ -422,6 +423,17 @@ Integration
   >>> from sympycore import *
   >>> print (x**2 + x*y).integrate(x)
   1/2*y*x**2 + 1/3*x**3
+
+``<symbolic object>.integrate((<symbol>, <a>, <b>)``
+  return a defined integral of a symbolic expression with respect to
+  ``<symbol>`` over the interval ``[<a>, <b>]``.
+  For example,
+
+  >>> from sympycore import *
+  >>> print (x**2 + x*y).integrate(x)
+  1/2*y*x**2 + 1/3*x**3
+  >>> print (x**2 + x*y).integrate((x, 1, 3))
+  26/3 + 4*y
 
 Commutative ring implementation
 ===============================
@@ -447,7 +459,7 @@ attribute ``data`` content:
    ``Float``, ``Complex`` classes defined in ``sympycore.arithmetic``
    package.
 
-#. If ``<obj>.head==ADD`` then ``<obj>.data`` contains a Python
+#. If ``<obj>.head==TERMS`` then ``<obj>.data`` contains a Python
    dictionary holding the pairs ``(<ring element>, <coefficient>)``.
    The values of ``<coefficients>`` can be Python numbers or
    number-like objects or elements of some other ring (for example,
@@ -455,7 +467,7 @@ attribute ``data`` content:
    instances). For example, if ``<obj>.data`` is ``{x:2, y:1}`` then
    ``<obj>`` represents an expression *y + 2\*x*.
 
-#. If ``<obj>.head==MUL`` then ``<obj>.data`` contains a Python
+#. If ``<obj>.head==FACTORS`` then ``<obj>.data`` contains a Python
    dictionary holding the pairs ``(<ring element>, <exponent>)``.  The
    values of ``<coefficients>`` can be Python numbers of number-like
    objects or elements of some ring (for exapmle, see ``Calculus``
@@ -467,7 +479,7 @@ attribute ``data`` content:
    instance (for example, an instance of some algebra elements)
    or a Python ``tuple`` containing argument instances.
 
-The constants ``SYMBOL``, ``NUMBER``, ``ADD``, ``MUL`` are defined
+The constants ``SYMBOL``, ``NUMBER``, ``TERMS``, ``FACTORS`` are defined
 in ``sympycore/utils.py``.
 
 For example,
@@ -536,9 +548,11 @@ Arithemetics
 
 The ``sympycore.arithmetic`` package is not an algebra package but it
 implements fractions, multi-precision floating point numbers, rational
-complex numbers, and extended numbers. In addition, it implements
+complex numbers, and `extended numbers`__. In addition, it implements
 various algorithms from number theory and provides methods to compute
 the values of constants like pi and Eulers number, etc.
+
+__ evaluation_rules.html#extended-numbers
 
 Polynomials
 ===========

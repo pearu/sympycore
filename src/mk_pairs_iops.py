@@ -150,6 +150,7 @@ def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NU
             data = obj.data
             if len(data)==1:
                 t, number = data.items()[0]
+                number = number ** exp
                 @MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=t; VALUE=exp; SIGN=+; USIGN=; NUMBER=number)
                 return number
             number = 1
