@@ -159,7 +159,6 @@ def diff_generic(expr, xdata, order, NUMBER=NUMBER, SYMBOL=SYMBOL, ADD=ADD, MUL=
             r = zero
     elif head is ADD:
         # Differentiate term by term. Note that coefficients are constants.
-        # TODO: build dict on the spot
         s = zero
         d = {}
         cls = type(expr)
