@@ -152,7 +152,7 @@ def multinomial_coefficients(m, n, _tuple=tuple, _zip=zip):
                 continue
             t = p0[i]
             for t2, c2 in l[k-i]:
-                tt = _tuple(aa+bb for aa,bb in _zip(t2,t))
+                tt = _tuple([aa+bb for aa,bb in _zip(t2,t)])
                 cc = nn * c2
                 b = d_get(tt)
                 if b is None:
