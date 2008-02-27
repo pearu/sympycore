@@ -187,36 +187,6 @@ class CommutativeRing(BasicAlgebra):
             return NotImplemented
         return self.Pow(other,  self.convert_exponent(self))
 
-
-    def integrate(self, x, integrator=None):
-        """
-        Attempt to calculate an antiderivative of self with respect to x.
-
-        Terms that cannot be handled directly are forwarded to
-        a user-defined function `integrator`.
-        """
-        if isinstance(x, tuple) and len(x)==3:
-            x, a, b = map(self.convert, x)
-            return self._integrate_definite(x.data, a, b, integrator)
-        x = self.convert(x)
-        return self._integrate(x, integrator)
-
-    def _integrate(self, x, integrator):
-        if not self.has(x):
-            return self * x
-        if self==x:
-            return x**2/2
-        raise NotImplementedError('%s must define _integrate method' #pragma NO COVER
-                                  % (self.__class__.__name__))       #pragma NO COVER
-
-    def _integrate_definite(self, x, a, b, integrator):
-        if not self.has(x):
-            return self * (b-a)
-        if self==x:
-            return (b**2-a**2)/2
-        raise NotImplementedError('%s must define _integrate_definite method' #pragma NO COVER
-                                  % (self.__class__.__name__))       #pragma NO COVER
-
     def _matches(pattern, expr, repl_dict, wild_info):
         pfunc = pattern.func
         efunc = expr.func
