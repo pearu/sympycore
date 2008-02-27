@@ -1,4 +1,4 @@
-from .algebra import Calculus, one, newinstance
+from .algebra import Calculus, one
 from ..utils import NUMBER, SYMBOL, TERMS, FACTORS
 
 Symbol = Calculus.Symbol
@@ -10,7 +10,7 @@ def integrate_indefinite(expr, x):
     head = expr.head
     cls = type(expr)
     if head is NUMBER or x not in expr._get_symbols_data():
-        return expr*newinstance(cls, SYMBOL, x)
+        return expr*cls.Symbol(x)
     elif head is SYMBOL and expr.data == x:
         return expr**2 / 2
     elif head is FACTORS:
@@ -65,7 +65,7 @@ def integrate_definite(expr, x, a, b):
             elif x in base._get_symbols_data():
                 unknown(expr)
             else:
-                product *= newinstance(cls, FACTORS, {base:e})
+                product *= cls({base:e}, head=FACTORS)
         return product
     elif head is TERMS:
         return expr.Add(*(coef*integrate_definite(term, x, a, b) \

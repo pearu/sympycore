@@ -1,8 +1,7 @@
 from ..core import classes
 
-from ..basealgebra.primitive import NUMBER
 from ..calculus.algebra import Calculus, algebra_numbers
-from ..basealgebra.pairs import CommutativeRingWithPairs, newinstance
+from ..basealgebra.pairs import CommutativeRingWithPairs
 
 class Unit(CommutativeRingWithPairs):
     """ Represents an algebra of physical units.

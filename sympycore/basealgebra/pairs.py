@@ -7,9 +7,8 @@ from collections import defaultdict
 
 from ..core import classes
 from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_NUMBER
-from ..utils import ADD, MUL, SYMBOL, NUMBER, APPLY, POW, TUPLE, head_to_string, TERMS, FACTORS
+from ..utils import TERMS, FACTORS, SYMBOL, NUMBER, APPLY, POW, TUPLE, head_to_string
 
-from .utils import generate_swapped_first_arguments
 from .algebra import BasicAlgebra
 from .ring import CommutativeRing
 from .primitive import PrimitiveAlgebra
@@ -25,16 +24,8 @@ from .pairs_iops import (inplace_add, inplace_add2, inplace_sub,
 
 from .pairs_expand import expand
 
-def newinstance(cls, head, data, new = object.__new__):
-    o = new(cls)
-    o.head = head
-    o.data = data
-    return o
-
 def inspect(obj):
     obj.inspect()
-
-inttypes = (int, long)
 
 class CommutativeRingWithPairs(CommutativeRing):
     """ Implementation of a commutative ring where sums and products
@@ -66,14 +57,17 @@ class CommutativeRingWithPairs(CommutativeRing):
     __pow__ = pow_method
     expand = expand
 
-    def __new__(cls, data, head=None):
+    def __new__(cls, data, head=None, new=object.__new__):
         if head is None:
-            if isinstance(data, cls):
+            if type(data) is cls:
                 return data
             return cls.convert(data)
-        if head in [TERMS, FACTORS] and not isinstance(data, dict):
+        if (head is TERMS or head is FACTORS) and type(data) is not dict:
             data = dict(data)
-        return newinstance(cls, head, data)
+        obj = new(cls)
+        obj.head = head
+        obj.data = data
+        return obj
 
     def __eq__(self, other):
         if self is other:
@@ -99,9 +93,13 @@ class CommutativeRingWithPairs(CommutativeRing):
     def __nonzero__(self):
         return self.head is not NUMBER or bool(self.data)
 
-    def copy(self):
-        if self.head in [ADD, MUL]:
-            return newinstance(type(self), self.head, dict(self.data))
+    def copy(self, new=object.__new__):
+        head = self.head
+        if head is TERMS or head is FACTORS:
+            obj = new(type(self))
+            obj.head = head
+            obj.data = dict(self.data)
+            return obj
         return self
 
     #def __repr__(self):
@@ -116,7 +114,7 @@ class CommutativeRingWithPairs(CommutativeRing):
         head = self.head
         if head in [SYMBOL, NUMBER]:
             r.append(tab + '%s[%s]' % (head_to_string[head], data))
-        elif head in [ADD, MUL]:
+        elif head in [TERMS, FACTORS]:
             r.append(tab + '%s[' % (head_to_string[head]))
             for t,c in data.iteritems():
                 r.append(t.as_tree(tab=tab + ('  %s:' % (str(c))), level=level+1))
@@ -129,7 +127,8 @@ class CommutativeRingWithPairs(CommutativeRing):
 
     @classmethod
     def coefficient_to_str_data(cls, obj, sort=True):
-        if isinstance(obj, inttypes):
+        tobj = type(obj)
+        if tobj is int or tobj is long:
             if obj < 0:
                 return str_SUM, str(obj)
             return str_NUMBER, str(obj)
@@ -139,7 +138,8 @@ class CommutativeRingWithPairs(CommutativeRing):
 
     @classmethod
     def exponent_to_str_data(cls, obj, sort=True):
-        if isinstance(obj, inttypes):
+        tobj = type(obj)
+        if tobj is int or tobj is long:
             if obj < 0:
                 return str_SUM, str(obj)
             return str_NUMBER, str(obj)
@@ -164,7 +164,7 @@ class CommutativeRingWithPairs(CommutativeRing):
         cls = type(self)
         if head is NUMBER:
             return cls.coefficient_to_str_data(self.data, sort)
-        if head is ADD:
+        if head is TERMS:
             pos_dict = {}
             neg_dict = {}
             for t, c in self.data.iteritems():
@@ -208,7 +208,7 @@ class CommutativeRingWithPairs(CommutativeRing):
                 h,l = pos_dict.items()[0]
                 return h, l[0]
             return str_SUM, '-' + (' - '.join(r2))
-        if head is MUL:
+        if head is FACTORS:
             d = {}
             for t, c in self.data.iteritems():
                 h1, s1 = t.to_str_data(sort)
@@ -255,11 +255,11 @@ class CommutativeRingWithPairs(CommutativeRing):
         data = self.data
         if head is SYMBOL or head is NUMBER:
             return lambda : self
-        elif head is ADD:
+        elif head is TERMS:
             if len(self.data)==1:
                 return self.Mul
             return self.Add
-        elif head is MUL:
+        elif head is FACTORS:
             if len(data)>1:
                 return self.Mul
             return self.Pow
@@ -272,12 +272,12 @@ class CommutativeRingWithPairs(CommutativeRing):
         head = self.head
         if head is SYMBOL or head is NUMBER:
             return []
-        elif head is ADD:
+        elif head is TERMS:
             if len(self.data)==1:
                 t, c = self.data.items()[0]
                 return [self.convert(c)] + t.as_Mul_args()
             return self.as_Add_args()
-        elif head is MUL:
+        elif head is FACTORS:
             if len(self.data)>1:
                 return self.as_Mul_args()
             return self.as_Pow_args()
@@ -290,16 +290,16 @@ class CommutativeRingWithPairs(CommutativeRing):
 
     @property
     def is_Add(self):
-        return self.head is ADD and len(self.data) > 1
+        return self.head is TERMS and len(self.data) > 1
 
     @property
     def is_Mul(self):
-        return (self.head is ADD and len(self.data) == 1) \
-            or (self.head is MUL and len(self.data) > 1)
+        return (self.head is TERMS and len(self.data) == 1) \
+            or (self.head is FACTORS and len(self.data) > 1)
 
     @property
     def is_Pow(self):
-        return self.head is MUL and len(self.data) == 1
+        return self.head is FACTORS and len(self.data) == 1
 
     @property
     def is_Number(self):
@@ -312,7 +312,7 @@ class CommutativeRingWithPairs(CommutativeRing):
     def as_Add_args(self):
         head = self.head
         data = self.data
-        if head is ADD:
+        if head is TERMS:
             if len(data)==1:
                 return [self]
             return [t * c for t,c in data.iteritems()]
@@ -321,10 +321,10 @@ class CommutativeRingWithPairs(CommutativeRing):
     def as_Mul_args(self):
         head = self.head
         data = self.data
-        if head is ADD and len(data)==1:
+        if head is TERMS and len(data)==1:
             t,c = data.items()[0]
             return [self.convert(c)] + t.as_Mul_args()
-        if head is MUL:
+        if head is FACTORS:
             if len(data)==1:
                 return [self]
             l = []
@@ -339,7 +339,7 @@ class CommutativeRingWithPairs(CommutativeRing):
     def as_Pow_args(self):
         head = self.head
         data = self.data
-        if head is MUL:
+        if head is FACTORS:
             if len(data)==1:
                 return data.items()[0]
             return [self, self.one_e] #XXX: improve me
@@ -349,47 +349,22 @@ class CommutativeRingWithPairs(CommutativeRing):
         head = self.head
         if head is NUMBER:
             return [(self.one, self.data)]
-        if head is ADD:
+        if head is TERMS:
             return self.data.items()
         return [(self, self.one_c)]
 
     def as_Factors_args(self):
         head = self.head
-        if head is MUL:
+        if head is FACTORS:
             return self.data.items()
         return [(self, self.one_e)]
     
-    def canonize(self):
-        head = self.head
-        if head is ADD:
-            pairs = self.data
-            if not pairs:
-                return self.zero
-            if len(pairs)==1:
-                t, c = pairs.items()[0]
-                if c==1:
-                    return t
-                if self.one==t:
-                    return self.convert(c)
-        elif head is MUL:
-            pairs = self.data
-            pairs.pop(self.one, None)
-            if not pairs:
-                return self.one
-            if len(pairs)==1:
-                t, c = pairs.items()[0]
-                if c==1:
-                    return t
-                if self.one==t:
-                    return t
-        return self
-
     def as_primitive(self):
         head = self.head
         func = self.func
         args = self.args
         if func==self.Add:
-            r = PrimitiveAlgebra((ADD,tuple(map(PrimitiveAlgebra, args))))
+            r = PrimitiveAlgebra((TERMS,tuple(map(PrimitiveAlgebra, args))))
             r.commutative_add = True
         elif func==self.Mul:
             if args[0].head is NUMBER and args[0].data < 0:
@@ -400,12 +375,12 @@ class CommutativeRingWithPairs(CommutativeRing):
                         return r
                 else:
                     args = [PrimitiveAlgebra(-args[0])] + map(PrimitiveAlgebra,args[1:])
-                r = PrimitiveAlgebra((MUL,tuple(args)))
+                r = PrimitiveAlgebra((FACTORS,tuple(args)))
                 r.commutative_mul = True
                 r = -r
             else:
                 args = map(PrimitiveAlgebra, args)
-                r = PrimitiveAlgebra((MUL,tuple(args)))
+                r = PrimitiveAlgebra((FACTORS,tuple(args)))
             r.commutative_mul = True
         elif func==self.Pow:
             r = PrimitiveAlgebra((POW, tuple(map(PrimitiveAlgebra, args))))
@@ -440,16 +415,19 @@ class CommutativeRingWithPairs(CommutativeRing):
                 r = PrimitiveAlgebra((SYMBOL, (self.head,self.data)))
         return r
 
-    def old_expand(self):
-        return expand_dict1[self.head](self, type(self))
+    @classmethod
+    def Symbol(cls, obj, new=object.__new__):
+        r = new(cls)
+        r.head = SYMBOL
+        r.data = obj
+        return r
 
     @classmethod
-    def Symbol(cls, obj):
-        return newinstance(cls, SYMBOL, obj)
-
-    @classmethod
-    def Number(cls, obj):
-        return newinstance(cls, NUMBER, obj)
+    def Number(cls, obj, new=object.__new__):
+        r = new(cls)
+        r.head = NUMBER
+        r.data = obj
+        return r
 
     @classmethod
     def Add(cls, *seq):
@@ -509,21 +487,8 @@ class CommutativeRingWithPairs(CommutativeRing):
         return r * number
 
     @classmethod
-    def npower(cls, base, exp):
-        return pow_coeff_int(base, exp, cls)
-
-    @classmethod
     def Pow(cls, base, exp):
-        if isinstance(exp, cls):
-            if exp.head is NUMBER:
-                exp = exp.data
-            else:
-                return pow_dict2[base.head][exp.head](base, exp, cls)
-        if base.head is NUMBER:
-            return cls.npower(base.data, exp)
-        if isinstance(exp, inttypes):
-            return pow_dict1[base.head](base, exp, cls)
-        return pow_dict2[base.head][NUMBER](base, newinstance(cls, NUMBER, exp), cls)
+        return pow_method(base, exp)
 
     def __int__(self):
         assert self.head is NUMBER,`self`
@@ -559,11 +524,11 @@ class CommutativeRingWithPairs(CommutativeRing):
                 _symbols_data = set([self.data])
             elif head is NUMBER:
                 _symbols_data = set()
-            elif head is ADD:
+            elif head is TERMS:
                 _symbols_data = set()
                 for k in self.data:
                     _symbols_data |= k._get_symbols_data()
-            elif head is MUL:
+            elif head is FACTORS:
                 _symbols_data = set()
                 cls = type(self)
                 for k, c in self.data.iteritems():
@@ -582,7 +547,8 @@ class CommutativeRingWithPairs(CommutativeRing):
         symbols = self._symbols
         if symbols is None:
             cls = type(self)
-            symbols = self._symbols = set([newinstance(cls, SYMBOL, d) for d in self._get_symbols_data()])
+            Symbol = cls.Symbol
+            symbols = self._symbols = set([Symbol(d) for d in self._get_symbols_data()])
         return symbols
 
     def has_symbol(self, symbol):
@@ -606,7 +572,7 @@ class CommutativeRingWithPairs(CommutativeRing):
             
         cls = type(self)
 
-        if head is ADD:
+        if head is TERMS:
             d = {}
             d_get = d.get
             one = cls.one
@@ -618,7 +584,7 @@ class CommutativeRingWithPairs(CommutativeRing):
                     inplace_add2(cls, r, c, d, d_get, one)
             return return_terms(cls, d)
 
-        elif head is MUL:
+        elif head is FACTORS:
             d = {}
             d_get = d.get
             num = 1
@@ -651,382 +617,3 @@ A = CommutativeRingWithPairs
 A.one = A.Number(1)
 A.zero = A.Number(0)
 
-def pow_coeff_int(lhs, rhs, cls):
-    if not rhs or lhs==1:
-        return cls.one
-    if rhs > 0:
-        return newinstance(cls, NUMBER, lhs ** rhs)
-    r = pow_coeff_int(lhs, -rhs, cls)
-    return newinstance(cls, MUL, {r:-1})
-
-def pow_NUMBER_int(lhs, rhs, cls):
-    if not rhs:
-        return cls.one
-    if rhs==1:
-        return lhs
-    value = lhs.data
-    if rhs > 0:
-        return newinstance(cls, NUMBER, value ** rhs)
-    if value==1:
-        return lhs
-    r = pow_NUMBER_int(lhs, -rhs, cls)
-    return newinstance(cls, MUL, {r:-1})
-
-def pow_SYMBOL_int(lhs, rhs, cls):
-    if not rhs:
-        return cls.one
-    if rhs==1:
-        return lhs
-    return newinstance(cls, MUL, {lhs:rhs})
-
-def pow_ADD_int(lhs, rhs, cls):
-    if not rhs:
-        return cls.one
-    if rhs==1:
-        return lhs
-    pairs = lhs.data
-    if len(pairs)==1:
-        t, c = pairs.items()[0]
-        return pow_dict1[t.head](t, rhs, cls) * pow_coeff_int(c, rhs, cls)
-    return newinstance(cls, MUL, {lhs:rhs})
-
-def pow_MUL_int(lhs, rhs, cls):
-    if not rhs:
-        return cls.one
-    if rhs==1:
-        return lhs
-    pairs = lhs.data
-    if len(pairs)==1:
-        t, c = pairs.items()[0]
-        if isinstance(c, inttypes):
-            return pow_dict1[t.head](t, c*rhs, cls)
-    d = {}
-    r = newinstance(cls, MUL, d)
-    for t,c in pairs.iteritems():
-        d[t] = c * rhs
-    return r
-
-def pow_NUMBER_NUMBER(lhs, rhs, cls):
-    if isinstance(rhs.data, inttypes):
-        return pow_NUMBER_int(lhs, rhs.data, cls)
-    return newinstance(cls, MUL, {lhs:rhs})
-
-def pow_NUMBER_ADD(lhs, rhs, cls):
-    pairs = rhs.data
-    if len(pairs)==1:
-        t,c = pairs.items()[0]
-        if isinstance(c, inttypes):
-            lhs = pow_NUMBER_int(lhs, c, cls)
-            rhs = t
-    return newinstance(cls, MUL, {lhs:rhs})
-
-def pow_NUMBER_MUL(lhs, rhs, cls):
-    return newinstance(cls, MUL, {lhs:rhs})
-
-def pow_NUMBER_SYMBOL(lhs, rhs, cls):
-    r = lhs.data.__pow__(rhs)
-    if r is not NotImplemented:
-        return cls.convert(r)
-    return newinstance(cls, MUL, {lhs:rhs})
-
-def pow_ADD_NUMBER(lhs, rhs, cls):
-    if isinstance(rhs.data, inttypes):
-        return pow_ADD_int(lhs, rhs.data, cls)
-    return newinstance(cls, MUL, {lhs:rhs})
-
-def pow_ADD_ADD(lhs, rhs, cls):
-    pairs = lhs.data
-    if len(pairs)==1:
-        t, c = pairs.items()[0]
-        c = cls.convert(c)
-        return c**rhs * t**rhs
-    return newinstance(cls, MUL, {lhs:rhs})
-
-def pow_ADD_MUL(lhs, rhs, cls):
-    return newinstance(cls, MUL, {lhs:rhs})
-
-def pow_ADD_SYMBOL(lhs, rhs, cls):
-    return newinstance(cls, MUL, {lhs:rhs})
-
-def pow_MUL_NUMBER(lhs, rhs, cls):
-    if isinstance(rhs.data, inttypes):
-        return pow_MUL_int(lhs, rhs.data, cls)
-    return newinstance(cls, MUL, {lhs:rhs})
-
-def pow_MUL_ADD(lhs, rhs, cls):
-    pairs = lhs.data
-    if len(pairs)==1:
-        t,c = pairs.items()[0]
-        lhs = t
-        c = cls.convert(c)
-        rhs = mul_NUMBER_dict[rhs.head](c, rhs, cls)
-    return newinstance(cls, MUL, {lhs:rhs})
-
-def pow_MUL_MUL(lhs, rhs, cls):
-    pairs = lhs.data
-    if len(pairs)==1:
-        t, c = pairs.items()[0]
-        if isinstance(c, inttypes):
-            lhs = t
-            c = cls.convert(c)
-            rhs = mul_NUMBER_dict[rhs.head](c, rhs, cls)
-    return newinstance(cls, MUL, {lhs:rhs})
-
-def pow_MUL_SYMBOL(lhs, rhs, cls):
-    pairs = lhs.data
-    if len(pairs)==1:
-        t, c = pairs.items()[0]
-        if isinstance(c, inttypes):
-            lhs = pow_dict2[t.head][rhs.head](t, rhs, cls)
-            rhs = cls.convert(c)
-    return newinstance(cls, MUL, {lhs:rhs})
-
-def pow_SYMBOL_NUMBER(lhs, rhs, cls):
-    value = rhs.data
-    if isinstance(value, inttypes):
-        return pow_SYMBOL_int(lhs, value, cls)
-    r = value.__rpow__(lhs)
-    if r is not NotImplemented:
-        return cls.convert(r)
-    return newinstance(cls, MUL, {lhs:rhs})
-
-def pow_SYMBOL_ADD(lhs, rhs, cls):
-    pairs = rhs.data
-    if len(pairs)==1:
-        t,c = pairs.items()[0]
-        if isinstance(c, inttypes):
-            lhs = pow_dict2[lhs.head][t.head](lhs, t, cls)
-            rhs = cls.convert(c)
-    return newinstance(cls, MUL, {lhs:rhs})
-
-def pow_SYMBOL_MUL(lhs, rhs, cls):
-    return newinstance(cls, MUL, {lhs:rhs})
-
-def pow_SYMBOL_SYMBOL(lhs, rhs, cls):
-    return newinstance(cls, MUL, {lhs:rhs})
-
-####################################################################
-# Implementation of binary operations +, *, and expanding products.
-
-def multiply_NUMBER_NUMBER(lhs, rhs, cls):
-    return newinstance(cls, NUMBER, lhs.data * rhs.data)
-
-def multiply_NUMBER_SYMBOL(lhs, rhs, cls):
-    value = lhs.data
-    if not value:
-        return lhs
-    if value==1:
-        return rhs
-    return newinstance(cls, ADD, {rhs:value})
-
-generate_swapped_first_arguments(multiply_NUMBER_SYMBOL)
-
-def multiply_NUMBER_ADD(lhs, rhs, cls):
-    value = lhs.data
-    if value==1:
-        return rhs
-    d = {}
-    result = newinstance(cls, ADD, d)
-    for t,c in rhs.data.iteritems():
-        c = c * value
-        if c:
-            d[t] = c
-    if len(d)<=1:
-        return result.canonize()
-    return result
-
-generate_swapped_first_arguments(multiply_NUMBER_ADD)
-
-def multiply_NUMBER_MUL(lhs, rhs, cls):
-    value = lhs.data
-    if not value:
-        return lhs
-    if value==1:
-        return rhs
-    b = rhs.data.get(lhs)
-    if b is not None:
-        result = rhs.copy()
-        pairs = result.data
-        c = b + cls.one_e
-        if c:
-            pairs[lhs] = c
-            return result
-        else:
-            del pairs[lhs]
-        if len(pairs)<=1:
-            return result.canonize()
-        return result
-    return newinstance(cls,ADD,{rhs:value})
-
-generate_swapped_first_arguments(multiply_NUMBER_MUL)
-
-def multiply_SYMBOL_SYMBOL(lhs, rhs, cls):
-    if lhs==rhs:
-        return newinstance(cls, MUL, {lhs:2})
-    return newinstance(cls, MUL, {lhs:1, rhs:1})
-
-def multiply_SYMBOL_ADD(lhs, rhs, cls):
-    pairs = rhs.data
-    if len(pairs)==1:
-        t, c = pairs.items()[0]
-        if lhs==t:
-            return newinstance(cls,ADD,{newinstance(cls, MUL, {lhs: 2}): c})
-        return multiply_dict2[lhs.head][t.head](lhs, t, cls) * c
-    return newinstance(cls, MUL, {lhs:1, rhs: 1})
-
-generate_swapped_first_arguments(multiply_SYMBOL_ADD)
-
-def multiply_SYMBOL_MUL(lhs, rhs, cls):
-    result = rhs.copy()
-    pairs = result.data
-    b = pairs.get(lhs)
-    if b is None:
-        pairs[lhs] = 1
-    else:
-        c = b + 1
-        if c:
-            pairs[lhs] = c
-        else:
-            del pairs[lhs]
-    if len(pairs)<=1:
-        return result.canonize()
-    return result
-
-generate_swapped_first_arguments(multiply_SYMBOL_MUL)
-
-def multiply_ADD_ADD(lhs, rhs, cls):
-    ldata = lhs.data
-    rdata = rhs.data
-    if len(ldata)==1:
-        t1, c1 = ldata.items()[0]
-        if len(rdata)==1:
-            t2, c2 = rdata.items()[0]
-            t = multiply_dict2[t1.head][t2.head](t1, t2, cls)
-            if t==cls.one:
-                return newinstance(cls, NUMBER, c1*c2)
-            return newinstance(cls,ADD,{t: c1*c2})
-        r = newinstance(cls, MUL, {t1:1, rhs:1})
-        return newinstance(cls, ADD, {r: c1})
-    elif len(rdata)==1:
-        t2, c2 = rdata.items()[0]
-        r = newinstance(cls, MUL, {t2:1, lhs:1})
-        return newinstance(cls, ADD, {r: c2})
-    else:
-        if ldata==rdata:
-            return newinstance(cls, MUL, {lhs:2})
-        return newinstance(cls, MUL, {lhs:1, rhs:1})
-
-def multiply_ADD_MUL(lhs, rhs, cls):
-    ldata = lhs.data
-    if len(ldata)==1:
-        t, c = ldata.items()[0]
-        return multiply_dict2[t.head][rhs.head](t, rhs, cls) * c
-    result = rhs.copy()
-    pairs = result.data
-    b = pairs.get(lhs)
-    if b is None:
-        pairs[lhs] = 1
-    else:
-        c = b + 1
-        if c:
-            pairs[lhs] = c
-        else:
-            del pairs[lhs]
-    if len(pairs)<=1:
-        return result.canonize()
-    return result
-
-generate_swapped_first_arguments(multiply_ADD_MUL)
-
-def multiply_MUL_MUL(lhs, rhs, cls):
-    ldata = lhs.data
-    rdata = rhs.data
-    if len(ldata) < len(rdata):
-        rhs, lhs = lhs, rhs
-        ldata, rdata = rdata, ldata
-    pairs = dict(ldata)
-    result = newinstance(cls, MUL, pairs)
-    get = pairs.get
-    number = 1
-    for t,c in rdata.iteritems():
-        b = get(t)
-        if b is None:
-            pairs[t] = c
-        else:
-            c = b + c
-            if c:
-                if t.head is NUMBER:
-                    r = t**c
-                    if r.head is NUMBER:
-                        number = number * r
-                        del pairs[t]
-                    else:
-                        pairs[t] = c
-                else:
-                    pairs[t] = c
-            else:
-                del pairs[t]
-    if len(pairs)<=1:
-        result = result.canonize()
-    if number==1:
-        return result
-    return result * number
-
-# function maps:
-
-pow_dict1 = defaultdict(lambda: pow_SYMBOL_int,
-                        {NUMBER: pow_NUMBER_int,
-                         ADD: pow_ADD_int,
-                         MUL: pow_MUL_int
-                         })
-
-pow_ADD_dict = defaultdict(lambda: pow_ADD_SYMBOL,
-                           {NUMBER: pow_ADD_NUMBER,
-                            ADD: pow_ADD_ADD,
-                            MUL: pow_ADD_MUL})
-
-pow_MUL_dict = defaultdict(lambda: pow_MUL_SYMBOL,
-                           {NUMBER: pow_MUL_NUMBER,
-                            ADD: pow_MUL_ADD,
-                            MUL: pow_MUL_MUL})
-
-pow_NUMBER_dict = defaultdict(lambda: pow_NUMBER_SYMBOL,
-                              {NUMBER: pow_NUMBER_NUMBER,
-                               ADD: pow_NUMBER_ADD,
-                               MUL: pow_NUMBER_MUL})
-
-pow_SYMBOL_dict = defaultdict(lambda: pow_SYMBOL_SYMBOL,
-                              {NUMBER: pow_SYMBOL_NUMBER,
-                               ADD: pow_SYMBOL_ADD,
-                               MUL: pow_SYMBOL_MUL})
-
-
-pow_dict2 = defaultdict(lambda: pow_SYMBOL_dict,
-                        {NUMBER: pow_NUMBER_dict,
-                         ADD: pow_ADD_dict,
-                         MUL: pow_MUL_dict})
-
-
-mul_NUMBER_dict = defaultdict(lambda:multiply_NUMBER_SYMBOL,
-                              {NUMBER: multiply_NUMBER_NUMBER,
-                               ADD: multiply_NUMBER_ADD,
-                               MUL: multiply_NUMBER_MUL,
-                               })
-
-mul_ADD_dict = defaultdict(lambda:multiply_ADD_SYMBOL,
-                           {NUMBER: multiply_ADD_NUMBER,
-                            ADD: multiply_ADD_ADD,
-                            MUL: multiply_ADD_MUL,
-                            })
-
-mul_MUL_dict = defaultdict(lambda:multiply_MUL_SYMBOL,
-                           {NUMBER: multiply_MUL_NUMBER,
-                            ADD: multiply_MUL_ADD,
-                            MUL: multiply_MUL_MUL,
-                            })
-
-mul_SYMBOL_dict = defaultdict(lambda:multiply_SYMBOL_SYMBOL,
-                              {NUMBER: multiply_SYMBOL_NUMBER,
-                               ADD: multiply_SYMBOL_ADD,
-                               MUL: multiply_SYMBOL_MUL,
-                               })

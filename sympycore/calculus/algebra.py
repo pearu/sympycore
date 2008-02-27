@@ -3,17 +3,15 @@
 #
 
 from ..core import classes
-from ..utils import TERMS, str_PRODUCT
+from ..utils import TERMS, str_PRODUCT, FACTORS, SYMBOL, NUMBER
 from ..basealgebra import BasicAlgebra
-from ..basealgebra.primitive import PrimitiveAlgebra, SYMBOL, NUMBER, ADD, MUL
-
-from ..basealgebra.pairs import CommutativeRingWithPairs, newinstance
+from ..basealgebra.primitive import PrimitiveAlgebra
+from ..basealgebra.pairs import CommutativeRingWithPairs
 
 from ..arithmetic.numbers import FractionTuple, normalized_fraction, Float, Complex, \
     try_power
 
 from ..arithmetic.evalf import evalf
-
 
 algebra_numbers = (int, long, FractionTuple, Float, Complex)
 
@@ -51,31 +49,6 @@ class Calculus(CommutativeRingWithPairs):
             return I
         return cls.defined_functions.get(name)
     
-    def canonize(self):
-        head = self.head
-        if head is ADD:
-            pairs = self.data
-            if not pairs:
-                return self.zero
-            if len(pairs)==1:
-                t, c = pairs.items()[0]
-                if c==1:
-                    return t
-                if self.one==t:
-                    return self.convert(c)
-        elif head is MUL:
-            pairs = self.data
-            pairs.pop(self.one, None)
-            if not pairs:
-                return self.one
-            if len(pairs)==1:
-                t, c = pairs.items()[0]
-                if c==1:
-                    return t
-                if self.one==t:
-                    return t
-        return self
-
     @classmethod
     def convert_coefficient(cls, obj, typeerror=True):
         """ Convert obj to coefficient algebra.
@@ -132,10 +105,6 @@ class Calculus(CommutativeRingWithPairs):
         return cls(normalized_fraction(num, denom), head=NUMBER)
 
     @classmethod
-    def Symbol(cls, obj):
-        return cls(obj, head=SYMBOL)
-
-    @classmethod
     def Log(cls, arg, base=None):
         log = cls.defined_functions['log']
         if base is None:
@@ -145,19 +114,6 @@ class Calculus(CommutativeRingWithPairs):
     @classmethod
     def Exp(cls, arg):
         return cls.defined_functions['exp'](arg)
-
-    @classmethod
-    def Sign(cls, arg):
-        sign = cls.defined_functions['sign']
-        return sign(arg)
-
-    @classmethod
-    def npower(cls, base, exp):
-        num, sym = try_power(base, exp)
-        if not sym:
-            return newinstance(cls, NUMBER, num)
-        d = dict([(newinstance(cls, NUMBER, b), e) for b, e in sym])
-        return newinstance(cls, MUL, d) * num
 
     def evalf(self, n=15):
         head = self.head
@@ -191,15 +147,16 @@ class Calculus(CommutativeRingWithPairs):
                 r = t.get_direction()
                 if r is not NotImplemented:
                     return r * c
-        if head is MUL:
+        if head is FACTORS:
             direction = 1
+            cls = type(self)
             for t,c in self.data.iteritems():
                 d = t.get_direction()
                 if d is NotImplemented:
                     return d
                 if not isinstance(c, (int, long)):
                     return NotImplemented
-                d = self.npower(d, c).get_direction()
+                d = self.Pow(cls.convert(d), c).get_direction()
                 if d is NotImplemented:
                     return d
                 direction *= d
@@ -216,7 +173,7 @@ class Calculus(CommutativeRingWithPairs):
             return getattr(value, 'is_bounded', None)
         if head is SYMBOL:
             return getattr(self.data, 'is_bounded', None)
-        if head is ADD:
+        if head is TERMS:
             for t, c in self.data.iteritems():
                 b = t.is_bounded
                 if not b:
@@ -283,9 +240,9 @@ class Calculus(CommutativeRingWithPairs):
                 l[i] = 1
                 return cls({AdditiveTuple(l):1})                
             return cls[(self.data,), self.__class__]({1:1})
-        if head is ADD:
+        if head is TERMS:
             return cls.Add(*[t.as_polynom(cls)*c for t,c in self.data.iteritems()])
-        if head is MUL:
+        if head is FACTORS:
             return cls.Mul(*[t.as_polynom(cls)**c for t,c in self.data.iteritems()])
         raise NotImplementedError(`head, self`)
 

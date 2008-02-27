@@ -1,7 +1,7 @@
 
 from ..utils import str_PRODUCT, NUMBER, TERMS, FACTORS
 from ..arithmetic import Infinity
-from .algebra import A, newinstance
+from .algebra import A
 
 class CalculusInfinity(Infinity):
 
@@ -47,7 +47,7 @@ class CalculusInfinity(Infinity):
         if r is not NotImplemented:
             return A.convert(r)
         x = A.convert(x)
-        return newinstance(A, cls.IsUnbounded, x)
+        return A(x, cls.IsUnbounded)
 
     @classmethod
     def EqualArg(cls, x, y):
@@ -69,7 +69,7 @@ class CalculusInfinity(Infinity):
             return A.convert(r)
         x = A.convert(x)
         y = A.convert(y)
-        return newinstance(A, cls.EqualArg, (x, y))
+        return A((x,y), cls.EqualArg)
 
     @classmethod
     def IsPositive(cls, x):
@@ -80,7 +80,7 @@ class CalculusInfinity(Infinity):
         if r is not NotImplemented:
             return A.convert(r)
         x = A.convert(x)
-        return newinstance(A, cls.IsPositive, x)
+        return A(x, cls.IsPositive)
 
     def __pow__(self, other):
         if isinstance(other, A):
@@ -93,7 +93,7 @@ class CalculusInfinity(Infinity):
                 return r
             return A.convert(r)
         x = A.convert(other)
-        return newinstance(A, FACTORS, {self:x})
+        return A({self: x}, FACTORS)
 
     def __rpow__(self, other):
         if isinstance(other, A):
@@ -106,7 +106,7 @@ class CalculusInfinity(Infinity):
                 return r
             return A.convert(r)
         x = A.convert(other)
-        return newinstance(A, FACTORS, {x:self})
+        return A({x: self}, FACTORS)
 
 oo = CalculusInfinity(1)
 moo = CalculusInfinity(-1)

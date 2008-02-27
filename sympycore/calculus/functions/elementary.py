@@ -2,7 +2,7 @@
 # Created January 2008 by Fredrik Johansson
 #
 
-from ..algebra import A, I,  NUMBER, ADD, MUL, SYMBOL, TERMS
+from ..algebra import A, I,  NUMBER, TERMS, FACTORS, SYMBOL, TERMS
 from ..infinity import oo, undefined, CalculusInfinity
 from ..constants import const_pi, const_E
 from ..function import Function
@@ -103,11 +103,11 @@ class log(Function):
         if arg == E:
             return one
         from ..relational import is_positive
-        if head is MUL and len(data) == 1:
+        if head is FACTORS and len(data) == 1:
             base, expt = data.items()[0]
             if is_positive(base) and isinstance(expt, realtypes):
                 return A(base, head=cls) * expt
-        if head is ADD and len(data) == 1:
+        if head is TERMS and len(data) == 1:
             term, coeff = data.items()[0]
             if (isinstance(coeff, realtypes) and coeff < 0) and is_positive(base):
                 return Ipi + log(-arg)
@@ -139,7 +139,7 @@ sine_table = [ \
 
 def get_pi_shift(arg, N):
     """Parse as x, n where arg = x + n*pi/N"""
-    if arg.head is ADD:
+    if arg.head is TERMS:
         # Optimizing for len == 1 gives 2x speedup in simple cases
         if len(arg.data) == 1:
             e, c = arg.data.items()[0]
@@ -164,7 +164,7 @@ def has_leading_sign(arg):
     if arg.head is NUMBER:
         if arg < 0:
             return True
-    if arg.head is ADD and len(arg.data) == 1:
+    if arg.head is TERMS and len(arg.data) == 1:
         e, c = arg.data.items()[0]
         if c < 0:
             return True
