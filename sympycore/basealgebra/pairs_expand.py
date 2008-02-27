@@ -5,12 +5,6 @@ from ..utils import NUMBER, TERMS, FACTORS
 from .pairs_iops import inplace_add2, return_terms, return_factors
 from .pairs_ops import expand_mul_method
 
-def newinstance(cls, head, data, new = object.__new__):
-    o = new(cls)
-    o.head = head
-    o.data = data
-    return o
-
 def expand(self):
     head = self.head
     if head is TERMS:
