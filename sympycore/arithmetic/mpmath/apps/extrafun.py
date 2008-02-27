@@ -2,8 +2,8 @@
 Numerical implementations of special functions (gamma, ...)
 """
 
-from mpmath.mptypes import mpnumeric, mpf, mpc, pi, euler, exp, log, sqrt, sin, power
-from mpmath.lib import make_fixed
+from ..mptypes import mpnumeric, mpf, mpc, pi, euler, exp, log, sqrt, sin, power
+from ..lib import make_fixed
 
 #from sympy import Rational
 

@@ -1,4 +1,5 @@
-from mpmath.mptypes import *
+from ..mptypes import mpf, isnan
+
 
 class mpi:
     """Interval arithmetic class. Precision is controlled by mpf.prec."""
