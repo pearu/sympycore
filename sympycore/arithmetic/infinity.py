@@ -207,6 +207,10 @@ class Infinity(object):
             return cls(0)
         if not other:
             return cls(cls(0))
+        if isinstance(other, realtypes):
+            if other < 0:
+                return cls(-self.data)
+            return self
         return cls(self.data / other)
 
     def __rdiv__(self, other):

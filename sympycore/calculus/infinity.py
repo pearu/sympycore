@@ -1,5 +1,5 @@
 
-from ..utils import str_PRODUCT, NUMBER, TERMS, FACTORS
+from ..utils import str_PRODUCT, NUMBER, TERMS, FACTORS, SYMBOL
 from ..arithmetic import Infinity
 from .algebra import A
 
@@ -97,6 +97,8 @@ class CalculusInfinity(Infinity):
 
     def __rpow__(self, other):
         if isinstance(other, A):
+            if other.head is SYMBOL:
+                other = other.evalf(2)
             head, data = other.head, other.data
             if head is NUMBER:
                 other = data

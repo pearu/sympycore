@@ -1,3 +1,11 @@
+"""
+SympyCore - A pure Python CAS
+-----------------------------
+
+http://sympycore.googlecode.org/
+
+"""
+
 from .core import Basic, classes
 from basealgebra import *
 from arithmetic import *
