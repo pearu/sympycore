@@ -2,6 +2,7 @@ START_REVISION=418
 
 from sympycore import Symbol, Number
 x,y,z = map(Symbol,'xyz')
+a,b,c = map(Symbol,'abc')
 
 bina1 = (3*x+2*y)**2
 binb1 = (3*x+2)**2
@@ -26,6 +27,8 @@ mixed5 = (x+y+3)**2 * (x+y+1)
 mixed6 = (x+y+1)**8 * (x+z)**4
 
 nested = (1+(x+2*z+(y+(1+y+z))**2)**2)
+
+high3 = (x+y+z+1+a+b+c)**3
 
 def test_bin_1():
     """Expand small binomials with int coeffs, 30x"""
@@ -55,6 +58,10 @@ def test_quad_2():
     """Expand large quadrinomial"""
     quad8.expand()
 
+def test_high_3():
+    """Expand large (1+x+y+z+a+b+c)**3"""
+    high3.expand()
+
 def test_mixed_1():
     """Expand small mixed products, 8x"""
     mixed1.expand(); mixed1.expand(); mixed1.expand()
@@ -76,5 +83,6 @@ if __name__=='__main__':
     run_tests([
         test_bin_1, test_bin_2, test_bin_3,
         test_quad_1, test_quad_2,
-        test_mixed_1, test_mixed_2, test_nested
+        test_mixed_1, test_mixed_2, test_nested,
+        test_high_3
         ])
