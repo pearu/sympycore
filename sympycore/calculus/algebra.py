@@ -224,7 +224,7 @@ class Calculus(CommutativeRingWithPairs):
             cls = PolynomialRing
         head = self.head
         if head is NUMBER:
-            return cls(self)
+            return cls.Number(self.data)
         if head is SYMBOL:
             try:
                 i = list(cls.variables).index(self)
@@ -238,7 +238,7 @@ class Calculus(CommutativeRingWithPairs):
             if i is not None:
                 l = [0]*cls.nvars
                 l[i] = 1
-                return cls({AdditiveTuple(l):1})                
+                return cls({AdditiveTuple(l):1})
             return cls[(self.data,), self.__class__]({1:1})
         if head is TERMS:
             return cls.Add(*[t.as_polynom(cls)*c for t,c in self.data.iteritems()])
