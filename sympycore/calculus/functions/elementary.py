@@ -37,26 +37,15 @@ class sign(Function):
 
 class sqrt(Function):
     def __new__(cls, arg):
-        if not isinstance(arg, A):
-            arg = A.convert(arg)
         return arg ** half
 
 class exp(Function):
     def __new__(cls, arg):
-        if isinstance(arg, CalculusInfinity):
-            if arg==oo:
-                return oo
-            if arg==undefined:
-                return undefined
-            if arg==-oo:
-                return A.zero
-        elif not isinstance(arg, A):
-            arg = A.convert(arg)
         return E ** arg
 
-    @classmethod
-    def derivative(cls, arg):
-        return exp(arg)
+    @staticmethod
+    def derivative(arg):
+        return E ** arg
 
 log_number_table = {
     zero.data : -oo,
