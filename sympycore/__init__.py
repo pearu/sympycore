@@ -5,6 +5,7 @@ SympyCore - A pure Python CAS
 http://sympycore.googlecode.org/
 
 """
+__docformat__ = "restructuredtext en"
 
 from .core import Basic, classes
 from basealgebra import *
@@ -17,6 +18,8 @@ from physics import *
 import utils
 
 def profile_expr(expr):
+    """ Printout the profiler information for executing ``expr``.
+    """
     import sys
     import hotshot, hotshot.stats
     prof = hotshot.Profile("/tmp/sympycore_stones.prof")
