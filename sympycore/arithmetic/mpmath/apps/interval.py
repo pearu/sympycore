@@ -1,5 +1,6 @@
+""" Defines mpi class for interval arithmetic.
+"""
 from ..mptypes import mpf, isnan
-
 
 class mpi:
     """Interval arithmetic class. Precision is controlled by mpf.prec."""
