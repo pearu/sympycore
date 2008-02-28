@@ -521,12 +521,20 @@ class CommutativeRingWithPairs(CommutativeRing):
         return self
 
     def __lt__(self, other):
+        if type(other) is type(self):
+            return self.data < other.data
         return self.data < other
     def __le__(self, other):
+        if type(other) is type(self):
+            return self.data <= other.data
         return self.data <= other
     def __gt__(self, other):
+        if type(other) is type(self):
+            return self.data > other.data
         return self.data > other
     def __ge__(self, other):
+        if type(other) is type(self):
+            return self.data >= other.data
         return self.data >= other
     def __ne__(self, other):
         return not (self == other)

@@ -295,6 +295,8 @@ ul.auto-toc {
 <!-- -*- rest -*- -->
 <div class="section">
 <h1><a id="getting-started" name="getting-started">Getting started</a></h1>
+<p>This document gives a short overview of sympycore basic features. For
+more information see the <a class="reference" href="http://sympycore.googlecode.com/svn/trunk/doc/html/userguide.html">SympyCore User's Guide</a>.</p>
 <p>To use sympycore package from Python, one must import it:</p>
 <pre class="doctest-block">
 &gt;&gt;&gt; from sympycore import *
@@ -332,7 +334,7 @@ Calculus('0')
 </pre>
 </div>
 <div class="section">
-<h1><a id="manipulatins-with-symbolic-expressions" name="manipulatins-with-symbolic-expressions">Manipulatins with symbolic expressions</a></h1>
+<h1><a id="manipulations-with-symbolic-expressions" name="manipulations-with-symbolic-expressions">Manipulations with symbolic expressions</a></h1>
 <p>The most obvious manipulation task applied to symbolic expressions, is
 substitution -- replacing a subexpression of a given expression with a
 new expression. For example,</p>
@@ -378,16 +380,18 @@ subexpressions. For example, given a pattern</p>
 {Calculus('w'): Calculus('x + y')}
 </pre>
 <p>The result of <tt class="docutils literal"><span class="pre">match</span></tt> method, when the match is found, is a dictionary
-with the propert</p>
+with the property</p>
 <pre class="doctest-block">
 &gt;&gt;&gt; pattern.subs(d1.items())==expr1
 True
 &gt;&gt;&gt; pattern.subs(d2.items())==expr2
 True
 </pre>
-<p>If no match is found, then the <tt class="docutils literal"><span class="pre">match</span></tt> returns <tt class="docutils literal"><span class="pre">None</span></tt>:
+<p>If no match is found, then the <tt class="docutils literal"><span class="pre">match</span></tt> returns <tt class="docutils literal"><span class="pre">None</span></tt>:</p>
+<pre class="doctest-block">
 &gt;&gt;&gt; print (y*x**2).match(pattern, w)
-None</p>
+None
+</pre>
 </div>
 <div class="section">
 <h1><a id="transformation-methods" name="transformation-methods">Transformation methods</a></h1>
@@ -423,6 +427,130 @@ Calculus('1 + sin(x*y) + x*y*cos(x*y)')
 Calculus('1/2*x**2 + z*x**3')
 &gt;&gt;&gt; expr.integrate((x, 2, y))
 Calculus('1/2*y**2 + z*(y**3 - 8) - 2')
+</pre>
+</div>
+<div class="section">
+<h1><a id="arithmetic-methods" name="arithmetic-methods">Arithmetic methods</a></h1>
+<p>sympycore supports converting symbolic expressions with exact numbers
+such as integers and rational numbers to expressions with arbitrary
+precision floating-point numbers:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; expr = 2*pi + E**x
+&gt;&gt;&gt; expr
+Calculus('E**x + 2*pi')
+&gt;&gt;&gt; expr.evalf(5)
+Calculus('6.2832 + 2.7183**x')
+&gt;&gt;&gt; expr.evalf(25)
+Calculus('6.283185307179586476925287 + 2.718281828459045235360287**x')
+</pre>
+<p>sympycore evaluates fractional powers of integers to simpler
+expression when possible:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; Calculus('8**(1/3)')
+Calculus('2')
+&gt;&gt;&gt; Calculus('243**(1/5)')
+Calculus('3')
+</pre>
+</div>
+<div class="section">
+<h1><a id="polynomial-rings" name="polynomial-rings">Polynomial rings</a></h1>
+<p>sympycore provides efficient ways to represent univariate and
+multivariate polynomials. Currently there are two representation
+supported. The first one is suitable for univariate dense polynomials:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; poly1 = UnivariatePolynomial([2,0,3,4], symbol='x')
+&gt;&gt;&gt; poly2 = UnivariatePolynomial([0,1,0,5,6], symbol='x')
+&gt;&gt;&gt; poly1
+2 + 3*x**2 + 4*x**3
+&gt;&gt;&gt; poly2
+x + 5*x**3 + 6*x**4
+&gt;&gt;&gt; poly1 + poly2
+2 + x + 3*x**2 + 9*x**3 + 6*x**4
+</pre>
+<p>And the other is suitable for multivariate sparse polynomials:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; P = PolynomialRing[(x,y)]
+&gt;&gt;&gt; poly1 = P({(1,2):7, (300,4):5})
+&gt;&gt;&gt; poly2 = P({(3,4):-7, (2,500):12})
+&gt;&gt;&gt; poly1
+PolynomialRing[(x, y), Calculus]('5*x**300*y**4 + 7*x*y**2')
+&gt;&gt;&gt; poly2
+PolynomialRing[(x, y), Calculus]('((-7))*x**3*y**4 + 12*x**2*y**500')
+&gt;&gt;&gt; poly1 + poly2
+PolynomialRing[(x, y), Calculus]('5*x**300*y**4 + ((-7))*x**3*y**4 + 12*x**2*y**500 + 7*x*y**2')
+</pre>
+<p>Here the <tt class="docutils literal"><span class="pre">PolynomialRing[symbols,</span> <span class="pre">Algebra]</span></tt> represents a factory of
+a polynomial ring over <tt class="docutils literal"><span class="pre">Algebra</span></tt> with <tt class="docutils literal"><span class="pre">symbols</span></tt>.</p>
+</div>
+<div class="section">
+<h1><a id="matrix-rings" name="matrix-rings">Matrix rings</a></h1>
+<p>sympycore supports representing rectangular matrix ring elements using
+similar idea of ring factory:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; M = MatrixRing[(3,4)]
+&gt;&gt;&gt; matrix = M({(1,2):x+y, (0,0):x+z})
+&gt;&gt;&gt; print matrix
+ x + z  0      0  0
+     0  0  x + y  0
+     0  0      0  0
+</pre>
+<p>Note that matrices are mutable in sympycore and indices start from 0:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; matrix[1,0] = 5
+&gt;&gt;&gt; print matrix
+ x + z  0      0  0
+     5  0  x + y  0
+     0  0      0  0
+</pre>
+<p>sympycore provides SquareMatrix and PermutationMatrix factories for
+convenience:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; SqM = SquareMatrix[3]
+&gt;&gt;&gt; m = SqM({(0,0): 1, (2,1): 3, (2,2):6, (1,2):-2, (2,0): -1})
+&gt;&gt;&gt; print m
+  1  0   0
+  0  0  -2
+ -1  3   6
+&gt;&gt;&gt; print PermutationMatrix[4]([2,1,3,0])
+ 0  0  1  0
+ 0  1  0  0
+ 0  0  0  1
+ 1  0  0  0
+</pre>
+<p>One can perform LU factorization on any rectangular matrix:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; p, l, u = m.lu()
+&gt;&gt;&gt; print p
+ 1  0  0
+ 0  0  1
+ 0  1  0
+&gt;&gt;&gt; print l
+  1  0  0
+ -1  1  0
+  0  0  1
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; print u
+ 1  0   0
+ 0  3   6
+ 0  0  -2
+</pre>
+<p>The <tt class="docutils literal"><span class="pre">*</span></tt> denotes matrix multiplication:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; print p * l * u == m
+True
+</pre>
+<p>sympycore supports computing inverses of square
+matrices:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; print m.inv()
+   1     0    0
+ 1/3     1  1/3
+   0  -1/2    0
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; m.inv() * m == SqM.one
+True
 </pre>
 </div>
 </div>

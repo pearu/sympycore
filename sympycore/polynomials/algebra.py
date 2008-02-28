@@ -15,6 +15,10 @@ from ..basealgebra import PrimitiveAlgebra
 from ..arithmetic.numbers import div
 from ..arithmetic.number_theory import multinomial_coefficients
 
+def cmp_symbols(x, y):
+    return cmp(str(x), str(y))
+
+
 class PolynomialRingFactory(BasicType):
     """ Factory of polynomial rings with symbols and coefficient ring.
     """
@@ -77,7 +81,7 @@ class PolynomialRingFactory(BasicType):
             ring = classes.Calculus        
         else:
             raise TypeError(`ring_info`)
-        variables = tuple(sorted(variables))
+        variables = tuple(sorted(variables, cmp=cmp_symbols))
         nvars = len(variables)
 
         r = None #cache.get((variables, ring))
