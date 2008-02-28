@@ -616,10 +616,12 @@ def complex_pow(self, other, m=None, new=object.__new__, cls=Complex):
                 m = b[1] ** n
                 a, b = a*b[1], b[0]
         c, d = 1, 0
-        while n:
+        while 1:
             if n & 1:
                 c, d = a*c-b*d, b*c+a*d
                 n -= 1
+                if not n:
+                    break
             a, b = a*a-b*b, 2*a*b
             n //= 2
         if m==1:
