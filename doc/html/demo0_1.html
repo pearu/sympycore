@@ -428,6 +428,11 @@ Calculus('1/2*x**2 + z*x**3')
 &gt;&gt;&gt; expr.integrate((x, 2, y))
 Calculus('1/2*y**2 + z*(y**3 - 8) - 2')
 </pre>
+<p>sympycore performs suppressed evaluation of elementary functions:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; print cos(x+pi/2)
+-sin(x)
+</pre>
 </div>
 <div class="section">
 <h1><a id="arithmetic-methods" name="arithmetic-methods">Arithmetic methods</a></h1>
