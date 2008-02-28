@@ -1,3 +1,12 @@
+#
+# Created in February 2008 by Fredrik Johansson.
+#
+""" Provides some basic implementation of assumptions support.
+"""
+
+__docformat__ = "restructuredtext"
+__all__ = ['Assumptions', 'is_positive']
+
 from sympycore.arithmetic.numbers import numbertypes, realtypes
 from sympycore.calculus import Calculus, pi, E
 from sympycore.calculus.algebra import Positive, Nonnegative

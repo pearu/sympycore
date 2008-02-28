@@ -1,13 +1,13 @@
 """Low-level arithmetics support.
 
-Arithmetic package provides
+Arithmetic package provides:
 
-* low-level number types ``FractionTuple``, ``Float``, ``Complex``
-* base class ``Infinity`` for extended numbers
-* various low-level number theory functions: ``gcd``, ``multinomial_coefficients``, etc.
+  * low-level number types ``FractionTuple``, ``Float``, ``Complex``
+  * base class ``Infinity`` for extended numbers
+  * various low-level number theory functions: ``gcd``, ``multinomial_coefficients``, etc.
 
 """
-__docformat__ = "restructuredtext en"
+__docformat__ = "restructuredtext"
 
 __all__ = ['FractionTuple', 'Float', 'Complex', 'Infinity',
            'gcd', 'multinomial_coefficients']

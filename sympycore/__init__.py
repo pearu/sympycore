@@ -1,7 +1,6 @@
-"""SympyCore - An efficient pure Python CAS.
+"""SympyCore - An efficient pure Python Computer Algebra System.
 
 See http://sympycore.googlecode.com/ for more information.
-
 """
 __docformat__ = "restructuredtext"
 

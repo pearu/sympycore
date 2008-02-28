@@ -1,16 +1,23 @@
+""" Provides BasicAlgebra class.
+"""
+
+__docformat__ = "restructuredtext"
 
 from ..core import Basic, classes
 
 class BasicAlgebra(Basic):
     """ Represents an element of an algebraic structure.
 
-    This class collects implementation specific methods of algebra classes.
+    This class collects implementation specific methods of algebra
+    classes.
     
     For implemented algebras, see:
+
       PrimitiveAlgebra
       CommutativeRingWithPairs
     
-    New algebras may need to redefine the following methods:
+    New algebras may need to redefine the following methods::
+    
       __new__(cls, ...)
       convert(cls, obj, typeerror=True)
       convert_coefficient(cls, obj, typeerror=True)
@@ -18,20 +25,15 @@ class BasicAlgebra(Basic):
       as_primitive(self)
       as_algebra(self, cls)
 
-      properties: args(self). func(self)
+    and the following properties::
+
+      args(self)
+      func(self)
+
     """
     __slots__ = ['_str_value']
 
     _str_value = None
-
-    @classmethod
-    def redirect_operation(cls, *args, **kws):
-        """ Default implementation of redirect_operation method
-        used as a callback when RedirectOperation exception is raised.
-        """
-        callername = kws['redirect_operation']
-        return getattr(cls, callername)(*args,
-                                        **dict(redirect_operation='ignore_redirection'))
 
     def __str__(self):
         s = self._str_value
@@ -41,12 +43,6 @@ class BasicAlgebra(Basic):
 
     def __repr__(self):
         return '%s(%r)' % (self.__class__.__name__, str(self))
-
-    def inspect(self):
-        """ Show the internal tree structure of the object.
-        """
-        print self.as_tree()
-        return
 
     def as_tree(self, tab='', level=0):
         return self.as_primitive().as_tree(tab,level)
@@ -130,14 +126,14 @@ class BasicAlgebra(Basic):
 
     @property
     def func(self):
-        """ Returns a callable such that self.func(*self.args) == self.
+        """ Returns a callable such that ``self.func(*self.args) == self``.
         """
         raise NotImplementedError('%s must define property func'      #pragma NO COVER
                                   % (cls.__name__))                   #pragma NO COVER
 
     @property
     def args(self):
-        """ Returns a sequence such that self.func(*self.args) == self.
+        """ Returns a sequence such that ``self.func(*self.args) == self``.
         """
         raise NotImplementedError('%s must define property args'      #pragma NO COVER
                                   % (cls.__name__))                   #pragma NO COVER
@@ -182,14 +178,16 @@ class BasicAlgebra(Basic):
         """
         Pattern matching.
 
-        Return None when expression (self) does not match
-        with pattern. Otherwise return a dictionary such that
+        Return None when expression (self) does not match with
+        pattern. Otherwise return a dictionary such that
+
+        ::
 
           pattern.subs_dict(self.match(pattern, *wildcards)) == self
 
-        Don't redefine this method, redefine matches(..) method instead.
+        Don't redefine this method, redefine ``matches(..)`` method instead.
 
-        See:
+        :See:
           http://wiki.sympy.org/wiki/Generic_interface#Pattern_matching
         """
         pattern = self.convert(pattern)
@@ -290,9 +288,11 @@ class BasicAlgebra(Basic):
     def subs(self, subexpr, newexpr=None):
         """ Substitute a sub-expression with new expression.
         
-        There are two usage forms:
+        There are two usage forms::
+        
           obj.subs(subexpr, newexpr)
           obj.subs([(subexpr1, newexpr1), (subexpr2, newexpr2), ..])
+        
         """
         convert = self.convert
         if newexpr is None:

@@ -1,3 +1,9 @@
+""" Provides the implementation of CommutativeAlgebraWithPairs.expand method.
+"""
+
+__all__ = ['expand']
+
+__docformat__ = "restructuredtext"
 
 from ..arithmetic.numbers import Complex, Float, FractionTuple, try_power
 from ..arithmetic.number_theory import multinomial_coefficients
@@ -6,6 +12,10 @@ from .pairs_iops import inplace_add2, return_terms, return_factors
 from .pairs_ops import expand_mul_method
 
 def expand(self):
+    """ Return self as expanded expression.
+
+    Integers powers and products of sums are expanded.
+    """
     head = self.head
     if head is TERMS:
         return expand_TERMS(type(self), self, self.one)

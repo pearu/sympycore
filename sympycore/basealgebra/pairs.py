@@ -1,19 +1,20 @@
 #
 # Author: Pearu Peterson
 # Created: January 2008
+#
+"""Provides CommutativeRingWithPairs class.
+"""
+__docformat__ = "restructuredtext"
 
-import types
-from collections import defaultdict
+__all__ = ['CommutativeRingWithPairs']
 
-from ..core import classes
 from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_NUMBER
 from ..utils import TERMS, FACTORS, SYMBOL, NUMBER, APPLY, POW, TUPLE, head_to_string
 
 from .algebra import BasicAlgebra
 from .ring import CommutativeRing
 from .primitive import PrimitiveAlgebra
-from ..arithmetic.numbers import FractionTuple
-from ..arithmetic.number_theory import multinomial_coefficients
+from ..arithmetic.numbers import FractionTuple, realtypes
 
 from .pairs_ops import (add_method, sub_method, rsub_method, neg_method,
                         mul_method, div_method, rdiv_method, pow_method)
@@ -24,23 +25,20 @@ from .pairs_iops import (inplace_add, inplace_add2, inplace_sub,
 
 from .pairs_expand import expand
 
-def inspect(obj):
-    obj.inspect()
-
 class CommutativeRingWithPairs(CommutativeRing):
     """ Implementation of a commutative ring where sums and products
     are represented as dictionaries of pairs.
     """
-    __slots__ = ['head', 'data', '_data_as_set', '_hash',
+    __slots__ = ['head', 'data', '_hash',
                  '_symbols', '_symbols_data',
                  '_has_active']
+    
     one_c = 1   # one element of coefficient algebra
     one_e = 1   # one element of exponent algebra
     zero_c = 0  # zero element of coefficient algebra
     zero_e = 0  # zero element of exponent algebra
 
     _hash = None
-    _data_as_set = None
     _symbols = None
     _symbols_data = None
 
@@ -95,6 +93,8 @@ class CommutativeRingWithPairs(CommutativeRing):
         return self.head is not NUMBER or bool(self.data)
 
     def copy(self, new=object.__new__):
+        """ Return a copy of self.
+        """
         head = self.head
         if head is TERMS or head is FACTORS:
             obj = new(type(self))
@@ -169,7 +169,7 @@ class CommutativeRingWithPairs(CommutativeRing):
             pos_dict = {}
             neg_dict = {}
             for t, c in self.data.iteritems():
-                if c<0:
+                if isinstance(c, realtypes) and c<0:
                     d = neg_dict
                     c = -c
                 else:
@@ -252,6 +252,8 @@ class CommutativeRingWithPairs(CommutativeRing):
 
     @property
     def func(self):
+        """ Return callable func such that ``self.func(**self.args) == self``
+        """
         head = self.head
         data = self.data
         if head is SYMBOL or head is NUMBER:
@@ -270,6 +272,8 @@ class CommutativeRingWithPairs(CommutativeRing):
 
     @property
     def args(self):
+        """ Return a sequence args such that ``self.func(**self.args) == self``
+        """
         head = self.head
         if head is SYMBOL or head is NUMBER:
             return []
@@ -361,6 +365,8 @@ class CommutativeRingWithPairs(CommutativeRing):
         return [(self, self.one_e)]
     
     def as_primitive(self):
+        """ Convert algebra element to a primitive algebra element.
+        """
         head = self.head
         func = self.func
         args = self.args
@@ -418,6 +424,8 @@ class CommutativeRingWithPairs(CommutativeRing):
 
     @classmethod
     def Symbol(cls, obj, new=object.__new__):
+        """ Construct new symbol instance as an algebra element.
+        """
         r = new(cls)
         r.head = SYMBOL
         r.data = obj
@@ -425,6 +433,8 @@ class CommutativeRingWithPairs(CommutativeRing):
 
     @classmethod
     def Number(cls, obj, new=object.__new__):
+        """ Construct new number instance as an algebra number.
+        """
         r = new(cls)
         r.head = NUMBER
         r.data = obj
@@ -432,6 +442,8 @@ class CommutativeRingWithPairs(CommutativeRing):
 
     @classmethod
     def Add(cls, *seq):
+        """ Return canonized sum as an algebra element.
+        """
         d = {}
         d_get = d.get
         one = cls.one
@@ -461,6 +473,8 @@ class CommutativeRingWithPairs(CommutativeRing):
 
     @classmethod
     def Mul(cls, *seq):
+        """ Return canonized product as an algebra element.
+        """
         d = {}
         d_get = d.get
         number = 1
@@ -545,6 +559,8 @@ class CommutativeRingWithPairs(CommutativeRing):
 
     @property
     def symbols(self):
+        """ Return as set of symbols that are contained in self.
+        """
         symbols = self._symbols
         if symbols is None:
             cls = type(self)
@@ -553,9 +569,13 @@ class CommutativeRingWithPairs(CommutativeRing):
         return symbols
 
     def has_symbol(self, symbol):
+        """ Check if self contains symbol.
+        """
         return symbol.data in self._get_symbols_data()
 
     def has(self, subexpr):
+        """ Check if self contains sub-expression.
+        """
         subexpr = self.convert(subexpr)
         if subexpr.head is SYMBOL:
             return subexpr.data in self._get_symbols_data()
@@ -614,7 +634,7 @@ class CommutativeRingWithPairs(CommutativeRing):
 
         raise NotImplementedError(`self`)
 
-A = CommutativeRingWithPairs
-A.one = A.Number(1)
-A.zero = A.Number(0)
+# initialize one and zero attributes:
+CommutativeRingWithPairs.one = CommutativeRingWithPairs.Number(1)
+CommutativeRingWithPairs.zero = CommutativeRingWithPairs.Number(0)
 

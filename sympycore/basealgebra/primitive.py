@@ -1,5 +1,13 @@
-
+#
+# Created in 2007 by Fredrik Johansson
+# Expression parser added by Pearu Peterson
+#
+""" Provides PrimitiveAlgebra class and expression parser.
+"""
 from __future__ import absolute_import
+__docformat__ = "restructuredtext"
+__all__ = ['PrimitiveAlgebra']
+
 import types
 import re
 import compiler
@@ -84,6 +92,8 @@ def tree_sort(a, b):
     return 0
 
 class PrimitiveAlgebra(BasicAlgebra):
+    """ Represents an unevaluated expression.
+    """
 
     __slots__ = ['tree', '_str']
 
@@ -317,6 +327,8 @@ compare_map = {'<':LT, '>':GT, '<=':LT, '>=':GE,
                '==':EQ, '!=':NE}
 
 class PrimitiveWalker:
+    """ Helper class for expression parser.
+    """
 
     def __init__(self):
         self.stack = []

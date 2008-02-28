@@ -1,12 +1,16 @@
+""" Provides CalculusInfinity class.
+"""
+__docformat__ = "restructuredtext"
+__all__ = ['CalculusInfinity', 'oo', 'moo', 'undefined', 'zoo']
 
 from ..utils import str_PRODUCT, NUMBER, TERMS, FACTORS, SYMBOL
 from ..arithmetic import Infinity
-from .algebra import A
+from .algebra import Calculus
 
 class CalculusInfinity(Infinity):
 
     def __new__(cls, direction):
-        if isinstance(direction, A):
+        if isinstance(direction, Calculus):
             head, data = direction.head, direction.data
             if head is NUMBER:
                 return cls(data)
@@ -28,62 +32,62 @@ class CalculusInfinity(Infinity):
 
     def subs(self, *args):
         d = self.data
-        if isinstance(d, A):
+        if isinstance(d, Calculus):
             return type(self)(d.subs(*args))
         return self
 
     @classmethod
     def IsUnbounded(cls, x):
-        if isinstance(x, A):
+        if isinstance(x, Calculus):
             head = x.head
             if head is NUMBER:
                 return cls.IsUnbounded(x.data)
             f = x.is_bounded
             if f or f is not None:
-                return A.convert(not f)
+                return Calculus.convert(not f)
         if isinstance(x, cls):
-            return A.one
+            return Calculus.one
         r = Infinity.IsUnbounded(x)
         if r is not NotImplemented:
-            return A.convert(r)
-        x = A.convert(x)
-        return A(x, cls.IsUnbounded)
+            return Calculus.convert(r)
+        x = Calculus.convert(x)
+        return Calculus(x, cls.IsUnbounded)
 
     @classmethod
     def EqualArg(cls, x, y):
-        if isinstance(x, A):
+        if isinstance(x, Calculus):
             d = x.get_direction()
             if d is not NotImplemented:
                 return cls.EqualArg(d, y)
-        if isinstance(y, A):
+        if isinstance(y, Calculus):
             d = y.get_direction()
             if d is not NotImplemented:
                 return cls.EqualArg(x, d)
-            if isinstance(x, A):
+            if isinstance(x, Calculus):
                 xy = x / y
                 if xy.head is NUMBER:
-                    return A.convert(xy.data > 0)
+                    return Calculus.convert(xy.data > 0)
 
         r = Infinity.EqualArg(x, y)
         if r is not NotImplemented:
-            return A.convert(r)
-        x = A.convert(x)
-        y = A.convert(y)
-        return A((x,y), cls.EqualArg)
+            return Calculus.convert(r)
+        x = Calculus.convert(x)
+        y = Calculus.convert(y)
+        return Calculus((x,y), cls.EqualArg)
 
     @classmethod
     def IsPositive(cls, x):
-        if isinstance(x, A):
+        if isinstance(x, Calculus):
             if x.head is NUMBER:
                 return cls.IsPositive(x.data)
         r = Infinity.IsPositive(x)
         if r is not NotImplemented:
-            return A.convert(r)
-        x = A.convert(x)
-        return A(x, cls.IsPositive)
+            return Calculus.convert(r)
+        x = Calculus.convert(x)
+        return Calculus(x, cls.IsPositive)
 
     def __pow__(self, other):
-        if isinstance(other, A):
+        if isinstance(other, Calculus):
             head, data = other.head, other.data
             if head is NUMBER:
                 other = data
@@ -91,12 +95,12 @@ class CalculusInfinity(Infinity):
         if r is not NotImplemented:
             if isinstance(r, type(self)):
                 return r
-            return A.convert(r)
-        x = A.convert(other)
-        return A({self: x}, FACTORS)
+            return Calculus.convert(r)
+        x = Calculus.convert(other)
+        return Calculus({self: x}, FACTORS)
 
     def __rpow__(self, other):
-        if isinstance(other, A):
+        if isinstance(other, Calculus):
             if other.head is SYMBOL:
                 other = other.evalf(2)
             head, data = other.head, other.data
@@ -106,16 +110,16 @@ class CalculusInfinity(Infinity):
         if r is not NotImplemented:
             if isinstance(r, type(self)):
                 return r
-            return A.convert(r)
-        x = A.convert(other)
-        return A({x: self}, FACTORS)
+            return Calculus.convert(r)
+        x = Calculus.convert(other)
+        return Calculus({x: self}, FACTORS)
 
 oo = CalculusInfinity(1)
 moo = CalculusInfinity(-1)
 undefined = CalculusInfinity(0)
 zoo = CalculusInfinity(undefined)
 
-A.oo = oo
-A.zoo = zoo
-A.undefined = undefined
-A.Infinity = CalculusInfinity
+Calculus.oo = oo
+Calculus.zoo = zoo
+Calculus.undefined = undefined
+Calculus.Infinity = CalculusInfinity

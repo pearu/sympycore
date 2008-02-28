@@ -1,6 +1,10 @@
 #
 # Created January 2008 by Pearu Peterson
 #
+""" Provides Calculus class.
+"""
+__docformat__ = "restructuredtext"
+__all__ = ['Calculus', 'I']
 
 from ..core import classes
 from ..utils import TERMS, str_PRODUCT, FACTORS, SYMBOL, NUMBER
@@ -16,12 +20,9 @@ from ..arithmetic.evalf import evalf
 algebra_numbers = (int, long, FractionTuple, Float, Complex)
 
 class Calculus(CommutativeRingWithPairs):
-    """ Represents an element of a symbolic algebra. The set of a
-    symbolic algebra is a set of expressions. There are four kinds of
-    expressions: Symbolic, SymbolicNumber, SymbolicTerms,
-    SymbolicFactors.
+    """ Represents an element of a symbolic algebra.
 
-    Calculus basically models the structure of SymPy.
+    The set of a symbolic algebra is a set of expressions.
     """
 
     __slots__ = ['head', 'data', '_hash', 'one', 'zero']
@@ -36,7 +37,7 @@ class Calculus(CommutativeRingWithPairs):
         if cls is classes.PrimitiveAlgebra:
             return self.as_primitive()
         if cls is classes.Unit:
-            return newinstance(cls, NUMBER, self)
+            return cls(self, NUMBER)
         if issubclass(cls, PolynomialRing):
             return self.as_polynom(cls)
         return self.as_primitive().as_algebra(cls)
@@ -270,12 +271,11 @@ def Le(a, b): return Nonnegative(b-a)
 def Gt(a, b): return Positive(a-b)
 def Ge(a, b): return Nonnegative(a-b)
 
-A = Calculus
-one = A(1, head=NUMBER)
-zero = A(0, head=NUMBER)
-A.one = one
-A.zero = zero
+one = Calculus(1, head=NUMBER)
+zero = Calculus(0, head=NUMBER)
+Calculus.one = one
+Calculus.zero = zero
 
-I = A(Complex(0,1), head=NUMBER)
+I = Calculus(Complex(0,1), head=NUMBER)
 
 from ..polynomials.algebra import PolynomialRing, AdditiveTuple

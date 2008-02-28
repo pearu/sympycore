@@ -1,12 +1,18 @@
 #
 # Author: Fredrik Johansson
 # Created: January 2008
+""" Provides UnivariatePolynomial class.
+"""
+__docformat__ = "restructuredtext"
+__all__ = ['UnivariatePolynomial']
 
 from ..basealgebra.primitive import PrimitiveAlgebra, ADD, POW, MUL, NUMBER, SYMBOL
 from ..basealgebra import BasicAlgebra
 from ..arithmetic.numbers import div
 
 class UnivariatePolynomial(BasicAlgebra):
+    """ Represents (dense) univariate polynomial.
+    """
 
     def __new__(cls, coefs=[], symbol='x', coerce_input=True):
         obj = object.__new__(cls)

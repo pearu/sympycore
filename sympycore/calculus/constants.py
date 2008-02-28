@@ -1,6 +1,10 @@
 #
 # Created January 2008 by Pearu Peterson
 #
+""" Provides Constant class.
+"""
+__docformat__ = "restructuredtext"
+__all__ = ['Constant', 'const_pi', 'const_E']
 
 from ..core import Basic, classes
 from ..basealgebra.primitive import SYMBOL

@@ -1,3 +1,8 @@
+""" Profides the implementation of differentation methods.
+"""
+__docformat__ = "restructuredtext"
+__all__ = ['diff']
+
 from ..utils import SYMBOL, NUMBER, ADD, MUL
 from ..arithmetic.numbers import inttypes
 from ..basealgebra.pairs import inplace_add2, inplace_add, return_terms
@@ -190,9 +195,11 @@ def diff_generic(expr, xdata, order, NUMBER=NUMBER, SYMBOL=SYMBOL, ADD=ADD, MUL=
 
 def diff(expr, symbol, order=1):
     """ Return derivative of the expression with respect to symbols.
-    Examples:
-          expr.diff(x,y) - 2nd derivative with respect to x and y
-          expr.diff(x,4) is equivalent to expr.diff(x,x,x,x).
+
+    Examples::
+
+      expr.diff(x,y) - 2nd derivative with respect to x and y
+      expr.diff(x,4) is equivalent to expr.diff(x,x,x,x).
     """
     # It should eventually be possible to support symbolic orders
     try:
@@ -204,5 +211,3 @@ def diff(expr, symbol, order=1):
         #print len(cache)
         cache_generic.clear()
         cache_factors.clear()
-
-__all__ = ['diff']

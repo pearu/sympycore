@@ -1,8 +1,13 @@
 #
 # Created January 2008 by Fredrik Johansson
 #
+""" Provides elementary calculus functions sqrt, exp, log, sin, etc and constants pi, E.
+"""
 
-from ..algebra import A, I,  NUMBER, TERMS, FACTORS, SYMBOL, TERMS
+__all__ = ['sqrt', 'exp', 'log', 'sin', 'cos', 'tan', 'cot', 'sign', 'E', 'pi']
+__docformat__ = "restructuredtext"
+
+from ..algebra import Calculus, I,  NUMBER, TERMS, FACTORS, SYMBOL, TERMS
 from ..infinity import oo, undefined, CalculusInfinity
 from ..constants import const_pi, const_E
 from ..function import Function
@@ -13,27 +18,27 @@ from ...arithmetic import infinity
 
 import math
 
-zero = A(0)
-one = A(1)
+zero = Calculus(0)
+one = Calculus(1)
 half = one/2
-sqrt2 = A('2**(1/2)')
-sqrt3 = A('3**(1/2)')
+sqrt2 = Calculus('2**(1/2)')
+sqrt3 = Calculus('3**(1/2)')
 
 #---------------------------------------------------------------------------#
 #                                  Exponentials                             #
 #---------------------------------------------------------------------------#
 
-pi = const_pi.as_algebra(A)
-E = const_E.as_algebra(A)
+pi = const_pi.as_algebra(Calculus)
+E = const_E.as_algebra(Calculus)
 
 Ipi = I*pi
 Ipi2 = Ipi/2
 
 class sign(Function):
     def __new__(cls, arg):
-        if not isinstance(arg, A):
-            arg = A.convert(arg)
-        return A(arg, head=cls)
+        if not isinstance(arg, Calculus):
+            arg = Calculus.convert(arg)
+        return Calculus(arg, head=cls)
 
 class sqrt(Function):
     def __new__(cls, arg):
@@ -61,11 +66,11 @@ class log(Function):
                 return oo
             if arg==undefined:
                 return undefined
-            return A(arg, head=cls)
-        if not isinstance(arg, A):
-            arg = A.convert(arg)
+            return Calculus(arg, head=cls)
+        if not isinstance(arg, Calculus):
+            arg = Calculus.convert(arg)
         if base != E:
-            base = A.convert(base)
+            base = Calculus.convert(base)
             bd = base.data
             ad = arg.data
             if base.head is NUMBER and isinstance(bd, inttypes) and \
@@ -73,7 +78,7 @@ class log(Function):
                 ad > 0 and bd > 1:
                 l = int(math.log(ad, bd) + 0.5)
                 if bd**l == ad:
-                    return A(l)
+                    return Calculus(l)
             return cls(arg) / cls(base)
 
         head = arg.head
@@ -86,21 +91,21 @@ class log(Function):
                 return Ipi + log(-arg)
             if isinstance(data, Complex) and data.real == 0:
                 im = data.imag
-                if im > 0: return A(A(im, head=NUMBER), head=cls) + Ipi2
-                if im < 0: return A(A(-im, head=NUMBER), head=cls) - Ipi2
-            return A(arg, head=cls)
+                if im > 0: return Calculus(Calculus(im, head=NUMBER), head=cls) + Ipi2
+                if im < 0: return Calculus(Calculus(-im, head=NUMBER), head=cls) - Ipi2
+            return Calculus(arg, head=cls)
         if arg == E:
             return one
         from ..relational import is_positive
         if head is FACTORS and len(data) == 1:
             base, expt = data.items()[0]
             if is_positive(base) and isinstance(expt, realtypes):
-                return A(base, head=cls) * expt
+                return Calculus(base, head=cls) * expt
         if head is TERMS and len(data) == 1:
             term, coeff = data.items()[0]
             if (isinstance(coeff, realtypes) and coeff < 0) and is_positive(base):
                 return Ipi + log(-arg)
-        return A(arg, head=cls)
+        return Calculus(arg, head=cls)
 
     @classmethod
     def derivative(cls, arg):
@@ -123,8 +128,8 @@ C4 = (sqrt3+1)/(2*sqrt2)
 
 # Replace entries with None to prevent from evaluating
 sine_table = [ \
-  A(0), C0, C1, C2, C3, C4, A(1), C4, C3, C2, C1,C0,
-  A(0),-C0,-C1,-C2,-C3,-C4,-A(1),-C4,-C3,-C2,-C1,-C0]
+  Calculus(0), C0, C1, C2, C3, C4, Calculus(1), C4, C3, C2, C1,C0,
+  Calculus(0),-C0,-C1,-C2,-C3,-C4,-Calculus(1),-C4,-C3,-C2,-C1,-C0]
 
 def get_pi_shift(arg, N):
     """Parse as x, n where arg = x + n*pi/N"""
@@ -142,7 +147,7 @@ def get_pi_shift(arg, N):
             if isinstance(c, (int, long)):
                 d = arg.data.copy()
                 d.pop(pi)
-                return A.Terms(*d.items()), c
+                return Calculus.Terms(*d.items()), c
         return arg, 0
     if arg == pi:
         return zero, N
@@ -165,10 +170,10 @@ class TrigonometricFunction(Function):
     period = None   # multiple of pi
 
     def __new__(cls, arg):
-        if not isinstance(arg, A):
-            arg = A.convert(arg)
+        if not isinstance(arg, Calculus):
+            arg = Calculus.convert(arg)
         if arg.is_Number and isinstance(arg.data, Float):
-            return A.Number(evalf('%s(%s)' % (cls.__name__, arg)))
+            return Calculus.Number(evalf('%s(%s)' % (cls.__name__, arg)))
         x, m = get_pi_shift(arg, 12)
         m %= (12*cls.period)
         if x == zero:
@@ -194,9 +199,9 @@ class TrigonometricFunction(Function):
             arg = -arg
             negate_result ^= (cls.parity == 'odd')
         if negate_result:
-            return -A(arg, head=cls)
+            return -Calculus(arg, head=cls)
         else:
-            return A(arg, head=cls)
+            return Calculus(arg, head=cls)
 
 class sin(TrigonometricFunction):
     parity = 'odd'

@@ -1,7 +1,7 @@
+"""Provides various implementation specific constants.
+"""
 
-class RedirectOperation(Exception):
-    """ Raised in __nonzero__ methods of active objects (extended numbers and floats).
-    """
+__docformat__ = 'restructuredtext'
 
 # The following constants define both the order of operands
 # as well as placing parenthesis for classes deriving from
@@ -55,4 +55,3 @@ head_to_string = {\
     POS:'POS', NEG:'NEG', ADD:'ADD', SUB:'SUB', MOD:'MOD', MUL:'MUL', DIV:'DIV', POW:'POW',
     NUMBER:'NUMBER', SYMBOL:'SYMBOL', APPLY:'APPLY', TUPLE:'TUPLE', LAMBDA:'LAMBDA',
     }
-

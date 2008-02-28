@@ -1,3 +1,9 @@
+""" Provides the implementation of integration methods.
+"""
+
+__docformat__ = "restructuredtext"
+__all__ = ['integrate']
+
 from .algebra import Calculus, one
 from ..utils import NUMBER, SYMBOL, TERMS, FACTORS
 

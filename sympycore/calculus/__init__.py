@@ -1,3 +1,6 @@
+""" Provides calculus support.
+"""
+__docformat__ = "restructuredtext"
 
 from .algebra import Calculus, I
 from .infinity import  oo, undefined, moo, zoo

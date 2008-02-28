@@ -1,9 +1,16 @@
+"""Provides Basic class and classes object.
+"""
 
+__docformat__ = 'restructuredtext'
 __all__ = ['Basic', 'classes']
 
 class Holder:
-    """ Holds (name, value) pairs via Holder instance attributes.
+    """ Holds pairs ``(name, value)`` as instance attributes.
+    
     The set of pairs is extendable via setting
+
+    ::
+    
       <Holder instance>.<name> = <value>
     """
     def __init__(self, descr):
@@ -41,5 +48,8 @@ class BasicType(type):
         return cls
 
 class Basic(object):
+    """ Base class to classes that are registered as attributes of the
+    ``classes`` object.
+    """
 
     __metaclass__ = BasicType

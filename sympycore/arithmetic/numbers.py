@@ -1,4 +1,4 @@
-"""Low-level numbers support.
+"""Provides low-level numbers support.
 
 This module implements "low-level" number types which may be used
 by algebras to represent coefficients internally, for purely numerical
@@ -7,8 +7,9 @@ here have some quirks which make them unsuitable to be exposed
 directly to (non-expert) users.
 
 In addition to the number types FractionTuple (for rationals), Float
-(floats) and Complex (complexes), the ExtendedNumber type can be used
-to represent infinities and indeterminate/undefined (nan) results.
+(floats) and Complex (complexes), the Infinity (defined in
+infinity.py) type can be used to represent infinities and
+indeterminate/undefined (nan) results.
 
 Important notes:
 
@@ -17,37 +18,40 @@ fractions, than a user-friendly rational number type. The goal is to
 make hashing, equality testing and instance creation as fast as
 possible.
 
-* FractionTuple.__init__ does *not* validate its input.
-* A FractionTuple instance *should only* be created from a fully
-  normalized (p, q) pair and p/q *should not* be integer-valued.
-* To safely create a fraction from two integers, use the function
-  normalized_fraction().
-* Arithmetic operations on FractionTuples automatically normalize back
-  to Python ints when the results are integer valued.
+  * FractionTuple.__init__ does *not* validate its input.
 
-Note that Fraction(2)/Fraction(3) does *not* work as expected; it
-does the same thing as 2/3 in Python. To perform safe division, use
-the div function provided by this module instead.
+  * A FractionTuple instance *should only* be created from a fully
+    normalized (p, q) pair and p/q *should not* be integer-valued.
+
+  * To safely create a fraction from two integers, use the function
+    normalized_fraction().
+
+  * Arithmetic operations on FractionTuples automatically normalize back
+    to Python ints when the results are integer valued.
+
+Note that ``Fraction(2)/Fraction(3)`` does *not* work as expected; it
+does the same thing as ``2/3`` in Python. To perform safe division,
+use the div function provided by this module instead.
 
 Fractions can be compared with Python ints, but cannot be (correctly)
 compared with Python floats. If you need to mix approximate and
 exact fractions, use the Float class instead.
 
 Powers, except when the exponent is a positive integer, should be
-computed with the try_power() function which detects when the result is
-not exact.
+computed with the ``try_power()`` function which detects when the
+result is not exact.
 
-In a similar manner to how integer-valued rationals become Python ints,
-complex numbers automatically normalize to their real parts when
+In a similar manner to how integer-valued rationals become Python
+ints, complex numbers automatically normalize to their real parts when
 they become real.
 """
-
 #
 # Author: Fredrik Johansson
 # Created: January 2008
 
 import math
 
+__docformat__ = "restructuredtext"
 __all__ = ['FractionTuple', 'Float', 'Complex', 'div', 'int_root', 'try_power',
            'normalized_fraction']
 
@@ -63,6 +67,8 @@ inttypes = (int, long)
 #----------------------------------------------------------------------------#
 
 def normalized_fraction(p, q=1):
+    """ Return a normalized fraction.
+    """
     x, y = p, q
     while y:
         x, y = y, x % y
@@ -74,6 +80,8 @@ def normalized_fraction(p, q=1):
     return FractionTuple((p, q))
 
 class FractionTuple(tuple):
+    """ Represents a fraction.
+    """
 
     # These methods are inherited directly from tuple for speed. This works
     # as long as all FractionTuples are normalized:
@@ -164,6 +172,10 @@ from .mpmath.lib import from_int, from_rational, to_str, fadd, fsub, fmul, \
 rounding = round_half_even
 
 class Float(object):
+    """ Represents floating-point numbers.
+
+    Float is a wrapper of mpf from mpmath.lib.
+    """
 
     __slots__ = ['val', 'prec']
 
@@ -355,6 +367,13 @@ def innerstr(x):
 
 
 class Complex(object):
+    """ Represents complex number.
+
+    The integer power of a complex number is computed using
+    `exponentiation by squaring`__ method.
+    
+    __ http://en.wikipedia.org/wiki/Exponentiation_by_squaring
+    """
 
     __slots__ = ['real', 'imag']
 
@@ -457,8 +476,11 @@ realtypes = (int, long, float, FractionTuple, Float)
 complextypes = (complex, Complex)
 
 def div(a, b):
-    """Safely compute a/b (if a or b is an integer, this function makes sure
-    to convert it to a rational)."""
+    """Safely compute a/b.
+
+    If a or b is an integer, this function makes sure to convert it to
+    a rational.
+    """
     tb = type(b)
     if tb is int or tb is long:
         if not b:
@@ -471,9 +493,11 @@ def div(a, b):
     return a / b
 
 def int_root(y, n):
-    """
-    Given integers y and n, return a tuple containing x = floor(y**(1/n))
-    and a boolean indicating whether x**n == y exactly.
+    """ Return a pair ``(floor(y**(1/n)), x**n == y)``.
+
+    Given integers y and n, return a tuple containing ``x =
+    floor(y**(1/n))`` and a boolean indicating whether ``x**n == y``
+    exactly.
     """
     if y < 0: raise ValueError, "y must not be negative"
     if n < 1: raise ValueError, "n must be positive"
@@ -501,20 +525,22 @@ def int_root(y, n):
     return x, t == y
 
 def try_power(x, y):
-    """
-    Attempt to compute x**y where x and y must be of the types int,
-    long, FractionTuple, Float, Complex or ExtendedNumber. The function
-    returns
+    """\
+    Attempt to compute ``x**y`` where ``x`` and ``y`` must be of the
+    types int, long, FractionTuple, Float, or Complex. The function
+    returns::
 
       z, symbolic
 
-    where z is a number (i.e. a complex rational) and symbolic is a list
-    of (b, e) pairs representing symbolic factors b**e.
+    where ``z`` is a number (i.e. a complex rational) and ``symbolic``
+    is a list of ``(b, e)`` pairs representing symbolic factors
+    ``b**e``.
 
+    Examples::
+    
       try_power(3, 2) --> (9, [])
       try_power(2, 1/2) --> (1, [(2, 1/2)])
       try_power(45, 1/2) --> (3, [(5, 1/2)])
-
     """
     if y==0 or x==1:
         # (anything)**0 -> 1

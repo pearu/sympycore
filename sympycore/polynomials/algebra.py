@@ -2,6 +2,11 @@
 # Author: Pearu Peterson
 # Created: February 2008
 #
+""" Provides PolynomialRing class.
+"""
+
+__docformat__ = "restructuredtext"
+__all__ = "PolynomialRing"
 
 from ..core import BasicType, classes
 from ..utils import SYMBOL, NUMBER, ADD, MUL, POW
@@ -33,15 +38,15 @@ class PolynomialRingFactory(BasicType):
         return not self==other
 
     def __getitem__(self, ring_info, cache={}):
-        """ Return a new polynomial ring class:
+        """ Return a new polynomial ring class
 
-        PolynomialRing[<seq of variables>, <coefficient ring>]
+        Examples::
 
-        PolynomialRing[<n>, <coefficient ring>] is
-              PolynomialRing[['X%s'%i for i in range(<n>)], <coefficient ring>]
-
-        PolynomialRing[<variable info>] is
-              PolynomialRing[<variable info>, Calculus]
+          PolynomialRing[<seq of variables>, <coefficient ring>]
+          PolynomialRing[<n>, <coefficient ring>] is
+                PolynomialRing[['X%s'%i for i in range(<n>)], <coefficient ring>]
+          PolynomialRing[<variable info>] is
+                PolynomialRing[<variable info>, Calculus]
         """
         if isinstance(ring_info, (int, long)):
             nvars = ring_info
@@ -104,10 +109,12 @@ def newinstance(cls, data):
 class AdditiveTuple(tuple):
     """ A tuple that can be added element-wise.
 
-    Properties:
+    Properties::
+    
       AdditiveTuple(obj) -> obj
       AdditiveTuple([obj]) -> obj
       AdditiveTuple([obj1, obj2]) + [r1,r2] -> AdditiveTuple([obj1+r1, obj2+r2])
+
     """
 
     def __new__(cls, arg):
@@ -136,7 +143,9 @@ class AdditiveTuple(tuple):
 
 class PolynomialRing(CommutativeRing):
     """ Base class to polynomial rings that holds polynomial information
-    using pairs (<exponents>: <coefficient>) stored in Python dictionary.
+    using pairs ``(<exponents>: <coefficient>)`` stored in Python dictionary.
+
+    Suitable for representing sparse multivariate polynomials.
     """
 
     __slots__ = ['data', '_degree', '_ldegree']
@@ -161,11 +170,13 @@ class PolynomialRing(CommutativeRing):
     @classmethod
     def Symbol(cls, obj):
         """ Return symbol element of a polynomial ring. The result
-        may be an instance of super polynomial ring.
+        may be an instance of a super polynomial ring.
 
-        r = PolynomialRing['x']
-        r.Symbol('x') -> r({1:1})
-        r.Symbol('y') -> PolynomialRing['x','y']({(0,1):1})
+        Examples::
+
+          r = PolynomialRing['x']
+          r.Symbol('x') -> r({1:1})
+          r.Symbol('y') -> PolynomialRing['x','y']({(0,1):1})
         """
         try:
             i = list(cls.variables).index(obj)
@@ -182,8 +193,10 @@ class PolynomialRing(CommutativeRing):
     def Number(cls, obj):
         """ Return number element of a polynomial ring.
 
-        r = PolynomialRing['x']
-        r.Number(2) -> r({0:2})
+        Examples::
+
+          r = PolynomialRing['x']
+          r.Number(2) -> r({0:2})
         """
         if obj:
             return newinstance(cls, {AdditiveTuple((0,)*cls.nvars): obj})

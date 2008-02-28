@@ -1,3 +1,8 @@
+""" Provides base class to calculus functions.
+"""
+
+__docformat__ = "restructuredtext"
+__all__ = ['Function']
 
 from ..core import Basic, BasicType, classes
 from .algebra import Calculus
@@ -14,6 +19,8 @@ class FunctionType(BasicType):
 
 class Function(Basic):
     """ Base class to calculus functions.
+
+    Subclasses are added to the dictionary Calculus.defined_functions.
     """
     __metaclass__ = FunctionType
 

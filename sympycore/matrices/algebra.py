@@ -2,6 +2,10 @@
 # Author: Pearu Peterson
 # Created: February 2008
 #
+""" Provides MatrixRing, SquareMatrix, PermutationMatrix classes.
+"""
+__docformat__ = "restructuredtext"
+__all__ = ['MatrixRing', 'SquareMatrix', 'PermutationMatrix']
 
 import random
 
@@ -32,14 +36,16 @@ class MatrixRingFactory(BasicType):
         return not self==other
 
     def __getitem__(self, ring_info, cache={}):
-        """ Return a new matrix ring class:
+        """ Return a new matrix ring class.
 
-        MatrixRing[<shape>, <coefficient ring>]
-        MatrixRing[<shape>] is MatrixRing[<shape>, Calculus]
-        MatrixRing[<coefficient ring>] is MatrixRing[None, <coefficient ring>]
+        Examples::
 
-        When <shape> is None then shape is determined by the smallest
-        and largest index.
+          MatrixRing[<shape>, <coefficient ring>]
+          MatrixRing[<shape>] is MatrixRing[<shape>, Calculus]
+          MatrixRing[<coefficient ring>] is MatrixRing[None, <coefficient ring>]
+
+        When ``<shape>`` is ``None`` then the shape is determined by
+        the smallest and largest index.
         """
         if isinstance(ring_info, (int, long)):
             if self.is_square:
@@ -90,7 +96,9 @@ def newinstance(cls, data):
 
 class MatrixRing(CommutativeRing):
     """ Base class to matrix rings that hold matrix element information
-    pairs (<indices>: <element>) stored in Python dictionary.
+    pairs ``(<indices>: <element>)`` stored in Python dictionary.
+
+    Represents rectangular matrix.
     """
 
     __slots__ = ['data']
@@ -301,10 +309,12 @@ class MatrixRing(CommutativeRing):
     def lu(self):
         """ Perform LU factorization of a m x n matrix A.
 
-        Outputs:
+        Outputs::
+        
           P, L, U - LU decomposition matrices of A.
 
-        Definitions:
+        Definitions::
+        
           P - m x m permuation matrix
           L - m x k lower triangular or trapezoidal matrix with unit-diagonal
           U - k x n upper triangular or trapezoidal matrix
@@ -381,10 +391,11 @@ class MatrixRing(CommutativeRing):
         raise ZeroDivisionError
 
 class SquareMatrix(MatrixRing):
-
+    """ Represents a square matrix."""
     is_square = True
 
 class PermutationMatrix(SquareMatrix):
+    """ Represents a square permutation matrix."""
     
     def __new__(cls, data):
         if isinstance(data, (list,tuple)):

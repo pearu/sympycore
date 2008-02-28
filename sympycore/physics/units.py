@@ -1,3 +1,13 @@
+""" Provides Unit class.
+"""
+
+__docformat__ = "restructuredtext"
+__all__ = [\
+    'Unit', 'meter', 'kilogram', 'second', 'ten', 'yotta', 'zetta',
+    'exa', 'peta', 'tera', 'giga', 'mega', 'kilo', 'deca', 'deci',
+    'centi', 'milli', 'micro', 'nano', 'pico', 'femto', 'atto',
+    'zepto', 'yocto' ]
+
 from ..core import classes
 
 from ..calculus.algebra import Calculus, algebra_numbers
@@ -43,3 +53,4 @@ femto = ten**-15
 atto  = ten**-18
 zepto = ten**-21
 yocto = ten**-24
+

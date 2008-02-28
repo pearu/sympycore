@@ -1,6 +1,6 @@
 """Provides base class for extended numbers: Infinity.
 """
-
+__docformat__ = "restructuredtext"
 __all__ = ['Infinity']
 
 from .numbers import realtypes, complextypes, Complex, numbertypes, div
@@ -20,26 +20,29 @@ class Infinity(object):
 
     The formal definition of directional infinity is
 
+    ::
+
       Infinity(direction) == oo * direction
 
-    where oo represents a symbol of formal limiting process limit(r, r->oo).
+    where ``oo`` represents a symbol of a formal limiting process
+    ``limit(r, r->oo)``.
 
     Direction can be
 
-      * 0                - defines undefined
+      * 0                - defines ``undefined``
       * complex number   - defines direction in complex plain
-      * undefined        - defines infinity with undefined direction (zoo)
+      * undefined        - defines infinity with undefined direction (``zoo``)
 
-    Derived classes may redefine classmethods
+    Derived classes may redefine classmethods::
 
       IsUnbounded(x)        - returns 1 if x is unbounded expression
       IsZero(x)             - returns 1 if x is zero
-      EqualArg(x,y) - return 1 if Arg(x)==Arg(y).
+      EqualArg(x,y)         - returns 1 if Arg(x)==Arg(y).
       
     to add algebra support (including symbolic functions) to direction
     expression.
 
-    The following notation is used:
+    The following notation is used::
 
       +oo = Infinity(1)
       -oo = Infinity(-1)
@@ -134,27 +137,32 @@ class Infinity(object):
         return False
 
     def __abs__(self):
-        """
-        abs(oo*x) -> oo*abs(x)
+        """ ``abs(oo*x) -> oo*abs(x)``
         """
         if is_undefined(self):
             return self
         return type(self)(1) # +oo
 
     def __neg__(self):
-        """
-        -(oo*U1(x)) -> oo*(-U1(x))
-        -zoo        -> zoo
+        """ negation of extended number
+        
+        ::
+
+          -(oo*U1(x)) -> oo*(-U1(x))
+          -zoo        -> zoo
         """
         if is_zoo(self) or is_undefined(self):
             return self
         return type(self)(-self.data)
 
     def __add__(self, other):
-        """
-        oo*x + oo*y     -> oo*(EqualArg(x, y) * x)
-        oo*x + y        -> oo*((1+IsUnbounded(y)*(EqualArg(x,y)-1))*x)
-        y + oo*x        -> oo*x + y
+        """ addition of extended numbers
+
+        ::
+
+          oo*x + oo*y     -> oo*(EqualArg(x, y) * x)
+          oo*x + y        -> oo*((1+IsUnbounded(y)*(EqualArg(x,y)-1))*x)
+          y + oo*x        -> oo*x + y
         """
         cls = type(self)
         if is_undefined(self) or is_undefined(other) or is_zoo(other):
@@ -175,21 +183,30 @@ class Infinity(object):
     __radd__ = __add__
 
     def __sub__(self, other):
-        """
-        oo*x - y -> oo*x + (-y)
+        """ substraction of extended numbers
+
+        ::
+
+          oo*x - y -> oo*x + (-y)
         """
         return self + (-other)
 
     def __rsub__(self, other):
-        """
-        y - oo*x -> oo*(-x) + y
+        """ substraction of extended numbers
+
+        ::
+
+          y - oo*x -> oo*(-x) + y
         """
         return (-self) + other
 
     def __mul__(self, other):
-        """
-        (oo*x) * (oo*y) -> oo*(x*y)
-        (oo*x) * y          -> oo*(x*y)
+        """ multiplication of extended numbers
+
+        ::
+        
+          (oo*x) * (oo*y) -> oo*(x*y)
+          (oo*x) * y          -> oo*(x*y)
         """
         cls = type(self)
         if is_undefined(self) or is_undefined(other) or not other:
@@ -201,10 +218,13 @@ class Infinity(object):
     __rmul__ = __mul__
 
     def __div__(self, other):
-        """
-        (oo*x) / (oo*y)     -> undefined
-        (oo*x) / 0          -> zoo
-        (oo*x) / y          -> oo*(x/y)
+        """ division of extended numbers
+
+        ::
+
+          (oo*x) / (oo*y)     -> undefined
+          (oo*x) / 0          -> zoo
+          (oo*x) / y          -> oo*(x/y)
         """
         cls = type(self)
         if is_undefined(self) or is_undefined(other) or isinstance(other, cls):
@@ -218,18 +238,24 @@ class Infinity(object):
         return cls(self.data / other)
 
     def __rdiv__(self, other):
-        """
-        y / oo*x -> 0*(1/x)
+        """ division of extended numbers
+
+        ::
+
+          y / oo*x -> 0*(1/x)
         """
         if is_undefined(self):
             return self
         return 0
 
     def __pow__(self, other):
-        """
-        (oo*x)**0  -> 1
-        (oo*x)**(oo*y) -> 0 if y<0; oo*(IsPositive(x)) if y > 0
-        (oo*x)**y      -> 0 if y<0; oo*(x**y) if y > 0
+        """ exponentiation of extended numbers
+
+        ::
+
+          (oo*x)**0  -> 1
+          (oo*x)**(oo*y) -> 0 if y<0; oo*(IsPositive(x)) if y > 0
+          (oo*x)**y      -> 0 if y<0; oo*(x**y) if y > 0
         """
         if not other:
             return 1
@@ -261,9 +287,12 @@ class Infinity(object):
         return NotImplemented
 
     def __rpow__(self, other):
-        """
-        1 ** (oo*x) -> 1
-        y ** (oo*x) -> (y**x)**(oo)
+        """ exponentiation of extended numbers
+
+        ::
+
+          1 ** (oo*x) -> 1
+          y ** (oo*x) -> (y**x)**(oo)
         """
         cls = type(self)
         x = self.data

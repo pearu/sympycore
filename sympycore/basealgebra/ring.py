@@ -1,25 +1,31 @@
+""" Provides CommutativeRing class.
+"""
+
+__docformat__ = "restructuredtext"
+__all__ = ['CommutativeRing']
 
 from .algebra import BasicAlgebra
 
 class CommutativeRing(BasicAlgebra):
     """ Base class to commutative rings.
 
-    Derived classes may redefine the following methods:
+    Derived classes may redefine the following methods::
     
-      Symbol(cls, obj), Number(cls, obj), Add(cls, *seq), Mul(cls, *seq),
-      Pow(cls, base, exponent), Terms(cls, *seq), Factors(cls, *seq)
-      as_Add_args(self), as_Mul_args(self), as_Pow_args(self),
-      as_Terms_args(self), as_Factors_args(self)
+      Symbol(cls, obj)
+      Number(cls, obj)
+      Add(cls, *seq)
+      Mul(cls, *seq),
+      Pow(cls, base, exponent)
+      Terms(cls, *seq)
+      Factors(cls, *seq)
+      as_Add_args(self)
+      as_Mul_args(self)
+      as_Pow_args(self),
+      as_Terms_args(self)
+      as_Factors_args(self)
     """
     __slots__ = ['_symbols']
     _symbols = None
-
-    @classmethod
-    def npower(cls, base, exp):
-        """ Compute the power base ** exp where base, exp are numbers.
-        """
-        raise NotImplementedError('%s must define classmethod npower' #pragma NO COVER
-                                  % (cls.__name__))                   #pragma NO COVER
 
     @classmethod
     def Add(cls, *seq):
@@ -29,6 +35,14 @@ class CommutativeRing(BasicAlgebra):
                                   % (cls.__name__))                   #pragma NO COVER
 
     @classmethod
+    def Sub(cls, *seq):
+        """ Compute ``seq[0] - Add(*seq[0])``.
+        """
+        if seq:
+            return seq[0] - cls.Add(*seq[1:])
+        return cls.zero
+    
+    @classmethod
     def Mul(cls, *seq):
         """ Compute product over seq containing algebra elements.
         """
@@ -36,8 +50,17 @@ class CommutativeRing(BasicAlgebra):
                                   % (cls.__name__))                   #pragma NO COVER
 
     @classmethod
+    def Div(cls, *seq):
+        """ Compute ``seq[0] / Mul(*seq[0])``.
+        """
+        if seq:
+            return seq[0] / cls.Mul(*seq[1:])
+        return cls.one
+
+    @classmethod
     def Pow(cls, base, exponent):
         """ Compute power from base and exponent.
+        
         Argument base must be an algebra element and exponent must be
         an element of exponent algebra.
         """
@@ -47,6 +70,7 @@ class CommutativeRing(BasicAlgebra):
     @classmethod
     def Log(cls, arg, base=None):
         """ Compute logarithm of arg in base.
+
         Argument arg must be an element of exponent algebra and base
         is an element of an algebra.
         """
@@ -55,54 +79,56 @@ class CommutativeRing(BasicAlgebra):
 
     @classmethod
     def Terms(cls, *seq):
-        """ Compute sum over seq containing pairs (element, coefficient).
-        elements must belong to algebra.
-        coefficients must belong to the coefficient algebra.
+        """ Compute sum over seq containing pairs ``(element, coefficient)``.
+
+        ``element``-s must belong to algebra, ``coefficient``-s must
+        belong to the coefficient algebra.
         """
         raise NotImplementedError('%s must define classmethod Terms'   #pragma NO COVER
                                   % (cls.__name__))                    #pragma NO COVER
 
     @classmethod
     def Factors(cls, *seq):
-        """ Compute product over seq containing pairs (element, exponent).
-        elements must belong to algebra.
-        exponents must belong to the exponent algebra.
+        """ Compute product over seq containing pairs ``(element, exponent)``.
+
+        ``element``-s must belong to algebra, ``exponent``-s must belong
+        to the exponent algebra.
         """
         raise NotImplementedError('%s must define classmethod Factors' #pragma NO COVER
                                   % (self.__class__.__name__))         #pragma NO COVER
 
     def as_Add_args(self):
-        """ Return a sequence such that Add(*self.as_Add_args()) == self
+        """ Return a sequence such that ``Add(*self.as_Add_args()) == self``
         """
         raise NotImplementedError('%s must define method as_Add_args'  #pragma NO COVER
                                   % (self.__class__.__name__))         #pragma NO COVER
     
     def as_Mul_args(self):
-        """ Return a sequence such that Mul(*self.as_Mul_args()) == self
+        """ Return a sequence such that ``Mul(*self.as_Mul_args()) == self``
         """
         raise NotImplementedError('%s must define method as_Mul_args'  #pragma NO COVER
                                   % (self.__class__.__name__))         #pragma NO COVER
     
     def as_Pow_args(self):
-        """ Return a 2-tuple such that Pow(*self.as_Pow_args()) == self
+        """ Return a 2-tuple such that ``Pow(*self.as_Pow_args()) == self``
         """
         raise NotImplementedError('%s must define method as_Pow_args'  #pragma NO COVER
                                   % (self.__class__.__name__))         #pragma NO COVER
 
     def as_Log_args(self):
-        """ Return a 2-tuple such that Log(*self.as_Log_args()) == self
+        """ Return a 2-tuple such that ``Log(*self.as_Log_args()) == self``
         """
         raise NotImplementedError('%s must define method as_Log_args'  #pragma NO COVER
                                   % (self.__class__.__name__))         #pragma NO COVER
 
     def as_Terms_args(self):
-        """ Return a sequence such that Terms(*self.as_Terms_args()) == self
+        """ Return a sequence such that ``Terms(*self.as_Terms_args()) == self``
         """
         raise NotImplementedError('%s must define method as_Terms_args' #pragma NO COVER
                                   % (self.__class__.__name__))          #pragma NO COVER
 
     def as_Factors_args(self):
-        """ Return a sequence such that Factors(*self.as_Factors_args()) == self
+        """ Return a sequence such that ``Factors(*self.as_Factors_args()) == self``
         """
         raise NotImplementedError('%s must define method as_Factors_args' #pragma NO COVER
                                   % (self.__class__.__name__))            #pragma NO COVER
