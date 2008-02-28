@@ -50,7 +50,7 @@ Manipulations with symbolic expressions
 =======================================
 
 The most obvious manipulation task applied to symbolic expressions, is
-substitution -- replacing a subexpression of a given expression with a
+substitution -- replacing a sub-expression of a given expression with a
 new expression. For example,
 
 >>> expr = x + y
@@ -67,17 +67,17 @@ and constructing new expressions:
 >>> Mul(*expr.args)
 Calculus('x*y')
 
-An important presumption for implementing varios algorithms is pattern
+An important presumption for implementing various algorithms is pattern
 matching. Pattern matching means that given a pattern expression, the
 pattern match method should first decide whether an expression can be
 expressed in a form that the pattern defines, and second. it should
-return information what subexpression parts correspond to the pattern
-subexpressions. For example, given a pattern
+return information what sub-expression parts correspond to the pattern
+sub-expressions. For example, given a pattern
 
 >>> w = Symbol('w')
 >>> pattern = x * w ** 3
 
-where symbol ``w`` is assumed to match any subexpression, then expressions
+where symbol ``w`` is assumed to match any sub-expression, then expressions
 
 >>> expr1 = x*sin(y)**3
 >>> expr2 = x*(x+y)**3
@@ -108,7 +108,7 @@ None
 Transformation methods
 ======================
 
-The most common transformation task is expansion of subexpressions by
+The most common transformation task is expansion of sub-expressions by
 opening parenthesis:
 
 >>> expr = (x+y)*z
@@ -208,7 +208,7 @@ similar idea of ring factory:
      0  0  x + y  0
      0  0      0  0
 
-Note that matrices are mutable in sympycore and indices start from 0:
+Note that matrices are mutable in sympycore and indexes start from 0:
 
 >>> matrix[1,0] = 5
 >>> print matrix
@@ -216,8 +216,8 @@ Note that matrices are mutable in sympycore and indices start from 0:
      5  0  x + y  0
      0  0      0  0
 
-sympycore provides SquareMatrix and PermutationMatrix factories for
-convenience:
+sympycore provides ``SquareMatrix`` and ``PermutationMatrix``
+factories for convenience:
 
 >>> SqM = SquareMatrix[3]
 >>> m = SqM({(0,0): 1, (2,1): 3, (2,2):6, (1,2):-2, (2,0): -1})

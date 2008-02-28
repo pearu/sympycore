@@ -336,7 +336,7 @@ Calculus('0')
 <div class="section">
 <h1><a id="manipulations-with-symbolic-expressions" name="manipulations-with-symbolic-expressions">Manipulations with symbolic expressions</a></h1>
 <p>The most obvious manipulation task applied to symbolic expressions, is
-substitution -- replacing a subexpression of a given expression with a
+substitution -- replacing a sub-expression of a given expression with a
 new expression. For example,</p>
 <pre class="doctest-block">
 &gt;&gt;&gt; expr = x + y
@@ -353,17 +353,17 @@ Calculus('x + sin(x)')
 &gt;&gt;&gt; Mul(*expr.args)
 Calculus('x*y')
 </pre>
-<p>An important presumption for implementing varios algorithms is pattern
+<p>An important presumption for implementing various algorithms is pattern
 matching. Pattern matching means that given a pattern expression, the
 pattern match method should first decide whether an expression can be
 expressed in a form that the pattern defines, and second. it should
-return information what subexpression parts correspond to the pattern
-subexpressions. For example, given a pattern</p>
+return information what sub-expression parts correspond to the pattern
+sub-expressions. For example, given a pattern</p>
 <pre class="doctest-block">
 &gt;&gt;&gt; w = Symbol('w')
 &gt;&gt;&gt; pattern = x * w ** 3
 </pre>
-<p>where symbol <tt class="docutils literal"><span class="pre">w</span></tt> is assumed to match any subexpression, then expressions</p>
+<p>where symbol <tt class="docutils literal"><span class="pre">w</span></tt> is assumed to match any sub-expression, then expressions</p>
 <pre class="doctest-block">
 &gt;&gt;&gt; expr1 = x*sin(y)**3
 &gt;&gt;&gt; expr2 = x*(x+y)**3
@@ -395,7 +395,7 @@ None
 </div>
 <div class="section">
 <h1><a id="transformation-methods" name="transformation-methods">Transformation methods</a></h1>
-<p>The most common transformation task is expansion of subexpressions by
+<p>The most common transformation task is expansion of sub-expressions by
 opening parenthesis:</p>
 <pre class="doctest-block">
 &gt;&gt;&gt; expr = (x+y)*z
@@ -494,7 +494,7 @@ similar idea of ring factory:</p>
      0  0  x + y  0
      0  0      0  0
 </pre>
-<p>Note that matrices are mutable in sympycore and indices start from 0:</p>
+<p>Note that matrices are mutable in sympycore and indexes start from 0:</p>
 <pre class="doctest-block">
 &gt;&gt;&gt; matrix[1,0] = 5
 &gt;&gt;&gt; print matrix
@@ -502,8 +502,8 @@ similar idea of ring factory:</p>
      5  0  x + y  0
      0  0      0  0
 </pre>
-<p>sympycore provides SquareMatrix and PermutationMatrix factories for
-convenience:</p>
+<p>sympycore provides <tt class="docutils literal"><span class="pre">SquareMatrix</span></tt> and <tt class="docutils literal"><span class="pre">PermutationMatrix</span></tt>
+factories for convenience:</p>
 <pre class="doctest-block">
 &gt;&gt;&gt; SqM = SquareMatrix[3]
 &gt;&gt;&gt; m = SqM({(0,0): 1, (2,1): 3, (2,2):6, (1,2):-2, (2,0): -1})
