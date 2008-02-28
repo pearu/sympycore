@@ -31,7 +31,7 @@ class CommutativeRingWithPairs(CommutativeRing):
     """ Implementation of a commutative ring where sums and products
     are represented as dictionaries of pairs.
     """
-    __slots__ = ['head', 'data', '_hash',
+    __slots__ = ['head', 'data', '_data_as_set', '_hash',
                  '_symbols', '_symbols_data',
                  '_has_active']
     one_c = 1   # one element of coefficient algebra
@@ -40,6 +40,7 @@ class CommutativeRingWithPairs(CommutativeRing):
     zero_e = 0  # zero element of exponent algebra
 
     _hash = None
+    _data_as_set = None
     _symbols = None
     _symbols_data = None
 
