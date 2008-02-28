@@ -180,7 +180,8 @@ x + 5*x**3 + 6*x**4
 >>> poly1 + poly2
 2 + x + 3*x**2 + 9*x**3 + 6*x**4
 
-And the other is suitable for multivariate sparse polynomials:
+And the other representation is suitable for multivariate sparse
+polynomials:
 
 >>> P = PolynomialRing[(x,y)]
 >>> poly1 = P({(1,2):7, (300,4):5})
@@ -263,3 +264,14 @@ matrices:
 
 >>> m.inv() * m == SqM.one
 True
+
+Physical units
+==============
+
+sympycore has a basic support for dealing with symbolic expressions with
+units:
+
+>>> mass1 = 5 * kilogram
+>>> mass2 = x * kilogram
+>>> mass1 + mass2
+Unit('(5 + x)*kg')
