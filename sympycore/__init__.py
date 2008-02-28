@@ -3,7 +3,7 @@
 See http://sympycore.googlecode.com/ for more information.
 
 """
-__docformat__ = "restructuredtext en"
+__docformat__ = "restructuredtext"
 
 from .core import Basic, classes
 from basealgebra import *

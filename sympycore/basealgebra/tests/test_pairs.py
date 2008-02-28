@@ -529,6 +529,7 @@ def test_expand():
     assert str((x**2*(1/x+x)**2).expand()) in ['1 + 2*x**2 + x**4',
                                                '1 + x**4 + 2*x**2']
 
+    assert str(((1+x+y)**3).expand())=='1 + x**3 + y**3 + 3*x + 3*x**2 + 3*x*y**2 + 3*y + 3*y**2 + 3*y*x**2 + 6*x*y'
 
 def test_has_symbol():
     x, y = map(Symbol, 'xy')
