@@ -2,7 +2,7 @@ Introduction
 ------------
 
 This file collects the notes for credits, acknowledgments, and used
-third-party software of the Sympy Core project in chronological
+third-party software of the SympyCore project in chronological
 reversed order. 
 
 [OBSOLETE] means that the most recent version of sympycore does not
@@ -31,7 +31,7 @@ Credits and History
   compiler package) support to PrimitiveAlgebra. Fredrik became an
   author of sympycore package.
 
-* [OBSOLETE] Sympy Core uses the idea of Fredrik Johansson's research
+* [OBSOLETE] SympyCore uses the idea of Fredrik Johansson's research
   to carry out arithmetic operations using s-expression like
   structures intended to minimize the amount of work performed outside
   of Python builtin functions. See
@@ -43,7 +43,7 @@ Credits and History
   considerable performance improvement in terms of creating new
   symbolic expressions and performing arithmetic operations.
 
-* [OBSOLETE] Sympy Core uses the proof-of-concept by Kirill Smelkov
+* [OBSOLETE] SympyCore uses the proof-of-concept by Kirill Smelkov
 
     http://code.google.com/p/sympy/issues/detail?id=440
 
@@ -51,7 +51,7 @@ Credits and History
   and create symbolic expressions from them. The idea with added
   features was implemented in sympycore by Pearu. 
 
-* [OBSOLETE] The code of Sympy Core is based on the development of the
+* [OBSOLETE] The code of SympyCore is based on the development of the
   sympy-sandbox branch of the SymPy project SVN repository. The branch
   as well as subsequent development of the sympycore package is
   carried out solely by Pearu Peterson during the year 2007.
@@ -64,7 +64,7 @@ Credits and History
   which included the suggestion by Fredrik to use dicts instead of
   tuples to hold sums, to make flattening of sums faster.
 
-* The Sympy Core project, started by Pearu Peterson, is closely related
+* The SympyCore project, started by Pearu Peterson, is closely related
   to the SymPy project: http://sympy.googlecode.com/.
   See http://wiki.sympy.org/wiki/Contributors/ for SymPy credits.
 
@@ -72,7 +72,7 @@ Credits and History
 Third-party software
 --------------------
 
-Sympy Core includes the following third-party software:
+SympyCore includes the following third-party software:
 
 * mpmath package (SVN revisions 189, 325, 332) developed by Fredrik Johansson:
 
