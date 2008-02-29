@@ -21,18 +21,17 @@ if __name__ == '__main__':
     setup(name='sympycore',
           version='0.1',
           author = 'Pearu Peterson, Fredrik Johansson',
-          author_email = 'pearu.peterson@gmail.com',
-          maintainer = 'SympyCore developers',
-          maintainer_email = 'sympycore@googlegroups.com',
+          author_email = 'sympycore@googlegroups.com',
+          license = 'http://sympycore.googlecode.com/svn/trunk/LICENSE',
           url = 'http://sympycore.googlecode.com',
           download_url = 'http://code.google.com/p/sympycore/downloads/',
           classifiers=filter(None, CLASSIFIERS.split('\n')),
           description = 'SympyCore: an efficient pure Python Computer Algebra System',
           long_description = '''\
 SympyCore project provides a pure Python package sympycore for
-representing symbolic expressions using efficient data structures as well as
-methods to manipulate them. Sympycore uses a clear algebra oriented design that
-can be easily extended.
+representing symbolic expressions using efficient data structures as
+well as methods to manipulate them. Sympycore uses a clear algebra
+oriented design that can be easily extended.
 ''',
           url = "http://sympycore.googlecode.org/",
           platforms = ["All"],
