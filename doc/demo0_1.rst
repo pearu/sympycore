@@ -153,8 +153,14 @@ Calculus('1/2*x**2 + z*x**3')
 >>> expr.integrate((x, 2, y))
 Calculus('1/2*y**2 + z*(y**3 - 8) - 2')
 
-sympycore performs suppressed evaluation of elementary functions:
+sympycore implements the elementary functions ``exp``, ``log``,
+``sqrt``, ``cos``, ``sin``, ``tan``, ``cot``, and simplifies
+their values in basic cases:
 
+>>> print log(10000,10)
+4
+>>> print sin(5*pi/6)
+1/2
 >>> print cos(x+pi/2)
 -sin(x)
 
