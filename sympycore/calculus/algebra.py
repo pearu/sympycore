@@ -239,7 +239,7 @@ class Calculus(CommutativeRingWithPairs):
             data, variables = self.to_polynomial_data()
             return PolynomialRing[tuple(variables)](data)
         else:
-            data, variables = self.to_polynomial_data(cls.variables, True)
+            data, variables = self.to_polynomial_data(ring_cls.variables, True)
             return ring_cls(data)
 
     def __divmod__(self, other):
