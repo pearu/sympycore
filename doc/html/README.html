@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.4.1: http://docutils.sourceforge.net/" />
+<title>SympyCore - an efficient pure Python Computer Algebra System</title>
+<meta name="authors" content="Pearu Peterson &lt;pearu.peterson AT gmail DOT com&gt;  Fredrik Johansson &lt;fredrik.johansson AT gmail DOT com&gt;" />
+<style type="text/css">
+
+/*
+:Author: David Goodger
+:Contact: goodger@users.sourceforge.net
+:Date: $Date: 2005-12-18 01:56:14 +0100 (Sun, 18 Dec 2005) $
+:Revision: $Revision: 4224 $
+:Copyright: This stylesheet has been placed in the public domain.
+
+Default cascading style sheet for the HTML output of Docutils.
+
+See http://docutils.sf.net/docs/howto/html-stylesheets.html for how to
+customize this style sheet.
+*/
+
+/* used to remove borders from tables and images */
+.borderless, table.borderless td, table.borderless th {
+  border: 0 }
+
+table.borderless td, table.borderless th {
+  /* Override padding for "table.docutils td" with "! important".
+     The right padding separates the table cells. */
+  padding: 0 0.5em 0 0 ! important }
+
+.first {
+  /* Override more specific margin styles with "! important". */
+  margin-top: 0 ! important }
+
+.last, .with-subtitle {
+  margin-bottom: 0 ! important }
+
+.hidden {
+  display: none }
+
+a.toc-backref {
+  text-decoration: none ;
+  color: black }
+
+blockquote.epigraph {
+  margin: 2em 5em ; }
+
+dl.docutils dd {
+  margin-bottom: 0.5em }
+
+/* Uncomment (and remove this text!) to get bold-faced definition list terms
+dl.docutils dt {
+  font-weight: bold }
+*/
+
+div.abstract {
+  margin: 2em 5em }
+
+div.abstract p.topic-title {
+  font-weight: bold ;
+  text-align: center }
+
+div.admonition, div.attention, div.caution, div.danger, div.error,
+div.hint, div.important, div.note, div.tip, div.warning {
+  margin: 2em ;
+  border: medium outset ;
+  padding: 1em }
+
+div.admonition p.admonition-title, div.hint p.admonition-title,
+div.important p.admonition-title, div.note p.admonition-title,
+div.tip p.admonition-title {
+  font-weight: bold ;
+  font-family: sans-serif }
+
+div.attention p.admonition-title, div.caution p.admonition-title,
+div.danger p.admonition-title, div.error p.admonition-title,
+div.warning p.admonition-title {
+  color: red ;
+  font-weight: bold ;
+  font-family: sans-serif }
+
+/* Uncomment (and remove this text!) to get reduced vertical space in
+   compound paragraphs.
+div.compound .compound-first, div.compound .compound-middle {
+  margin-bottom: 0.5em }
+
+div.compound .compound-last, div.compound .compound-middle {
+  margin-top: 0.5em }
+*/
+
+div.dedication {
+  margin: 2em 5em ;
+  text-align: center ;
+  font-style: italic }
+
+div.dedication p.topic-title {
+  font-weight: bold ;
+  font-style: normal }
+
+div.figure {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+div.footer, div.header {
+  clear: both;
+  font-size: smaller }
+
+div.line-block {
+  display: block ;
+  margin-top: 1em ;
+  margin-bottom: 1em }
+
+div.line-block div.line-block {
+  margin-top: 0 ;
+  margin-bottom: 0 ;
+  margin-left: 1.5em }
+
+div.sidebar {
+  margin-left: 1em ;
+  border: medium outset ;
+  padding: 1em ;
+  background-color: #ffffee ;
+  width: 40% ;
+  float: right ;
+  clear: right }
+
+div.sidebar p.rubric {
+  font-family: sans-serif ;
+  font-size: medium }
+
+div.system-messages {
+  margin: 5em }
+
+div.system-messages h1 {
+  color: red }
+
+div.system-message {
+  border: medium outset ;
+  padding: 1em }
+
+div.system-message p.system-message-title {
+  color: red ;
+  font-weight: bold }
+
+div.topic {
+  margin: 2em }
+
+h1.section-subtitle, h2.section-subtitle, h3.section-subtitle,
+h4.section-subtitle, h5.section-subtitle, h6.section-subtitle {
+  margin-top: 0.4em }
+
+h1.title {
+  text-align: center }
+
+h2.subtitle {
+  text-align: center }
+
+hr.docutils {
+  width: 75% }
+
+img.align-left {
+  clear: left }
+
+img.align-right {
+  clear: right }
+
+ol.simple, ul.simple {
+  margin-bottom: 1em }
+
+ol.arabic {
+  list-style: decimal }
+
+ol.loweralpha {
+  list-style: lower-alpha }
+
+ol.upperalpha {
+  list-style: upper-alpha }
+
+ol.lowerroman {
+  list-style: lower-roman }
+
+ol.upperroman {
+  list-style: upper-roman }
+
+p.attribution {
+  text-align: right ;
+  margin-left: 50% }
+
+p.caption {
+  font-style: italic }
+
+p.credits {
+  font-style: italic ;
+  font-size: smaller }
+
+p.label {
+  white-space: nowrap }
+
+p.rubric {
+  font-weight: bold ;
+  font-size: larger ;
+  color: maroon ;
+  text-align: center }
+
+p.sidebar-title {
+  font-family: sans-serif ;
+  font-weight: bold ;
+  font-size: larger }
+
+p.sidebar-subtitle {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+p.topic-title {
+  font-weight: bold }
+
+pre.address {
+  margin-bottom: 0 ;
+  margin-top: 0 ;
+  font-family: serif ;
+  font-size: 100% }
+
+pre.literal-block, pre.doctest-block {
+  margin-left: 2em ;
+  margin-right: 2em ;
+  background-color: #eeeeee }
+
+span.classifier {
+  font-family: sans-serif ;
+  font-style: oblique }
+
+span.classifier-delimiter {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+span.interpreted {
+  font-family: sans-serif }
+
+span.option {
+  white-space: nowrap }
+
+span.pre {
+  white-space: pre }
+
+span.problematic {
+  color: red }
+
+span.section-subtitle {
+  /* font-size relative to parent (h1..h6 element) */
+  font-size: 80% }
+
+table.citation {
+  border-left: solid 1px gray;
+  margin-left: 1px }
+
+table.docinfo {
+  margin: 2em 4em }
+
+table.docutils {
+  margin-top: 0.5em ;
+  margin-bottom: 0.5em }
+
+table.footnote {
+  border-left: solid 1px black;
+  margin-left: 1px }
+
+table.docutils td, table.docutils th,
+table.docinfo td, table.docinfo th {
+  padding-left: 0.5em ;
+  padding-right: 0.5em ;
+  vertical-align: top }
+
+table.docutils th.field-name, table.docinfo th.docinfo-name {
+  font-weight: bold ;
+  text-align: left ;
+  white-space: nowrap ;
+  padding-left: 0 }
+
+h1 tt.docutils, h2 tt.docutils, h3 tt.docutils,
+h4 tt.docutils, h5 tt.docutils, h6 tt.docutils {
+  font-size: 100% }
+
+tt.docutils {
+  background-color: #eeeeee }
+
+ul.auto-toc {
+  list-style-type: none }
+
+</style>
+</head>
+<body>
+<div class="document" id="sympycore-an-efficient-pure-python-computer-algebra-system">
+<h1 class="title">SympyCore - an efficient pure Python Computer Algebra System</h1>
+<table class="docinfo" frame="void" rules="none">
+<col class="docinfo-name" />
+<col class="docinfo-content" />
+<tbody valign="top">
+<tr><th class="docinfo-name">Authors:</th>
+<td>Pearu Peterson &lt;pearu.peterson AT gmail DOT com&gt;
+<br />Fredrik Johansson &lt;fredrik.johansson AT gmail DOT com&gt;</td></tr>
+<tr class="field"><th class="docinfo-name">Website:</th><td class="field-body"><a class="reference" href="http://sympycore.googlecode.com/">http://sympycore.googlecode.com/</a></td>
+</tr>
+<tr class="field"><th class="docinfo-name">License:</th><td class="field-body">New BSD Licsens</td>
+</tr>
+</tbody>
+</table>
+<div class="section">
+<h1><a id="history" name="history">History</a></h1>
+<blockquote>
+<ul class="simple">
+<li>Version 0.1 released on February 29, 2008.</li>
+</ul>
+</blockquote>
+</div>
+<div class="section">
+<h1><a id="download-and-installation" name="download-and-installation">Download and installation</a></h1>
+<p>sympycore package requires Python 2.5 or newer.</p>
+<p>The latest release can be downloaded from sympycore website.</p>
+<p>To install sympycore, unpack the archive file and run:</p>
+<pre class="literal-block">
+python setup.py install
+</pre>
+<p>The latest development code is available via SVN. To check it out,
+run:</p>
+<pre class="literal-block">
+svn checkout http://sympycore.googlecode.com/svn/trunk/ sympycore
+</pre>
+</div>
+<div class="section">
+<h1><a id="testing" name="testing">Testing</a></h1>
+<p>Make sure that sympycore directory is in python path (eg listed
+sys.path or PYTHONPATH) and then run in the parent directory of
+sympycore source on of the following commands:</p>
+<pre class="literal-block">
+nosetests sympycore
+py.test sympycore
+</pre>
+</div>
+<div class="section">
+<h1><a id="basic-usage" name="basic-usage">Basic usage</a></h1>
+<p>Import sympycore with</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; from sympycore import *
+</pre>
+<p>that will provide classes like Symbol, Number, Calculus to construct
+symbolic expressions:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; x = Symbol('x')
+&gt;&gt;&gt; y = Symbol('y')
+&gt;&gt;&gt; x + y
+Calculus('x + y')
+</pre>
+<p>See the following demo for more examples:</p>
+<blockquote>
+<a class="reference" href="http://sympycore.googlecode.com/svn/trunk/doc/html/demo0_1.html">http://sympycore.googlecode.com/svn/trunk/doc/html/demo0_1.html</a></blockquote>
+<p>Additional documentation, including SympyCore User's Guide and API
+documentation, is available online in SympyCore website.</p>
+</div>
+<div class="section">
+<h1><a id="help-and-bug-reports" name="help-and-bug-reports">Help and bug reports</a></h1>
+<p>You can report bugs at the sympycore issue tracker:</p>
+<blockquote>
+<a class="reference" href="http://code.google.com/p/sympycore/issues/list">http://code.google.com/p/sympycore/issues/list</a></blockquote>
+<p>SympyCore website contains links to sympycore mailing lists where one
+can ask support requests and discuss general sympycore related topics.
+Any comments and questions can be sent also to the authors.</p>
+</div>
+</div>
+</body>
+</html>

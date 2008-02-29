@@ -10,3 +10,4 @@ sys.path.insert(0, path('..'))
 import doctest
 doctest.testfile(path("userguide.rst"), module_relative=False)
 doctest.testfile(path("demo0_1.rst"), module_relative=False)
+doctest.testfile(path('..',"README.txt"), module_relative=False)
