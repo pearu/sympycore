@@ -23,12 +23,12 @@ SympyCore Release 0.1 Demo
 Getting started
 ===============
 
-This document gives a short overview of sympycore basic features. For
+This document gives a short overview of SympyCore basic features. For
 more information see the `SympyCore User's Guide`__.
 
 __ http://sympycore.googlecode.com/svn/trunk/doc/html/userguide.html
 
-To use sympycore package from Python, one must import it:
+To use the ``sympycore`` package from Python, one must import it:
 
 >>> from sympycore import *
 
@@ -37,7 +37,7 @@ Constructing symbolic expressions
 
 Generally speaking, symbolic expressions consist of symbols and
 operation between them. To create symbolic expressions using
-sympycore, one can either create symbol objects and perform operations
+SympyCore, one can either create symbol objects and perform operations
 between them:
 
 >>> x = Symbol('x')
@@ -52,7 +52,7 @@ expressions from a string:
 >>> Calculus('x + y')
 Calculus('x + y')
 
-sympycore converts symbolic expressions to a canonical form that is
+SympyCore converts symbolic expressions to a canonical form that is
 efficient for further manipulations and are also often obvious
 simplifications that users may expect:
 
@@ -149,7 +149,7 @@ x + y + x**4 + 3*x**2 + 3*x**3 + 3*x*y + 3*y*x**2 + y*x**3
 Arithmetic methods
 ==================
 
-Sympycore provides exact rational and complex numbers:
+SympyCore provides exact rational and complex numbers:
 
 >>> Calculus('3/12')
 Calculus('1/4')
@@ -164,7 +164,7 @@ Calculus('2')
 >>> Calculus('243**(1/5)')
 Calculus('3')
 
-Sympycore supports converting symbolic expressions with exact numbers
+SympyCore supports converting symbolic expressions with exact numbers
 such as integers and rational numbers to expressions with arbitrary
 precision floating-point numbers:
 
@@ -179,7 +179,7 @@ E**x + 2*pi
 Calculus methods
 ================
 
-Sympycore provides methods to differentiate symbolic expressions:
+SympyCore provides methods to differentiate symbolic expressions:
 
 >>> expr = x+sin(x*y)*x
 >>> print expr.diff(x)
@@ -193,7 +193,7 @@ as well as integrate symbolic expression representing polynomials:
 >>> print expr.integrate((x, 2, y))
 1/2*y**2 + z*(y**3 - 8) - 2
 
-Sympycore implements the elementary functions ``exp``, ``log``,
+SympyCore implements the elementary functions ``exp``, ``log``,
 ``sqrt``, ``cos``, ``sin``, ``tan``, ``cot``, and simplifies
 their values in basic cases:
 
@@ -207,7 +207,7 @@ their values in basic cases:
 Polynomial rings
 ================
 
-Sympycore provides efficient ways to represent univariate and
+SympyCore provides efficient ways to represent univariate and
 multivariate polynomials. Currently there are two representation
 supported. The first one is suitable for univariate dense polynomials:
 
@@ -239,7 +239,7 @@ a polynomial ring over ``Algebra`` with ``symbols``.
 Matrix rings
 ============
 
-Sympycore supports representing rectangular matrix ring elements using
+SympyCore supports representing rectangular matrix ring elements using
 similar idea of ring factory:
 
 >>> M = MatrixRing[(3,4)]
@@ -249,7 +249,7 @@ similar idea of ring factory:
      0  0  x + y  0
      0  0      0  0
 
-Note that matrices are mutable in sympycore and indexes start from 0:
+Note that matrices are mutable in SympyCore and indexes start from 0:
 
 >>> matrix[1,0] = 5
 >>> print matrix
@@ -257,7 +257,7 @@ Note that matrices are mutable in sympycore and indexes start from 0:
      5  0  x + y  0
      0  0      0  0
 
-Sympycore provides ``SquareMatrix`` and ``PermutationMatrix``
+SympyCore provides ``SquareMatrix`` and ``PermutationMatrix``
 factories for convenience:
 
 >>> SqM = SquareMatrix[3]
@@ -294,7 +294,7 @@ The ``*`` denotes matrix multiplication:
 >>> print p * l * u == m
 True
 
-Sympycore supports computing inverses of square
+SympyCore supports computing inverses of square
 matrices:
 
 >>> print m.inv()
@@ -308,7 +308,7 @@ True
 Physical units
 ==============
 
-Sympycore has a basic support for dealing with symbolic expressions with
+SympyCore has a basic support for dealing with symbolic expressions with
 units:
 
 >>> mass1 = 5 * kilogram
