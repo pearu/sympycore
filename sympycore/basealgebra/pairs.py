@@ -666,7 +666,7 @@ class CommutativeRingWithPairs(CommutativeRing):
                     return t * FractionTyple((1,p)), n
         return self, 1
 
-    def to_polynomial_data(self, variables=None):
+    def to_polynomial_data(self, variables=None, fixed=False):
         """ Convert pairs representation to ``{exponents: coeff},
         variables_list`` representation.
 
@@ -677,14 +677,20 @@ class CommutativeRingWithPairs(CommutativeRing):
 
         Notes:
 
-          In general, ``exponent``-s are tuples of integers. An
+        * In general, ``exponent``-s are tuples of integers. An
           expection is when ``len(variable_list)==1``: ``exponent``-s
           will be integers.
+
+        * When ``fixed`` is True then one must provide ``variables` list
+          that will be equal to returned ``variable_list``. Symbols
+          not in a variables list are treated as coefficients.
+          
         """
         head = self.head
         data = self.data
         cls = type(self)
         if variables is None:
+            assert not fixed
             variables = []
         else:
             variables = list(variables)
@@ -698,6 +704,8 @@ class CommutativeRingWithPairs(CommutativeRing):
             exponents = []
             coeffs = []
             for t, c in data.iteritems():
+                if fixed:
+                    rest = 1
                 h = t.head
                 exps = [0] * len(variables)
                 exps_append_methods.append(exps.append)
@@ -720,21 +728,34 @@ class CommutativeRingWithPairs(CommutativeRing):
                         try:
                             i = variables.index(f)
                         except ValueError:
-                            i = len(variables)
-                            variables.append(f)
-                            [mth(0) for mth in exps_append_methods]
-                        exps[i] += e
+                            if fixed:
+                                # XXX: that's a bit slow
+                                rest *= f**e
+                            else:
+                                i = len(variables)
+                                variables.append(f)
+                                [mth(0) for mth in exps_append_methods]
+                                exps[i] += e
+                        else:
+                            exps[i] += e
                 elif h is NUMBER:
                     assert t.data==1,`t`
                 else:
                     try:
                         i = variables.index(t)
                     except ValueError:
-                        i = len(variables)
-                        variables.append(t)
-                        [mth(0) for mth in exps_append_methods]
-                    exps[i] += 1
+                        if fixed:
+                            rest *= t
+                        else:
+                            i = len(variables)
+                            variables.append(t)
+                            [mth(0) for mth in exps_append_methods]
+                            exps[i] += 1
+                    else:
+                        exps[i] += 1
                 exponents.append(exps)
+                if fixed and rest is not 1:
+                    c = c * rest
                 coeffs.append(c)
             l = len(variables)
             d = {}
@@ -747,6 +768,7 @@ class CommutativeRingWithPairs(CommutativeRing):
             return d, variables
         elif head is FACTORS:
             exps = [0] * len(variables)
+            coeff = 1
             for f, e in data.iteritems():
                 if isinstance(e, CommutativeRing):
                     r, e  = e.as_term_intcoeff()
@@ -765,26 +787,37 @@ class CommutativeRingWithPairs(CommutativeRing):
                 try:
                     i = variables.index(f)
                 except ValueError:
+                    if fixed:
+                        coeff *= f**e
+                        continue
                     i = len(variables)
                     variables.append(f)
                     exps.append(0)
                 exps[i] += e
             l = len(variables)
             if l==1:
-                return {exps[0]: 1}, variables
-            return {tuple(exps): 1}, variables
+                return {exps[0]: coeff}, variables
+            return {tuple(exps): coeff}, variables
         else:
+            coeff = 1
+            l = len(variables)
+            exps = [0]*l
             try:
                 i = variables.index(self)
             except ValueError:
-                i = len(variables)
-                variables.append(self)
-            l = len(variables)
-            exps = [0]*l
-            exps[i] = 1
+                if fixed:
+                    coeff = self
+                    exps = [0]*l
+                else:
+                    i = len(variables)
+                    variables.append(self)
+                    exps.append(1)
+                    l += 1
+            else:
+                exps[i] = 1
             if l==1:
-                return {exps[0]: 1}, variables
-            return {tuple(exps): 1}, variables
+                return {exps[0]: coeff}, variables
+            return {tuple(exps): coeff}, variables
 
 # initialize one and zero attributes:
 CommutativeRingWithPairs.one = CommutativeRingWithPairs.Number(1)

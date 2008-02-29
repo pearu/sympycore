@@ -552,24 +552,38 @@ def test_has_symbol():
 def test_to_polynomial_data():
     x, y = map(Symbol,'xy')
     assert x.to_polynomial_data([x])[0] == {1:1}
+    assert x.to_polynomial_data([x], True)[0] == {1:1}
     assert x.to_polynomial_data([x,y])[0] == {(1,0):1}
+    assert x.to_polynomial_data([x,y], True)[0] == {(1,0):1}
     assert x.to_polynomial_data([y])[0] == {(0,1):1}
+    assert x.to_polynomial_data([y], True)[0] == {0:x}
 
     assert (2*x).to_polynomial_data([x])[0] == {1:2}
     assert (2*x).to_polynomial_data([x,y])[0] == {(1,0):2}
+    assert (2*x).to_polynomial_data([x,y],True)[0] == {(1,0):2}
     assert (2*x).to_polynomial_data([y])[0] == {(0,1):2}
+    assert (2*x).to_polynomial_data([y], True)[0] == {0:2*x}
 
     assert (x*y**2).to_polynomial_data([x])[0] == {(1,2):1}
+    assert (x*y**2).to_polynomial_data([x], True)[0] == {1:y**2}
     assert (x*y**2).to_polynomial_data([x,y])[0] == {(1,2):1}
+    assert (x*y**2).to_polynomial_data([x,y], True)[0] == {(1,2):1}
     assert (x*y**2).to_polynomial_data([y])[0] == {(2,1):1}
+    assert (x*y**2).to_polynomial_data([y], True)[0] == {2:x}
 
     assert (3*x*y**2).to_polynomial_data([x])[0] == {(1,2):3}
+    assert (3*x*y**2).to_polynomial_data([x],True)[0] == {1:3*y**2}
     assert (3*x*y**2).to_polynomial_data([x,y])[0] == {(1,2):3}
+    assert (3*x*y**2).to_polynomial_data([x,y],True)[0] == {(1,2):3}
     assert (3*x*y**2).to_polynomial_data([y])[0] == {(2,1):3}
+    assert (3*x*y**2).to_polynomial_data([y],True)[0] == {2:3*x}
 
     assert (x+2*y).to_polynomial_data([x])[0] == {(1,0):1,(0,1):2}
+    assert (x+2*y).to_polynomial_data([x], True)[0] == {1:1,0:2*y}
     assert (x+2*y).to_polynomial_data([x,y])[0] == {(1,0):1,(0,1):2}
+    assert (x+2*y).to_polynomial_data([x,y], True)[0] == {(1,0):1,(0,1):2}
     assert (x+2*y).to_polynomial_data([y])[0] == {(1,0):2,(0,1):1}
+    assert (x+2*y).to_polynomial_data([y], True)[0] == {1:2,0:x}
 
     assert (x**(Number(3)/2)).to_polynomial_data()[0] == {3:1}
 
