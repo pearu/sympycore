@@ -15,7 +15,7 @@ SympyCore - an efficient pure Python Computer Algebra System
 
 :License:
 
-  New BSD Licsens
+  New BSD License
 
 History
 =======
@@ -41,9 +41,9 @@ run::
 Testing
 =======
 
-Make sure that sympycore directory is in python path (eg listed
-sys.path or PYTHONPATH) and then run in the parent directory of
-sympycore source on of the following commands::
+Make sure that sympycore directory is in python path (e.g. it should
+be listed in sys.path or PYTHONPATH) and then run in the parent
+directory of the sympycore source one of the following commands::
 
   nosetests sympycore
   py.test sympycore
@@ -63,7 +63,7 @@ symbolic expressions:
 >>> x + y
 Calculus('x + y')
 
-See the following demo for more examples:
+See the following demo page for more examples:
 
   http://sympycore.googlecode.com/svn/trunk/doc/html/demo0_1.html
 

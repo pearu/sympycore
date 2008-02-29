@@ -359,6 +359,12 @@ Calculus('2*x')
 &gt;&gt;&gt; x - x
 Calculus('0')
 </pre>
+<p>General symbolic arithmetic expressions are instances of the Calculus
+class. Using the <tt class="docutils literal"><span class="pre">print</span></tt> statement (or <tt class="docutils literal"><span class="pre">str()</span></tt>) hides this information:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; print x + y
+x + y
+</pre>
 </div>
 <div class="section">
 <h1><a class="toc-backref" href="#id4" id="manipulations-with-symbolic-expressions" name="manipulations-with-symbolic-expressions">Manipulations with symbolic expressions</a></h1>
@@ -426,17 +432,17 @@ None
 opening parenthesis:</p>
 <pre class="doctest-block">
 &gt;&gt;&gt; expr = (x+y)*z
-&gt;&gt;&gt; expr
-Calculus('z*(x + y)')
-&gt;&gt;&gt; expr.expand()
-Calculus('x*z + y*z')
+&gt;&gt;&gt; print expr
+z*(x + y)
+&gt;&gt;&gt; print expr.expand()
+x*z + y*z
 </pre>
 <p>In general, sympycore <tt class="docutils literal"><span class="pre">expand</span></tt> method expands products of sums and
 integer powers of sums:</p>
 <pre class="doctest-block">
 &gt;&gt;&gt; expr = (x+y)*(1+x)**3
-&gt;&gt;&gt; expr.expand()
-Calculus('x + y + x**4 + 3*x**2 + 3*x**3 + 3*x*y + 3*y*x**2 + y*x**3')
+&gt;&gt;&gt; print expr.expand()
+x + y + x**4 + 3*x**2 + 3*x**3 + 3*x*y + 3*y*x**2 + y*x**3
 </pre>
 </div>
 <div class="section">
@@ -444,19 +450,25 @@ Calculus('x + y + x**4 + 3*x**2 + 3*x**3 + 3*x*y + 3*y*x**2 + y*x**3')
 <p>sympycore provides methods to differentiate symbolic expressions:</p>
 <pre class="doctest-block">
 &gt;&gt;&gt; expr = x+sin(x*y)*x
-&gt;&gt;&gt; expr.diff(x)
-Calculus('1 + sin(x*y) + x*y*cos(x*y)')
+&gt;&gt;&gt; print expr.diff(x)
+1 + sin(x*y) + x*y*cos(x*y)
 </pre>
 <p>as well as integrate symbolic expression representing polynomials:</p>
 <pre class="doctest-block">
 &gt;&gt;&gt; expr = x + 3*z*x**2
-&gt;&gt;&gt; expr.integrate(x)
-Calculus('1/2*x**2 + z*x**3')
-&gt;&gt;&gt; expr.integrate((x, 2, y))
-Calculus('1/2*y**2 + z*(y**3 - 8) - 2')
+&gt;&gt;&gt; print expr.integrate(x)
+1/2*x**2 + z*x**3
+&gt;&gt;&gt; print expr.integrate((x, 2, y))
+1/2*y**2 + z*(y**3 - 8) - 2
 </pre>
-<p>sympycore performs suppressed evaluation of elementary functions:</p>
+<p>sympycore implements the elementary functions <tt class="docutils literal"><span class="pre">exp</span></tt>, <tt class="docutils literal"><span class="pre">log</span></tt>,
+<tt class="docutils literal"><span class="pre">sqrt</span></tt>, <tt class="docutils literal"><span class="pre">cos</span></tt>, <tt class="docutils literal"><span class="pre">sin</span></tt>, <tt class="docutils literal"><span class="pre">tan</span></tt>, <tt class="docutils literal"><span class="pre">cot</span></tt>, and simplifies
+their values in basic cases:</p>
 <pre class="doctest-block">
+&gt;&gt;&gt; print log(10000,10)
+4
+&gt;&gt;&gt; print sin(5*pi/6)
+1/2
 &gt;&gt;&gt; print cos(x+pi/2)
 -sin(x)
 </pre>
@@ -468,12 +480,12 @@ such as integers and rational numbers to expressions with arbitrary
 precision floating-point numbers:</p>
 <pre class="doctest-block">
 &gt;&gt;&gt; expr = 2*pi + E**x
-&gt;&gt;&gt; expr
-Calculus('E**x + 2*pi')
-&gt;&gt;&gt; expr.evalf(5)
-Calculus('6.2832 + 2.7183**x')
-&gt;&gt;&gt; expr.evalf(25)
-Calculus('6.283185307179586476925287 + 2.718281828459045235360287**x')
+&gt;&gt;&gt; print expr
+E**x + 2*pi
+&gt;&gt;&gt; print expr.evalf(5)
+6.2832 + 2.7183**x
+&gt;&gt;&gt; print expr.evalf(25)
+6.283185307179586476925287 + 2.718281828459045235360287**x
 </pre>
 <p>sympycore evaluates fractional powers of integers to simpler
 expression when possible:</p>
