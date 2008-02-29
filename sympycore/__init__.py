@@ -3,6 +3,10 @@
 See http://sympycore.googlecode.com/ for more information.
 """
 __docformat__ = "restructuredtext"
+__version__ = '0.1'
+__date__ = 'February 29, 2008'
+__author__ = 'Pearu Peterson, Fredrik Johansson'
+__license__ = 'New BSD License'
 
 from .core import Basic, classes
 from basealgebra import *

@@ -10,6 +10,10 @@ SympyCore Release 0.1 Demo
 :Created:
   February 2008
 
+:Website:
+
+  http://sympycore.googlecode.com/
+
 .. sidebar:: Table of contents
 
     .. contents::
