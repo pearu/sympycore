@@ -40,7 +40,7 @@ def lcm(*args):
     L = len(args)
     if L == 0: return 0
     if L == 1: return args[0]
-    if L == 2: return div(args[0]*args[1], gcd(*args))
+    if L == 2: return div(args[0], gcd(*args))*args[1]
     return lcm(lcm(args[0], args[1]), *args[2:])
 
 # TODO: this could use the faster implementation in mpmath

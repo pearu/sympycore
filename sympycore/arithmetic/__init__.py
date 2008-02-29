@@ -10,8 +10,8 @@ Arithmetic package provides:
 __docformat__ = "restructuredtext"
 
 __all__ = ['FractionTuple', 'Float', 'Complex', 'Infinity',
-           'gcd', 'multinomial_coefficients']
+           'gcd', 'lcm', 'multinomial_coefficients']
 
 from .numbers import FractionTuple, Float, Complex
-from .number_theory import gcd, multinomial_coefficients
+from .number_theory import gcd, lcm, multinomial_coefficients
 from .infinity import Infinity

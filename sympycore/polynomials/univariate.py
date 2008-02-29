@@ -27,6 +27,9 @@ class UnivariatePolynomial(BasicAlgebra):
         obj.degree = len(obj.coefs) - 1
         return obj
 
+    def __nonzero__(self):
+        return bool(self.coefs)
+
     @classmethod
     def convert_coef(cls, x):
         # permit anything by default
