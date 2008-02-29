@@ -642,6 +642,150 @@ class CommutativeRingWithPairs(CommutativeRing):
 
         raise NotImplementedError(`self`)
 
+    def as_term_intcoeff(self):
+        """ Return ``(term, coeff)`` such that self=term*coeff and
+        coeff is integer.
+        """
+        head = self.head
+        data = self.data
+        if head is NUMBER:
+            td = type(data)
+            if td is int or td is long:
+                return self.one, data
+            if td is FractionTyple:
+                n,p = data
+                return self.Number(FractionTuple((1, p))), n
+        elif head is TERMS:
+            if len(data)==1:
+                t, c = data.items()[0]
+                td = type(c)
+                if td is int or td is long:
+                    return t, c
+                if td is FractionTuple:
+                    n,p = c
+                    return t * FractionTyple((1,p)), n
+        return self, 1
+
+    def to_polynomial_data(self, variables=None):
+        """ Convert pairs representation to ``{exponents: coeff},
+        variables_list`` representation.
+
+        For example::
+        
+          x**2 + 3*sin(x) -> {(2,0):1, (0,1):3}, [x,sin(x)]
+          3*x*(x+y)**2 -> {(1,2):3}, [x, x+y]
+
+        Notes:
+
+          In general, ``exponent``-s are tuples of integers. An
+          expection is when ``len(variable_list)==1``: ``exponent``-s
+          will be integers.
+        """
+        head = self.head
+        data = self.data
+        cls = type(self)
+        if variables is None:
+            variables = []
+        else:
+            variables = list(variables)
+        if head is NUMBER:
+            l = len(variables)
+            if l==1:
+                return {0 : data}, variables
+            return {(0,)*l : data}, variables
+        if head is TERMS:
+            exps_append_methods = []
+            exponents = []
+            coeffs = []
+            for t, c in data.iteritems():
+                h = t.head
+                exps = [0] * len(variables)
+                exps_append_methods.append(exps.append)
+                if h is FACTORS:
+                    for f, e in t.data.iteritems():
+                        if isinstance(e, CommutativeRing):
+                            r, e  = e.as_term_intcoeff()
+                            f = f**r
+                        else:
+                            te = type(e)
+                            if te is FractionTuple:
+                                n,p = e
+                                f = f ** FractionTuple((1,p))
+                                e = n
+                            elif te is int or te is long:
+                                pass
+                            else:
+                                f = cls.Factors((f,e))
+                                e = 1
+                        try:
+                            i = variables.index(f)
+                        except ValueError:
+                            i = len(variables)
+                            variables.append(f)
+                            [mth(0) for mth in exps_append_methods]
+                        exps[i] += e
+                elif h is NUMBER:
+                    assert t.data==1,`t`
+                else:
+                    try:
+                        i = variables.index(t)
+                    except ValueError:
+                        i = len(variables)
+                        variables.append(t)
+                        [mth(0) for mth in exps_append_methods]
+                    exps[i] += 1
+                exponents.append(exps)
+                coeffs.append(c)
+            l = len(variables)
+            d = {}
+            if l==1:
+                for exps, coeff in zip(exponents, coeffs):
+                    d[exps[0]] = coeff
+            else:
+                for exps, coeff in zip(exponents, coeffs):
+                    d[tuple(exps)] = coeff
+            return d, variables
+        elif head is FACTORS:
+            exps = [0] * len(variables)
+            for f, e in data.iteritems():
+                if isinstance(e, CommutativeRing):
+                    r, e  = e.as_term_intcoeff()
+                    f = f**r
+                else:
+                    te = type(e)
+                    if te is FractionTuple:
+                        n,p = e
+                        f = f ** FractionTuple((1,p))
+                        e = n
+                    elif te is int or te is long:
+                        pass
+                    else:
+                        f = cls.Factors((f,e))
+                        e = 1
+                try:
+                    i = variables.index(f)
+                except ValueError:
+                    i = len(variables)
+                    variables.append(f)
+                    exps.append(0)
+                exps[i] += e
+            l = len(variables)
+            if l==1:
+                return {exps[0]: 1}, variables
+            return {tuple(exps): 1}, variables
+        else:
+            try:
+                i = variables.index(self)
+            except ValueError:
+                i = len(variables)
+                variables.append(self)
+            l = len(variables)
+            exps = [0]*l
+            exps[i] = 1
+            if l==1:
+                return {exps[0]: 1}, variables
+            return {tuple(exps): 1}, variables
+
 # initialize one and zero attributes:
 CommutativeRingWithPairs.one = CommutativeRingWithPairs.Number(1)
 CommutativeRingWithPairs.zero = CommutativeRingWithPairs.Number(0)
