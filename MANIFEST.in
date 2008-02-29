@@ -1,5 +1,6 @@
 include LICENSE
 include README.txt
+include CREDITS.txt
 include doc/*.rst
 include doc/html/*.html
 global-include tests/*.py
