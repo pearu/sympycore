@@ -139,17 +139,47 @@ z*(x + y)
 >>> print expr.expand()
 x*z + y*z
 
-In general, sympycore ``expand`` method expands products of sums and
+In general, the ``expand`` method expands products of sums and
 integer powers of sums:
 
 >>> expr = (x+y)*(1+x)**3
 >>> print expr.expand()
 x + y + x**4 + 3*x**2 + 3*x**3 + 3*x*y + 3*y*x**2 + y*x**3
 
+Arithmetic methods
+==================
+
+Sympycore provides exact rational and complex numbers:
+
+>>> Calculus('3/12')
+Calculus('1/4')
+>>> print (2 + 3*I/4)**4
+721/256 + 165/8*I
+
+Fractional powers of integers are evaluated to simpler
+expressions when possible:
+
+>>> Calculus('8**(1/3)')
+Calculus('2')
+>>> Calculus('243**(1/5)')
+Calculus('3')
+
+Sympycore supports converting symbolic expressions with exact numbers
+such as integers and rational numbers to expressions with arbitrary
+precision floating-point numbers:
+
+>>> expr = 2*pi + E**x
+>>> print expr
+E**x + 2*pi
+>>> print expr.evalf(5)
+6.2832 + 2.7183**x
+>>> print expr.evalf(25)
+6.283185307179586476925287 + 2.718281828459045235360287**x
+
 Calculus methods
 ================
 
-sympycore provides methods to differentiate symbolic expressions:
+Sympycore provides methods to differentiate symbolic expressions:
 
 >>> expr = x+sin(x*y)*x
 >>> print expr.diff(x)
@@ -163,7 +193,7 @@ as well as integrate symbolic expression representing polynomials:
 >>> print expr.integrate((x, 2, y))
 1/2*y**2 + z*(y**3 - 8) - 2
 
-sympycore implements the elementary functions ``exp``, ``log``,
+Sympycore implements the elementary functions ``exp``, ``log``,
 ``sqrt``, ``cos``, ``sin``, ``tan``, ``cot``, and simplifies
 their values in basic cases:
 
@@ -174,33 +204,10 @@ their values in basic cases:
 >>> print cos(x+pi/2)
 -sin(x)
 
-Arithmetic methods
-==================
-
-sympycore supports converting symbolic expressions with exact numbers
-such as integers and rational numbers to expressions with arbitrary
-precision floating-point numbers:
-
->>> expr = 2*pi + E**x
->>> print expr
-E**x + 2*pi
->>> print expr.evalf(5)
-6.2832 + 2.7183**x
->>> print expr.evalf(25)
-6.283185307179586476925287 + 2.718281828459045235360287**x
-
-sympycore evaluates fractional powers of integers to simpler
-expression when possible:
-
->>> Calculus('8**(1/3)')
-Calculus('2')
->>> Calculus('243**(1/5)')
-Calculus('3')
-
 Polynomial rings
 ================
 
-sympycore provides efficient ways to represent univariate and
+Sympycore provides efficient ways to represent univariate and
 multivariate polynomials. Currently there are two representation
 supported. The first one is suitable for univariate dense polynomials:
 
@@ -232,7 +239,7 @@ a polynomial ring over ``Algebra`` with ``symbols``.
 Matrix rings
 ============
 
-sympycore supports representing rectangular matrix ring elements using
+Sympycore supports representing rectangular matrix ring elements using
 similar idea of ring factory:
 
 >>> M = MatrixRing[(3,4)]
@@ -250,7 +257,7 @@ Note that matrices are mutable in sympycore and indexes start from 0:
      5  0  x + y  0
      0  0      0  0
 
-sympycore provides ``SquareMatrix`` and ``PermutationMatrix``
+Sympycore provides ``SquareMatrix`` and ``PermutationMatrix``
 factories for convenience:
 
 >>> SqM = SquareMatrix[3]
@@ -287,7 +294,7 @@ The ``*`` denotes matrix multiplication:
 >>> print p * l * u == m
 True
 
-sympycore supports computing inverses of square
+Sympycore supports computing inverses of square
 matrices:
 
 >>> print m.inv()
@@ -301,7 +308,7 @@ True
 Physical units
 ==============
 
-sympycore has a basic support for dealing with symbolic expressions with
+Sympycore has a basic support for dealing with symbolic expressions with
 units:
 
 >>> mass1 = 5 * kilogram
