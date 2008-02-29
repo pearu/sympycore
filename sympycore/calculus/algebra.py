@@ -220,32 +220,27 @@ class Calculus(CommutativeRingWithPairs):
             return self.data >= other.data
         return Ge(self, other)
 
-    def as_polynom(self, cls=None):
-        if cls is None:
-            cls = PolynomialRing
-        head = self.head
-        if head is NUMBER:
-            return cls.Number(self.data)
-        if head is SYMBOL:
-            try:
-                i = list(cls.variables).index(self)
-            except ValueError:
-                i = None
-            if i is None:
-                try:
-                    i = list(cls.variables).index(self.data)
-                except ValueError:
-                    i = None
-            if i is not None:
-                l = [0]*cls.nvars
-                l[i] = 1
-                return cls({AdditiveTuple(l):1})
-            return cls[(self.data,), self.__class__]({1:1})
-        if head is TERMS:
-            return cls.Add(*[t.as_polynom(cls)*c for t,c in self.data.iteritems()])
-        if head is FACTORS:
-            return cls.Mul(*[t.as_polynom(cls)**c for t,c in self.data.iteritems()])
-        raise NotImplementedError(`head, self`)
+    def as_polynom(self, ring_cls=None):
+        """ Convert expression to an element of polynomial ring.
+        
+        If the polynomial ring is not given then it will be created.
+
+        For example,
+
+          >>> x,y,z = map(Symbol,'xyz')
+          >>> (x+2*y+3*z).as_polynom() + y*z
+          PolynomialRing[(x, y, z), Calculus]('2*x + y*z + y + 3*z')
+          >>> P = PolynomialRing[x,y]
+          >>> (x+2*y+3*z).as_polynom(P) + y*z
+          PolynomialRing[(x, y), Calculus]('x + (2 + z)*y + 3*z')
+
+        """
+        if ring_cls is None:
+            data, variables = self.to_polynomial_data()
+            return PolynomialRing[tuple(variables)](data)
+        else:
+            data, variables = self.to_polynomial_data(cls.variables, True)
+            return ring_cls(data)
 
     def __divmod__(self, other):
         if isinstance(other, Calculus):
