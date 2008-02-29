@@ -5,6 +5,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="Docutils 0.4.1: http://docutils.sourceforge.net/" />
 <title>SympyCore Release 0.1 Demo</title>
+<meta name="authors" content="Pearu Peterson &lt;pearu.peterson AT gmail DOT com&gt;" />
 <style type="text/css">
 
 /*
@@ -292,9 +293,35 @@ ul.auto-toc {
 <body>
 <div class="document" id="sympycore-release-0-1-demo">
 <h1 class="title">SympyCore Release 0.1 Demo</h1>
+<table class="docinfo" frame="void" rules="none">
+<col class="docinfo-name" />
+<col class="docinfo-content" />
+<tbody valign="top">
+<tr><th class="docinfo-name">Authors:</th>
+<td>Pearu Peterson &lt;pearu.peterson AT gmail DOT com&gt;</td></tr>
+<tr class="field"><th class="docinfo-name">Created:</th><td class="field-body">February 2008</td>
+</tr>
+</tbody>
+</table>
 <!-- -*- rest -*- -->
+<div class="sidebar">
+<p class="first sidebar-title">Table of contents</p>
+<div class="contents local last topic">
+<ul class="simple">
+<li><a class="reference" href="#getting-started" id="id2" name="id2">Getting started</a></li>
+<li><a class="reference" href="#constructing-symbolic-expressions" id="id3" name="id3">Constructing symbolic expressions</a></li>
+<li><a class="reference" href="#manipulations-with-symbolic-expressions" id="id4" name="id4">Manipulations with symbolic expressions</a></li>
+<li><a class="reference" href="#transformation-methods" id="id5" name="id5">Transformation methods</a></li>
+<li><a class="reference" href="#calculus-methods" id="id6" name="id6">Calculus methods</a></li>
+<li><a class="reference" href="#arithmetic-methods" id="id7" name="id7">Arithmetic methods</a></li>
+<li><a class="reference" href="#polynomial-rings" id="id8" name="id8">Polynomial rings</a></li>
+<li><a class="reference" href="#matrix-rings" id="id9" name="id9">Matrix rings</a></li>
+<li><a class="reference" href="#physical-units" id="id10" name="id10">Physical units</a></li>
+</ul>
+</div>
+</div>
 <div class="section">
-<h1><a id="getting-started" name="getting-started">Getting started</a></h1>
+<h1><a class="toc-backref" href="#id2" id="getting-started" name="getting-started">Getting started</a></h1>
 <p>This document gives a short overview of sympycore basic features. For
 more information see the <a class="reference" href="http://sympycore.googlecode.com/svn/trunk/doc/html/userguide.html">SympyCore User's Guide</a>.</p>
 <p>To use sympycore package from Python, one must import it:</p>
@@ -303,7 +330,7 @@ more information see the <a class="reference" href="http://sympycore.googlecode.
 </pre>
 </div>
 <div class="section">
-<h1><a id="constructing-symbolic-expressions" name="constructing-symbolic-expressions">Constructing symbolic expressions</a></h1>
+<h1><a class="toc-backref" href="#id3" id="constructing-symbolic-expressions" name="constructing-symbolic-expressions">Constructing symbolic expressions</a></h1>
 <p>Generally speaking, symbolic expressions consist of symbols and
 operation between them. To create symbolic expressions using
 sympycore, one can either create symbol objects and perform operations
@@ -334,7 +361,7 @@ Calculus('0')
 </pre>
 </div>
 <div class="section">
-<h1><a id="manipulations-with-symbolic-expressions" name="manipulations-with-symbolic-expressions">Manipulations with symbolic expressions</a></h1>
+<h1><a class="toc-backref" href="#id4" id="manipulations-with-symbolic-expressions" name="manipulations-with-symbolic-expressions">Manipulations with symbolic expressions</a></h1>
 <p>The most obvious manipulation task applied to symbolic expressions, is
 substitution -- replacing a sub-expression of a given expression with a
 new expression. For example,</p>
@@ -394,7 +421,7 @@ None
 </pre>
 </div>
 <div class="section">
-<h1><a id="transformation-methods" name="transformation-methods">Transformation methods</a></h1>
+<h1><a class="toc-backref" href="#id5" id="transformation-methods" name="transformation-methods">Transformation methods</a></h1>
 <p>The most common transformation task is expansion of sub-expressions by
 opening parenthesis:</p>
 <pre class="doctest-block">
@@ -413,7 +440,7 @@ Calculus('x + y + x**4 + 3*x**2 + 3*x**3 + 3*x*y + 3*y*x**2 + y*x**3')
 </pre>
 </div>
 <div class="section">
-<h1><a id="calculus-methods" name="calculus-methods">Calculus methods</a></h1>
+<h1><a class="toc-backref" href="#id6" id="calculus-methods" name="calculus-methods">Calculus methods</a></h1>
 <p>sympycore provides methods to differentiate symbolic expressions:</p>
 <pre class="doctest-block">
 &gt;&gt;&gt; expr = x+sin(x*y)*x
@@ -435,7 +462,7 @@ Calculus('1/2*y**2 + z*(y**3 - 8) - 2')
 </pre>
 </div>
 <div class="section">
-<h1><a id="arithmetic-methods" name="arithmetic-methods">Arithmetic methods</a></h1>
+<h1><a class="toc-backref" href="#id7" id="arithmetic-methods" name="arithmetic-methods">Arithmetic methods</a></h1>
 <p>sympycore supports converting symbolic expressions with exact numbers
 such as integers and rational numbers to expressions with arbitrary
 precision floating-point numbers:</p>
@@ -458,7 +485,7 @@ Calculus('3')
 </pre>
 </div>
 <div class="section">
-<h1><a id="polynomial-rings" name="polynomial-rings">Polynomial rings</a></h1>
+<h1><a class="toc-backref" href="#id8" id="polynomial-rings" name="polynomial-rings">Polynomial rings</a></h1>
 <p>sympycore provides efficient ways to represent univariate and
 multivariate polynomials. Currently there are two representation
 supported. The first one is suitable for univariate dense polynomials:</p>
@@ -489,7 +516,7 @@ PolynomialRing[(x, y), Calculus]('5*x**300*y**4 + ((-7))*x**3*y**4 + 12*x**2*y**
 a polynomial ring over <tt class="docutils literal"><span class="pre">Algebra</span></tt> with <tt class="docutils literal"><span class="pre">symbols</span></tt>.</p>
 </div>
 <div class="section">
-<h1><a id="matrix-rings" name="matrix-rings">Matrix rings</a></h1>
+<h1><a class="toc-backref" href="#id9" id="matrix-rings" name="matrix-rings">Matrix rings</a></h1>
 <p>sympycore supports representing rectangular matrix ring elements using
 similar idea of ring factory:</p>
 <pre class="doctest-block">
@@ -560,7 +587,7 @@ True
 </pre>
 </div>
 <div class="section">
-<h1><a id="physical-units" name="physical-units">Physical units</a></h1>
+<h1><a class="toc-backref" href="#id10" id="physical-units" name="physical-units">Physical units</a></h1>
 <p>sympycore has a basic support for dealing with symbolic expressions with
 units:</p>
 <pre class="doctest-block">

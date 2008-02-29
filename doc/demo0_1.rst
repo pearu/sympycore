@@ -4,6 +4,18 @@
 SympyCore Release 0.1 Demo
 ==========================
 
+:Authors:
+  Pearu Peterson <pearu.peterson AT gmail DOT com>
+
+:Created:
+  February 2008
+
+.. sidebar:: Table of contents
+
+    .. contents::
+        :depth: 2
+        :local:
+
 Getting started
 ===============
 

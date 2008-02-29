@@ -8,7 +8,7 @@ SympyCore User's Guide
 ======================
 
 :Authors:
-  Pearu Peterson <pearu.peterson@gmail.com>
+  Pearu Peterson <pearu.peterson AT gmail DOT com>
 
   Fredrik Johansson
 
