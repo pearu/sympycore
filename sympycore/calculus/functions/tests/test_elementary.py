@@ -2,7 +2,7 @@ from __future__ import with_statement
 
 from sympycore.calculus import Calculus as A
 from sympycore.calculus.algebra import I
-from sympycore.calculus.infinity import oo
+from sympycore.calculus.infinity import oo, zoo, undefined
 from sympycore.calculus import Number, Symbol
 from sympycore.calculus.functions.elementary import sin, cos, tan, cot, pi, E, exp, log
 from sympycore.calculus.relational import Assumptions
@@ -55,6 +55,12 @@ def test_trig_values():
     assert cos(11*pi/2) == 0
     assert cos(pi/12) == (1 + sqrt3) / (2 * sqrt2)
     assert tan(7*pi/12) == sin(7*pi/12)/cos(7*pi/12)
+    assert tan(pi/2) == zoo
+    assert tan(pi) == 0
+    assert cot(pi/2) == 0
+    assert cot(pi) == zoo
+    assert str(sin(oo)) == 'sin(oo)'
+    assert sin(undefined) == undefined
 
 def test_trig_symmetry():
     x = A('x')

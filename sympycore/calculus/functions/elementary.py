@@ -61,14 +61,15 @@ log_number_table = {
 
 class log(Function):
     def __new__(cls, arg, base=E):
-        if isinstance(arg, CalculusInfinity):
-            if arg==oo:
-                return oo
-            if arg==undefined:
-                return undefined
-            return Calculus(arg, head=cls)
-        if not isinstance(arg, Calculus):
-            arg = Calculus.convert(arg)
+        if type(arg) is not Calculus:
+            if isinstance(arg, CalculusInfinity):
+                if arg == oo:
+                    return oo
+                if arg == undefined:
+                    return undefined
+                return Calculus(arg, head=cls)
+            else:
+                arg = Calculus.convert(arg)
         if base != E:
             base = Calculus.convert(base)
             bd = base.data
@@ -80,7 +81,6 @@ class log(Function):
                 if bd**l == ad:
                     return Calculus(l)
             return cls(arg) / cls(base)
-
         head = arg.head
         data = arg.data
         if head is NUMBER:
@@ -170,8 +170,13 @@ class TrigonometricFunction(Function):
     period = None   # multiple of pi
 
     def __new__(cls, arg):
-        if not isinstance(arg, Calculus):
-            arg = Calculus.convert(arg)
+        if type(arg) is not Calculus:
+            if isinstance(arg, CalculusInfinity):
+                if arg == undefined:
+                    return undefined
+                return Calculus(arg, head=cls)
+            else:
+                arg = Calculus.convert(arg)
         if arg.is_Number and isinstance(arg.data, Float):
             return Calculus.Number(evalf('%s(%s)' % (cls.__name__, arg)))
         x, m = get_pi_shift(arg, 12)
@@ -256,7 +261,7 @@ class cot(TrigonometricFunction):
     period = 1
 
     @classmethod
-    def eval_direct(cls, arg):
+    def eval_direct(cls, m):
         a = sine_table[m % 24]
         b = sine_table[(m+6) % 24]
         if a == None or b == None:
