@@ -76,8 +76,8 @@ substitution -- replacing a sub-expression of a given expression with a
 new expression. For example,
 
 >>> expr = x + y
->>> expr.subs(y, sin(x))
-Calculus('x + sin(x)')
+>>> print expr.subs(y, sin(x))
+x + sin(x)
 
 Other tasks include accessing parts of symbolic expressions:
 
@@ -86,8 +86,8 @@ Other tasks include accessing parts of symbolic expressions:
 
 and constructing new expressions:
 
->>> Mul(*expr.args)
-Calculus('x*y')
+>>> print Mul(*expr.args)
+x*y
 
 An important presumption for implementing various algorithms is pattern
 matching. Pattern matching means that given a pattern expression, the
@@ -228,10 +228,10 @@ polynomials:
 >>> poly2 = P({(3,4):-7, (2,500):12})
 >>> poly1
 PolynomialRing[(x, y), Calculus]('5*x**300*y**4 + 7*x*y**2')
->>> poly2
-PolynomialRing[(x, y), Calculus]('((-7))*x**3*y**4 + 12*x**2*y**500')
->>> poly1 + poly2
-PolynomialRing[(x, y), Calculus]('5*x**300*y**4 + ((-7))*x**3*y**4 + 12*x**2*y**500 + 7*x*y**2')
+>>> print poly2
+((-7))*x**3*y**4 + 12*x**2*y**500
+>>> print poly1 + poly2
+5*x**300*y**4 + ((-7))*x**3*y**4 + 12*x**2*y**500 + 7*x*y**2
 
 Here the ``PolynomialRing[symbols, Algebra]`` represents a factory of
 a polynomial ring over ``Algebra`` with ``symbols``.
@@ -313,5 +313,5 @@ units:
 
 >>> mass1 = 5 * kilogram
 >>> mass2 = x * kilogram
->>> mass1 + mass2
-Unit('(5 + x)*kg')
+>>> print mass1 + mass2
+(5 + x)*kg
