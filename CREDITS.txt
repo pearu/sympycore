@@ -16,7 +16,7 @@ Credits and History
 * In February 2008, the following features were introduced: SympyCore
   User's Guide, PolynomialRing, MatrixRing, SympyCore benchmarks
   suite, generating super-efficient code for
-  CommutatitiveRingWithPairs methods.
+  CommutativeRingWithPairs and numbers methods.
 
 * In January 2008, a new algebra package was introduced that increased
   the performance of the directadd5 test case four-fold. The basic
@@ -74,15 +74,12 @@ Third-party software
 
 Sympy Core includes the following third-party software:
 
-* mpmath package (SVN revisions 189, 325) developed by Fredrik Johansson:
+* mpmath package (SVN revisions 189, 325, 332) developed by Fredrik Johansson:
 
     http://mpmath.googlecode.com/
 
   The package is used as a backend for arbitrary precision floating
-  point number support.
-
-  In the recent development of sympycore the user is assumed to use
-  globally installed mpmath 0.6 or newer version.
+  point number support and is included in sympycore package tree.
 
 * [OBSOLETE] qm module (v0.1) developed by Robert Dick:
 
