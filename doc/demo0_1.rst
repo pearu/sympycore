@@ -58,6 +58,12 @@ Calculus('2*x')
 >>> x - x
 Calculus('0')
 
+General symbolic arithmetic expressions are instances of the Calculus
+class. Using the ``print`` statement (or ``str()``) hides this information:
+
+>>> print x + y
+x + y
+
 Manipulations with symbolic expressions
 =======================================
 
@@ -124,17 +130,17 @@ The most common transformation task is expansion of sub-expressions by
 opening parenthesis:
 
 >>> expr = (x+y)*z
->>> expr
-Calculus('z*(x + y)')
->>> expr.expand()
-Calculus('x*z + y*z')
+>>> print expr
+z*(x + y)
+>>> print expr.expand()
+x*z + y*z
 
 In general, sympycore ``expand`` method expands products of sums and
 integer powers of sums:
 
 >>> expr = (x+y)*(1+x)**3
->>> expr.expand()
-Calculus('x + y + x**4 + 3*x**2 + 3*x**3 + 3*x*y + 3*y*x**2 + y*x**3')
+>>> print expr.expand()
+x + y + x**4 + 3*x**2 + 3*x**3 + 3*x*y + 3*y*x**2 + y*x**3
 
 Calculus methods
 ================
@@ -142,16 +148,16 @@ Calculus methods
 sympycore provides methods to differentiate symbolic expressions:
 
 >>> expr = x+sin(x*y)*x
->>> expr.diff(x)
-Calculus('1 + sin(x*y) + x*y*cos(x*y)')
+>>> print expr.diff(x)
+1 + sin(x*y) + x*y*cos(x*y)
 
 as well as integrate symbolic expression representing polynomials:
 
 >>> expr = x + 3*z*x**2
->>> expr.integrate(x)
-Calculus('1/2*x**2 + z*x**3')
->>> expr.integrate((x, 2, y))
-Calculus('1/2*y**2 + z*(y**3 - 8) - 2')
+>>> print expr.integrate(x)
+1/2*x**2 + z*x**3
+>>> print expr.integrate((x, 2, y))
+1/2*y**2 + z*(y**3 - 8) - 2
 
 sympycore implements the elementary functions ``exp``, ``log``,
 ``sqrt``, ``cos``, ``sin``, ``tan``, ``cot``, and simplifies
@@ -172,12 +178,12 @@ such as integers and rational numbers to expressions with arbitrary
 precision floating-point numbers:
 
 >>> expr = 2*pi + E**x
->>> expr
-Calculus('E**x + 2*pi')
->>> expr.evalf(5)
-Calculus('6.2832 + 2.7183**x')
->>> expr.evalf(25)
-Calculus('6.283185307179586476925287 + 2.718281828459045235360287**x')
+>>> print expr
+E**x + 2*pi
+>>> print expr.evalf(5)
+6.2832 + 2.7183**x
+>>> print expr.evalf(25)
+6.283185307179586476925287 + 2.718281828459045235360287**x
 
 sympycore evaluates fractional powers of integers to simpler
 expression when possible:
