@@ -33,7 +33,6 @@ representing symbolic expressions using efficient data structures as
 well as methods to manipulate them. Sympycore uses a clear algebra
 oriented design that can be easily extended.
 ''',
-          url = "http://sympycore.googlecode.org/",
           platforms = ["All"],
           packages = ['sympycore',
                       'sympycore.arithmetic',
