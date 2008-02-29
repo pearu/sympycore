@@ -19,7 +19,7 @@ if os.path.exists('MANIFEST'): os.remove('MANIFEST')
 if __name__ == '__main__':
     from distutils.core import setup
     setup(name='sympycore',
-          version='0.1',
+          version='0.2-svn',
           author = 'Pearu Peterson, Fredrik Johansson',
           author_email = 'sympycore@googlegroups.com',
           license = 'http://sympycore.googlecode.com/svn/trunk/LICENSE',
