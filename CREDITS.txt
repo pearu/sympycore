@@ -94,6 +94,7 @@ Sympy Core includes the following third-party software:
 Acknowledgments
 ---------------
 
-* Pearu Peterson acknowledges Simula Research Laboratory
-  (http://www.simula.no) for supporting his work on the SymPy and
-  Sympy Core projects.
+* The work of Pearu Peterson on the Sympy and SympyCore projects is
+  supported by a Center of Excellence grant from the Norwegian
+  Research Council to Center for Biomedical Computing at Simula
+  Research Laboratory.
