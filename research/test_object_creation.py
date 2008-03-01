@@ -12,6 +12,13 @@ class Pairs(object):
         obj.data = data
         return obj
 
+class Classical:
+
+    __slots__ = ["head", "data"]
+
+    def __init__(self, data, head):
+        self.data = data
+        self.head = head
 
 class Primitive(object):
 
@@ -42,6 +49,7 @@ class Tuple2(tuple):
         return self[0]
 
 pairs = Pairs((1,2),"+")
+classical = Pairs((1,2),"+")
 primitive = Primitive((1,2),"+")
 tuple1 = Tuple1((1,2),"+")
 tuple2 = Tuple2(((1,2),"+"))
@@ -53,10 +61,12 @@ base_time = min(timeit.Timer('foo()', 'def foo(): pass').repeat(number=n))
 
 for timer in [
   timeit.Timer('Pairs((1,2),"+")', src),
+  timeit.Timer('Classical((1,2),"+")', src),
   timeit.Timer('Primitive((1,2),"+")', src),
   timeit.Timer('Tuple1((1,2),"+")', src),
   timeit.Timer('Tuple2(((1,2),"+"))', src),
   timeit.Timer('pairs.data', src),
+  timeit.Timer('classical.data', src),
   timeit.Timer('primitive.data', src),
   timeit.Timer('primitive.tree[1]', src),
   timeit.Timer('tuple1.data', src),
