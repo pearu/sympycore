@@ -3,6 +3,9 @@ import timeit
 
 src = '''
 class Pairs(object):
+
+    __slots__ = ["head", "data"]
+
     def __new__(cls, data, head, new=object.__new__):
         obj = new(cls)
         obj.head = head
@@ -11,6 +14,9 @@ class Pairs(object):
 
 
 class Primitive(object):
+
+    __slots__ = ["tree"]
+
     def __new__(cls, data, head, new=object.__new__):
         obj = new(cls)
         obj.tree = (head, data)
