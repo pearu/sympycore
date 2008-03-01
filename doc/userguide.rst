@@ -61,7 +61,9 @@ class, for example,
 >>> Calculus('x+y+1/4 + x**2')+x
 Calculus('y + x**2 + 1/4 + 2*x')
 
-XXX: need more examples on elementaty operations.
+More examples on ``sympycore`` features can be found in `Demo documentation`__.
+
+__ demo0_1.html
 
 
 The CAS model
@@ -113,9 +115,9 @@ Python objects as arguments. For example, the argument to
 requirement comes from the fact terms of sums and factors of products
 are internally saved as Python dictionary keys), and the arguments to
 ``Calculus.Number`` can be Python number types such as ``int``,
-``long``, ``float``, ``complex`` as well as ``Fraction``, ``Float``,
-``Complex`` instances (these are defined in ``sympycore.arithmetic``
-package).
+``long``, ``float``, ``complex`` as well as ``FractionTuple``,
+``Float``, ``Complex`` instances (these are defined in
+``sympycore.arithmetic`` package).
 
 One can construct symbolic objects from Python strings using them as
 single arguments to algebra class constructor. For example,
@@ -137,10 +139,11 @@ several modules and subpackages:
    objects. Note that almost any (hashable) python object can be used
    as an operand to algebraic operations (assuming the corresponding
    algebra class accepts it) and hence it is not always necessary to
-   derive classes defining mathematical from ``Basic``. Only classes
-   that could be used by other parts of the ``sympycore`` should be
-   derived from ``Basic``. In such cases, these classes are available
-   via ``classes`` holder (also defined in ``core.py``). For example,
+   derive classes defining some mathematical notion from
+   ``Basic``. Only classes that could be used by other parts of the
+   ``sympycore`` should be derived from ``Basic``. In such cases,
+   these classes are available via ``classes`` attributes (also
+   defined in ``core.py``). For example,
 
    >>> from sympycore.core import classes
    >>> classes.Calculus
@@ -150,15 +153,15 @@ several modules and subpackages:
    >>> classes.CommutativeRingWithPairs
    <class 'sympycore.basealgebra.pairs.CommutativeRingWithPairs'>
 
-#. ``arithmetic/`` - provides ``Fraction``, ``Float``, ``Complex``
-   classes that represent fractions, multiprecision floating point
-   numbers, and complex numbers with rational parts. This package also
-   defines symbols like ``oo``, ``zoo``, ``undefined`` that extend the
-   number sets with infinities and undefined symbols (eg ``0/0 ->
-   undefined``) to make the number sets closed with respect to all
-   algebraic operations: ``+``, ``-``, ``*``, ``/``, ``**``. For more
-   information about the package, see [section on number theory
-   support].
+#. ``arithmetic/`` - provides ``FractionTuple``, ``Float``,
+   ``Complex`` classes that represent low-level fractions,
+   multiprecision floating point numbers, and complex numbers with
+   rational parts. This package also defines symbols like ``oo``,
+   ``zoo``, ``undefined`` that extend the number sets with infinities
+   and undefined symbols (eg ``0/0 -> undefined``) to make the number
+   sets closed with respect to all algebraic operations: ``+``, ``-``,
+   ``*``, ``/``, ``**``. For more information about the package, see
+   [section on number theory support].
 
 #. ``basealgebra/`` - provides abstract base classes representing
    algebras: ``BasicAlgebra``, ``CommutativeRing``, etc, and base
@@ -187,9 +190,9 @@ several modules and subpackages:
 Basic methods
 =============
 
-In ``sympycore`` all symbolic objects are assumed to be immutable. So, the
-manipulation of symbolic objects means creating new symbolic objects
-from the parts of existing ones.
+In ``sympycore`` all symbolic objects are assumed to be immutable. So,
+the manipulation of symbolic objects means creating new symbolic
+objects from the parts of existing ones.
 
 There are many methods that can be used to retrive information and
 subexpressions from a symbolic object. The most generic method is to
@@ -351,7 +354,12 @@ A symbolic object is atomic if ``<symbolic object>.args == ()``.
 Primitive algebra
 =================
 
-XXX: explain ``PrimitiveAlgebra`` class.
+Primitive algebra elements are symbolic expressions that are not
+simplified in anyway when performing operatons. For example,
+
+>>> s=PrimitiveAlgebra('s')
+>>> s+s
+PrimitiveAlgebra('s + s')
 
 Commutative ring
 ================
