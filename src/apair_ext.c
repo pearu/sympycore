@@ -53,7 +53,7 @@ APair_dealloc(APair* self)
 static PyObject *
 APair_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-  Py_ssize_t i, len;
+  Py_ssize_t len;
   APair *self;
 
   self = (APair *)type->tp_alloc(type, 0);
@@ -104,6 +104,64 @@ APairitem(register APair *self, register Py_ssize_t i)
   }
   PyErr_SetString(PyExc_IndexError, "APair index out of range [0,1]");
   return NULL;
+}
+
+static long dict_hash(PyObject *d);
+
+static long
+tuple2_hash(PyObject *item0, PyObject *item1) {
+  register long hash, h;
+  long mult = 1000003L;
+  hash = 0x345678L;
+  h = PyObject_Hash(item0);
+  hash = (hash ^ h) * mult;
+  mult += 82524L;
+  if (PyDict_Check(item1)) {
+    h = dict_hash(item1);
+  } else
+    h = PyObject_Hash(item1);
+  hash = (hash ^ h) * mult;
+  mult += 82524L;
+  hash += 97531L;
+  if (hash==-1)
+    hash = -2;
+  return hash;
+}
+
+/*
+  hash(dict) == hash(frozenset(dict.items()))
+ */
+static long
+dict_hash(PyObject *d) {
+  Py_ssize_t i;
+  PyObject *key, *value;
+  long h, hash = 1927868237L;
+  hash *= PyDict_Size(d) + 1;
+  i = 0;
+  while (PyDict_Next(d, &i, &key, &value)) {
+    h = tuple2_hash(key, value);
+    hash ^= (h ^ (h << 16) ^ 89869747L)  * 3644798167u;
+  }
+  hash = hash * 69069L + 907133923L;
+  if (hash == -1)
+    hash = 590923713L;
+  return hash;
+}
+
+/*
+  if isinstance(y, dict):
+    hash(APair(x,y)) == hash((x,frozenset(y.items()))
+  else:
+    hash(APair(x,y)) == hash((x,y))
+ */
+static long
+APair_hash(PyObject *self)
+{
+  APair *o = (APair *)self;
+  if (o->hash!=-1)
+    return o->hash;
+  o->hash = tuple2_hash(o->first, o->last);
+  return o->hash;
 }
 
 static PyMemberDef APair_members[] = {
@@ -185,7 +243,7 @@ static PyTypeObject APairType = {
   0,                         /*tp_as_number*/
   &APair_as_sequence,        /*tp_as_sequence*/
   0,                         /*tp_as_mapping*/
-  0,                         /*tp_hash */
+  &APair_hash,                /*tp_hash */
   0,                         /*tp_call*/
   0,                         /*tp_str*/
   0,                         /*tp_getattro*/

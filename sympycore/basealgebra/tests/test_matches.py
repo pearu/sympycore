@@ -91,7 +91,8 @@ def test_wild_wild_term():
     t = Symbol('t')
     wargs = {},([w1,w2],[True,True])
     assert p.matches(Number(2),*wargs) in [{w2:0,w1:2},{w2:1,w1:0}]
-    assert p.matches(2*s+t+2,*wargs) in [{w2:1+s,w1:t},{w1:2*s+t,w2:1},{w2:s,w1:t+2}]
+    assert p.matches(2*s+t+2,*wargs) in [{w2:1+s,w1:t},{w1:2*s+t,w2:1},{w2:s,w1:t+2},
+                                         {w1:2+2*s, w2:t/2}]
 
 def test_wild_factor():
     w = Symbol('w')

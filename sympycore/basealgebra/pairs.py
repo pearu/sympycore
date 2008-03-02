@@ -79,7 +79,7 @@ class CommutativeRingWithPairs(APair, CommutativeRing):
             return self.data == other
         return False
 
-    def __hash__(self):
+    def __hash2__(self):
         h = self._hash
         if not h:
             data = self.data
