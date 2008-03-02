@@ -3,8 +3,6 @@
 
 __all__ = ['evalf']
 
-from .numbers import Float, Complex
-
 import math
 import cmath
 import re
@@ -38,16 +36,6 @@ def compile_mpmath(symbols, expr):
     f = eval(f_header(symbols) + s, vars(mpmath))
     return f
 
-def mpmath_to_numbers(x, digits):
-    prec = int(digits*3.33) + 12
-    if isinstance(x, mpmath.mpc):
-        return Complex(Float(x.real.val, prec), Float(x.imag.val, prec))
-    a = object.__new__(Float)
-    a.val = x.val
-    a.prec = prec
-    return a
-
 def evalf(expr, digits=15):
     s = convert_mpmath(expr)
-    mpmath.mpf.dps = digits + 4
-    return mpmath_to_numbers(eval(s, vars(mpmath)), digits)
+    return eval(s, vars(mpmath))
