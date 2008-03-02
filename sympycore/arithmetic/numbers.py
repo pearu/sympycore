@@ -1,49 +1,38 @@
-"""Provides low-level numbers support.
+"""
+This module implements efficient "low-level" number types for purely
+numerical tasks.
 
-This module implements "low-level" number types which may be used
-by algebras to represent coefficients internally, for purely numerical
-calculations, etc. In the interest of speed, the classes implemented
-here have some quirks which make them unsuitable to be exposed
-directly to (non-expert) users.
+We use the following types:
 
-In addition to the number types FractionTuple (for rationals), Float
-(floats) and Complex (complexes), the Infinity (defined in
-infinity.py) type can be used to represent infinities and
-indeterminate/undefined (nan) results.
+int/long -- (Python built-ins) exact integers
+mpf -- arbitrary-precision floats
+mpc -- arbitrary-precision complex floats
+mpq -- nonintegral fractions
+mpqc -- nonreal complex rationals
 
-Important notes:
+In the interest of speed, there are some quirks:
 
-FractionTuples are more of a kind of tuple specialized for representing
-fractions, than a user-friendly rational number type. The goal is to
-make hashing, equality testing and instance creation as fast as
-possible.
-
-  * FractionTuple.__init__ does *not* validate its input.
-
-  * A FractionTuple instance *should only* be created from a fully
-    normalized (p, q) pair and p/q *should not* be integer-valued.
+  * mpq derives from tuple. mpq.__init__ does *not* validate its input.
+    mpqs *should only* be created from fully reduced (p, q) pairs,
+    and p/q should *not* be integer-valued.
 
   * To safely create a fraction from two integers, use the function
-    normalized_fraction().
+    normalized_fraction()
 
-  * Arithmetic operations on FractionTuples automatically normalize back
-    to Python ints when the results are integer valued.
+  * Arithmetic operations on mpqs automatically normalize back to Python
+    ints when the results are integer-valued. Likewise, mpqc with zero
+    real part normalize to their real parts.
 
-Note that ``Fraction(2)/Fraction(3)`` does *not* work as expected; it
-does the same thing as ``2/3`` in Python. To perform safe division,
-use the div function provided by this module instead.
+  * Note that ``mpq(2)/mpq(3)`` does *not* work as expected; it does the
+    same thing as ``2/3`` in Python. To perform safe division, use the
+    provided ``div`` function.
 
-Fractions can be compared with Python ints, but cannot be (correctly)
-compared with Python floats. If you need to mix approximate and
-exact fractions, use the Float class instead.
+  * mpqs can be compared with Python ints, but cannot be (correctly)
+    compared to Python floats. (Use the mpf class instead.)
 
 Powers, except when the exponent is a positive integer, should be
 computed with the ``try_power()`` function which detects when the
 result is not exact.
-
-In a similar manner to how integer-valued rationals become Python
-ints, complex numbers automatically normalize to their real parts when
-they become real.
 """
 #
 # Author: Fredrik Johansson
@@ -54,19 +43,44 @@ import math
 from . import mpmath
 
 __docformat__ = "restructuredtext"
-__all__ = ['FractionTuple', 'Float', 'Complex', 'div', 'int_root', 'try_power',
-           'normalized_fraction', 'setdps', 'getdps']
 
 from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_NUMBER
 from ..basealgebra.primitive import PrimitiveAlgebra, NUMBER, SYMBOL
 
 inttypes = (int, long)
 
-#----------------------------------------------------------------------------#
-#                                                                            #
-#                              Rational numbers                              #
-#                                                                            #
-#----------------------------------------------------------------------------#
+from .mpmath import mpf, mpc
+from .mpmath.lib import round_half_even, from_rational
+
+Float = mpf
+
+def mpf_to_str_data(self, sort=True):
+    if self < 0:
+        return str_SUM, str(self)
+    return str_NUMBER, str(self)
+
+def mpc_to_str_data(self, sort=True):
+    return str_NUMBER, str(self)
+
+mpf.to_str_data = mpf_to_str_data
+mpc.to_str_data = mpc_to_str_data
+
+rounding = round_half_even
+
+def getdps():
+    return mpf.dps
+
+def setdps(n):
+    p = mpf.dps
+    mpf.dps = int(n)
+    return p
+
+def getprec():
+    return mpf.prec
+
+#----------------------------------------------------------------------------
+# Fractions
+#
 
 def normalized_fraction(p, q=1):
     """ Return a normalized fraction.
@@ -79,11 +93,10 @@ def normalized_fraction(p, q=1):
         q //= x
     if q == 1:
         return p
-    return FractionTuple((p, q))
+    return mpq((p, q))
 
-class FractionTuple(tuple):
-    """ Represents a fraction.
-    """
+class mpq(tuple):
+    """Represents a fraction."""
 
     # These methods are inherited directly from tuple for speed. This works
     # as long as all FractionTuples are normalized:
@@ -95,7 +108,7 @@ class FractionTuple(tuple):
     # These methods are generated and defined in methods.py:
     # __add__, __sub__, __rsub__, __mul__, __div__, __rdiv__, __pow__
     # __lt__, __le__, __gt__, __ge__
-    
+
     __slots__ = []
 
     def __mpfval__(self):
@@ -129,7 +142,7 @@ class FractionTuple(tuple):
 
     def __neg__(self):
         p, q = self
-        return FractionTuple((-p, q))
+        return mpq((-p, q))
 
     def __pos__(self):
         return self
@@ -137,7 +150,7 @@ class FractionTuple(tuple):
     def __abs__(self):
         p, q = self
         if p < 0:
-            return FractionTuple((-p, q))
+            return mpq((-p, q))
         return self
 
     def __floordiv__(a, b):
@@ -164,81 +177,46 @@ class FractionTuple(tuple):
             return z
         return NotImplemented
 
-#----------------------------------------------------------------------------#
-#                                                                            #
-#                          Floating-point numbers                            #
-#                                                                            #
-#----------------------------------------------------------------------------#
 
-from .mpmath.lib import from_int, from_rational, to_str, fadd, fsub, fmul, \
-  round_half_even, from_float, to_float, to_int, fpow, from_str, feq, \
-  fhash, fcmp, fdiv, fabs, fcabs, fneg, fnan, flog, fexp, fpi, fcos, fsin, \
-  fone, fgamma, fzero, fsqrt
-
-from .mpmath import mpf, mpc
-
-Float = mpf
-
-def mpf_to_str_data(self,sort=True):
-    if self < 0:
-        return str_SUM, str(self)
-    return str_NUMBER, str(self)
-
-mpf.to_str_data = mpf_to_str_data
-
-rounding = round_half_even
-
-def getdps():
-    return mpf.dps
-
-def setdps(n):
-    p = mpf.dps
-    mpf.dps = int(n)
-    return p
-
-def getprec():
-    return mpf.prec
-
-
-#----------------------------------------------------------------------------#
-#                                                                            #
-#                              Complex numbers                               #
-#                                                                            #
-#----------------------------------------------------------------------------#
+#----------------------------------------------------------------------------
+# Complex numbers
+#
 
 def innerstr(x):
-    if isinstance(x, FractionTuple):
+    if isinstance(x, mpq):
         return "%s/%s" % x
     return str(x)
 
 
-class Complex(object):
-    """ Represents complex number.
+class mpqc(object):
+    """Represents an exact complex number.
 
     The integer power of a complex number is computed using
     `exponentiation by squaring`__ method.
-    
+
     __ http://en.wikipedia.org/wiki/Exponentiation_by_squaring
     """
 
     __slots__ = ['real', 'imag']
 
     def __new__(cls, real, imag=0):
-        if imag==0:
+        if not imag:
             return real
-        self = object.__new__(Complex)
+        if isinstance(real, (float, mpf)) or isinstance(imag, (float, mpf)):
+            return mpc(real, imag)
+        self = object.__new__(mpqc)
         self.real = real
         self.imag = imag
         return self
 
     def __repr__(self):
-        return "Complex(%r, %r)" % (self.real, self.imag)
+        return "%s(%r, %r)" % (self.__class__.__name__, self.real, self.imag)
 
     def __hash__(self):
         return hash((self.real, self.imag))
 
     def __mpcval__(self):
-        return Float(self.real), Float(self.imag)
+        return mpc(self.real, self.imag)
 
     def to_str_data(self,sort=True):
         re, im = self.real, self.imag
@@ -267,7 +245,7 @@ class Complex(object):
             ni = PrimitiveAlgebra(-self.imag)
         else:
             i = PrimitiveAlgebra(self.imag)
-        I = PrimitiveAlgebra(Complex(0,1), head=NUMBER)
+        I = PrimitiveAlgebra(mpqc(0,1), head=NUMBER)
         if re==0:
             if im == 1: return I
             if im == -1: return -I
@@ -278,48 +256,41 @@ class Complex(object):
             return r - ni * I
         else:
             return r + i * I
-    
+
     def __eq__(self, other):
-        if isinstance(other, Complex):
+        if hasattr(other, "imag"):
             return self.real == other.real and self.imag == other.imag
-        if isinstance(other, complex):
-            if self.real != Float(other.real):
-                return False
-            return self.imag == Float(other.imag)
-        return False
+        return self.real == other
 
     def __pos__(self): return self
-    def __neg__(self): return Complex(-self.real, -self.imag)
+    def __neg__(self): return mpqc(-self.real, -self.imag)
 
     def __abs__(self):
-        if self.real==0:
-            return abs(self.imag)
-        if isinstance(self.real, Float) and isinstance(self.imag, Float):
-            return abs(mpmath.mpc(self.real, self.imag))
-        m2 = self.real**2 + self.imag**2
-        if isinstance(m2, (int, long)):
-            m,flag = int_root(m2,2)
+        re, im = self.real, self.imag
+        if not re:
+            return abs(im)
+        m2 = re**2 + im**2
+        if isinstance(m2, inttypes):
+            m, flag = int_root(m2,2)
             if flag:
                 return m
-        if isinstance(m2, FractionTuple):
+        if isinstance(m2, mpq):
             p,fp = int_root(m2[0],2)
             q,fq = int_root(m2[1],2)
             if fp and fq:
-                return FractionTuple((p,q))
-        if isinstance(m2, (float, Float)):
-            return m2 ** 0.5
+                return mpq((p,q))
         raise NotImplementedError('abs(%r)' % (self))
 
+Complex = mpqc
 
-#----------------------------------------------------------------------------#
-#                                                                            #
-#                            Interface functions                             #
-#                                                                            #
-#----------------------------------------------------------------------------#
 
-numbertypes = (int, long, float, complex, FractionTuple, Float, Complex)
-realtypes = (int, long, float, FractionTuple, Float)
-complextypes = (complex, Complex)
+#----------------------------------------------------------------------------
+# Interface functions
+#
+
+numbertypes = (int, long, float, complex, mpq, mpqc, mpf, mpc)
+realtypes = (int, long, float, mpq, mpf)
+complextypes = (complex, mpqc, mpc)
 
 def div(a, b):
     """Safely compute a/b.
@@ -373,7 +344,7 @@ def int_root(y, n):
 def try_power(x, y):
     """\
     Attempt to compute ``x**y`` where ``x`` and ``y`` must be of the
-    types int, long, FractionTuple, Float, or Complex. The function
+    types int, long, mpq, mpf, or mpqc. The function
     returns::
 
       z, symbolic
@@ -388,7 +359,7 @@ def try_power(x, y):
       try_power(2, 1/2) --> (1, [(2, 1/2)])
       try_power(45, 1/2) --> (3, [(5, 1/2)])
     """
-    if y==0 or x==1:
+    if not y or x == 1:
         # (anything)**0 -> 1
         # 1**(anything) -> 1
         return 1, []
@@ -397,18 +368,17 @@ def try_power(x, y):
     if isinstance(y, inttypes):
         if y >= 0:
             return x**y, []
-        elif x==0:
+        elif not x:
             return Infinity.get_zoo(), []
         elif isinstance(x, inttypes):
-            return FractionTuple((1, x**(-y))), []
-        elif isinstance(x, (FractionTuple, Float, Complex)):
-            return x**y, []
-    elif isinstance(x, inttypes) and isinstance(y, FractionTuple):
+            return mpq((1, x**(-y))), []
+        return x**y, []
+    elif isinstance(x, inttypes) and isinstance(y, mpq):
         if x < 0:
             if x==-1:
                 p, q = y
                 if q==2:
-                    return Complex(0, 1)**p, []
+                    return mpqc(0, 1)**p, []
                 return 1, [(x,y)]
             else:
                 z, sym = try_power(-x, y)
@@ -423,15 +393,18 @@ def try_power(x, y):
                 else:
                     g = normalized_fraction(1, r**(-p))
                 return g, []
-    elif isinstance(x, FractionTuple) and isinstance(y, FractionTuple):
+    elif isinstance(x, mpq) and isinstance(y, mpq):
         a, b = x
         r, rsym = try_power(a, y)
         s, ssym = try_power(b, y)
         ssym = [(b, -e) for b, e in ssym]
         return (div(r,s), rsym + ssym)
-    elif isinstance(x, Float) or isinstance(y, Float):
+    elif isinstance(x, mpf) or isinstance(y, mpf):
         return x ** y, []
     return 1, [(x, y)]
+
+FractionTuple = mpq
+Complex = mpqc
 
 
 from .evalf import evalf
@@ -444,17 +417,17 @@ from .methods import (\
     complex_add, complex_sub, complex_rsub, complex_mul,
     complex_div, complex_rdiv, complex_pow)
 
-FractionTuple.__add__ = FractionTuple.__radd__ = fraction_add
-FractionTuple.__sub__ = fraction_sub
-FractionTuple.__rsub__ = fraction_rsub
-FractionTuple.__mul__ = FractionTuple.__rmul__ = fraction_mul
-FractionTuple.__div__ = fraction_div
-FractionTuple.__rdiv__ = fraction_rdiv
-FractionTuple.__pow__ = fraction_pow
-FractionTuple.__lt__ = fraction_lt
-FractionTuple.__le__ = fraction_le
-FractionTuple.__gt__ = fraction_gt
-FractionTuple.__ge__ = fraction_ge
+mpq.__add__ = mpq.__radd__ = fraction_add
+mpq.__sub__ = fraction_sub
+mpq.__rsub__ = fraction_rsub
+mpq.__mul__ = mpq.__rmul__ = fraction_mul
+mpq.__div__ = fraction_div
+mpq.__rdiv__ = fraction_rdiv
+mpq.__pow__ = fraction_pow
+mpq.__lt__ = fraction_lt
+mpq.__le__ = fraction_le
+mpq.__gt__ = fraction_gt
+mpq.__ge__ = fraction_ge
 
 Complex.__add__ = Complex.__radd__ = complex_add
 Complex.__sub__ = complex_sub

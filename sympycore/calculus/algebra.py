@@ -12,15 +12,15 @@ from ..basealgebra import BasicAlgebra
 from ..basealgebra.primitive import PrimitiveAlgebra
 from ..basealgebra.pairs import CommutativeRingWithPairs
 
-from ..arithmetic.numbers import FractionTuple, normalized_fraction, Float, Complex, \
-    try_power
+from ..arithmetic.numbers import normalized_fraction, mpq, mpf, mpc, mpqc, try_power
 
 from ..arithmetic import mpmath, setdps
 from ..arithmetic.evalf import evalf
 
-algebra_numbers = (int, long, FractionTuple, Float, Complex)
+algebra_numbers = (int, long, mpq, mpqc, mpf, mpc)
+convertible_numbers = algebra_numbers + (float, complex)
 
-float_one = Float(1.0)
+float_one = mpf(1.0)
 
 class Calculus(CommutativeRingWithPairs):
     """ Represents an element of a symbolic algebra.
@@ -30,8 +30,8 @@ class Calculus(CommutativeRingWithPairs):
 
     _hash = None
 
-    coefftypes = (int, long, FractionTuple, Complex, Float)
-    exptypes = (int, long, FractionTuple, Complex, Float)
+    coefftypes = algebra_numbers
+    exptypes = algebra_numbers
 
     def as_algebra(self, cls):
         """ Convert algebra to another algebra.
@@ -57,9 +57,9 @@ class Calculus(CommutativeRingWithPairs):
         """ Convert obj to coefficient algebra.
         """
         if isinstance(obj, float):
-            return Float(obj)
+            return mpf(obj)
         if isinstance(obj, complex):
-            return Complex(Float(obj.real), Float(obj.imag))
+            return mpc(obj.real, obj.imag)
         if isinstance(obj, algebra_numbers):
             return obj
         if isinstance(obj, cls) and obj.head is NUMBER:
@@ -80,11 +80,9 @@ class Calculus(CommutativeRingWithPairs):
         if isinstance(obj, algebra_numbers):
             return obj
         if isinstance(obj, float):
-            return Float(obj)
+            return mpf(obj)
         if isinstance(obj, complex):
-            return Complex(Float(obj.real), Float(obj.imag))
-        if isinstance(obj, algebra_numbers):
-            return obj
+            return mpc(obj.real, obj.imag)
 
         # parse algebra expression from string:
         if isinstance(obj, (str, unicode, PrimitiveAlgebra)):
@@ -93,7 +91,7 @@ class Calculus(CommutativeRingWithPairs):
         # convert from another algebra:
         if isinstance(obj, BasicAlgebra):
             return obj.as_algebra(cls)
-        
+
         if typeerror:
             raise TypeError('%s.convert_exponent: failed to convert %s instance'\
                             ' to exponent algebra, expected int|long object'\
@@ -200,11 +198,13 @@ class Calculus(CommutativeRingWithPairs):
     def __eq__(self, other):
         if self is other:
             return True
-        if other.__class__ is self.__class__:
+        if type(self) is type(other):
             return self.head == other.head and self.data == other.data
-        if self.head is NUMBER and isinstance(other, algebra_numbers):
+        if self.head is NUMBER and isinstance(other, convertible_numbers):
+            if type(other) in (float, complex):
+                return self.data == float_one * other
             return self.data == other
-        return False
+        return NotImplemented
 
     def __lt__(self, other):
         other = self.convert(other)
@@ -283,6 +283,6 @@ zero = Calculus(0, head=NUMBER)
 Calculus.one = one
 Calculus.zero = zero
 
-I = Calculus(Complex(0,1), head=NUMBER)
+I = Calculus(mpqc(0,1), head=NUMBER)
 
 from ..polynomials.algebra import PolynomialRing, AdditiveTuple
