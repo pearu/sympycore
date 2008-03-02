@@ -2,7 +2,12 @@
 """
 
 __docformat__ = 'restructuredtext'
-__all__ = ['Basic', 'classes']
+__all__ = ['classes', 'APair']
+
+try:
+    from .apair_ext import APair
+except ImportError:
+    from .apair import APair
 
 class Holder:
     """ Holds pairs ``(name, value)`` as instance attributes.
@@ -38,18 +43,3 @@ class Holder:
 classes = Holder('Sympy Basic subclass holder (%(_counter)s classes)')
 #objects = Holder('Sympy predefined objects holder (%(_counter)s objects)')
 
-
-class BasicType(type):
-    """ Metaclass for Basic classes.
-    """
-    def __new__(typ, name, bases, attrdict):
-        cls = type.__new__(typ, name, bases, attrdict)
-        setattr(classes, cls.__name__, cls)
-        return cls
-
-class Basic(object):
-    """ Base class to classes that are registered as attributes of the
-    ``classes`` object.
-    """
-
-    __metaclass__ = BasicType

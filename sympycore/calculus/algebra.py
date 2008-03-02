@@ -260,6 +260,8 @@ class Calculus(CommutativeRingWithPairs):
             return divmod(lhs, rhs)
         return NotImplemented
 
+classes.Calculus = Calculus
+
 class Positive:
     def __init__(self, a):
         self.a = a

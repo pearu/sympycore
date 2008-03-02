@@ -29,6 +29,8 @@ class Unit(CommutativeRingWithPairs):
             return NotImplemented
         return self.as_primitive().as_algebra(cls)
 
+classes.Unit = Unit
+
 meter = Unit.Symbol('m')
 kilogram = Unit.Symbol('kg')
 second = Unit.Symbol('s')

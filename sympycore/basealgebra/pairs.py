@@ -8,6 +8,8 @@ __docformat__ = "restructuredtext"
 
 __all__ = ['CommutativeRingWithPairs']
 
+from ..apair import APair
+from ..core import classes
 from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_NUMBER
 from ..utils import TERMS, FACTORS, SYMBOL, NUMBER, APPLY, POW, TUPLE, head_to_string
 
@@ -25,13 +27,13 @@ from .pairs_iops import (inplace_add, inplace_add2, inplace_sub,
 
 from .pairs_expand import expand
 
-class CommutativeRingWithPairs(CommutativeRing):
+class CommutativeRingWithPairs(APair, CommutativeRing):
     """ Implementation of a commutative ring where sums and products
     are represented as dictionaries of pairs.
     """
-    __slots__ = ['head', 'data', '_hash',
-                 '_symbols', '_symbols_data',
-                 '_has_active']
+    __slots__ = ['_symbols', '_symbols_data', '_has_active',
+                 #'head', 'data','_hash',
+                 ]
     
     one_c = 1   # one element of coefficient algebra
     one_e = 1   # one element of exponent algebra
@@ -56,14 +58,17 @@ class CommutativeRingWithPairs(CommutativeRing):
     __pow__ = pow_method
     expand = expand
 
-    def __new__(cls, data, head=None, new=object.__new__):
+    __repr__ = CommutativeRing.__repr__
+
+    def __new__(cls, data, head=None, new=APair.__new__):
         if head is None:
             if type(data) is cls:
                 return data
             return cls.convert(data)
         if (head is TERMS or head is FACTORS) and type(data) is not dict:
             data = dict(data)
-        obj = new(cls)
+        return new(cls, head, data)
+        obj = object.__new__(cls)
         obj.head = head
         obj.data = data
         return obj
@@ -77,17 +82,6 @@ class CommutativeRingWithPairs(CommutativeRing):
         if self.head is NUMBER and (to is int or to is long):
             return self.data == other
         return False
-
-    def __hash__(self):
-        h = self._hash
-        if not h:
-            data = self.data
-            if type(data) is dict:
-                h = hash(frozenset(data.iteritems()))
-            else:
-                h = hash(data)
-            self._hash = h
-        return h
 
     def __nonzero__(self):
         return self.head is not NUMBER or bool(self.data)
@@ -818,6 +812,8 @@ class CommutativeRingWithPairs(CommutativeRing):
             if l==1:
                 return {exps[0]: coeff}, variables
             return {tuple(exps): coeff}, variables
+
+classes.CommutativeRingWithPairs = CommutativeRingWithPairs
 
 # initialize one and zero attributes:
 CommutativeRingWithPairs.one = CommutativeRingWithPairs.Number(1)

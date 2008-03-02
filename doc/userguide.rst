@@ -125,7 +125,7 @@ single arguments to algebra class constructor. For example,
 >>> Calculus('a-3/4+b**2')
 Calculus('a + b**2 - 3/4')
 >>> Calculus('a-3/4+b**2').func
-<bound method BasicType.Add of <class 'sympycore.calculus.algebra.Calculus'>>
+<bound method type.Add of <class 'sympycore.calculus.algebra.Calculus'>>
 >>> Calculus('a-3/4+b**2').args
 [Calculus('a'), Calculus('-3/4'), Calculus('b**2')]
 

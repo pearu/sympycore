@@ -4,10 +4,10 @@
 __docformat__ = "restructuredtext"
 __all__ = ['Function']
 
-from ..core import Basic, BasicType, classes
+from ..core import classes
 from .algebra import Calculus
 
-class FunctionType(BasicType):
+class FunctionType(type):
 
     def __new__(typ, name, bases, attrdict):
         cls = type.__new__(typ, name, bases, attrdict)
@@ -17,7 +17,7 @@ class FunctionType(BasicType):
             Calculus.defined_functions[name] = cls
         return cls
 
-class Function(Basic):
+class Function(object):
     """ Base class to calculus functions.
 
     Subclasses are added to the dictionary Calculus.defined_functions.

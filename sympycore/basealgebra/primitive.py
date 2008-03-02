@@ -17,6 +17,7 @@ from .algebra import BasicAlgebra
 from ..utils import (OR, AND, NOT, LT, LE, GT, GE, EQ, NE, BAND, BOR, BXOR,
                      INVERT, POS, NEG, ADD, SUB, MOD, MUL, DIV, POW,
                      NUMBER, SYMBOL, APPLY, TUPLE, LAMBDA, head_to_string)
+from ..core import classes
 
 # XXX: Unimplemented expression parts:
 # XXX: LeftShift, RightShift, List*, Subscript, Slice, KeyWord, GetAttr, Ellipsis
@@ -91,7 +92,7 @@ def tree_sort(a, b):
         if c: return c
     return 0
 
-class PrimitiveAlgebra(BasicAlgebra):
+class PrimitiveAlgebra(object, BasicAlgebra):
     """ Represents an unevaluated expression.
     """
 
@@ -113,6 +114,8 @@ class PrimitiveAlgebra(BasicAlgebra):
         obj = object.__new__(cls)
         obj.tree = tree
         return obj
+
+    __repr__ = BasicAlgebra.__repr__
 
     #def __repr__(self):
     #    return '%s(%r, head=%s)' % (self.__class__.__name__, self.tree[1],
@@ -306,6 +309,8 @@ class PrimitiveAlgebra(BasicAlgebra):
     __truediv__ = __div__
     __rtruediv__ = __rdiv__
 
+
+classes.PrimitiveAlgebra = PrimitiveAlgebra
 
 ########### string to PrimitiveAlgebra parser ############
 

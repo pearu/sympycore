@@ -8,7 +8,7 @@
 __docformat__ = "restructuredtext"
 __all__ = "PolynomialRing"
 
-from ..core import BasicType, classes
+from ..core import classes
 from ..utils import SYMBOL, NUMBER, ADD, MUL, POW
 from ..basealgebra.ring import CommutativeRing
 from ..basealgebra import PrimitiveAlgebra
@@ -19,7 +19,7 @@ def cmp_symbols(x, y):
     return cmp(str(x), str(y))
 
 
-class PolynomialRingFactory(BasicType):
+class PolynomialRingFactory(type):
     """ Factory of polynomial rings with symbols and coefficient ring.
     """
     def __new__(typ, name, bases, attrdict):
@@ -145,7 +145,7 @@ class AdditiveTuple(tuple):
         return tuple.__new__(self.__class__, l)
 
 
-class PolynomialRing(CommutativeRing):
+class PolynomialRing(object, CommutativeRing):
     """ Base class to polynomial rings that holds polynomial information
     using pairs ``(<exponents>: <coefficient>)`` stored in Python dictionary.
 
@@ -157,6 +157,9 @@ class PolynomialRing(CommutativeRing):
     _ldegree = None
 
     __metaclass__ = PolynomialRingFactory
+
+    __str__ = CommutativeRing.__str__
+    __repr__ = CommutativeRing.__repr__
 
     def __new__(cls, data = {}):
         if isinstance(data, list):

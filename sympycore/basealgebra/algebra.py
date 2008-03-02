@@ -3,9 +3,9 @@
 
 __docformat__ = "restructuredtext"
 
-from ..core import Basic, classes
+from ..core import classes
 
-class BasicAlgebra(Basic):
+class BasicAlgebra:
     """ Represents an element of an algebraic structure.
 
     This class collects implementation specific methods of algebra

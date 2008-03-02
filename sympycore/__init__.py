@@ -8,7 +8,7 @@ __date__ = '2008'
 __author__ = 'Pearu Peterson, Fredrik Johansson'
 __license__ = 'New BSD License'
 
-from .core import Basic, classes
+from .core import classes
 from basealgebra import *
 from arithmetic import *
 from calculus import *

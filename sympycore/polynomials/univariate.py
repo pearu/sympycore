@@ -10,7 +10,7 @@ from ..basealgebra.primitive import PrimitiveAlgebra, ADD, POW, MUL, NUMBER, SYM
 from ..basealgebra import BasicAlgebra
 from ..arithmetic.numbers import div
 
-class UnivariatePolynomial(BasicAlgebra):
+class UnivariatePolynomial(object, BasicAlgebra):
     """ Represents (dense) univariate polynomial.
     """
 

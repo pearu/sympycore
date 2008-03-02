@@ -9,13 +9,13 @@ __all__ = ['MatrixRing', 'SquareMatrix', 'PermutationMatrix']
 
 import random
 
-from ..core import BasicType, classes
+from ..core import classes
 from ..utils import SYMBOL, NUMBER, ADD, MUL, POW
 from ..basealgebra.ring import CommutativeRing
 from ..basealgebra import PrimitiveAlgebra
 from ..arithmetic.numbers import div
 
-class MatrixRingFactory(BasicType):
+class MatrixRingFactory(type):
 
     def __new__(typ, name, bases, attrdict):
         if not attrdict.has_key('ring'):
@@ -94,7 +94,7 @@ def newinstance(cls, data):
     return obj
 
 
-class MatrixRing(CommutativeRing):
+class MatrixRing(object, CommutativeRing):
     """ Base class to matrix rings that hold matrix element information
     pairs ``(<indices>: <element>)`` stored in Python dictionary.
 
