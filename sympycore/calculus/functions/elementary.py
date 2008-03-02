@@ -4,12 +4,12 @@
 """ Provides elementary calculus functions sqrt, exp, log, sin, etc and constants pi, E.
 """
 
-__all__ = ['sqrt', 'exp', 'log', 'sin', 'cos', 'tan', 'cot', 'sign', 'E', 'pi']
+__all__ = ['sqrt', 'exp', 'log', 'sin', 'cos', 'tan', 'cot', 'sign', 'E', 'pi', 'gamma']
 __docformat__ = "restructuredtext"
 
 from ..algebra import Calculus, I,  NUMBER, TERMS, FACTORS, SYMBOL, TERMS
 from ..infinity import oo, undefined, CalculusInfinity
-from ..constants import const_pi, const_E
+from ..constants import const_pi, const_E, const_gamma
 from ..function import Function
 from ...arithmetic.evalf import evalf, Float
 from ...arithmetic.numbers import Complex, realtypes, inttypes
@@ -30,6 +30,7 @@ sqrt3 = Calculus('3**(1/2)')
 
 pi = const_pi.as_algebra(Calculus)
 E = const_E.as_algebra(Calculus)
+gamma = const_gamma.as_algebra(Calculus)
 
 Ipi = I*pi
 Ipi2 = Ipi/2

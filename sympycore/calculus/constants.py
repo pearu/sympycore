@@ -4,7 +4,7 @@
 """ Provides Constant class.
 """
 __docformat__ = "restructuredtext"
-__all__ = ['Constant', 'const_pi', 'const_E']
+__all__ = ['Constant', 'const_pi', 'const_E', 'const_gamma']
 
 from ..core import Basic, classes
 from ..basealgebra.primitive import SYMBOL, NUMBER
@@ -23,6 +23,8 @@ class Constant(str):
             return +mpmath.pi
         if self == 'E':
             return +mpmath.e
+        if self == 'gamma':
+            return +mpmath.euler
         raise NotImplementedError('%s(%r).evalf'
                                   % (self.__class__.__name__, self))
 
@@ -44,3 +46,4 @@ class Constant(str):
 
 const_pi = Constant('pi')
 const_E = Constant('E')
+const_gamma = Constant('gamma')
