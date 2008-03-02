@@ -53,19 +53,40 @@ Noddy_dealloc(Noddy* self)
 static PyObject *
 Noddy_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-    Noddy *self;
+  Py_ssize_t i, len;
+  Noddy *self;
 
-    self = (Noddy *)type->tp_alloc(type, 0);
+  self = (Noddy *)type->tp_alloc(type, 0);
 
-    if (self != NULL) {
-      if (! PyArg_ParseTuple(args, "OO", &self->first, &self->last))
-        return NULL; 
-
-      Py_INCREF(self->first);
-      Py_INCREF(self->last);
-
-      self->number = 0;
+  if (self != NULL) {
+    
+    if (!PyTuple_Check(args)) {
+      PyErr_SetString(PyExc_SystemError,
+		      "new style getargs format but argument is not a tuple");
+      return NULL;
     }
+    len = PyTuple_GET_SIZE(args);
+    if (len!=2) {
+      PyErr_SetString(PyExc_TypeError,
+		      "Noddy.__new__ expects exactly 2 arguments: (head, data)");
+      return NULL;
+    }
+
+    self->first = PyTuple_GET_ITEM(args, 0);
+    if (self->first==NULL) {
+      Py_DECREF(self);
+      return NULL;
+    }
+    self->last = PyTuple_GET_ITEM(args, 1);
+    if (self->last==NULL) {
+      Py_DECREF(self);
+      return NULL;
+    }
+    Py_INCREF(self->first);
+    Py_INCREF(self->last);
+    
+    self->number = 0;
+  }
 
     return (PyObject *)self;
 }
