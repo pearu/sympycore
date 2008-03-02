@@ -5,14 +5,14 @@ __all__ = ['expand']
 
 __docformat__ = "restructuredtext"
 
-from ..core import APair
+from ..core import Pair
 from ..arithmetic.numbers import Complex, Float, FractionTuple, try_power
 from ..arithmetic.number_theory import multinomial_coefficients
 from ..utils import NUMBER, TERMS, FACTORS
 from .pairs_iops import inplace_add2, return_terms, return_factors
 from .pairs_ops import expand_mul_method
 
-new = APair.__new__
+new = Pair.__new__
 
 def expand(self):
     """ Return self as expanded expression.

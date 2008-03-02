@@ -10,7 +10,7 @@ from ..utils import NUMBER, SYMBOL, TERMS, FACTORS
 Symbol = Calculus.Symbol
 
 def unknown(expr):
-    raise NotImplementedError("don't know how to integrate %s" % expr)
+    raise NotImplementedError("don't know how to integrate %s" % (expr,))
 
 def integrate_indefinite(expr, x):
     head = expr.head

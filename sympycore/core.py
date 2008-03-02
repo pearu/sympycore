@@ -2,12 +2,15 @@
 """
 
 __docformat__ = 'restructuredtext'
-__all__ = ['classes', 'APair']
+__all__ = ['classes', 'Pair']
 
 try:
-    from .apair_ext import APair
-except ImportError:
-    from .apair import APair
+    from .pair_ext import Pair
+except ImportError, msg:
+    msg = str(msg)
+    if msg!='No module named pair_ext':
+        print msg
+    from .pair import Pair
 
 class Holder:
     """ Holds pairs ``(name, value)`` as instance attributes.

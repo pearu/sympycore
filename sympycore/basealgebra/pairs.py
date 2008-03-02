@@ -8,7 +8,7 @@ __docformat__ = "restructuredtext"
 
 __all__ = ['CommutativeRingWithPairs']
 
-from ..core import APair
+from ..core import Pair
 from ..core import classes
 from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_NUMBER
 from ..utils import TERMS, FACTORS, SYMBOL, NUMBER, APPLY, POW, TUPLE, head_to_string
@@ -27,20 +27,17 @@ from .pairs_iops import (inplace_add, inplace_add2, inplace_sub,
 
 from .pairs_expand import expand
 
-class CommutativeRingWithPairs(APair, CommutativeRing):
+class CommutativeRingWithPairs(Pair, CommutativeRing):
     """ Implementation of a commutative ring where sums and products
     are represented as dictionaries of pairs.
     """
-    __slots__ = ['_symbols', '_symbols_data', '_has_active',
-                 #'head', 'data','_hash',
-                 ]
+    #__slots__ = ['_symbols', '_symbols_data']
     
     one_c = 1   # one element of coefficient algebra
     one_e = 1   # one element of exponent algebra
     zero_c = 0  # zero element of coefficient algebra
     zero_e = 0  # zero element of exponent algebra
 
-    _hash = None
     _symbols = None
     _symbols_data = None
 
@@ -60,7 +57,7 @@ class CommutativeRingWithPairs(APair, CommutativeRing):
 
     __repr__ = CommutativeRing.__repr__
 
-    def __new__(cls, data, head=None, new=APair.__new__):
+    def __new__(cls, data, head=None, new=Pair.__new__):
         if head is None:
             if type(data) is cls:
                 return data
@@ -79,21 +76,10 @@ class CommutativeRingWithPairs(APair, CommutativeRing):
             return self.data == other
         return False
 
-    def __hash2__(self):
-        h = self._hash
-        if not h:
-            data = self.data
-            if type(data) is dict:
-                h = hash(frozenset(data.iteritems()))
-            else:
-                h = hash(data)
-            self._hash = h
-        return h
-
     def __nonzero__(self):
         return self.head is not NUMBER or bool(self.data)
 
-    def copy(self, new=APair.__new__):
+    def copy(self, new=Pair.__new__):
         """ Return a copy of self.
         """
         head = self.head
@@ -421,13 +407,13 @@ class CommutativeRingWithPairs(APair, CommutativeRing):
         return r
 
     @classmethod
-    def Symbol(cls, obj, new=APair.__new__):
+    def Symbol(cls, obj, new=Pair.__new__):
         """ Construct new symbol instance as an algebra element.
         """
         return new(cls, SYMBOL, obj)
 
     @classmethod
-    def Number(cls, obj, new=APair.__new__):
+    def Number(cls, obj, new=Pair.__new__):
         """ Construct new number instance as an algebra number.
         """
         return new(cls, NUMBER, obj)

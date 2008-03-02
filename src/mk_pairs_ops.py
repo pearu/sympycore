@@ -18,13 +18,13 @@ See http://sympycore.googlecode.com/ for more information.
 DO NOT CHANGE THIS FILE DIRECTLY!!!
 """
 
-from ..core import APair
+from ..core import Pair
 from ..utils import NUMBER, SYMBOL, TERMS, FACTORS
 from ..arithmetic.numbers import (normalized_fraction,
   FractionTuple, try_power, numbertypes)
 from ..arithmetic.infinity import Infinity
 
-new = APair.__new__
+new = Pair.__new__
 
 def div(a, b, cls):
     tb = type(b)

@@ -129,7 +129,7 @@ class Infinity(object):
         if a is not None:
             lhs, rhs = a
             return '%s + (%s)' % (lhs, rhs)
-        return 'oo*(%s)' % (d)
+        return 'oo*(%s)' % (d,)
 
     def __eq__(self, other):
         if isinstance(other, type(self)):
