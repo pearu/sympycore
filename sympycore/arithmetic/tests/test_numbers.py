@@ -49,6 +49,8 @@ def test_Fraction():
     assert mpq(-17,4) % mpq(6,7) == mpq(1,28)
 
 def test_mpf():
+    # XXX
+    setdps(15)
     assert mpf(2) != 3
     assert mpf(2) == 2
     assert mpf(1.1) == mpf('1.1')

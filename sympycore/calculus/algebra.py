@@ -15,9 +15,12 @@ from ..basealgebra.pairs import CommutativeRingWithPairs
 from ..arithmetic.numbers import FractionTuple, normalized_fraction, Float, Complex, \
     try_power
 
+from ..arithmetic import mpmath, setdps
 from ..arithmetic.evalf import evalf
 
 algebra_numbers = (int, long, FractionTuple, Float, Complex)
+
+float_one = Float(1.0)
 
 class Calculus(CommutativeRingWithPairs):
     """ Represents an element of a symbolic algebra.
@@ -116,19 +119,27 @@ class Calculus(CommutativeRingWithPairs):
     def Exp(cls, arg):
         return cls.defined_functions['exp'](arg)
 
-    def evalf(self, n=15):
+    def evalf(self, n=None):
+        if n:
+            setdps(n)
         head = self.head
         if head is NUMBER:
-            return self.Number(evalf(self.data, n))
+            return self.Number(self.data * float_one)
         if head is SYMBOL:
-            r = getattr(self.data, 'evalf', lambda p: NotImplemented )(n)
+            r = getattr(self.data, 'evalf', lambda p: NotImplemented)(n)
             if r is not NotImplemented:
                 return self.Number(r)
             return self
+        if callable(head):
+            v = self.args[0].evalf(n)
+            if v.head is NUMBER:
+                return self.Number(getattr(mpmath, self.func.__name__)(v.data))
+            else:
+                return head(v)
         convert = self.convert
         return self.func(*[convert(a).evalf(n) for a in self.args])
 
-    def to_Float(self, n=15):
+    def to_Float(self, n=None):
         f = self.evalf(n)
         if f.is_Number:
             return f.data

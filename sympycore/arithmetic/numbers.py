@@ -51,9 +51,11 @@ they become real.
 
 import math
 
+from . import mpmath
+
 __docformat__ = "restructuredtext"
 __all__ = ['FractionTuple', 'Float', 'Complex', 'div', 'int_root', 'try_power',
-           'normalized_fraction']
+           'normalized_fraction', 'setdps', 'getdps']
 
 from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_NUMBER
 from ..basealgebra.primitive import PrimitiveAlgebra, NUMBER, SYMBOL
@@ -95,6 +97,10 @@ class FractionTuple(tuple):
     # __lt__, __le__, __gt__, __ge__
     
     __slots__ = []
+
+    def __mpfval__(self):
+        p, q = self
+        return from_rational(p, q, getprec(), round_half_even)
 
     def as_primitive(self):
         p, q = self
@@ -169,190 +175,30 @@ from .mpmath.lib import from_int, from_rational, to_str, fadd, fsub, fmul, \
   fhash, fcmp, fdiv, fabs, fcabs, fneg, fnan, flog, fexp, fpi, fcos, fsin, \
   fone, fgamma, fzero, fsqrt
 
+from .mpmath import mpf, mpc
+
+Float = mpf
+
+def mpf_to_str_data(self,sort=True):
+    if self < 0:
+        return str_SUM, str(self)
+    return str_NUMBER, str(self)
+
+mpf.to_str_data = mpf_to_str_data
+
 rounding = round_half_even
 
-class Float(object):
-    """ Represents floating-point numbers.
+def getdps():
+    return mpf.dps
 
-    Float is a wrapper of mpf from mpmath.lib.
-    """
+def setdps(n):
+    p = mpf.dps
+    mpf.dps = int(n)
+    return p
 
-    __slots__ = ['val', 'prec']
+def getprec():
+    return mpf.prec
 
-    def __init__(self, val, prec=53):
-        self.prec = prec
-        if type(val) != tuple:
-            val = self.convert_val(val)
-        self.val = val
-
-    @property
-    def digits(self):
-        return int((self.prec-12)/3.33+0.5)
-
-    def __nonzero__(self):
-        return self.val != fzero
-
-    def convert_val(self, x):
-        if isinstance(x, Float):
-            return x.val
-        if isinstance(x, inttypes):
-            return from_int(x, self.prec, rounding)
-        if isinstance(x, FractionTuple):
-            return from_rational(x[0], x[1], self.prec, rounding)
-        if isinstance(x, float):
-            return from_float(x, self.prec, rounding)
-        if isinstance(x, basestring):
-            if x=='pi':
-                return fpi(self.prec, rounding)
-            if x=='e':
-                return fexp(fone, self.prec, rounding)
-            if x=='gamma':
-                return fgamma(self.prec, rounding)
-            return from_str(x, self.prec, rounding)
-        return NotImplemented
-
-    def to_str_data(self,sort=True):
-        if self<0:
-            return str_SUM, str(self)
-        return str_NUMBER, str(self)
-
-    def __str__(self):
-        return to_str(self.val, int((self.prec/3.33) - 3))
-
-    def __repr__(self):
-        return "Float(%r, prec=%s)" % (to_str(self.val, int((self.prec/3.33))), self.prec)
-
-    def __int__(self): return to_int(self.val)
-    def __float__(self): return to_float(self.val)
-    def __hash__(self): return fhash(self.val)
-    def __pos__(self): return self
-    def __neg__(self): return Float(fneg(self.val), self.prec)
-    def __abs__(self): return Float(fabs(self.val), self.prec)
-
-    # XXX: these should handle rationals exactly <- what does it mean?
-    def __eq__(self, other):
-        other = self.convert_val(other)
-        if other is NotImplemented:
-            return other
-        return feq(self.val, other)
-
-    def __ne__(self, other):
-        other = self.convert_val(other)
-        if other is NotImplemented:
-            return other
-        return not feq(self.val, other)
-
-    def __lt__(self, other):
-        other = self.convert_val(other)
-        if other is NotImplemented:
-            return other
-        if self.val[0]=='nan' or other[0]=='nan':
-            return False
-        return fcmp(self.val, other) < 0
-
-    def __le__(self, other):
-        other = self.convert_val(other)
-        if other is NotImplemented:
-            return other
-        if self.val[0]=='nan' or other[0]=='nan':
-            return False
-        return fcmp(self.val, other) <=0
-
-    def __gt__(self, other):
-        other = self.convert_val(other)
-        if other is NotImplemented:
-            return other
-        if self.val[0]=='nan' or other[0]=='nan':
-            return False
-        return fcmp(self.val, other) > 0
-
-    def __ge__(self, other):
-        other = self.convert_val(other)
-        if other is NotImplemented:
-            return other
-        if self.val[0]=='nan' or other[0]=='nan':
-            return False
-        return fcmp(self.val, other) >=0
-
-    def __add__(self, other):
-        other = self.convert_val(other)
-        if other is NotImplemented:
-            return other
-        return Float(fadd(self.val, other, self.prec, rounding), self.prec)
-
-    __radd__ = __add__
-
-    def __sub__(self, other):
-        other = self.convert_val(other)
-        if other is NotImplemented:
-            return other
-        return Float(fsub(self.val, other, self.prec, rounding), self.prec)
-
-    def __rsub__(self, other):
-        other = self.convert_val(other)
-        if other is NotImplemented:
-            return other
-        return Float(fsub(other, self.val, self.prec, rounding), self.prec)
-
-    def __mul__(self, other):
-        other = self.convert_val(other)
-        if other is NotImplemented:
-            return other
-        return Float(fmul(self.val, other, self.prec, rounding), self.prec)
-
-    __rmul__ = __mul__
-
-    def __div__(self, other):
-        y = self.convert_val(other)
-        if y is NotImplemented:
-            return y
-        x = self.val
-        if y==fzero and not x==fzero:
-            raise ZeroDivisionError('%r / %r' % (self, other))        
-        return Float(fdiv(x, y, self.prec, rounding), self.prec)
-
-    def __rdiv__(self, other):
-        x = self.convert_val(other)
-        if x is NotImplemented:
-            return x
-        y = self.val
-        if y==fzero and not x==fzero:
-            raise ZeroDivisionError('%r / %r' % (other, self))
-        return Float(fdiv(x, y, self.prec, rounding), self.prec)
-
-    def __pow__(self, n):
-        if isinstance(n, inttypes):
-            x = self.val
-            if x==fzero and n<0:
-                raise ZeroDivisionError('%r ** %r' % (self, n))
-            return Float(fpow(x, n, self.prec, rounding), self.prec)
-        other = self.convert_val(n)
-        if other is NotImplemented:
-            return other
-        prec = self.prec
-        x, y = self.val, other
-        if self < 0:
-            a = fmul(fpi(prec, rounding), y, prec, rounding)
-            re = Float(fcos(a, prec, rounding))
-            im = Float(fsin(a, prec, rounding))
-            c = Complex(re, im)
-            if self==-1:
-                return c
-            x = fneg(x)
-        else:
-            if x==fzero and fcmp(y, fzero)<0:
-                raise ZeroDivisionError('%r ** %r' % (self, n))
-            c = 1
-        l = flog(x, prec, rounding)
-        m = fmul(l, y, prec, rounding)
-        r = Float(fexp(m, prec, rounding))
-        return r * c
-
-    def __rpow__(self, other):
-        other = self.convert_val(other)
-        if other is NotImplemented:
-            return other
-        return Float(other) ** self
 
 #----------------------------------------------------------------------------#
 #                                                                            #
@@ -390,6 +236,9 @@ class Complex(object):
 
     def __hash__(self):
         return hash((self.real, self.imag))
+
+    def __mpcval__(self):
+        return Float(self.real), Float(self.imag)
 
     def to_str_data(self,sort=True):
         re, im = self.real, self.imag
@@ -446,8 +295,7 @@ class Complex(object):
         if self.real==0:
             return abs(self.imag)
         if isinstance(self.real, Float) and isinstance(self.imag, Float):
-            return Float(fcabs(self.real.val, self.imag.val,
-                               self.real.prec, rounding), self.real.prec)
+            return abs(mpmath.mpc(self.real, self.imag))
         m2 = self.real**2 + self.imag**2
         if isinstance(m2, (int, long)):
             m,flag = int_root(m2,2)
@@ -458,10 +306,8 @@ class Complex(object):
             q,fq = int_root(m2[1],2)
             if fp and fq:
                 return FractionTuple((p,q))
-        if isinstance(m2, float):
-            return m2**(0.5)
-        if isinstance(m2, Float):
-            return Float(fsqrt(m2.val, m2.prec, rounding), self.prec)
+        if isinstance(m2, (float, Float)):
+            return m2 ** 0.5
         raise NotImplementedError('abs(%r)' % (self))
 
 

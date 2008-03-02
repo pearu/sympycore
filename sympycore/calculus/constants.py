@@ -7,17 +7,22 @@ __docformat__ = "restructuredtext"
 __all__ = ['Constant', 'const_pi', 'const_E']
 
 from ..core import Basic, classes
-from ..basealgebra.primitive import SYMBOL
+from ..basealgebra.primitive import SYMBOL, NUMBER
 from ..arithmetic.evalf import evalf
+from ..arithmetic import mpmath, setdps
 
 class Constant(str):
 
     def __repr__(self):
         return '%s(%r)' % (self.__class__.__name__, str(self))
 
-    def evalf(self, precision=15):
-        if self in ['pi', 'E']:
-            return evalf(self, precision)
+    def evalf(self, n=None):
+        if n:
+            setdps(n)
+        if self == 'pi':
+            return +mpmath.pi
+        if self == 'E':
+            return +mpmath.e
         raise NotImplementedError('%s(%r).evalf'
                                   % (self.__class__.__name__, self))
 

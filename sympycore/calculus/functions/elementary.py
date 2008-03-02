@@ -177,8 +177,6 @@ class TrigonometricFunction(Function):
                 return Calculus(arg, head=cls)
             else:
                 arg = Calculus.convert(arg)
-        if arg.is_Number and isinstance(arg.data, Float):
-            return Calculus.Number(evalf('%s(%s)' % (cls.__name__, arg)))
         x, m = get_pi_shift(arg, 12)
         m %= (12*cls.period)
         if x == zero:
