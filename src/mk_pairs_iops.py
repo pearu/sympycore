@@ -19,9 +19,10 @@ See http://sympycore.googlecode.com/ for more information.
 DO NOT CHANGE THIS FILE DIRECTLY!!!
 """
 
+from ..core import APair
 from ..arithmetic.numbers import Complex, Float, FractionTuple, try_power
 from ..utils import NUMBER, TERMS, FACTORS
-
+new = APair.__new__
 '''
 
 def main():
@@ -29,7 +30,7 @@ def main():
     print >> f, template
     print >> f, preprocess('''
 
-def return_terms(cls, pairs, new=object.__new__):
+def return_terms(cls, pairs, new=new):
     if not pairs:
         return cls.zero
     if len(pairs)==1:
@@ -40,7 +41,7 @@ def return_terms(cls, pairs, new=object.__new__):
             return cls.convert(c)
     @RETURN_NEW(HEAD=TERMS; DATA=pairs)
 
-def return_factors(cls, pairs, new=object.__new__):
+def return_factors(cls, pairs, new=new):
     if not pairs:
         return cls.one
     elif len(pairs)==1:

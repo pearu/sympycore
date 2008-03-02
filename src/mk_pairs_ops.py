@@ -18,11 +18,13 @@ See http://sympycore.googlecode.com/ for more information.
 DO NOT CHANGE THIS FILE DIRECTLY!!!
 """
 
+from ..core import APair
 from ..utils import NUMBER, SYMBOL, TERMS, FACTORS
 from ..arithmetic.numbers import (normalized_fraction,
   FractionTuple, try_power, numbertypes)
 from ..arithmetic.infinity import Infinity
 
+new = APair.__new__
 
 def div(a, b, cls):
     tb = type(b)
@@ -668,7 +670,7 @@ def generate_if_blocks(heads, prefix='', tab=' '*4):
     return prefix + ('\n'+prefix).join(lines)
 
 OP3_TEMPLATE = '''
-def %(op)s_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
+def %(op)s_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=new):
     cls = type(self)
     lhead = self.head
     if type(other) is not cls:
@@ -686,7 +688,7 @@ def %(op)s_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=
 ''' + generate_if_blocks(['NUMBER', 'TERMS', 'SYMBOL'], prefix=' '*4)
 
 OP4_TEMPLATE = '''
-def %(op)s_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
+def %(op)s_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=new):
     cls = type(self)
     lhead = self.head
     if type(other) is not cls:
@@ -710,7 +712,7 @@ def main():
     print >> f, template
     print >> f, preprocess('''
 
-def expand_mul_method(cls, self, other, new=object.__new__):
+def expand_mul_method(cls, self, other, new=new):
     lhead = self.head
     rhead = other.head
     if lhead is FACTORS:
@@ -730,7 +732,7 @@ def expand_mul_method(cls, self, other, new=object.__new__):
         else:
             @MUL_SYMBOL_SYMBOL(LHS=self; RHS=other)
 
-def neg_method(self, NUMBER=NUMBER, TERMS=TERMS, new=object.__new__):
+def neg_method(self, NUMBER=NUMBER, TERMS=TERMS, new=new):
     cls = type(self)
     lhead = self.head
     if lhead is NUMBER:
@@ -740,7 +742,7 @@ def neg_method(self, NUMBER=NUMBER, TERMS=TERMS, new=object.__new__):
     else:
         @NEG_SYMBOL(OP=self)
 
-def rsub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
+def rsub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=new):
     cls = type(self)
     lhead = self.head
     if isinstance(other, cls.coefftypes):
@@ -755,7 +757,7 @@ def rsub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=ob
         return other
     return other - self
 
-def rdiv_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
+def rdiv_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=new):
     cls = type(self)
     lhead = self.head
     if isinstance(other, cls.coefftypes):
@@ -772,7 +774,7 @@ def rdiv_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=ob
         return other
     return other / self
 
-def pow_method(self, other, z = None, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=object.__new__):
+def pow_method(self, other, z = None, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=new):
     cls = type(self)
     lhead = self.head
     type_other = type(other)

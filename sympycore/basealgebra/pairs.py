@@ -8,7 +8,7 @@ __docformat__ = "restructuredtext"
 
 __all__ = ['CommutativeRingWithPairs']
 
-from ..apair import APair
+from ..core import APair
 from ..core import classes
 from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_NUMBER
 from ..utils import TERMS, FACTORS, SYMBOL, NUMBER, APPLY, POW, TUPLE, head_to_string
@@ -68,10 +68,6 @@ class CommutativeRingWithPairs(APair, CommutativeRing):
         if (head is TERMS or head is FACTORS) and type(data) is not dict:
             data = dict(data)
         return new(cls, head, data)
-        obj = object.__new__(cls)
-        obj.head = head
-        obj.data = data
-        return obj
 
     def __eq__(self, other):
         if self is other:
@@ -83,18 +79,26 @@ class CommutativeRingWithPairs(APair, CommutativeRing):
             return self.data == other
         return False
 
+    def __hash__(self):
+        h = self._hash
+        if not h:
+            data = self.data
+            if type(data) is dict:
+                h = hash(frozenset(data.iteritems()))
+            else:
+                h = hash(data)
+            self._hash = h
+        return h
+
     def __nonzero__(self):
         return self.head is not NUMBER or bool(self.data)
 
-    def copy(self, new=object.__new__):
+    def copy(self, new=APair.__new__):
         """ Return a copy of self.
         """
         head = self.head
         if head is TERMS or head is FACTORS:
-            obj = new(type(self))
-            obj.head = head
-            obj.data = dict(self.data)
-            return obj
+            return new(type(self), self.head, self.data)
         return self
 
     #def __repr__(self):
@@ -417,22 +421,16 @@ class CommutativeRingWithPairs(APair, CommutativeRing):
         return r
 
     @classmethod
-    def Symbol(cls, obj, new=object.__new__):
+    def Symbol(cls, obj, new=APair.__new__):
         """ Construct new symbol instance as an algebra element.
         """
-        r = new(cls)
-        r.head = SYMBOL
-        r.data = obj
-        return r
+        return new(cls, SYMBOL, obj)
 
     @classmethod
-    def Number(cls, obj, new=object.__new__):
+    def Number(cls, obj, new=APair.__new__):
         """ Construct new number instance as an algebra number.
         """
-        r = new(cls)
-        r.head = NUMBER
-        r.data = obj
-        return r
+        return new(cls, NUMBER, obj)
 
     @classmethod
     def Add(cls, *seq):

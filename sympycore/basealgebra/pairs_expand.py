@@ -5,11 +5,14 @@ __all__ = ['expand']
 
 __docformat__ = "restructuredtext"
 
+from ..core import APair
 from ..arithmetic.numbers import Complex, Float, FractionTuple, try_power
 from ..arithmetic.number_theory import multinomial_coefficients
 from ..utils import NUMBER, TERMS, FACTORS
 from .pairs_iops import inplace_add2, return_terms, return_factors
 from .pairs_ops import expand_mul_method
+
+new = APair.__new__
 
 def expand(self):
     """ Return self as expanded expression.
@@ -36,7 +39,7 @@ def expand_TERMS(cls, self, one):
         inplace_add2(cls, t, c, d, d_get, one)
     return return_terms(cls, d)
 
-def expand_FACTORS(cls, self, one, new = object.__new__):
+def expand_FACTORS(cls, self, one, new = new):
     ed = None
     for t, c in self.data.iteritems():
         h = t.head
@@ -101,9 +104,7 @@ def expand_FACTORS(cls, self, one, new = object.__new__):
                         else:
                             n = n * c1**e
                 if len(d1)>1:
-                    t1 = new(cls)
-                    t1.head = FACTORS
-                    t1.data = d1
+                    t1 = new(cls, FACTORS, d1)
                 else:
                     t1 = return_factors(cls, d1)
                 b = d_get(t1)
@@ -116,9 +117,7 @@ def expand_FACTORS(cls, self, one, new = object.__new__):
                     else:
                         del d[t1]
             if len(d)>1:
-                t = new(cls)
-                t.head = TERMS
-                t.data = d
+                t = new(cls, TERMS, d)
             else:
                 t = return_terms(cls, d)
             h = t.head

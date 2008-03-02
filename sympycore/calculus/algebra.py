@@ -28,7 +28,6 @@ class Calculus(CommutativeRingWithPairs):
     The set of a symbolic algebra is a set of expressions.
     """
 
-    __slots__ = ['head', 'data', '_hash', 'one', 'zero']
     _hash = None
 
     coefftypes = (int, long, FractionTuple, Complex, Float)

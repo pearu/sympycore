@@ -14,7 +14,10 @@ Operating System :: MacOS
 
 import os
 if os.path.exists('MANIFEST'): os.remove('MANIFEST')
-
+from distutils.core import Extension
+apair_ext = Extension('sympycore.apair_ext',
+                      sources = [os.path.join('src','apair_ext.c')],
+                      )
 
 if __name__ == '__main__':
     from distutils.core import setup
@@ -46,6 +49,7 @@ oriented design that can be easily extended.
                       'sympycore.polynomials',
                       'sympycore.physics',
                       ],
+          ext_modules = [apair_ext],
           package_dir = {'sympycore': 'sympycore'},
           )
 

@@ -7,13 +7,14 @@ See http://sympycore.googlecode.com/ for more information.
 DO NOT CHANGE THIS FILE DIRECTLY!!!
 """
 
+from ..core import APair
 from ..arithmetic.numbers import Complex, Float, FractionTuple, try_power
 from ..utils import NUMBER, TERMS, FACTORS
+new = APair.__new__
 
 
 
-
-def return_terms(cls, pairs, new=object.__new__):
+def return_terms(cls, pairs, new=new):
     if not pairs:
         return cls.zero
     if len(pairs)==1:
@@ -24,12 +25,10 @@ def return_terms(cls, pairs, new=object.__new__):
             return cls.convert(c)
     #RETURN_NEW(HEAD=TERMS; DATA=pairs)
     #NEWINSTANCE(OBJ=_tmp2; HEAD=TERMS; DATA=pairs)
-    _tmp2 = new(cls)
-    _tmp2.head = TERMS
-    _tmp2.data = pairs
+    _tmp2 = new(cls, TERMS, pairs)
     return _tmp2
 
-def return_factors(cls, pairs, new=object.__new__):
+def return_factors(cls, pairs, new=new):
     if not pairs:
         return cls.one
     elif len(pairs)==1:
@@ -40,9 +39,7 @@ def return_factors(cls, pairs, new=object.__new__):
             return t
     #RETURN_NEW(HEAD=FACTORS; DATA=pairs)
     #NEWINSTANCE(OBJ=_tmp16; HEAD=FACTORS; DATA=pairs)
-    _tmp16 = new(cls)
-    _tmp16.head = FACTORS
-    _tmp16.data = pairs
+    _tmp16 = new(cls, FACTORS, pairs)
     return _tmp16
 
 def inplace_add(cls, obj, pairs, pairs_get, one):
@@ -241,9 +238,7 @@ def inplace_mul(cls, obj, pairs, pairs_get, try_power=try_power, NUMBER=NUMBER):
                             if sym:
                                 for t1, c1 in sym:
                                     #NEWINSTANCE(OBJ=tt; HEAD=NUMBER; DATA=t1)
-                                    tt = new(cls)
-                                    tt.head = NUMBER
-                                    tt.data = t1
+                                    tt = new(cls, NUMBER, t1)
                                     #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+; USIGN=)
                                     _tmp149 = pairs_get(tt)
                                     if _tmp149 is None:
@@ -276,9 +271,7 @@ def inplace_mul(cls, obj, pairs, pairs_get, try_power=try_power, NUMBER=NUMBER):
                         if sym:
                             for t1, c1 in sym:
                                 #NEWINSTANCE(OBJ=tt; HEAD=NUMBER; DATA=t1)
-                                tt = new(cls)
-                                tt.head = NUMBER
-                                tt.data = t1
+                                tt = new(cls, NUMBER, t1)
                                 #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+; USIGN=)
                                 _tmp170 = pairs_get(tt)
                                 if _tmp170 is None:
@@ -313,9 +306,7 @@ def inplace_mul(cls, obj, pairs, pairs_get, try_power=try_power, NUMBER=NUMBER):
                             if sym:
                                 for t1, c1 in sym:
                                     #NEWINSTANCE(OBJ=tt; HEAD=NUMBER; DATA=t1)
-                                    tt = new(cls)
-                                    tt.head = NUMBER
-                                    tt.data = t1
+                                    tt = new(cls, NUMBER, t1)
                                     #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+; USIGN=)
                                     _tmp191 = pairs_get(tt)
                                     if _tmp191 is None:
@@ -349,9 +340,7 @@ def inplace_mul(cls, obj, pairs, pairs_get, try_power=try_power, NUMBER=NUMBER):
                         if sym:
                             for t1, c1 in sym:
                                 #NEWINSTANCE(OBJ=tt; HEAD=NUMBER; DATA=t1)
-                                tt = new(cls)
-                                tt.head = NUMBER
-                                tt.data = t1
+                                tt = new(cls, NUMBER, t1)
                                 #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+; USIGN=)
                                 _tmp212 = pairs_get(tt)
                                 if _tmp212 is None:
@@ -402,9 +391,7 @@ def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NU
                             if sym:
                                 for t1, c1 in sym:
                                     #NEWINSTANCE(OBJ=tt; HEAD=NUMBER; DATA=t1)
-                                    tt = new(cls)
-                                    tt.head = NUMBER
-                                    tt.data = t1
+                                    tt = new(cls, NUMBER, t1)
                                     #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+; USIGN=)
                                     _tmp240 = pairs_get(tt)
                                     if _tmp240 is None:
@@ -437,9 +424,7 @@ def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NU
                         if sym:
                             for t1, c1 in sym:
                                 #NEWINSTANCE(OBJ=tt; HEAD=NUMBER; DATA=t1)
-                                tt = new(cls)
-                                tt.head = NUMBER
-                                tt.data = t1
+                                tt = new(cls, NUMBER, t1)
                                 #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+; USIGN=)
                                 _tmp261 = pairs_get(tt)
                                 if _tmp261 is None:
@@ -474,9 +459,7 @@ def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NU
                             if sym:
                                 for t1, c1 in sym:
                                     #NEWINSTANCE(OBJ=tt; HEAD=NUMBER; DATA=t1)
-                                    tt = new(cls)
-                                    tt.head = NUMBER
-                                    tt.data = t1
+                                    tt = new(cls, NUMBER, t1)
                                     #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+; USIGN=)
                                     _tmp282 = pairs_get(tt)
                                     if _tmp282 is None:
@@ -510,9 +493,7 @@ def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NU
                         if sym:
                             for t1, c1 in sym:
                                 #NEWINSTANCE(OBJ=tt; HEAD=NUMBER; DATA=t1)
-                                tt = new(cls)
-                                tt.head = NUMBER
-                                tt.data = t1
+                                tt = new(cls, NUMBER, t1)
                                 #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+; USIGN=)
                                 _tmp303 = pairs_get(tt)
                                 if _tmp303 is None:
