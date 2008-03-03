@@ -1,4 +1,5 @@
 from sympycore.polynomials import *
+from sympycore.arithmetic import gcd, lcm
 
 def test_polynomials():
     x = poly([0, 1])
@@ -20,3 +21,11 @@ def test_polynomials():
     assert str((5 + 3*x) / 5) == '1 + ((3/5))*x'
     assert str(poly([4, 11, 6]) / poly([6, 12])) == '((2/3)) + ((1/2))*x'
     assert str(poly([2, 3, 4]) % poly([1, 2, 3])) == '((2/3)) + ((1/3))*x'
+
+def test_gcd():
+    p1 = poly([1, 2, 1])
+    p2 = poly([2, 3, 1])
+    q, r = divmod(gcd(p1, p2), poly([1,1]))
+    assert q.degree == 0 and not r
+    q, r = divmod(lcm(p1, p2), p1*poly([2,1]))
+    assert q.degree == 0 and not r
