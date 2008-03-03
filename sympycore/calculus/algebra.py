@@ -262,21 +262,41 @@ class Calculus(CommutativeRingWithPairs):
 classes.Calculus = Calculus
 
 class Positive:
-    def __init__(self, a):
+    def __init__(self, a, nonzero=None):
         self.a = a
+        self.nonzero = nonzero
     def __repr__(self):
         return "(%s) > 0" % self.a
+    def __nonzero__(self):
+        nonzero = self.nonzero
+        if nonzero is None:
+            return True
+        return nonzero()
 
 class Nonnegative:
-    def __init__(self, a):
+    def __init__(self, a, nonzero=None):
         self.a = a
+        self.nonzero = nonzero
     def __repr__(self):
         return "(%s) >= 0" % self.a
+    def __nonzero__(self):
+        nonzero = self.nonzero
+        if nonzero is None:
+            return True
+        return nonzero()
 
-def Lt(a, b): return Positive(b-a)
-def Le(a, b): return Nonnegative(b-a)
-def Gt(a, b): return Positive(a-b)
-def Ge(a, b): return Nonnegative(a-b)
+def Lt(a, b):
+    nonzero = lambda a=a,b=b: CommutativeRingWithPairs.__lt__(a, b)
+    return Positive(b-a, nonzero)
+def Le(a, b):
+    nonzero = lambda a=a,b=b: CommutativeRingWithPairs.__le__(a, b)
+    return Nonnegative(b-a, nonzero)
+def Gt(a, b):
+    nonzero = lambda a=a,b=b: CommutativeRingWithPairs.__gt__(a, b)
+    return Positive(a-b, nonzero)
+def Ge(a, b):
+    nonzero = lambda a=a,b=b: CommutativeRingWithPairs.__ge__(a, b)
+    return Nonnegative(a-b, nonzero)
 
 one = Calculus(1, head=NUMBER)
 zero = Calculus(0, head=NUMBER)
