@@ -455,8 +455,7 @@ if len(pairs)==1:
     t, c = pairs.items()[0]
     if t==%(RHS)s:
         return cls.convert(c)
-    @NEWINSTANCE(OBJ=%(TMP)s; HEAD=FACTORS; DATA={t:1, %(RHS)s: -1})
-    @RETURN_NEW(HEAD=TERMS; DATA={%(TMP)s: c})
+    return (t / %(RHS)s) * c
 @RETURN_NEW(HEAD=FACTORS; DATA={%(LHS)s: 1, %(RHS)s: -1})
 '''
 DIV_TERMS_TERMS = '''
