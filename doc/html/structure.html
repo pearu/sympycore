@@ -304,23 +304,35 @@ ul.auto-toc {
 </tbody>
 </table>
 <!-- -*- rest -*- -->
+<div class="sidebar">
+<p class="first sidebar-title">Table of contents</p>
+<div class="contents local last topic">
+<ul class="auto-toc simple">
+<li><a class="reference" href="#basic-principles" id="id1" name="id1">1&nbsp;&nbsp;&nbsp;Basic principles</a></li>
+<li><a class="reference" href="#implementation-of-principles" id="id2" name="id2">2&nbsp;&nbsp;&nbsp;Implementation of principles</a></li>
+<li><a class="reference" href="#low-level-numbers" id="id3" name="id3">3&nbsp;&nbsp;&nbsp;Low-level numbers</a></li>
+<li><a class="reference" href="#various-representations" id="id4" name="id4">4&nbsp;&nbsp;&nbsp;Various representations</a></li>
+</ul>
+</div>
+</div>
 <div class="section">
-<h1><a id="basic-principles" name="basic-principles">Basic principles</a></h1>
+<h1><a class="toc-backref" href="#id1" id="basic-principles" name="basic-principles">1&nbsp;&nbsp;&nbsp;Basic principles</a></h1>
 <p>Any symbolic expression can be expressed as a pair of <em>expression
 head</em> and <em>expression data</em>. The expression head contains information
 how expression data should be interpreted.</p>
 <p>To add a mathematical meaning to a symbolic expression, one needs to
-specify to what kind of <em>algebraic structure</em> the possible values of
-symbolic expression belong to. The algebraic structure defines how the
-symbolic expressions are combined when used in an operation defined by
-the specified algebraic structure.</p>
+specify to what <em>algebraic structure</em> possible values of a symbolic
+expression belong to. The algebraic structure defines how symbolic
+expressions are combined when used in an operation defined by the
+given algebraic structure.</p>
+<p>In the following we call algebraic structures as algebras for brevity.</p>
 </div>
 <div class="section">
-<h1><a id="implementation-of-principles" name="implementation-of-principles">Implementation of principles</a></h1>
+<h1><a class="toc-backref" href="#id2" id="implementation-of-principles" name="implementation-of-principles">2&nbsp;&nbsp;&nbsp;Implementation of principles</a></h1>
 <p>In sympycore, a symbolic expression is defined as an instance of a
 <tt class="docutils literal"><span class="pre">Pair</span></tt> class (the actual implementation of any code that follows
-below may be different because of efficiency, here we just explain the
-ideas):</p>
+below may differ because of efficiency, here we just explain some
+basic ideas):</p>
 <pre class="literal-block">
 class Pair(object):
 
@@ -328,18 +340,22 @@ class Pair(object):
         self.head = head
         self.data = data
 </pre>
-<p>In a way, the <tt class="docutils literal"><span class="pre">Pair</span></tt> class represents an algebraic structure with no
+<p>In a way, the <tt class="docutils literal"><span class="pre">Pair</span></tt> class represents an algebra with no
 mathematical properties - it just holds some <em>head</em> and some <em>data</em>.</p>
-<p>To define a richer algebraic structures that may be define operations
-between its elements, one can derive a class from a <tt class="docutils literal"><span class="pre">Pair</span></tt> that
-implements the correspondig operation as an method, for instance:</p>
-<pre class="literal-block">
-class AlgebraicStructure(Pair):
-
-     def operation(self, other):
-         ...
-         return result
-</pre>
+<p>To define an algebra with additional features such as opertions
+between its elements, a Python class is derived from the <tt class="docutils literal"><span class="pre">Pair</span></tt>
+class:</p>
+<blockquote>
+<p>class AlgebraicStructure(Pair):</p>
+<blockquote>
+<dl class="docutils">
+<dt>def operation(self, other):</dt>
+<dd>...
+return result</dd>
+</dl>
+</blockquote>
+</blockquote>
+<p>where the operation result is implemented in a method <tt class="docutils literal"><span class="pre">operation</span></tt>.</p>
 <p>For example. a commutative ring element can be represented as an
 instance of the following class:</p>
 <pre class="literal-block">
@@ -353,9 +369,9 @@ class CommutativeRing(Pair):
      def __mul__(self, other):
          return CommutativeRing('*', (self, other))
 </pre>
-<p>For convenience, some additional methods can be provided to
-simplify creating instances of <tt class="docutils literal"><span class="pre">Pair</span></tt> based classes. For example,
-to define a symbol of a commutative ring:</p>
+<p>For convenience, some additional methods can be provided to simplify
+creating instances of the <tt class="docutils literal"><span class="pre">Pair</span></tt> based classes. For example, to
+define a symbol of a commutative ring:</p>
 <pre class="literal-block">
 def Symbol(name):
     return CommutativeRing('S', name)
@@ -365,7 +381,8 @@ def Symbol(name):
 def Number(value):
     return CommutativeRing('N', value)
 </pre>
-<p>To define applied function with a value in a commutative ring:</p>
+<p>To define an applied unary function with a value in a commutative
+ring:</p>
 <pre class="literal-block">
 def F(x):
     &quot;Return the value of function F&quot;
@@ -374,9 +391,74 @@ def F(x):
 def Apply(function, argument):
     return CommutativeRing(function, argument)
 </pre>
-<p>Since sympycore defines classes representing different algebraic
-structures, the functions above are usually implemented as Python
-class methods of the corresponding algebra classes.</p>
+<p>Since sympycore defines many classes representing different algebras,
+the functions above are usually implemented as Python class methods of
+the corresponding algebra classes. Also, the used <tt class="docutils literal"><span class="pre">head</span></tt> parts may
+be changed to anything more appropiate.</p>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id3" id="low-level-numbers" name="low-level-numbers">3&nbsp;&nbsp;&nbsp;Low-level numbers</a></h1>
+<p>Many algebras define numbers as generalized repetitions of the algebra
+unit element. Sympycore uses and defines the following number types
+for purely numerical task, i.e. both operands and operation results
+are numbers):</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="17%" />
+<col width="83%" />
+</colgroup>
+<tbody valign="top">
+<tr><td>int, long</td>
+<td>integers of arbitrary size</td>
+</tr>
+<tr><td>mpq</td>
+<td>fractions</td>
+</tr>
+<tr><td>mpf</td>
+<td>arbitrary precision floating point numbers</td>
+</tr>
+<tr><td>mpqc</td>
+<td>complex numbers with rational parts</td>
+</tr>
+<tr><td>mpc</td>
+<td>arbitrary precision complex floating point numbers</td>
+</tr>
+</tbody>
+</table>
+<p>Python <tt class="docutils literal"><span class="pre">float</span></tt> and <tt class="docutils literal"><span class="pre">complex</span></tt> instances are converted to <tt class="docutils literal"><span class="pre">mpf</span></tt>
+and <tt class="docutils literal"><span class="pre">mpc</span></tt> instances, respectively.</p>
+<p>These number types are called &quot;low-level&quot; numbers because some of
+their properties may be unusual for generic numbers but these
+properties are introduced to improve the efficiency of number
+operations.</p>
+<p>For example, <tt class="docutils literal"><span class="pre">mpq</span></tt> number is assumed to hold a normalized rational
+number that is not integer.  Operation between <tt class="docutils literal"><span class="pre">mpq</span></tt> instances that
+would produce integer result, will return <tt class="docutils literal"><span class="pre">int</span></tt> (or <tt class="docutils literal"><span class="pre">long</span></tt>)
+instance. Similarly, the real valued result of an operation between
+complex numbers <tt class="docutils literal"><span class="pre">mpqc</span></tt> (or <tt class="docutils literal"><span class="pre">mpc</span></tt>) will be an instance of <tt class="docutils literal"><span class="pre">int</span></tt>
+or <tt class="docutils literal"><span class="pre">long</span></tt> or <tt class="docutils literal"><span class="pre">mpq</span></tt> (or <tt class="docutils literal"><span class="pre">mpf</span></tt>) type.</p>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id4" id="various-representations" name="various-representations">4&nbsp;&nbsp;&nbsp;Various representations</a></h1>
+<p>Consider the following symbolic expression:</p>
+<pre class="literal-block">
+x**3 + 2*y
+</pre>
+<p>This expression may have at least three different representations:</p>
+<pre class="literal-block">
+Ring(head='ADD',   data=(x**3, 2*y))
+Ring(head='TERMS', data=((1, x**3), (2, y)))
+Ring(head=(x,y),   data=(((3,0), 1), ((0,1), 2)))
+</pre>
+<p>where the data structures are interpreted as follows:</p>
+<pre class="literal-block">
+(x**3) + (2*y)
+1 * (x**3) + 2 * y
+x**3 * y**0 * 1 + x**0 * y**1 * 2
+</pre>
+<p>respectively.</p>
+<p>In general, there is no preferred representation for symbolic
+expressions, each have pros and cons depending on the tasks.</p>
 </div>
 </div>
 </body>
