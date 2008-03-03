@@ -228,6 +228,9 @@ class BasicAlgebra:
                 if expr in wild_expressions:
                     # wilds do not match other wilds
                     return
+                if expr.symbols.intersection(pattern.symbols):
+                    # wild does not match expressions containing wild expressions
+                    return
                 # wild pattern matches with expr only if predicate(expr) returns True
                 predicate = wild_predicates[wild_expressions.index(pattern)]
                 if (isinstance(predicate, bool) and predicate) or predicate(expr):
