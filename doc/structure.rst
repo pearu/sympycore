@@ -145,13 +145,13 @@ Consider the following symbolic expression::
 This expression may have at least three different representations::
 
   Ring(head='ADD',   data=(x**3, 2*y))
-  Ring(head='TERMS', data=((1, x**3), (2, y)))
+  Ring(head='TERMS', data=((x**3, 1), (y, 2)))
   Ring(head=(x,y),   data=(((3,0), 1), ((0,1), 2)))
 
 where the data structures are interpreted as follows::
 
   (x**3) + (2*y)
-  1 * (x**3) + 2 * y
+  (x**3) * 1 + y * 2
   x**3 * y**0 * 1 + x**0 * y**1 * 2
 
 respectively.
