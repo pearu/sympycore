@@ -1,5 +1,49 @@
+/*
+  This extension module implements extension type Pair that holds two
+  Python objects: head and data.
+
+  The head part is assumed to be an immutable object. The data part
+  can either be an immutable object or a Python dictionary, see below
+  how the hash value is defined for Python dictionaries and what are
+  other restrictions in such a case..
+
+  There are three ways to access the parts of a Pair instance from
+  Python:
+
+    a = Pair(<head>, <data>)
+    head, data = a.head, a.data     - for backward compatibility
+    head, data = a[:]               - fastest way
+    head, data = a[0], a[1]         - suitable for accessing one of the objects
+    head, data = a                  - slowest way
+ 
+  Note that head and data attributes are read-only. See
+  sympycore/pair.py header for benchmark results.
+
+  The hash value of a Pair instance is defined as follows:
+
+    hash(a) := hash(tuple((a.head, a.data)))
+
+  The data part can also be a Python dictionary, then the following
+  definition for the hash value is used:
+
+    hash(a) := hash(tuple((a.head, frozenset(a.data.items())))
+
+  WARNING: Obviosly, when the hash value has been computed, then the
+  program MUST NOT change the data dictionary (nor the dictionaries
+  that are values). To check if it is safe to change the data
+  dictionary, use is_writable attribute that returns True if hash has
+  not been computed yet:
+
+    a.is_writable -> True or False
+
+  When adding new features to Pair type, make sure that these are
+  added to pure Python class Pair in sympycore/pair.py as well.
+
+  Author: Pearu Peterson
+  Created: March 2008
+ */
+
 #include <Python.h>
-//#include "structmember.h"
 
 typedef struct {
     PyObject_HEAD
@@ -156,14 +200,17 @@ tuple2_hash(PyObject *item0, PyObject *item1) {
   long mult = 1000003L;
   hash = 0x345678L;
   h = PyObject_Hash(item0);
+  if (h==-1)
+    return h;
   hash = (hash ^ h) * mult;
-  mult += 82524L;
+  mult += 82522L;
   if (PyDict_Check(item1)) {
     h = dict_hash(item1);
   } else
     h = PyObject_Hash(item1);
+  if (h==-1)
+    return h;
   hash = (hash ^ h) * mult;
-  mult += 82524L;
   hash += 97531L;
   if (hash==-1)
     hash = -2;
@@ -182,6 +229,8 @@ dict_hash(PyObject *d) {
   i = 0;
   while (PyDict_Next(d, &i, &key, &value)) {
     h = tuple2_hash(key, value);
+    if (h==-1)
+      return h;
     hash ^= (h ^ (h << 16) ^ 89869747L)  * 3644798167u;
   }
   hash = hash * 69069L + 907133923L;
@@ -221,6 +270,15 @@ Pair_getdata(Pair *self, void *closure)
 }
 
 static PyObject *
+Pair_getis_writable(Pair *self, void *closure)
+{
+  if (self->hash==-1) {
+    Py_RETURN_TRUE;
+  }
+  Py_RETURN_FALSE;
+}
+
+static PyObject *
 Pair_repr(Pair *v)
 {
   return PyString_Format(PyString_FromString("%s(%r, %r)"),
@@ -231,8 +289,12 @@ Pair_repr(Pair *v)
 }
 
 static PyGetSetDef Pair_getseters[] = {
-    {"head", (getter)Pair_gethead, NULL, "head", NULL},
-    {"data", (getter)Pair_getdata, NULL, "data", NULL},
+    {"head", (getter)Pair_gethead, NULL,
+     "read-only head attribute", NULL},
+    {"data", (getter)Pair_getdata, NULL, 
+     "read-only data attribute", NULL},
+    {"is_writable", (getter)Pair_getis_writable, NULL, 
+     "True when hash has not been computed", NULL},
     {NULL}  /* Sentinel */
 };
 

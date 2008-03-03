@@ -5,7 +5,7 @@ In python code, usage of the following idioms are recommended:
 
   head, data = <Pair instance>[:]
 
-Some benchmarks.
+Some benchmarks follow below.
 
 1) Pair is a pure Python new-style class:
 
@@ -54,24 +54,28 @@ numpy array support):
 >>> %timeit head, data = a
 10000000 loops, best of 3: 159 ns per loop
 
-
-
 """
-
+#  Author: Pearu Peterson
+#  Created: March 2008
 
 class Pair(object):
-    """ Holds a pair of Python objects.
+    """ Holds a pair of Python objects: head and data.
 
-    This is pure Python version.
+    This is pure Python version of the Pair type. For C version, see
+    the extension module pair_ext. For a detailed documentation, see
+    the header of src/pair_ext.c file.
+
+    When adding new features to Pair class, make sure that these are
+    added to the extension type Pair in src/pair_ext.c as well.
     """
 
     __slots__ = ['head', 'data', '_hash']
-    _hash = None
 
     def __new__(cls, head, data, new = object.__new__):
         obj = new(cls)
         obj.head = head
         obj.data = data
+        obj._hash = None
         return obj
 
     def __repr__(self):
@@ -86,12 +90,21 @@ class Pair(object):
         raise IndexError
 
     def __hash__(self):
+        """ Compute hash value.
+        
+        Different from pair_ext.Pair, an exception is raised when data
+        dictionary values contain dictionaries.
+        """
         h = self._hash
         if not h:
             data = self.data
             if type(data) is dict:
-                h = hash(frozenset(data.iteritems()))
+                h = hash((self.head, frozenset(data.iteritems())))
             else:
-                h = hash(data)
+                h = hash((self.head, data))
             self._hash = h
         return h
+
+    @property
+    def is_writable(self):
+        return not self._hash
