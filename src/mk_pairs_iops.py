@@ -60,7 +60,7 @@ def inplace_add(cls, obj, pairs, pairs_get, one):
             if data:
                 @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=data; SIGN=+; USIGN=)
         elif head is TERMS:
-            for t,c in obj.data.iteritems():
+            for t,c in data.iteritems():
                 @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=t; VALUE=c; SIGN=+; USIGN=)
         else:
             @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=obj; VALUE=1; SIGN=+; USIGN=)
@@ -81,7 +81,7 @@ def inplace_add2(cls, obj, coeff, pairs, pairs_get, one):
             if value:
                 @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=+; USIGN=)
         elif head is TERMS:
-            for t,c in obj.data.iteritems():
+            for t,c in data.iteritems():
                 @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=t; VALUE=coeff*c; SIGN=+; USIGN=)
         else:
             @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=obj; VALUE=coeff; SIGN=+; USIGN=)
@@ -101,7 +101,7 @@ def inplace_sub(cls, obj, pairs, pairs_get, one):
             if value:
                 @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=-; USIGN=-)
         elif HEAD is TERMS:
-            for t,c in obj.data.iteritems():
+            for t,c in data.iteritems():
                 @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=t; VALUE=c; SIGN=-; USIGN=-)
         else:
             @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=obj; VALUE=1; SIGN=-; USIGN=-)

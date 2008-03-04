@@ -59,7 +59,7 @@ def inplace_add(cls, obj, pairs, pairs_get, one):
                     else:
                         del pairs[one]
         elif head is TERMS:
-            for t,c in obj.data.iteritems():
+            for t,c in data.iteritems():
                 #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=t; VALUE=c; SIGN=+; USIGN=)
                 _tmp37 = pairs_get(t)
                 if _tmp37 is None:
@@ -117,7 +117,7 @@ def inplace_add2(cls, obj, coeff, pairs, pairs_get, one):
                     else:
                         del pairs[one]
         elif head is TERMS:
-            for t,c in obj.data.iteritems():
+            for t,c in data.iteritems():
                 #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=t; VALUE=coeff*c; SIGN=+; USIGN=)
                 _tmp72 = pairs_get(t)
                 if _tmp72 is None:
@@ -174,7 +174,7 @@ def inplace_sub(cls, obj, pairs, pairs_get, one):
                     else:
                         del pairs[one]
         elif HEAD is TERMS:
-            for t,c in obj.data.iteritems():
+            for t,c in data.iteritems():
                 #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=t; VALUE=c; SIGN=-; USIGN=-)
                 _tmp107 = pairs_get(t)
                 if _tmp107 is None:

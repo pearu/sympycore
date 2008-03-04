@@ -108,10 +108,10 @@ MUL_DICT_VALUES = '''\
 # NEG macros
 #======================================
 
-NEG_NUMBER = '@RETURN_NEW(HEAD=NUMBER; DATA=-%(OP)s.data)\n'
+NEG_NUMBER = '@RETURN_NEW(HEAD=NUMBER; DATA=-%(OPDATA)s)\n'
 NEG_SYMBOL = '@RETURN_NEW(HEAD=TERMS; DATA={%(OP)s: -1})\n'
 NEG_TERMS = '''\
-op_pairs = %(OP)s.data
+op_pairs = %(OPDATA)s
 if len(op_pairs)==1:
     t, c = op_pairs.items()[0]
     c = -c
@@ -121,24 +121,24 @@ if len(op_pairs)==1:
 @NEG_DICT_VALUES(DICT_IN=%(OP)s.data; DICT_OUT=pairs)
 @RETURN_NEW(HEAD=TERMS; DATA=pairs)
 '''
-NEG_FACTORS = '@NEG_SYMBOL(OP=%(OP)s)\n'
+NEG_FACTORS = '@NEG_SYMBOL(OP=%(OP)s; OPDATA=%(OPDATA)s)\n'
 
 #======================================
 # ADD macros
 #======================================
 
-ADD_VALUE_NUMBER='@RETURN_NEW(HEAD=NUMBER; DATA=%(VALUE)s + %(RHS)s.data)\n'
-ADD_NUMBER_VALUE='@RETURN_NEW(HEAD=NUMBER; DATA=%(LHS)s.data + %(VALUE)s)\n'
-ADD_NUMBER_NUMBER = '@ADD_VALUE_NUMBER(VALUE=%(LHS)s.data; RHS=%(RHS)s)\n'
+ADD_VALUE_NUMBER='@RETURN_NEW(HEAD=NUMBER; DATA=%(VALUE)s + %(RHSDATA)s)\n'
+ADD_NUMBER_VALUE='@RETURN_NEW(HEAD=NUMBER; DATA=%(LHSDATA)s + %(VALUE)s)\n'
+ADD_NUMBER_NUMBER = '@ADD_VALUE_NUMBER(VALUE=%(LHSDATA)s; RHS=%(RHS)s; RHSDATA=%(RHSDATA)s)\n'
 ADD_VALUE_SYMBOL = '''\
 %(TMP)s = %(VALUE)s
 if not %(TMP)s:
     return %(RHS)s
 @RETURN_NEW(HEAD=TERMS; DATA={cls.one: %(TMP)s, %(RHS)s: 1})
 '''
-ADD_SYMBOL_VALUE = '@ADD_VALUE_SYMBOL(VALUE=%(VALUE)s; RHS=%(LHS)s)\n'
-ADD_NUMBER_SYMBOL = '@ADD_VALUE_SYMBOL(VALUE=%(LHS)s.data; RHS=%(RHS)s)\n'
-ADD_SYMBOL_NUMBER = '@ADD_SYMBOL_VALUE(VALUE=%(RHS)s.data; LHS=%(LHS)s)\n'
+ADD_SYMBOL_VALUE = '@ADD_VALUE_SYMBOL(VALUE=%(VALUE)s; RHS=%(LHS)s; RHSDATA=%(LHSDATA)s)\n'
+ADD_NUMBER_SYMBOL = '@ADD_VALUE_SYMBOL(VALUE=%(LHSDATA)s; RHS=%(RHS)s; RHSDATA=%(RHSDATA)s)\n'
+ADD_SYMBOL_NUMBER = '@ADD_SYMBOL_VALUE(VALUE=%(RHSDATA)s; LHS=%(LHS)s; LHSDATA=%(LHSDATA)s)\n'
 ADD_SYMBOL_SYMBOL = '''\
 if %(LHS)s == %(RHS)s:
     pairs = {%(LHS)s: 2}
@@ -150,25 +150,25 @@ ADD_VALUE_TERMS = '''\
 %(TMP)s = %(VALUE)s
 if not %(TMP)s:
     return %(RHS)s
-pairs = dict(%(RHS)s.data)
+pairs = dict(%(RHSDATA)s)
 @ADD_VALUE_DICT(DICT=pairs; VALUE=%(TMP)s)
 @RETURN_NEW(HEAD=TERMS; DATA=pairs)
 '''
-ADD_TERMS_VALUE = '@ADD_VALUE_TERMS(VALUE=%(VALUE)s; RHS=%(LHS)s)\n'
-ADD_NUMBER_TERMS = '@ADD_VALUE_TERMS(VALUE=%(LHS)s.data; RHS=%(RHS)s)\n'
-ADD_TERMS_NUMBER = '@ADD_TERMS_VALUE(VALUE=%(RHS)s.data; LHS=%(LHS)s)\n'
+ADD_TERMS_VALUE = '@ADD_VALUE_TERMS(VALUE=%(VALUE)s; RHS=%(LHS)s; RHSDATA=%(LHSDATA)s)\n'
+ADD_NUMBER_TERMS = '@ADD_VALUE_TERMS(VALUE=%(LHSDATA)s; RHS=%(RHS)s; RHSDATA=%(RHSDATA)s)\n'
+ADD_TERMS_NUMBER = '@ADD_TERMS_VALUE(VALUE=%(RHSDATA)s; LHS=%(LHS)s; LHSDATA=%(LHSDATA)s)\n'
 
 ADD_TERMS_SYMBOL = '''\
-pairs = dict(%(LHS)s.data)
+pairs = dict(%(LHSDATA)s)
 @ADD_TERM_VALUE_DICT(TERM=%(RHS)s; VALUE=1; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
 @CANONIZE_TERMS_DICT(DICT=pairs)
 @RETURN_NEW(HEAD=TERMS; DATA=pairs)
 '''
-ADD_SYMBOL_TERMS = '@ADD_TERMS_SYMBOL(LHS=%(RHS)s; RHS=%(LHS)s)\n'
+ADD_SYMBOL_TERMS = '@ADD_TERMS_SYMBOL(LHS=%(RHS)s; LHSDATA=%(RHSDATA)s; RHS=%(LHS)s; RHSDATA=%(LHSDATA)s)\n'
 ADD_TERMS_TERMS = '''\
-pairs = dict(%(LHS)s.data)
+pairs = dict(%(LHSDATA)s)
 pairs_get = pairs.get
-for t,c in %(RHS)s.data.iteritems():
+for t,c in %(RHSDATA)s.iteritems():
     @ADD_TERM_VALUE_DICT(TERM=t; VALUE=c; DICT=pairs; DICT_GET=pairs_get; SIGN=+; USIGN=)
 @CANONIZE_TERMS_DICT(DICT=pairs)
 @RETURN_NEW(HEAD=TERMS; DATA=pairs)
@@ -178,18 +178,18 @@ for t,c in %(RHS)s.data.iteritems():
 # SUB macros
 #======================================
 
-SUB_VALUE_NUMBER='@RETURN_NEW(HEAD=NUMBER; DATA=%(VALUE)s - %(RHS)s.data)\n'
-SUB_NUMBER_VALUE='@RETURN_NEW(HEAD=NUMBER; DATA=%(LHS)s.data - %(VALUE)s)\n'
-SUB_NUMBER_NUMBER = '@SUB_VALUE_NUMBER(VALUE=%(LHS)s.data; RHS=%(RHS)s)\n'
+SUB_VALUE_NUMBER='@RETURN_NEW(HEAD=NUMBER; DATA=%(VALUE)s - %(RHSDATA)s)\n'
+SUB_NUMBER_VALUE='@RETURN_NEW(HEAD=NUMBER; DATA=%(LHSDATA)s - %(VALUE)s)\n'
+SUB_NUMBER_NUMBER = '@SUB_VALUE_NUMBER(VALUE=%(LHSDATA)s; RHS=%(RHS)s; RHSDATA=%(RHSDATA)s)\n'
 SUB_VALUE_SYMBOL = '''\
 %(TMP)s = %(VALUE)s
 if not %(TMP)s:
     @RETURN_NEW(HEAD=TERMS; DATA={%(RHS)s: -1})
 @RETURN_NEW(HEAD=TERMS; DATA={cls.one: %(TMP)s, %(RHS)s: -1})
 '''
-SUB_SYMBOL_VALUE = '@ADD_SYMBOL_VALUE(OBJ=obj; LHS=%(LHS)s; VALUE=-%(VALUE)s)\n'
-SUB_NUMBER_SYMBOL = '@SUB_VALUE_SYMBOL(VALUE=%(LHS)s.data; RHS=%(RHS)s)\n'
-SUB_SYMBOL_NUMBER = '@SUB_SYMBOL_VALUE(VALUE=%(RHS)s.data; LHS=%(LHS)s)\n'
+SUB_SYMBOL_VALUE = '@ADD_SYMBOL_VALUE(OBJ=obj; LHS=%(LHS)s; LHSDATA=%(LHSDATA)s; VALUE=-%(VALUE)s)\n'
+SUB_NUMBER_SYMBOL = '@SUB_VALUE_SYMBOL(VALUE=%(LHSDATA)s; RHS=%(RHS)s; RHSDATA=%(RHSDATA)s)\n'
+SUB_SYMBOL_NUMBER = '@SUB_SYMBOL_VALUE(VALUE=%(RHSDATA)s; LHS=%(LHS)s; LHSDATA=%(LHSDATA)s)\n'
 SUB_SYMBOL_SYMBOL = '''\
 if %(LHS)s == %(RHS)s:
     return cls.zero
@@ -198,30 +198,30 @@ if %(LHS)s == %(RHS)s:
 SUB_VALUE_TERMS = '''\
 %(TMP)s = %(VALUE)s
 if not %(TMP)s:
-    @NEG_TERMS(OP=%(RHS)s)
-@NEG_DICT_VALUES(DICT_IN=%(RHS)s.data; DICT_OUT=pairs)
+    @NEG_TERMS(OP=%(RHS)s; OPDATA=%(RHSDATA)s)
+@NEG_DICT_VALUES(DICT_IN=%(RHSDATA)s; DICT_OUT=pairs)
 @ADD_VALUE_DICT(DICT=pairs; VALUE=%(TMP)s)
 @RETURN_NEW(HEAD=TERMS; DATA=pairs)
 '''
-SUB_TERMS_VALUE = '@ADD_VALUE_TERMS(VALUE=-%(VALUE)s; RHS=%(LHS)s)\n'
-SUB_NUMBER_TERMS = '@SUB_VALUE_TERMS(VALUE=%(LHS)s.data; RHS=%(RHS)s)\n'
-SUB_TERMS_NUMBER = '@SUB_TERMS_VALUE(VALUE=%(RHS)s.data; LHS=%(LHS)s)\n'
+SUB_TERMS_VALUE = '@ADD_VALUE_TERMS(VALUE=-%(VALUE)s; RHS=%(LHS)s; RHSDATA=%(LHSDATA)s)\n'
+SUB_NUMBER_TERMS = '@SUB_VALUE_TERMS(VALUE=%(LHSDATA)s; RHS=%(RHS)s; RHSDATA=%(RHSDATA)s)\n'
+SUB_TERMS_NUMBER = '@SUB_TERMS_VALUE(VALUE=%(RHSDATA)s; LHS=%(LHS)s; LHSDATA=%(LHSDATA)s)\n'
 SUB_TERMS_SYMBOL = '''\
-pairs = dict(%(LHS)s.data)
+pairs = dict(%(LHSDATA)s)
 @ADD_TERM_VALUE_DICT(TERM=%(RHS)s; VALUE=-1; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
 @CANONIZE_TERMS_DICT(DICT=pairs)
 @RETURN_NEW(HEAD=TERMS; DATA=pairs)
 '''
 SUB_SYMBOL_TERMS = '''\
-@NEG_DICT_VALUES(DICT_IN=%(RHS)s.data; DICT_OUT=pairs)
+@NEG_DICT_VALUES(DICT_IN=%(RHSDATA)s; DICT_OUT=pairs)
 @ADD_TERM_VALUE_DICT(TERM=%(LHS)s; VALUE=1; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
 @CANONIZE_TERMS_DICT(DICT=pairs)
 @RETURN_NEW(HEAD=TERMS; DATA=pairs)
 '''
 SUB_TERMS_TERMS = '''\
-pairs = dict(%(LHS)s.data)
+pairs = dict(%(LHSDATA)s)
 pairs_get = pairs.get
-for t,c in %(RHS)s.data.iteritems():
+for t,c in %(RHSDATA)s.iteritems():
     @ADD_TERM_VALUE_DICT(TERM=t; VALUE=-c; DICT=pairs; DICT_GET=pairs_get; SIGN=+; USIGN=)
 @CANONIZE_TERMS_DICT(DICT=pairs)
 @RETURN_NEW(HEAD=TERMS; DATA=pairs)
@@ -236,9 +236,9 @@ if not %(VALUE)s:
     return cls.zero
 '''
 
-MUL_VALUE_NUMBER='@RETURN_NEW(HEAD=NUMBER; DATA=%(VALUE)s * %(RHS)s.data)\n'
-MUL_NUMBER_VALUE='@RETURN_NEW(HEAD=NUMBER; DATA=%(LHS)s.data * %(VALUE)s)\n'
-MUL_NUMBER_NUMBER = '@MUL_VALUE_NUMBER(VALUE=%(LHS)s.data; RHS=%(RHS)s)\n'
+MUL_VALUE_NUMBER='@RETURN_NEW(HEAD=NUMBER; DATA=%(VALUE)s * %(RHSDATA)s)\n'
+MUL_NUMBER_VALUE='@RETURN_NEW(HEAD=NUMBER; DATA=%(LHSDATA)s * %(VALUE)s)\n'
+MUL_NUMBER_NUMBER = '@MUL_VALUE_NUMBER(VALUE=%(LHSDATA)s; RHS=%(RHS)s; RHSDATA=%(RHSDATA)s)\n'
 MUL_VALUE_SYMBOL = '''\
 %(TMP)s = %(VALUE)s
 if not %(TMP)s:
@@ -247,13 +247,13 @@ if %(TMP)s==1:
     return %(RHS)s
 @RETURN_NEW(HEAD=TERMS; DATA={%(RHS)s: %(TMP)s})
 '''
-MUL_SYMBOL_VALUE = '@MUL_VALUE_SYMBOL(VALUE=%(VALUE)s; RHS=%(LHS)s)\n'
-MUL_NUMBER_SYMBOL = '@MUL_VALUE_SYMBOL(VALUE=%(LHS)s.data; RHS=%(RHS)s)\n'
-MUL_SYMBOL_NUMBER = '@MUL_SYMBOL_VALUE(VALUE=%(RHS)s.data; LHS=%(LHS)s)\n'
-MUL_NUMBER_FACTORS = '@MUL_SYMBOL_VALUE(VALUE=%(LHS)s.data; LHS=%(RHS)s)\n'
-MUL_VALUE_FACTORS = '@MUL_SYMBOL_VALUE(VALUE=%(VALUE)s; LHS=%(RHS)s)\n'
-MUL_FACTORS_NUMBER = '@MUL_SYMBOL_VALUE(VALUE=%(RHS)s.data; LHS=%(LHS)s)\n'
-MUL_FACTORS_VALUE = '@MUL_SYMBOL_VALUE(VALUE=%(VALUE)s; LHS=%(LHS)s)\n'
+MUL_SYMBOL_VALUE = '@MUL_VALUE_SYMBOL(VALUE=%(VALUE)s; RHS=%(LHS)s; RHSDATA=%(LHSDATA)s)\n'
+MUL_NUMBER_SYMBOL = '@MUL_VALUE_SYMBOL(VALUE=%(LHSDATA)s; RHS=%(RHS)s; RHSDATA=%(RHSDATA)s)\n'
+MUL_SYMBOL_NUMBER = '@MUL_SYMBOL_VALUE(VALUE=%(RHSDATA)s; LHS=%(LHS)s; LHSDATA=%(LHSDATA)s)\n'
+MUL_NUMBER_FACTORS = '@MUL_SYMBOL_VALUE(VALUE=%(LHSDATA)s; LHS=%(RHS)s; LHSDATA=%(RHSDATA)s)\n'
+MUL_VALUE_FACTORS = '@MUL_SYMBOL_VALUE(VALUE=%(VALUE)s; LHS=%(RHS)s; LHSDATA=%(RHSDATA)s)\n'
+MUL_FACTORS_NUMBER = '@MUL_SYMBOL_VALUE(VALUE=%(RHSDATA)s; LHS=%(LHS)s; LHSDATA=%(LHSDATA)s)\n'
+MUL_FACTORS_VALUE = '@MUL_SYMBOL_VALUE(VALUE=%(VALUE)s; LHS=%(LHS)s; LHSDATA=%(LHSDATA)s)\n'
 MUL_SYMBOL_SYMBOL = '''\
 if %(LHS)s == %(RHS)s:
     pairs = {%(LHS)s: 2}
@@ -265,7 +265,7 @@ MUL_VALUE_TERMS = '''\
 %(TMP)s = %(VALUE)s
 if not %(TMP)s:
     return cls.zero
-pairs = %(RHS)s.data
+pairs = %(RHSDATA)s
 if len(pairs)==1:
     t, c = pairs.items()[0]
     c = %(TMP)s * c
@@ -275,9 +275,9 @@ if len(pairs)==1:
 if %(TMP)s==1:
     return %(RHS)s
 pairs = {}
-for t,c in %(RHS)s.data.iteritems():
+for t,c in %(RHSDATA)s.iteritems():
     pairs[t] = %(TMP)s * c
-@NEWINSTANCE(OBJ=obj;HEAD=TERMS; DATA=pairs)
+@NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA=pairs)
 coeff, terms = %(RHS)s._coeff_terms
 if terms is not None:
     c = coeff * %(TMP)s
@@ -287,11 +287,11 @@ else:
     obj._coeff_terms = (%(TMP)s, %(RHS)s)
 return obj
 '''
-MUL_TERMS_VALUE='@MUL_VALUE_TERMS(VALUE=%(VALUE)s; RHS=%(LHS)s)\n'
-MUL_NUMBER_TERMS = '@MUL_VALUE_TERMS(VALUE=%(LHS)s.data; RHS=%(RHS)s)\n'
-MUL_TERMS_NUMBER = '@MUL_TERMS_VALUE(VALUE=%(RHS)s.data; LHS=%(LHS)s)\n'
+MUL_TERMS_VALUE='@MUL_VALUE_TERMS(VALUE=%(VALUE)s; RHS=%(LHS)s; RHSDATA=%(LHSDATA)s)\n'
+MUL_NUMBER_TERMS = '@MUL_VALUE_TERMS(VALUE=%(LHSDATA)s; RHS=%(RHS)s; RHSDATA=%(RHSDATA)s)\n'
+MUL_TERMS_NUMBER = '@MUL_TERMS_VALUE(VALUE=%(RHSDATA)s; LHS=%(LHS)s; LHSDATA=%(LHSDATA)s)\n'
 MUL_TERMS_SYMBOL = '''\
-pairs = %(LHS)s.data
+pairs = %(LHSDATA)s
 if len(pairs)==1:
     t,c = pairs.items()[0]
     t = t * %(RHS)s
@@ -304,10 +304,10 @@ if terms is not None:
     @RETURN_NEW(HEAD=TERMS; DATA={%(TMP)s:coeff})
 @RETURN_NEW(HEAD=FACTORS; DATA={%(LHS)s: 1, %(RHS)s: 1})
 '''
-MUL_SYMBOL_TERMS = '@MUL_TERMS_SYMBOL(LHS=%(RHS)s; RHS=%(LHS)s)\n'
+MUL_SYMBOL_TERMS = '@MUL_TERMS_SYMBOL(LHS=%(RHS)s; LHSDATA=%(RHSDATA)s; RHS=%(LHS)s; RHSDATA=%(LHSDATA)s)\n'
 MUL_TERMS_TERMS = '''\
-lpairs = %(LHS)s.data
-rpairs = %(RHS)s.data
+lpairs = %(LHSDATA)s
+rpairs = %(RHSDATA)s
 if len(lpairs)==1:
     t1,c1 = lpairs.items()[0]
     if len(rpairs)==1:
@@ -350,31 +350,31 @@ MUL_DICT_SYMBOL = '''\
 @RETURN_NEW(HEAD=FACTORS; DATA=%(DICT)s)
 '''
 MUL_FACTORS_SYMBOL = '''\
-pairs = dict(%(LHS)s.data)
-@MUL_DICT_SYMBOL(DICT=pairs; RHS=%(RHS)s)
+pairs = dict(%(LHSDATA)s)
+@MUL_DICT_SYMBOL(DICT=pairs; RHS=%(RHS)s; RHSDATA=%(RHSDATA)s)
 '''
-MUL_SYMBOL_FACTORS = '@MUL_FACTORS_SYMBOL(LHS=%(RHS)s; RHS=%(LHS)s)\n'
+MUL_SYMBOL_FACTORS = '@MUL_FACTORS_SYMBOL(LHS=%(RHS)s; LHSDATA=%(RHSDATA)s; RHS=%(LHS)s; RHSDATA=%(LHSDATA)s)\n'
 MUL_FACTORS_TERMS = '''\
-rpairs = %(RHS)s.data
+rpairs = %(RHSDATA)s
 if len(rpairs)==1:
     t1,c1 = rpairs.items()[0]
     t = t1 * %(LHS)s
     @RETURN_NEW(HEAD=TERMS; DATA={t: c1})
 coeff, terms = %(RHS)s._coeff_terms
 if terms is None:
-    @MUL_FACTORS_SYMBOL(LHS=%(LHS)s; RHS=%(RHS)s)
-pairs = dict(%(LHS)s.data)
+    @MUL_FACTORS_SYMBOL(LHS=%(LHS)s; LHSDATA=%(LHSDATA)s; RHS=%(RHS)s; RHSDATA=%(RHSDATA)s)
+pairs = dict(%(LHSDATA)s)
 @ADD_TERM_VALUE_DICT(TERM=terms; VALUE=1; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
 @CANONIZE_FACTORS_DICT(DICT=pairs; NUMBER=coeff)
 @NEWINSTANCE(OBJ=%(TMP)s; HEAD=FACTORS; DATA=pairs)
 @RETURN_NEW(HEAD=TERMS; DATA={%(TMP)s: coeff})
 '''
-MUL_TERMS_FACTORS = '@MUL_FACTORS_TERMS(LHS=%(RHS)s; RHS=%(LHS)s)\n'
+MUL_TERMS_FACTORS = '@MUL_FACTORS_TERMS(LHS=%(RHS)s; LHSDATA=%(RHSDATA)s; RHS=%(LHS)s; RHSDATA=%(LHSDATA)s)\n'
 MUL_FACTORS_FACTORS = '''\
-pairs = dict(%(LHS)s.data)
+pairs = dict(%(LHSDATA)s)
 pairs_get = pairs.get
 number = 1
-for t,c in %(RHS)s.data.iteritems():
+for t,c in %(RHSDATA)s.iteritems():
     @MUL_FACTOR_VALUE_DICT(FACTOR=t; SIGN=+; USIGN=; VALUE=c; DICT=pairs; DICT_GET=pairs_get; NUMBER=number)
 @CANONIZE_FACTORS_DICT(DICT=pairs; NUMBER=number)
 if number == 1:
@@ -399,10 +399,10 @@ if %(TMP)s==1:
     return obj2
 @RETURN_NEW(HEAD=TERMS; DATA={obj2: %(TMP)s})
 '''
-DIV_SYMBOL_VALUE = '@MUL_VALUE_SYMBOL(VALUE=div(1, %(VALUE)s, cls); RHS=%(LHS)s)\n'
-DIV_NUMBER_SYMBOL = '@DIV_VALUE_SYMBOL(VALUE=%(LHS)s.data; RHS=%(RHS)s)\n'
-DIV_SYMBOL_NUMBER = '@DIV_SYMBOL_VALUE(VALUE=%(RHS)s.data; LHS=%(LHS)s)\n'
-DIV_TERMS_VALUE = '@MUL_TERMS_VALUE(LHS=%(LHS)s; VALUE=div(1,%(VALUE)s,cls))\n'
+DIV_SYMBOL_VALUE = '@MUL_VALUE_SYMBOL(VALUE=div(1, %(VALUE)s, cls); RHS=%(LHS)s; RHSDATA=%(LHSDATA)s)\n'
+DIV_NUMBER_SYMBOL = '@DIV_VALUE_SYMBOL(VALUE=%(LHSDATA)s; RHS=%(RHS)s; RHSDATA=%(RHSDATA)s)\n'
+DIV_SYMBOL_NUMBER = '@DIV_SYMBOL_VALUE(VALUE=%(RHSDATA)s; LHS=%(LHS)s; LHSDATA=%(LHSDATA)s)\n'
+DIV_TERMS_VALUE = '@MUL_TERMS_VALUE(LHS=%(LHS)s; LHSDATA=%(LHSDATA)s; VALUE=div(1,%(VALUE)s,cls))\n'
 
 DIV_VALUE_TERMS = '''\
 %(TMP)s = %(VALUE)s
@@ -424,9 +424,9 @@ if %(VALUE)s==1:
 @RETURN_NEW(HEAD=TERMS; DATA={%(TMP)s: %(VALUE)s})
 '''
 
-DIV_FACTORS_VALUE = '@MUL_FACTORS_VALUE(LHS=%(LHS)s; VALUE=div(1,%(VALUE)s,cls))\n'
+DIV_FACTORS_VALUE = '@MUL_FACTORS_VALUE(LHS=%(LHS)s; LHSDATA=%(LHSDATA)s; VALUE=div(1,%(VALUE)s,cls))\n'
 DIV_VALUE_FACTORS = '''
-pairs = %(RHS)s.data
+pairs = %(RHSDATA)s
 if len(pairs)==1:
     t, c = pairs.items()[0]
     c = -c
@@ -440,17 +440,17 @@ if %(VALUE)s==1:
     return %(TMP)s
 @RETURN_NEW(HEAD=TERMS; DATA={%(TMP)s: %(VALUE)s})
 '''
-DIV_NUMBER_TERMS = '@DIV_VALUE_TERMS(VALUE=%(LHS)s.data; RHS=%(RHS)s)\n'
-DIV_TERMS_NUMBER = '@DIV_TERMS_VALUE(VALUE=%(RHS)s.data; LHS=%(LHS)s)\n'
-DIV_NUMBER_FACTORS = '@DIV_VALUE_FACTORS(VALUE=%(LHS)s.data; RHS=%(RHS)s)\n'
-DIV_FACTORS_NUMBER = '@DIV_FACTORS_VALUE(VALUE=%(RHS)s.data; LHS=%(LHS)s)\n'
+DIV_NUMBER_TERMS = '@DIV_VALUE_TERMS(VALUE=%(LHSDATA)s; RHS=%(RHS)s; RHSDATA=%(RHSDATA)s)\n'
+DIV_TERMS_NUMBER = '@DIV_TERMS_VALUE(VALUE=%(RHSDATA)s; LHS=%(LHS)s; LHSDATA=%(LHSDATA)s)\n'
+DIV_NUMBER_FACTORS = '@DIV_VALUE_FACTORS(VALUE=%(LHSDATA)s; RHS=%(RHS)s; RHSDATA=%(RHSDATA)s)\n'
+DIV_FACTORS_NUMBER = '@DIV_FACTORS_VALUE(VALUE=%(RHSDATA)s; LHS=%(LHS)s; LHSDATA=%(LHSDATA)s)\n'
 DIV_SYMBOL_SYMBOL = '''\
 if %(LHS)s == %(RHS)s:
     return cls.one
 @RETURN_NEW(HEAD=FACTORS; DATA={%(LHS)s: 1, %(RHS)s: -1})
 '''
 DIV_TERMS_SYMBOL = '''
-pairs = %(LHS)s.data
+pairs = %(LHSDATA)s
 if len(pairs)==1:
     t, c = pairs.items()[0]
     if t==%(RHS)s:
@@ -461,8 +461,8 @@ if len(pairs)==1:
 DIV_TERMS_TERMS = '''
 if %(LHS)s==%(RHS)s:
     return cls.one
-lpairs = %(LHS)s.data
-rpairs = %(RHS)s.data
+lpairs = %(LHSDATA)s
+rpairs = %(RHSDATA)s
 if len(lpairs)==1:
     t1, c1 = lpairs.items()[0]
     if len(rpairs)==1:
@@ -486,7 +486,7 @@ elif len(rpairs)==1:
 @RETURN_NEW(HEAD=FACTORS; DATA={%(LHS)s:1, %(RHS)s:-1})
 '''
 DIV_SYMBOL_TERMS = '''\
-pairs = %(RHS)s.data
+pairs = %(RHSDATA)s
 if len(pairs)==1:
     t,c = pairs.items()[0]
     if %(LHS)s==t:
@@ -496,7 +496,7 @@ if len(pairs)==1:
 @RETURN_NEW(HEAD=FACTORS; DATA={%(LHS)s:1, %(RHS)s:-1})
 '''
 DIV_SYMBOL_FACTORS = '''\
-pairs = %(RHS)s.data
+pairs = %(RHSDATA)s
 if len(pairs)==1:
     t, c = pairs.items()[0]
     if t==%(LHS)s:
@@ -508,11 +508,11 @@ if len(pairs)==1:
         else:
             @RETURN_NEW(HEAD=FACTORS; DATA={t: c})
     @RETURN_NEW(HEAD=FACTORS; DATA={t: -c, %(LHS)s: 1})
-@NEG_DICT_VALUES(DICT_IN=%(RHS)s.data; DICT_OUT=pairs)
-@MUL_DICT_SYMBOL(DICT=pairs; RHS=%(LHS)s)
+@NEG_DICT_VALUES(DICT_IN=%(RHSDATA)s; DICT_OUT=pairs)
+@MUL_DICT_SYMBOL(DICT=pairs; RHS=%(LHS)s; RHSDATA=%(LHSDATA)s)
 '''
 DIV_TERMS_FACTORS = '''\
-lpairs = %(LHS)s.data
+lpairs = %(LHSDATA)s
 if len(lpairs)==1:
     t, c = lpairs.items()[0]
     t = t / %(RHS)s
@@ -522,10 +522,10 @@ if len(lpairs)==1:
     if head is NUMBER:
         @RETURN_NEW(HEAD=NUMBER; DATA=data * c)
     elif head is TERMS:
-        @MUL_TERMS_VALUE(LHS=t; VALUE=c)
+        @MUL_TERMS_VALUE(LHS=t; LHSDATA=data; VALUE=c)
     else:
-        @MUL_SYMBOL_VALUE(LHS=t; VALUE=c)
-@DIV_SYMBOL_FACTORS(LHS=%(LHS)s; RHS=%(RHS)s)
+        @MUL_SYMBOL_VALUE(LHS=t; LHSDATA=data; VALUE=c)
+@DIV_SYMBOL_FACTORS(LHS=%(LHS)s; LHSDATA=%(LHSDATA)s; RHS=%(RHS)s; RHSDATA=%(RHSDATA)s)
 '''
 DIV_DICT_SYMBOL = '''\
 @ADD_TERM_VALUE_DICT(TERM=%(RHS)s; VALUE=-1; DICT=%(DICT)s; DICT_GET=%(DICT)s.get; SIGN=+; USIGN=)
@@ -533,11 +533,11 @@ DIV_DICT_SYMBOL = '''\
 @RETURN_NEW(HEAD=FACTORS; DATA=%(DICT)s)
 '''
 DIV_FACTORS_SYMBOL = '''\
-pairs = dict(%(LHS)s.data)
-@DIV_DICT_SYMBOL(RHS=%(RHS)s; DICT=pairs)
+pairs = dict(%(LHSDATA)s)
+@DIV_DICT_SYMBOL(RHS=%(RHS)s; RHSDATA=%(RHSDATA)s; DICT=pairs)
 '''
 DIV_FACTORS_TERMS = '''\
-rpairs = %(RHS)s.data
+rpairs = %(RHSDATA)s
 if len(rpairs)==1:
     t, c = rpairs.items()[0]
     t = %(LHS)s / t
@@ -548,16 +548,16 @@ if len(rpairs)==1:
     if head is NUMBER:
         @RETURN_NEW(HEAD=NUMBER; DATA=data * c)
     elif head is TERMS:
-        @MUL_TERMS_VALUE(LHS=t; VALUE=c)
+        @MUL_TERMS_VALUE(LHS=t; LHSDATA=data; VALUE=c)
     else:
-        @MUL_SYMBOL_VALUE(LHS=t; VALUE=c)
-@DIV_FACTORS_SYMBOL(LHS=%(LHS)s; RHS=%(RHS)s)
+        @MUL_SYMBOL_VALUE(LHS=t; LHSDATA=data; VALUE=c)
+@DIV_FACTORS_SYMBOL(LHS=%(LHS)s; LHSDATA=%(LHSDATA)s; RHS=%(RHS)s; RHSDATA=%(RHSDATA)s)
 '''
 DIV_FACTORS_FACTORS = '''\
-pairs = dict(%(LHS)s.data)
+pairs = dict(%(LHSDATA)s)
 pairs_get = pairs.get
 number = 1
-for t,c in %(RHS)s.data.iteritems():
+for t,c in %(RHSDATA)s.iteritems():
     @MUL_FACTOR_VALUE_DICT(FACTOR=t; SIGN=-; USIGN=-; VALUE=c; DICT=pairs; DICT_GET=pairs_get; NUMBER=number)
 @CANONIZE_FACTORS_DICT(DICT=pairs; NUMBER=number)
 if number==1:
@@ -572,11 +572,11 @@ if number==1:
 
 POW_NUMBER_INT = '''\
 if %(VALUE)s < 0:
-    @RETURN_NEW(HEAD=NUMBER; DATA=div(1, (%(LHS)s.data)**(-%(VALUE)s), cls))
-@RETURN_NEW(HEAD=NUMBER; DATA=(%(LHS)s.data)**(%(VALUE)s))
+    @RETURN_NEW(HEAD=NUMBER; DATA=div(1, (%(LHSDATA)s)**(-%(VALUE)s), cls))
+@RETURN_NEW(HEAD=NUMBER; DATA=(%(LHSDATA)s)**(%(VALUE)s))
 '''
 POW_TERMS_INT = '''\
-pairs = %(LHS)s.data
+pairs = %(LHSDATA)s
 if len(pairs)==1:
     t,c = pairs.items()[0]
     if %(VALUE)s < 0:
@@ -590,7 +590,7 @@ if len(pairs)==1:
 @RETURN_NEW(HEAD=FACTORS; DATA={%(LHS)s: %(VALUE)s})
 '''
 POW_FACTORS_INT = '''\
-@MUL_DICT_VALUES(DICT_IN=%(LHS)s.data; DICT_OUT=pairs; OP=%(VALUE)s)
+@MUL_DICT_VALUES(DICT_IN=%(LHSDATA)s; DICT_OUT=pairs; OP=%(VALUE)s)
 if len(pairs)==1:
     t, c = pairs.items()[0]
     if c==1:
@@ -602,7 +602,7 @@ POW_SYMBOL_INT = '''\
 '''
 
 POW_NUMBER_VALUE = '''\
-z, sym = try_power(%(LHS)s.data, %(VALUE)s)
+z, sym = try_power(%(LHSDATA)s, %(VALUE)s)
 if not sym:
     @RETURN_NEW(HEAD=NUMBER; DATA=z)
 factors = {}
@@ -615,7 +615,7 @@ if z==1:
 '''
 
 POW_TERMS_FRAC = '''\
-pairs = %(LHS)s.data
+pairs = %(LHSDATA)s
 if len(pairs)==1:
     t, c = pairs.items()[0]
     if isinstance(c, numbertypes) and not c==-1:
@@ -639,7 +639,7 @@ POW_SYMBOL_FRAC = '''\
 '''
 
 POW_FACTORS_SYMBOL = '''\
-pairs = %(LHS)s.data
+pairs = %(LHSDATA)s
 if len(pairs)==1:
     t, c = pairs.items()[0]
     tc = type(c)
@@ -665,45 +665,45 @@ def generate_if_blocks(heads, prefix='', tab=' '*4):
                 lapp(tab+'if rhead is %s:' % (h2))
             else:
                 lapp(tab+'elif rhead is %s:' % (h2))
-            lapp(tab*2 + '@%%(OP)s_%s_%s(LHS=self; RHS=other)' % (h1, h2))
+            lapp(tab*2 + '@%%(OP)s_%s_%s(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)' % (h1, h2))
     return prefix + ('\n'+prefix).join(lines)
 
 OP3_TEMPLATE = '''
 def %(op)s_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
     cls = type(self)
-    lhead = self.head
+    lhead, ldata = self.pair
     if type(other) is not cls:
         if isinstance(other, cls.coefftypes):
             if lhead is NUMBER:
-                @%(OP)s_NUMBER_VALUE(VALUE=other; LHS=self)
+                @%(OP)s_NUMBER_VALUE(VALUE=other; LHS=self; LHSDATA=ldata)
             elif lhead is TERMS:
-                @%(OP)s_TERMS_VALUE(VALUE=other; LHS=self)
+                @%(OP)s_TERMS_VALUE(VALUE=other; LHS=self; LHSDATA=ldata)
             else:
-                @%(OP)s_SYMBOL_VALUE(VALUE=other; LHS=self)
+                @%(OP)s_SYMBOL_VALUE(VALUE=other; LHS=self; LHSDATA=ldata)
         other = cls.convert(other, False)
         if other is NotImplemented:
             return other
-    rhead = other.head
+    rhead, rdata = other.pair
 ''' + generate_if_blocks(['NUMBER', 'TERMS', 'SYMBOL'], prefix=' '*4)
 
 OP4_TEMPLATE = '''
 def %(op)s_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
     cls = type(self)
-    lhead = self.head
+    lhead, ldata = self.pair
     if type(other) is not cls:
         if isinstance(other, cls.coefftypes):
             if lhead is NUMBER:
-                @%(OP)s_NUMBER_VALUE(VALUE=other; LHS=self)
+                @%(OP)s_NUMBER_VALUE(VALUE=other; LHS=self; LHSDATA=ldata)
             elif lhead is TERMS:
-                @%(OP)s_TERMS_VALUE(VALUE=other; LHS=self)
+                @%(OP)s_TERMS_VALUE(VALUE=other; LHS=self; LHSDATA=ldata)
             elif lhead is FACTORS:
-                @%(OP)s_FACTORS_VALUE(VALUE=other; LHS=self)
+                @%(OP)s_FACTORS_VALUE(VALUE=other; LHS=self; LHSDATA=ldata)
             else:
-                @%(OP)s_SYMBOL_VALUE(VALUE=other; LHS=self)
+                @%(OP)s_SYMBOL_VALUE(VALUE=other; LHS=self; LHSDATA=ldata)
         other = cls.convert(other, False)
         if other is NotImplemented:
             return other
-    rhead = other.head
+    rhead, rdata = other.pair
 ''' + generate_if_blocks(['NUMBER', 'TERMS', 'FACTORS', 'SYMBOL'], prefix=' '*4)
 
 def main():
@@ -712,45 +712,45 @@ def main():
     print >> f, preprocess('''
 
 def expand_mul_method(cls, self, other):
-    lhead = self.head
-    rhead = other.head
+    lhead, ldata = self.pair
+    rhead, rdata = other.pair
     if lhead is FACTORS:
         if rhead is FACTORS:
-            @MUL_FACTORS_FACTORS(LHS=self; RHS=other)
+            @MUL_FACTORS_FACTORS(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
         elif rhead is NUMBER:
             return self # other must be one
         else:
-            @MUL_FACTORS_SYMBOL(LHS=self; RHS=other)
+            @MUL_FACTORS_SYMBOL(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
     elif lhead is NUMBER:
         return other # self must be one
     else:
         if rhead is FACTORS:
-            @MUL_SYMBOL_FACTORS(LHS=self; RHS=other)
+            @MUL_SYMBOL_FACTORS(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
         elif rhead is NUMBER:
             return self # other must be one
         else:
-            @MUL_SYMBOL_SYMBOL(LHS=self; RHS=other)
+            @MUL_SYMBOL_SYMBOL(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
 
 def neg_method(self, NUMBER=NUMBER, TERMS=TERMS):
     cls = type(self)
-    lhead = self.head
+    lhead, ldata = self.pair
     if lhead is NUMBER:
-        @NEG_NUMBER(OP=self)
+        @NEG_NUMBER(OP=self; OPDATA=ldata)
     elif lhead is TERMS:
-        @NEG_TERMS(OP=self)
+        @NEG_TERMS(OP=self; OPDATA=ldata)
     else:
-        @NEG_SYMBOL(OP=self)
+        @NEG_SYMBOL(OP=self; OPDATA=ldata)
 
 def rsub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
     cls = type(self)
-    lhead = self.head
+    lhead, ldata = self.pair
     if isinstance(other, cls.coefftypes):
         if lhead is NUMBER:
-            @SUB_VALUE_NUMBER(VALUE=other; RHS=self)
+            @SUB_VALUE_NUMBER(VALUE=other; RHS=self; RHSDATA=ldata)
         elif lhead is TERMS:
-            @SUB_VALUE_TERMS(VALUE=other; RHS=self)
+            @SUB_VALUE_TERMS(VALUE=other; RHS=self; RHSDATA=ldata)
         else:
-            @SUB_VALUE_SYMBOL(VALUE=other; RHS=self)
+            @SUB_VALUE_SYMBOL(VALUE=other; RHS=self; RHSDATA=ldata)
     other = cls.convert(other, False)
     if other is NotImplemented:
         return other
@@ -758,16 +758,16 @@ def rsub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
 
 def rdiv_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
     cls = type(self)
-    lhead = self.head
+    lhead, ldata = self.pair
     if isinstance(other, cls.coefftypes):
         if lhead is NUMBER:
-            @DIV_VALUE_NUMBER(VALUE=other; RHS=self)
+            @DIV_VALUE_NUMBER(VALUE=other; RHS=self; RHSDATA=ldata)
         elif lhead is TERMS:
-            @DIV_VALUE_TERMS(VALUE=other; RHS=self)
+            @DIV_VALUE_TERMS(VALUE=other; RHS=self; RHSDATA=ldata)
         elif lhead is FACTORS:
-            @DIV_VALUE_FACTORS(VALUE=other; RHS=self)
+            @DIV_VALUE_FACTORS(VALUE=other; RHS=self; RHSDATA=ldata)
         else:
-            @DIV_VALUE_SYMBOL(VALUE=other; RHS=self)
+            @DIV_VALUE_SYMBOL(VALUE=other; RHS=self; RHSDATA=ldata)
     other = cls.convert(other, False)
     if other is NotImplemented:
         return other
@@ -775,10 +775,12 @@ def rdiv_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
 
 def pow_method(self, other, z = None, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
     cls = type(self)
-    lhead = self.head
+    lhead, ldata = self.pair
     type_other = type(other)
-    if type_other is cls and other.head is NUMBER:
-        other = other.data
+    if type_other is cls:
+        rhead, rdata = other.pair
+        if rhead is NUMBER:
+            other = rdata
         type_other = type(other)
     if type_other is int or type_other is long:
         if not other:
@@ -786,23 +788,23 @@ def pow_method(self, other, z = None, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTOR
         if other==1:
             return self
         if lhead is NUMBER:
-            @POW_NUMBER_INT(VALUE=other; LHS=self)
+            @POW_NUMBER_INT(VALUE=other; LHS=self; LHSDATA=ldata)
         elif lhead is TERMS:
-            @POW_TERMS_INT(VALUE=other; LHS=self)
+            @POW_TERMS_INT(VALUE=other; LHS=self; LHSDATA=ldata)
         elif lhead is FACTORS:
-            @POW_FACTORS_INT(VALUE=other; LHS=self)
+            @POW_FACTORS_INT(VALUE=other; LHS=self; LHSDATA=ldata)
         else:
-            @POW_SYMBOL_INT(VALUE=other; LHS=self)
+            @POW_SYMBOL_INT(VALUE=other; LHS=self; LHSDATA=ldata)
     if lhead is NUMBER and isinstance(other, cls.exptypes):
-        @POW_NUMBER_VALUE(VALUE=other; LHS=self)
+        @POW_NUMBER_VALUE(VALUE=other; LHS=self; LHSDATA=ldata)
     if type_other is FractionTuple:
         if lhead is TERMS:
-            @POW_TERMS_FRAC(VALUE=other; LHS=self)
+            @POW_TERMS_FRAC(VALUE=other; LHS=self; LHSDATA=ldata)
         else:
-            @POW_SYMBOL_FRAC(VALUE=other; LHS=self)
+            @POW_SYMBOL_FRAC(VALUE=other; LHS=self; LHSDATA=ldata)
     if type_other is cls or isinstance(other, cls.exptypes):
         if lhead is FACTORS:
-            @POW_FACTORS_SYMBOL(LHS=self; RHS=other)
+            @POW_FACTORS_SYMBOL(LHS=self; LHSDATA=ldata; RHS=other)
         @RETURN_NEW(HEAD=FACTORS; DATA={self: other})
     return NotImplemented
 ''', globals())
