@@ -49,6 +49,7 @@ typedef struct {
     PyObject_HEAD
     PyObject *head;
     PyObject *data;
+    PyObject *pair;
     long hash;
 } Pair;
 
@@ -134,10 +135,12 @@ Pair_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
       return NULL;
     }
 
+    self->pair = args;    
+    self->hash = -1;
+
     Py_INCREF(self->head);
     Py_INCREF(self->data);
-    
-    self->hash = -1;
+    Py_INCREF(self->pair);
   }
 
     return (PyObject *)self;
@@ -279,6 +282,13 @@ Pair_getis_writable(Pair *self, void *closure)
 }
 
 static PyObject *
+Pair_getpair(Pair *self, void *closure)
+{
+  Py_INCREF(self->pair);
+  return self->pair;
+}
+
+static PyObject *
 Pair_repr(Pair *v)
 {
   return PyString_Format(PyString_FromString("%s(%r, %r)"),
@@ -293,6 +303,8 @@ static PyGetSetDef Pair_getseters[] = {
      "read-only head attribute", NULL},
     {"data", (getter)Pair_getdata, NULL, 
      "read-only data attribute", NULL},
+    {"pair", (getter)Pair_getpair, NULL, 
+     "read-only (head, data) attribute", NULL},
     {"is_writable", (getter)Pair_getis_writable, NULL, 
      "True when hash has not been computed", NULL},
     {NULL}  /* Sentinel */

@@ -71,10 +71,12 @@ class Pair(object):
 
     __slots__ = ['head', 'data', '_hash']
 
+    #XXX: replace __new__ with __init__
     def __new__(cls, head, data, new = object.__new__):
         obj = new(cls)
         obj.head = head
         obj.data = data
+        obj.pair = (head, data)
         obj._hash = None
         return obj
 
