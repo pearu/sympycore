@@ -85,7 +85,7 @@ class Assumptions:
         return None
 
     def positive(s, x):
-        x = Calculus(x)
+        x = Calculus.convert(x)
         if x.head is NUMBER:
             val = x.data
             if isinstance(x.data, realtypes):
@@ -114,7 +114,7 @@ class Assumptions:
         return None
 
     def nonnegative(s, x):
-        x = Calculus(x)
+        x = Calculus.convert(x)
         if x.head is NUMBER:
             val = x.data
             if isinstance(x.data, realtypes):

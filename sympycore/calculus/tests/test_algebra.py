@@ -1,5 +1,5 @@
 from sympycore.calculus import *
-A = Calculus
+A = Calculus.convert
 
 x = Symbol('x')
 y = Symbol('y')

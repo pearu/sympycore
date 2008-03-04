@@ -19,10 +19,10 @@ See http://sympycore.googlecode.com/ for more information.
 DO NOT CHANGE THIS FILE DIRECTLY!!!
 """
 
-from ..core import Pair
+from ..core import Expr
 from ..arithmetic.numbers import Complex, Float, FractionTuple, try_power
 from ..utils import NUMBER, TERMS, FACTORS
-new = Pair.__new__
+new = Expr.__new__
 '''
 
 def main():
@@ -55,11 +55,10 @@ def return_factors(cls, pairs, new=new):
 def inplace_add(cls, obj, pairs, pairs_get, one):
     tobj = type(obj)
     if tobj is cls:
-        head = obj.head
+        head, data = obj.pair
         if head is NUMBER:
-            value = obj.data
-            if value:
-                @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=+; USIGN=)
+            if data:
+                @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=data; SIGN=+; USIGN=)
         elif head is TERMS:
             for t,c in obj.data.iteritems():
                 @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=t; VALUE=c; SIGN=+; USIGN=)
@@ -76,9 +75,9 @@ def inplace_add2(cls, obj, coeff, pairs, pairs_get, one):
         return
     tobj = type(obj)
     if tobj is cls:
-        head = obj.head
+        head, data = obj.pair
         if head is NUMBER:
-            value = coeff * obj.data
+            value = coeff * data
             if value:
                 @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=+; USIGN=)
         elif head is TERMS:
@@ -96,9 +95,9 @@ def inplace_add2(cls, obj, coeff, pairs, pairs_get, one):
 def inplace_sub(cls, obj, pairs, pairs_get, one):
     tobj = type(obj)
     if tobj is cls:
-        head = obj.head
+        head, data = obj.pair
         if head is NUMBER:
-            value = obj.data
+            value = data
             if value:
                 @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=-; USIGN=-)
         elif HEAD is TERMS:
@@ -115,11 +114,10 @@ def inplace_sub(cls, obj, pairs, pairs_get, one):
 def inplace_mul(cls, obj, pairs, pairs_get, try_power=try_power, NUMBER=NUMBER):
     tobj = type(obj)
     if tobj is cls:
-        head = obj.head
+        head, data = obj.pair
         if head is NUMBER:
-            return obj.data
+            return data
         elif head is TERMS:
-            data = obj.data
             if len(data)==1:
                 t, number = data.items()[0]
                 @MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=t; VALUE=1; SIGN=+; USIGN=; NUMBER=number)
@@ -129,7 +127,7 @@ def inplace_mul(cls, obj, pairs, pairs_get, try_power=try_power, NUMBER=NUMBER):
             return number
         elif head is FACTORS:
             number = 1
-            for t, c in obj.data.iteritems():
+            for t, c in data.iteritems():
                 @MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=t; VALUE=c; SIGN=+; USIGN=; NUMBER=number)
             return number
         else:
@@ -146,11 +144,10 @@ def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NU
         return 1
     tobj = type(obj)
     if tobj is cls:
-        head = obj.head
+        head, data = obj.pair
         if head is NUMBER:
-            return obj.data ** exp
+            return data ** exp
         elif head is TERMS:
-            data = obj.data
             if len(data)==1:
                 t, number = data.items()[0]
                 number = number ** exp
@@ -161,7 +158,7 @@ def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NU
             return number
         elif head is FACTORS:
             number = 1
-            for t, c in obj.data.iteritems():
+            for t, c in data.iteritems():
                 @MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=t; VALUE=c*exp; SIGN=+; USIGN=; NUMBER=number)
             return number
         else:

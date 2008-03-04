@@ -18,11 +18,11 @@ from ...arithmetic import infinity
 
 import math
 
-zero = Calculus(0)
-one = Calculus(1)
+zero = Calculus.zero
+one = Calculus.one
 half = one/2
-sqrt2 = Calculus('2**(1/2)')
-sqrt3 = Calculus('3**(1/2)')
+sqrt2 = Calculus.convert('2**(1/2)')
+sqrt3 = Calculus.convert('3**(1/2)')
 
 #---------------------------------------------------------------------------#
 #                                  Exponentials                             #
@@ -39,7 +39,7 @@ class sign(Function):
     def __new__(cls, arg):
         if not isinstance(arg, Calculus):
             arg = Calculus.convert(arg)
-        return Calculus(arg, head=cls)
+        return Calculus(cls, arg)
 
 class sqrt(Function):
     def __new__(cls, arg):
@@ -68,7 +68,7 @@ class log(Function):
                     return oo
                 if arg == undefined:
                     return undefined
-                return Calculus(arg, head=cls)
+                return Calculus(cls, arg)
             else:
                 arg = Calculus.convert(arg)
         if base != E:
@@ -80,7 +80,7 @@ class log(Function):
                 ad > 0 and bd > 1:
                 l = int(math.log(ad, bd) + 0.5)
                 if bd**l == ad:
-                    return Calculus(l)
+                    return Calculus.convert(l)
             return cls(arg) / cls(base)
         head = arg.head
         data = arg.data
@@ -92,21 +92,21 @@ class log(Function):
                 return Ipi + log(-arg)
             if isinstance(data, Complex) and data.real == 0:
                 im = data.imag
-                if im > 0: return Calculus(Calculus(im, head=NUMBER), head=cls) + Ipi2
-                if im < 0: return Calculus(Calculus(-im, head=NUMBER), head=cls) - Ipi2
-            return Calculus(arg, head=cls)
+                if im > 0: return Calculus(cls, Calculus(NUMBER, im)) + Ipi2
+                if im < 0: return Calculus(cls, Calculus(NUMBER, -im)) - Ipi2
+            return Calculus(cls, arg)
         if arg == E:
             return one
         from ..relational import is_positive
         if head is FACTORS and len(data) == 1:
             base, expt = data.items()[0]
             if is_positive(base) and isinstance(expt, realtypes):
-                return Calculus(base, head=cls) * expt
+                return Calculus(cls, base) * expt
         if head is TERMS and len(data) == 1:
             term, coeff = data.items()[0]
             if (isinstance(coeff, realtypes) and coeff < 0) and is_positive(base):
                 return Ipi + log(-arg)
-        return Calculus(arg, head=cls)
+        return Calculus(cls, arg)
 
     @classmethod
     def derivative(cls, arg):
@@ -129,8 +129,8 @@ C4 = (sqrt3+1)/(2*sqrt2)
 
 # Replace entries with None to prevent from evaluating
 sine_table = [ \
-  Calculus(0), C0, C1, C2, C3, C4, Calculus(1), C4, C3, C2, C1,C0,
-  Calculus(0),-C0,-C1,-C2,-C3,-C4,-Calculus(1),-C4,-C3,-C2,-C1,-C0]
+  Calculus.zero, C0, C1, C2, C3, C4, Calculus.one, C4, C3, C2, C1,C0,
+  Calculus.zero,-C0,-C1,-C2,-C3,-C4,-Calculus.one,-C4,-C3,-C2,-C1,-C0]
 
 def get_pi_shift(arg, N):
     """Parse as x, n where arg = x + n*pi/N"""
@@ -175,7 +175,7 @@ class TrigonometricFunction(Function):
             if isinstance(arg, CalculusInfinity):
                 if arg == undefined:
                     return undefined
-                return Calculus(arg, head=cls)
+                return Calculus(cls, arg)
             else:
                 arg = Calculus.convert(arg)
         x, m = get_pi_shift(arg, 12)
@@ -203,9 +203,9 @@ class TrigonometricFunction(Function):
             arg = -arg
             negate_result ^= (cls.parity == 'odd')
         if negate_result:
-            return -Calculus(arg, head=cls)
+            return -Calculus(cls, arg)
         else:
-            return Calculus(arg, head=cls)
+            return Calculus(cls, arg)
 
 class sin(TrigonometricFunction):
     parity = 'odd'

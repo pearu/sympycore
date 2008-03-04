@@ -30,8 +30,8 @@ class Constant(str):
 
     def as_algebra(self, cls):
         if cls is classes.Calculus:
-            return cls(self, head=SYMBOL)
-        return cls(self)
+            return cls.Symbol(self)
+        return cls.convert(self)
 
     def get_direction(self):
         if self in ['pi', 'E']:

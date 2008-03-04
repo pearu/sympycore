@@ -37,8 +37,8 @@ def test_log_assumptions():
         assert log(x**2) == 2*log(x)
 
 def test_trig_values():
-    sqrt2 = A('2**(1/2)')
-    sqrt3 = A('3**(1/2)')
+    sqrt2 = A.convert('2**(1/2)')
+    sqrt3 = A.convert('3**(1/2)')
     assert sin(0) == 0
     assert sin(pi) == 0
     assert sin(4*pi) == 0
@@ -63,7 +63,7 @@ def test_trig_values():
     assert sin(undefined) == undefined
 
 def test_trig_symmetry():
-    x = A('x')
+    x = Symbol('x')
     assert sin(-x) == -sin(x)
     assert cos(-x) == cos(x)
     assert tan(-x) == -tan(x)
@@ -100,7 +100,7 @@ def test_trig_symmetry():
     assert cot(pi/2+x) == -tan(x)
 
 def test_trig_diff():
-    x = A('x')
+    x = Symbol('x')
     assert sin(x).diff(x) == cos(x)
     assert cos(x).diff(x) == -sin(x)
     assert sin(2*x).diff(x) == 2*cos(2*x)

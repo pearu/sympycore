@@ -8,8 +8,8 @@ __docformat__ = "restructuredtext"
 
 __all__ = ['CommutativeRingWithPairs']
 
-from ..core import Pair
-from ..core import classes
+
+from ..core import classes, Expr
 from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_NUMBER
 from ..utils import TERMS, FACTORS, SYMBOL, NUMBER, APPLY, POW, TUPLE, head_to_string
 
@@ -27,7 +27,7 @@ from .pairs_iops import (inplace_add, inplace_add2, inplace_sub,
 
 from .pairs_expand import expand
 
-class CommutativeRingWithPairs(Pair, CommutativeRing):
+class CommutativeRingWithPairs(Expr, CommutativeRing):
     """ Implementation of a commutative ring where sums and products
     are represented as dictionaries of pairs.
     """
@@ -57,21 +57,12 @@ class CommutativeRingWithPairs(Pair, CommutativeRing):
 
     __repr__ = CommutativeRing.__repr__
 
-    def __new__(cls, data, head=None, new=Pair.__new__):
-        if head is None:
-            if type(data) is cls:
-                return data
-            return cls.convert(data)
-        if (head is TERMS or head is FACTORS) and type(data) is not dict:
-            data = dict(data)
-        return new(cls, head, data)
-
     def __eq__(self, other):
         if self is other:
             return True
         to = type(other)
         if to is type(self):
-            return self.head == other.head and self.data == other.data
+            return self.pair == other.pair
         if self.head is NUMBER and (to is int or to is long):
             return self.data == other
         return False
@@ -79,7 +70,7 @@ class CommutativeRingWithPairs(Pair, CommutativeRing):
     def __nonzero__(self):
         return self.head is not NUMBER or bool(self.data)
 
-    def copy(self, new=Pair.__new__):
+    def copy(self, new=Expr.__new__):
         """ Return a copy of self.
         """
         head = self.head
@@ -279,16 +270,19 @@ class CommutativeRingWithPairs(Pair, CommutativeRing):
 
     @property
     def is_Add(self):
-        return self.head is TERMS and len(self.data) > 1
+        head, data = self.pair
+        return head is TERMS and len(data) > 1
 
     @property
     def is_Mul(self):
-        return (self.head is TERMS and len(self.data) == 1) \
-            or (self.head is FACTORS and len(self.data) > 1)
+        head, data = self.pair
+        return (head is TERMS and len(data) == 1) \
+            or (head is FACTORS and len(data) > 1)
 
     @property
     def is_Pow(self):
-        return self.head is FACTORS and len(self.data) == 1
+        head, data = self.pair
+        return head is FACTORS and len(data) == 1
 
     @property
     def is_Number(self):
@@ -299,8 +293,7 @@ class CommutativeRingWithPairs(Pair, CommutativeRing):
         return self.head is SYMBOL
 
     def as_Add_args(self):
-        head = self.head
-        data = self.data
+        head, data = self.pair
         if head is TERMS:
             if len(data)==1:
                 return [self]
@@ -308,8 +301,7 @@ class CommutativeRingWithPairs(Pair, CommutativeRing):
         return [self]
 
     def as_Mul_args(self):
-        head = self.head
-        data = self.data
+        head, data = self.pair
         if head is TERMS and len(data)==1:
             t,c = data.items()[0]
             return [self.convert(c)] + t.as_Mul_args()
@@ -326,8 +318,7 @@ class CommutativeRingWithPairs(Pair, CommutativeRing):
         return [self]
 
     def as_Pow_args(self):
-        head = self.head
-        data = self.data
+        head, data = self.pair
         if head is FACTORS:
             if len(data)==1:
                 return data.items()[0]
@@ -335,31 +326,32 @@ class CommutativeRingWithPairs(Pair, CommutativeRing):
         return [self, self.one_e]
 
     def as_Terms_args(self):
-        head = self.head
+        head, data = self.pair
         if head is NUMBER:
-            return [(self.one, self.data)]
+            return [(self.one, data)]
         if head is TERMS:
-            return self.data.items()
+            return data.items()
         return [(self, self.one_c)]
 
     def as_Factors_args(self):
-        head = self.head
+        head, data = self.pair
         if head is FACTORS:
-            return self.data.items()
+            return data.items()
         return [(self, self.one_e)]
     
     def as_primitive(self):
         """ Convert algebra element to a primitive algebra element.
         """
-        head = self.head
+        head, data = self.pair
         func = self.func
         args = self.args
         if func==self.Add:
             r = PrimitiveAlgebra((TERMS,tuple(map(PrimitiveAlgebra, args))))
             r.commutative_add = True
         elif func==self.Mul:
-            if args[0].head is NUMBER and args[0].data < 0:
-                if args[0].data==-1:
+            h, d = args[0].pair
+            if h is NUMBER and d < 0:
+                if d==-1:
                     args = map(PrimitiveAlgebra,args[1:])
                     if len(args)==1:
                         self._primitive = r = -args[0]
@@ -371,12 +363,12 @@ class CommutativeRingWithPairs(Pair, CommutativeRing):
                 r = -r
             else:
                 args = map(PrimitiveAlgebra, args)
-                r = PrimitiveAlgebra((FACTORS,tuple(args)))
+                r = PrimitiveAlgebra((FACTORS, tuple(args)))
             r.commutative_mul = True
         elif func==self.Pow:
             r = PrimitiveAlgebra((POW, tuple(map(PrimitiveAlgebra, args))))
         elif head is NUMBER:
-            value = self.data
+            value = data
             if hasattr(value, 'as_primitive'):
                 r = value.as_primitive()
             elif isinstance(value, (int, long, float)) and value<0:
@@ -384,13 +376,11 @@ class CommutativeRingWithPairs(Pair, CommutativeRing):
             else:
                 r = PrimitiveAlgebra((NUMBER, value))
         elif head is SYMBOL:
-            data = self.data
             if hasattr(data, 'as_primitive'):
                 r = data.as_primitive()
             else:
-                r = PrimitiveAlgebra((SYMBOL, self.data))
+                r = PrimitiveAlgebra((SYMBOL, data))
         elif callable(head):
-            data = self.data
             if hasattr(data, 'as_primitive'):
                 args = data.as_primitive(),
             elif isinstance(data, tuple):
@@ -399,25 +389,29 @@ class CommutativeRingWithPairs(Pair, CommutativeRing):
                 args = PrimitiveAlgebra(data),
             r = PrimitiveAlgebra((APPLY, (head,)+args))
         else:
-            data = self.data
             if hasattr(data, 'as_primitive'):
                 r = data.as_primitive()
             else:
-                r = PrimitiveAlgebra((SYMBOL, (self.head,self.data)))
+                r = PrimitiveAlgebra((SYMBOL, (head, data)))
         return r
 
     @classmethod
-    def Symbol(cls, obj, new=Pair.__new__):
+    def Symbol(cls, obj):
         """ Construct new symbol instance as an algebra element.
         """
-        return new(cls, SYMBOL, obj)
+        assert isinstance(obj, str),`obj`
+        return cls(SYMBOL, obj)
 
     @classmethod
-    def Number(cls, obj, new=Pair.__new__):
+    def Number(cls, obj):
         """ Construct new number instance as an algebra number.
         """
-        return new(cls, NUMBER, obj)
+        return cls(NUMBER, obj)
 
+    @classmethod
+    def Apply(cls, func, args):
+        return cls(func, args)
+    
     @classmethod
     def Add(cls, *seq):
         """ Return canonized sum as an algebra element.
@@ -484,16 +478,19 @@ class CommutativeRingWithPairs(Pair, CommutativeRing):
         return pow_method(base, exp)
 
     def __int__(self):
-        assert self.head is NUMBER,`self`
-        return int(self.data)
+        head, data = self.pair
+        assert head is NUMBER,`self`
+        return int(data)
 
     def __long__(self):
-        assert self.head is NUMBER,`self`
-        return long(self.data)
+        head, data = self.pair
+        assert head is NUMBER,`self`
+        return long(data)
 
     def __abs__(self):
-        assert self.head is NUMBER,`self`
-        return type(self)(abs(self.data))
+        head, data = self.pair
+        assert head is NUMBER,`self`
+        return type(self)(NUMBER, abs(data))
 
     def __pos__(self):
         return self
@@ -520,19 +517,19 @@ class CommutativeRingWithPairs(Pair, CommutativeRing):
     def _get_symbols_data(self):
         _symbols_data = self._symbols_data
         if _symbols_data is None:
-            head = self.head
+            head, data = self.pair
             if head is SYMBOL:
-                _symbols_data = set([self.data])
+                _symbols_data = set([data])
             elif head is NUMBER:
                 _symbols_data = set()
             elif head is TERMS:
                 _symbols_data = set()
-                for k in self.data:
+                for k in data:
                     _symbols_data |= k._get_symbols_data()
             elif head is FACTORS:
                 _symbols_data = set()
                 cls = type(self)
-                for k, c in self.data.iteritems():
+                for k, c in data.iteritems():
                     _symbols_data |= k._get_symbols_data()
                     if isinstance(c, cls):
                         _symbols_data |= c._get_symbols_data()
@@ -563,15 +560,16 @@ class CommutativeRingWithPairs(Pair, CommutativeRing):
         """ Check if self contains sub-expression.
         """
         subexpr = self.convert(subexpr)
-        if subexpr.head is SYMBOL:
-            return subexpr.data in self._get_symbols_data()
+        head, data = subexpr.pair
+        if head is SYMBOL:
+            return data in self._get_symbols_data()
         raise NotImplementedError('%s.has(%r)' % (type(self).__name__, subexpr))
 
     def _subs(self, subexpr, newexpr):
-        head = self.head
+        head, data = self.pair
 
         if head is subexpr.head:
-            if self.data == subexpr.data:
+            if data == subexpr.data:
                 return newexpr
 
         if head is SYMBOL or head is NUMBER:
@@ -583,7 +581,7 @@ class CommutativeRingWithPairs(Pair, CommutativeRing):
             d = {}
             d_get = d.get
             one = cls.one
-            for t,c in self.data.iteritems():
+            for t,c in data.iteritems():
                 r = t._subs(subexpr, newexpr)
                 if c is 1:
                     inplace_add(cls, r, d, d_get, one)
@@ -595,7 +593,7 @@ class CommutativeRingWithPairs(Pair, CommutativeRing):
             d = {}
             d_get = d.get
             num = 1
-            for t,c in self.data.iteritems():
+            for t,c in data.iteritems():
                 r = t._subs(subexpr, newexpr)
                 if type(c) is cls:
                     c = c._subs(subexpr, newexpr)
@@ -611,7 +609,7 @@ class CommutativeRingWithPairs(Pair, CommutativeRing):
             return r * num
 
         elif callable(head):
-            args = self.data
+            args = data
             if type(args) is tuple:
                 args = [a._subs(subexpr, newexpr) for a in args]
                 return head(*args)
@@ -624,8 +622,7 @@ class CommutativeRingWithPairs(Pair, CommutativeRing):
         """ Return ``(term, coeff)`` such that self=term*coeff and
         coeff is integer.
         """
-        head = self.head
-        data = self.data
+        head, data = self.pair
         if head is NUMBER:
             td = type(data)
             if td is int or td is long:
@@ -664,8 +661,7 @@ class CommutativeRingWithPairs(Pair, CommutativeRing):
           not in a variables list are treated as coefficients.
           
         """
-        head = self.head
-        data = self.data
+        head, data = self.pair
         cls = type(self)
         if variables is None:
             assert not fixed
@@ -684,11 +680,11 @@ class CommutativeRingWithPairs(Pair, CommutativeRing):
             for t, c in data.iteritems():
                 if fixed:
                     rest = 1
-                h = t.head
+                h, d = t.pair
                 exps = [0] * len(variables)
                 exps_append_methods.append(exps.append)
                 if h is FACTORS:
-                    for f, e in t.data.iteritems():
+                    for f, e in d.iteritems():
                         if isinstance(e, CommutativeRing):
                             r, e  = e.as_term_intcoeff()
                             f = f**r
@@ -717,7 +713,7 @@ class CommutativeRingWithPairs(Pair, CommutativeRing):
                         else:
                             exps[i] += e
                 elif h is NUMBER:
-                    assert t.data==1,`t`
+                    assert d==1,`t`
                 else:
                     try:
                         i = variables.index(t)

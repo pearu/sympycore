@@ -18,13 +18,13 @@ See http://sympycore.googlecode.com/ for more information.
 DO NOT CHANGE THIS FILE DIRECTLY!!!
 """
 
-from ..core import Pair
+from ..core import Expr
 from ..utils import NUMBER, SYMBOL, TERMS, FACTORS
 from ..arithmetic.numbers import (normalized_fraction,
   FractionTuple, try_power, numbertypes)
 from ..arithmetic.infinity import Infinity
 
-new = Pair.__new__
+#new = Expr.__new__
 
 def div(a, b, cls):
     tb = type(b)
@@ -518,9 +518,9 @@ if len(lpairs)==1:
     t = t / %(RHS)s
     if t==cls.one:
         return cls.convert(c)
-    head = t.head
+    head, data = t.pair
     if head is NUMBER:
-        @RETURN_NEW(HEAD=NUMBER; DATA=t.data * c)
+        @RETURN_NEW(HEAD=NUMBER; DATA=data * c)
     elif head is TERMS:
         @MUL_TERMS_VALUE(LHS=t; VALUE=c)
     else:
@@ -544,9 +544,9 @@ if len(rpairs)==1:
     c = div(1, c, cls)
     if t==cls.one:
         return cls.convert(c)
-    head = t.head
+    head, data = t.pair
     if head is NUMBER:
-        @RETURN_NEW(HEAD=NUMBER; DATA=t.data * c)
+        @RETURN_NEW(HEAD=NUMBER; DATA=data * c)
     elif head is TERMS:
         @MUL_TERMS_VALUE(LHS=t; VALUE=c)
     else:
@@ -669,7 +669,7 @@ def generate_if_blocks(heads, prefix='', tab=' '*4):
     return prefix + ('\n'+prefix).join(lines)
 
 OP3_TEMPLATE = '''
-def %(op)s_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=new):
+def %(op)s_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
     cls = type(self)
     lhead = self.head
     if type(other) is not cls:
@@ -687,7 +687,7 @@ def %(op)s_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=
 ''' + generate_if_blocks(['NUMBER', 'TERMS', 'SYMBOL'], prefix=' '*4)
 
 OP4_TEMPLATE = '''
-def %(op)s_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=new):
+def %(op)s_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
     cls = type(self)
     lhead = self.head
     if type(other) is not cls:
@@ -711,7 +711,7 @@ def main():
     print >> f, template
     print >> f, preprocess('''
 
-def expand_mul_method(cls, self, other, new=new):
+def expand_mul_method(cls, self, other):
     lhead = self.head
     rhead = other.head
     if lhead is FACTORS:
@@ -731,7 +731,7 @@ def expand_mul_method(cls, self, other, new=new):
         else:
             @MUL_SYMBOL_SYMBOL(LHS=self; RHS=other)
 
-def neg_method(self, NUMBER=NUMBER, TERMS=TERMS, new=new):
+def neg_method(self, NUMBER=NUMBER, TERMS=TERMS):
     cls = type(self)
     lhead = self.head
     if lhead is NUMBER:
@@ -741,7 +741,7 @@ def neg_method(self, NUMBER=NUMBER, TERMS=TERMS, new=new):
     else:
         @NEG_SYMBOL(OP=self)
 
-def rsub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=new):
+def rsub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
     cls = type(self)
     lhead = self.head
     if isinstance(other, cls.coefftypes):
@@ -756,7 +756,7 @@ def rsub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=ne
         return other
     return other - self
 
-def rdiv_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=new):
+def rdiv_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
     cls = type(self)
     lhead = self.head
     if isinstance(other, cls.coefftypes):
@@ -773,7 +773,7 @@ def rdiv_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=ne
         return other
     return other / self
 
-def pow_method(self, other, z = None, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS, new=new):
+def pow_method(self, other, z = None, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
     cls = type(self)
     lhead = self.head
     type_other = type(other)

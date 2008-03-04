@@ -2,15 +2,15 @@
 """
 
 __docformat__ = 'restructuredtext'
-__all__ = ['classes', 'Pair']
+__all__ = ['classes', 'Expr']
 
 try:
-    from .pair_ext import Pair
+    from .expr_ext import Expr
 except ImportError, msg:
     msg = str(msg)
-    if msg!='No module named pair_ext':
+    if msg!='No module named expr_ext':
         print msg
-    from .pair import Pair
+    from .expr import Expr
 
 class Holder:
     """ Holds pairs ``(name, value)`` as instance attributes.

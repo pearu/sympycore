@@ -51,7 +51,7 @@ class CalculusInfinity(Infinity):
         if r is not NotImplemented:
             return Calculus.convert(r)
         x = Calculus.convert(x)
-        return Calculus(x, cls.IsUnbounded)
+        return Calculus(cls.IsUnbounded, x)
 
     @classmethod
     def EqualArg(cls, x, y):
@@ -73,7 +73,7 @@ class CalculusInfinity(Infinity):
             return Calculus.convert(r)
         x = Calculus.convert(x)
         y = Calculus.convert(y)
-        return Calculus((x,y), cls.EqualArg)
+        return Calculus(cls.EqualArg, (x,y))
 
     @classmethod
     def IsPositive(cls, x):
@@ -84,7 +84,7 @@ class CalculusInfinity(Infinity):
         if r is not NotImplemented:
             return Calculus.convert(r)
         x = Calculus.convert(x)
-        return Calculus(x, cls.IsPositive)
+        return Calculus(cls.IsPositive, x)
 
     def __pow__(self, other):
         if isinstance(other, Calculus):
@@ -97,7 +97,7 @@ class CalculusInfinity(Infinity):
                 return r
             return Calculus.convert(r)
         x = Calculus.convert(other)
-        return Calculus({self: x}, FACTORS)
+        return Calculus(FACTORS, {self: x})
 
     def __rpow__(self, other):
         if isinstance(other, Calculus):
@@ -112,7 +112,7 @@ class CalculusInfinity(Infinity):
                 return r
             return Calculus.convert(r)
         x = Calculus.convert(other)
-        return Calculus({x: self}, FACTORS)
+        return Calculus(FACTORS, {x: self})
 
 oo = CalculusInfinity(1)
 moo = CalculusInfinity(-1)

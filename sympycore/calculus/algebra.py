@@ -62,8 +62,10 @@ class Calculus(CommutativeRingWithPairs):
             return mpc(obj.real, obj.imag)
         if isinstance(obj, algebra_numbers):
             return obj
-        if isinstance(obj, cls) and obj.head is NUMBER:
-            return obj.data
+        if isinstance(obj, cls):
+            head, data = obj.pair
+            if head is NUMBER:
+                return data
         if typeerror:
             raise TypeError('%s.convert_coefficient: failed to convert %s instance'\
                             ' to coefficient algebra, expected int|long object'\
@@ -102,8 +104,8 @@ class Calculus(CommutativeRingWithPairs):
     @classmethod
     def Number(cls, num, denom=None):
         if denom is None:
-            return cls(num, head=NUMBER)
-        return cls(normalized_fraction(num, denom), head=NUMBER)
+            return cls(NUMBER, num)
+        return cls(NUMBER, normalized_fraction(num, denom))
 
     @classmethod
     def Log(cls, arg, base=None):
@@ -119,18 +121,19 @@ class Calculus(CommutativeRingWithPairs):
     def evalf(self, n=None):
         if n:
             setdps(n)
-        head = self.head
+        head, data = self.pair
         if head is NUMBER:
-            return self.Number(self.data * float_one)
+            return self.Number(data * float_one)
         if head is SYMBOL:
-            r = getattr(self.data, 'evalf', lambda p: NotImplemented)(n)
+            r = getattr(data, 'evalf', lambda p: NotImplemented)(n)
             if r is not NotImplemented:
                 return self.Number(r)
             return self
         if callable(head):
             v = self.args[0].evalf(n)
-            if v.head is NUMBER:
-                return self.Number(getattr(mpmath, self.func.__name__)(v.data))
+            h, d = v.pair
+            if h is NUMBER:
+                return self.Number(getattr(mpmath, self.func.__name__)(d))
             else:
                 return head(v)
         convert = self.convert
@@ -143,14 +146,12 @@ class Calculus(CommutativeRingWithPairs):
         return NotImplemented
 
     def get_direction(self):
-        head = self.head
+        head, data = self.pair
         if head is NUMBER:
-            value = self.data
-            if isinstance(value, (int, long)):
-                return value
-            return getattr(value, 'get_direction', lambda : NotImplemented)()
+            if isinstance(data, (int, long)):
+                return data
+            return getattr(data, 'get_direction', lambda : NotImplemented)()
         if head is TERMS:
-            data = self.data
             if len(data)==1:
                 t, c = data.items()[0]
                 r = t.get_direction()
@@ -170,20 +171,19 @@ class Calculus(CommutativeRingWithPairs):
                     return d
                 direction *= d
             return direction
-        return getattr(self.data, 'get_direction', lambda : NotImplemented)()
+        return getattr(data, 'get_direction', lambda : NotImplemented)()
 
     @property
     def is_bounded(self):
-        head = self.head
+        head, data = self.pair
         if head is NUMBER:
-            value = self.data
-            if isinstance(value, (int, long)):
+            if isinstance(data, (int, long)):
                 return True
-            return getattr(value, 'is_bounded', None)
+            return getattr(data, 'is_bounded', None)
         if head is SYMBOL:
-            return getattr(self.data, 'is_bounded', None)
+            return getattr(data, 'is_bounded', None)
         if head is TERMS:
-            for t, c in self.data.iteritems():
+            for t, c in data.iteritems():
                 b = t.is_bounded
                 if not b:
                     return b
@@ -199,11 +199,12 @@ class Calculus(CommutativeRingWithPairs):
         if self is other:
             return True
         if type(self) is type(other):
-            return self.head == other.head and self.data == other.data
-        if self.head is NUMBER and isinstance(other, convertible_numbers):
+            return self.pair == other.pair
+        head, data = self.pair
+        if head is NUMBER and isinstance(other, convertible_numbers):
             if type(other) in (float, complex):
-                return self.data == float_one * other
-            return self.data == other
+                return data == float_one * other
+            return data == other
         return NotImplemented
 
     def __lt__(self, other):
@@ -214,20 +215,26 @@ class Calculus(CommutativeRingWithPairs):
 
     def __le__(self, other):
         other = self.convert(other)
-        if self.head is NUMBER and other.head is NUMBER:
-            return self.data <= other.data
+        head, data = self.pair
+        ohead, odata = other.pair
+        if head is NUMBER and ohead is NUMBER:
+            return data <= odata
         return Le(self, other)
 
     def __gt__(self, other):
         other = self.convert(other)
-        if self.head is NUMBER and other.head is NUMBER:
-            return self.data > other.data
+        head, data = self.pair
+        ohead, odata = other.pair
+        if head is NUMBER and ohead is NUMBER:
+            return data > odata
         return Gt(self, other)
 
     def __ge__(self, other):
         other = self.convert(other)
-        if self.head is NUMBER and other.head is NUMBER:
-            return self.data >= other.data
+        head, data = self.pair
+        ohead, odata = other.pair
+        if head is NUMBER and ohead is NUMBER:
+            return data >= odata
         return Ge(self, other)
 
     def as_polynom(self, ring_cls=None):
@@ -298,11 +305,11 @@ def Ge(a, b):
     nonzero = lambda a=a,b=b: CommutativeRingWithPairs.__ge__(a, b)
     return Nonnegative(a-b, nonzero)
 
-one = Calculus(1, head=NUMBER)
-zero = Calculus(0, head=NUMBER)
+one = Calculus.Number(1)
+zero = Calculus.Number(0)
 Calculus.one = one
 Calculus.zero = zero
 
-I = Calculus(mpqc(0,1), head=NUMBER)
+I = Calculus.Number(mpqc(0,1))
 
 from ..polynomials.algebra import PolynomialRing, AdditiveTuple

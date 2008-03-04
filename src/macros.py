@@ -61,6 +61,9 @@ NEWINSTANCE = '''\
 NEWINSTANCE = '''\
 %(OBJ)s = new(cls, %(HEAD)s, %(DATA)s)
 '''
+NEWINSTANCE = '''\
+%(OBJ)s = cls(%(HEAD)s, %(DATA)s)
+'''
 RETURN_NEW = '''\
 @NEWINSTANCE(OBJ=%(TMP)s; HEAD=%(HEAD)s; DATA=%(DATA)s)
 return %(TMP)s

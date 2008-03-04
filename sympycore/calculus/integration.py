@@ -8,12 +8,13 @@ from .algebra import Calculus, one
 from ..utils import NUMBER, SYMBOL, TERMS, FACTORS
 
 Symbol = Calculus.Symbol
+Convert = Calculus.convert
 
 def unknown(expr):
     raise NotImplementedError("don't know how to integrate %s" % (expr,))
 
 def integrate_indefinite(expr, x):
-    head = expr.head
+    head, data = expr.pair
     cls = type(expr)
     if head is NUMBER or x not in expr._get_symbols_data():
         return expr*cls.Symbol(x)
@@ -22,7 +23,7 @@ def integrate_indefinite(expr, x):
     elif head is FACTORS:
         product = one
         have_x = False
-        for base, e in expr.data.iteritems():
+        for base, e in data.iteritems():
             # We don't know how to do exponentials yet
             if type(e) is cls and x in expr._get_symbols_data():
                 unknown(expr)
@@ -42,24 +43,24 @@ def integrate_indefinite(expr, x):
         return product
     elif head is TERMS:
         return expr.Add(*(coef*integrate_indefinite(term, x) \
-            for term, coef in expr.data.iteritems()))
+                          for term, coef in data.iteritems()))
     unknown(expr)
 
 def integrate_definite(expr, x, a, b):
-    head = expr.head
+    head, data = expr.pair
     if head is NUMBER or x not in expr._get_symbols_data():
         return expr*(b-a)
-    elif head is SYMBOL and expr.data == x:
+    elif head is SYMBOL and data == x:
         return (b**2 - a**2) / 2
     elif head is FACTORS:
         product = one
         have_x = False
         cls = type(expr)
-        for base, e in expr.data.iteritems():
+        for base, e in data.iteritems():
             # We don't know how to do exponentials yet
             if type(e) is cls and x in expr._get_symbols_data():
                 unknown(expr)
-            if base.head is SYMBOL and base.data == x:
+            if base.pair == (SYMBOL, x):
                 if have_x:
                     unknown(expr)
                 e1 = e+1
@@ -71,11 +72,11 @@ def integrate_definite(expr, x, a, b):
             elif x in base._get_symbols_data():
                 unknown(expr)
             else:
-                product *= cls({base:e}, head=FACTORS)
+                product *= cls(FACTORS, {base:e})
         return product
     elif head is TERMS:
         return expr.Add(*(coef*integrate_definite(term, x, a, b) \
-                          for term, coef in expr.data.iteritems()))
+                          for term, coef in data.iteritems()))
     unknown(expr)
 
 def integrate(expr, x):
@@ -83,12 +84,12 @@ def integrate(expr, x):
     Calculus_ = Calculus
     type_x = type_(x)
     if type_(expr) is not Calculus_:
-        expr = Calculus_(expr)
+        expr = Convert(expr)
     if type_x is tuple:
         v, a, b = x
         if type_(v) is not Calculus_: v = Symbol(v)
-        if type_(a) is not Calculus_: a = Calculus_(a)
-        if type_(b) is not Calculus_: b = Calculus_(b)
+        if type_(a) is not Calculus_: a = Convert(a)
+        if type_(b) is not Calculus_: b = Convert(b)
         return integrate_definite(expr, v.data, a, b)
     else:
         if type_x is not Calculus_:

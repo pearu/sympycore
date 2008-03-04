@@ -48,10 +48,10 @@ def test_factors():
     assert str(s)=='a**2'
 
 def test_new():
-    a = Algebra('a')
+    a = Algebra.convert('a')
     assert str(a)=='a'
     assert isinstance(a, Algebra)==True
-    assert (a is Algebra(a))==True
+    assert (a is Algebra.convert(a))==True
 
 def test_copy():
     a = Symbol('a')

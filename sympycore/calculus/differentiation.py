@@ -3,7 +3,7 @@
 __docformat__ = "restructuredtext"
 __all__ = ['diff']
 
-from ..utils import SYMBOL, NUMBER, ADD, MUL
+from ..utils import SYMBOL, NUMBER, ADD, MUL, FACTORS
 from ..arithmetic.numbers import inttypes
 from ..basealgebra.pairs import inplace_add2, inplace_add, return_terms
 from .algebra import Calculus, algebra_numbers, zero, one
@@ -50,7 +50,7 @@ def diff_callable(f, arg, xdata, order):
             da = diff_generic(a, xdata, 1)
             if da == zero:
                 continue
-            df = Calculus(arg, head=partial_derivative(f, i+1))
+            df = Calculus(partial_derivative(f, i+1), arg)
             terms.append(da * df)
         return Calculus.Add(*terms)
     da = diff_generic(arg, xdata, 1)
@@ -58,7 +58,7 @@ def diff_callable(f, arg, xdata, order):
         return zero
     if hasattr(f, 'derivative'):
         return diff_repeated(da * f.derivative(arg), xdata, order-1)
-    df = Calculus(arg, head=partial_derivative(f, 1))
+    df = Calculus(partial_derivative(f, 1), arg)
     return df * da
 
 def diff_factor(base, exp, xdata, order):
@@ -69,9 +69,10 @@ def diff_factor(base, exp, xdata, order):
     # Handle f(x)**r where r is constant
     if is_constant_exponent(exp, xdata):
         # Generalized monomials x**r
-        if base.head is SYMBOL:
+        head, data = base.pair
+        if head is SYMBOL:
             # Note: this shouldn't be reached, but just to be sure...
-            if base.data != xdata:
+            if data != xdata:
                 res = zero
             elif order == 1:
                 res = exp * base**(exp-1)
@@ -142,7 +143,7 @@ def diff_product(pairs, xdata, order=1, NUMBER=NUMBER, SYMBOL=SYMBOL, ADD=ADD, M
             b, e = args[i]
             dt = diff_factor(b, e, xdata, 1)
             if dt != zero:
-                d1 = Calculus(dict(args[:i] + args[i+1:]), head=MUL)
+                d1 = Calculus(FACTORS, dict(args[:i] + args[i+1:]))
                 s += dt * d1
         return diff_repeated(s, xdata, order-1)
 
@@ -153,8 +154,7 @@ def diff_generic(expr, xdata, order, NUMBER=NUMBER, SYMBOL=SYMBOL, ADD=ADD, MUL=
         return c
     if xdata not in expr._get_symbols_data():
         return zero
-    head = expr.head
-    data = expr.data
+    head, data = expr.pair
     if head is NUMBER:
         r = zero
     elif head is SYMBOL:
@@ -170,8 +170,7 @@ def diff_generic(expr, xdata, order, NUMBER=NUMBER, SYMBOL=SYMBOL, ADD=ADD, MUL=
         d_get = d.get
         for term, coeff in data.iteritems():
             # Inline common cases
-            th = term.head
-            td = term.data
+            th, td = term.pair
             if th is NUMBER:
                 continue
             elif th is SYMBOL:

@@ -72,8 +72,6 @@ This is Python version of Expr type.
     __slots__ = ['head', 'data', 'pair', '_hash']
 
     def __init__(self, head, data):
-        self.head = head
-        self.data = data
         self.pair = (head, data)
         self._hash = None
 
@@ -99,3 +97,11 @@ This is Python version of Expr type.
     @property
     def is_writable(self):
         return not self._hash
+
+    @property
+    def head(self):
+        return self.pair[0]
+
+    @property
+    def data(self):
+        return self.pair[1]
