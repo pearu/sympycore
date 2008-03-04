@@ -12,9 +12,7 @@
 
     a = Pair(<head>, <data>)
     head, data = a.head, a.data     - for backward compatibility
-    head, data = a[:]               - fastest way
-    head, data = a[0], a[1]         - suitable for accessing one of the objects
-    head, data = a                  - slowest way
+    head, data = a.pair             - fastest way
  
   Note that head and data attributes are read-only. See
   sympycore/pair.py header for benchmark results.
@@ -47,8 +45,6 @@
 
 typedef struct {
     PyObject_HEAD
-    PyObject *head;
-    PyObject *data;
     PyObject *pair;
     long hash;
 } Pair;
@@ -63,33 +59,20 @@ Pair_traverse(Pair *self, visitproc visit, void *arg)
 {
   int vret;
 
-  if (self->head) {
-    vret = visit(self->head, arg);
+  if (self->pair) {
+    vret = visit(self->pair, arg);
     if (vret != 0)
       return vret;
   }
-  if (self->data) {
-    vret = visit(self->data, arg);
-    if (vret != 0)
-      return vret;
-  }
-  
   return 0;
 }
 
 static int 
 Pair_clear(Pair *self)
 {
-  PyObject *tmp;
-  
-  tmp = self->head;
-  self->head = NULL;
+  PyObject *tmp = self->pair;
+  self->pair = NULL;
   Py_XDECREF(tmp);
-  
-  tmp = self->data;
-  self->data = NULL;
-  Py_XDECREF(tmp);
-  
   return 0;
 }
 
@@ -123,76 +106,13 @@ Pair_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
       return NULL;
     }
 
-    self->head = PyTuple_GET_ITEM(args, 0);
-    if (self->head==NULL) {
-      Py_DECREF(self);
-      return NULL;
-    }
-
-    self->data = PyTuple_GET_ITEM(args, 1);
-    if (self->data==NULL) {
-      Py_DECREF(self);
-      return NULL;
-    }
-
     self->pair = args;    
     self->hash = -1;
-
-    Py_INCREF(self->head);
-    Py_INCREF(self->data);
     Py_INCREF(self->pair);
+
   }
 
     return (PyObject *)self;
-}
-
-static PyObject *
-Pair_item(register Pair *self, register Py_ssize_t i)
-{
-  if (i==0) {
-    Py_INCREF(self->head);
-    return self->head;
-  }
-  if (i==1) {
-    Py_INCREF(self->data);
-    return self->data;
-  }
-  PyErr_SetString(PyExc_IndexError, "Pair index out of range [0,1]");
-  return NULL;
-}
-
-PyObject *
-Pair_slice(PyObject *op, Py_ssize_t i, Py_ssize_t j)
-{
-  Py_ssize_t len;
-  register PyTupleObject *np;
-  register Pair *self = (Pair*)op;
-  if (op == NULL || !Pair_Check(op)) {
-    PyErr_BadInternalCall();
-    return NULL;
-  }
-  if (i<0) i=0;
-  if (j>2) j=2;
-  if (j<i) j=i;
-  len = j-i;
-  np = (PyTupleObject *)PyTuple_New(len);
-  if (len==2) {
-    PyObject *v = self->head;
-    Py_INCREF(v);
-    np->ob_item[0] = v;
-    v = self->data;
-    Py_INCREF(v);
-    np->ob_item[1] = v;
-  } else if ((len==1) && (i==0)) {
-    PyObject *v = self->head;
-    Py_INCREF(v);
-    np->ob_item[0] = v;
-  } else if ((len==1) && (i==1)) {
-    PyObject *v = self->data;
-    Py_INCREF(v);
-    np->ob_item[0] = v;
-  }
-  return (PyObject *)np;
 }
 
 static long dict_hash(PyObject *d);
@@ -254,22 +174,25 @@ Pair_hash(PyObject *self)
   Pair *o = (Pair *)self;
   if (o->hash!=-1)
     return o->hash;
-  o->hash = tuple2_hash(o->head, o->data);
+  o->hash = tuple2_hash(PyTuple_GET_ITEM(o->pair, 0), PyTuple_GET_ITEM(o->pair, 1));
   return o->hash;
 }
 
 static PyObject *
 Pair_gethead(Pair *self, void *closure)
 {
-    Py_INCREF(self->head);
-    return self->head;
+  PyObject *obj = PyTuple_GET_ITEM(self->pair, 0);
+  Py_INCREF(obj);
+  return obj;
+  //  return self->head;
 }
 
 static PyObject *
 Pair_getdata(Pair *self, void *closure)
 {
-    Py_INCREF(self->data);
-    return self->data;
+  PyObject *obj = PyTuple_GET_ITEM(self->pair, 1);
+  Py_INCREF(obj);
+  return obj;
 }
 
 static PyObject *
@@ -291,11 +214,10 @@ Pair_getpair(Pair *self, void *closure)
 static PyObject *
 Pair_repr(Pair *v)
 {
-  return PyString_Format(PyString_FromString("%s(%r, %r)"),
-			 PyTuple_Pack(3,
+  return PyString_Format(PyString_FromString("%s%r"),
+			 PyTuple_Pack(2,
 				      PyString_FromString(v->ob_type->tp_name), 
-				      v->head,
-				      v->data));
+				      v->pair));
 }
 
 static PyGetSetDef Pair_getseters[] = {
@@ -308,22 +230,6 @@ static PyGetSetDef Pair_getseters[] = {
     {"is_writable", (getter)Pair_getis_writable, NULL, 
      "True when hash has not been computed", NULL},
     {NULL}  /* Sentinel */
-};
-
-/*
-  Pair_item provides a fast way to access head and data data member.
-  Pair_slice is used in a idiom `head, data = <Pair instance>[:]`.
- */
-
-static PySequenceMethods Pair_as_sequence = {
-  0,                                      /* sq_length */
-  0,                                      /* sq_concat */
-  0,                                      /* sq_repeat */
-  (ssizeargfunc)Pair_item,                /* sq_item */
-  (ssizessizeargfunc)Pair_slice,          /* sq_slice */
-  0,                                      /* sq_ass_item */
-  0,                                      /* sq_ass_slice */
-  0,              /* sq_contains */
 };
 
 static PyTypeObject PairType = {
@@ -339,7 +245,7 @@ static PyTypeObject PairType = {
   0,                         /*tp_compare*/
   (reprfunc)Pair_repr,       /*tp_repr*/
   0,                         /*tp_as_number*/
-  &Pair_as_sequence,         /*tp_as_sequence*/
+  0,                         /*tp_as_sequence*/
   0,                         /*tp_as_mapping*/
   Pair_hash,                 /*tp_hash */
   0,                         /*tp_call*/
