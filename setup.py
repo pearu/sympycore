@@ -18,6 +18,9 @@ from distutils.core import Extension
 pair_ext = Extension('sympycore.pair_ext',
                      sources = [os.path.join('src','pair_ext.c')],
                      )
+expr_ext = Extension('sympycore.expr_ext',
+                     sources = [os.path.join('src','expr_ext.c')],
+                     )
 
 if __name__ == '__main__':
     from distutils.core import setup
@@ -49,7 +52,7 @@ oriented design that can be easily extended.
                       'sympycore.polynomials',
                       'sympycore.physics',
                       ],
-          ext_modules = [pair_ext],
+          ext_modules = [pair_ext, expr_ext],
           package_dir = {'sympycore': 'sympycore'},
           )
 
