@@ -35,6 +35,9 @@ class BasicAlgebra:
 
     _str_value = None
 
+    coefftypes = (int, long)
+    exptypes = (int, long)
+
     def __str__(self):
         s = self._str_value
         if s is None:
@@ -82,7 +85,7 @@ class BasicAlgebra:
     def convert_exponent(cls, obj, typeerror=True):
         """ Convert obj to exponent algebra.
         """
-        if isinstance(obj, (int, long, cls)):
+        if isinstance(obj, cls.exptypes) or isinstance(obj, cls):
             return obj
         if typeerror:
             raise TypeError('%s.convert_exponent: failed to convert %s instance'\
@@ -95,7 +98,7 @@ class BasicAlgebra:
     def convert_coefficient(cls, obj, typeerror=True):
         """ Convert obj to coefficient algebra.
         """
-        if isinstance(obj, (int, long)):
+        if isinstance(obj, cls.coefftypes):
             return obj
         if typeerror:
             raise TypeError('%s.convert_coefficient: failed to convert %s instance'\
