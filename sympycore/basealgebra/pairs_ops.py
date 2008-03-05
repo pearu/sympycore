@@ -196,8 +196,8 @@ def neg_method(self, NUMBER=NUMBER, TERMS=TERMS):
             #NEWINSTANCE(OBJ=_tmp226; HEAD=TERMS; DATA={t:c})
             _tmp226 = cls(TERMS, {t:c})
             return _tmp226
-        #NEG_DICT_VALUES(DICT_IN=self.data; DICT_OUT=pairs)
-        pairs = dict([(t, -c) for t,c in self.data.iteritems()])
+        #NEG_DICT_VALUES(DICT_IN=ldata; DICT_OUT=pairs)
+        pairs = dict([(t, -c) for t,c in ldata.iteritems()])
         #RETURN_NEW(HEAD=TERMS; DATA=pairs)
         #NEWINSTANCE(OBJ=_tmp247; HEAD=TERMS; DATA=pairs)
         _tmp247 = cls(TERMS, pairs)
@@ -234,8 +234,8 @@ def rsub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
                     #NEWINSTANCE(OBJ=_tmp317; HEAD=TERMS; DATA={t:c})
                     _tmp317 = cls(TERMS, {t:c})
                     return _tmp317
-                #NEG_DICT_VALUES(DICT_IN=self.data; DICT_OUT=pairs)
-                pairs = dict([(t, -c) for t,c in self.data.iteritems()])
+                #NEG_DICT_VALUES(DICT_IN=ldata; DICT_OUT=pairs)
+                pairs = dict([(t, -c) for t,c in ldata.iteritems()])
                 #RETURN_NEW(HEAD=TERMS; DATA=pairs)
                 #NEWINSTANCE(OBJ=_tmp338; HEAD=TERMS; DATA=pairs)
                 _tmp338 = cls(TERMS, pairs)
@@ -280,8 +280,8 @@ def rdiv_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
     if isinstance(other, cls.coefftypes):
         if lhead is NUMBER:
             #DIV_VALUE_NUMBER(VALUE=other; RHS=self; RHSDATA=ldata)
-            #RETURN_NEW2(HEAD=NUMBER; DATA=div(other, self.data, cls))
-            _tmp429 = div(other, self.data, cls)
+            #RETURN_NEW2(HEAD=NUMBER; DATA=div(other, ldata, cls))
+            _tmp429 = div(other, ldata, cls)
             if isinstance(_tmp429, Infinity):
                 return _tmp429
             #RETURN_NEW(HEAD=NUMBER; DATA=_tmp429)
@@ -293,7 +293,7 @@ def rdiv_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
             _tmp450 = other
             if not _tmp450:
                 return cls.zero
-            pairs = self.data
+            pairs = ldata
             if len(pairs)==1:
                 t, c = pairs.items()[0]
                 c = div(other, c, cls)
@@ -777,8 +777,8 @@ def sub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
                     #NEWINSTANCE(OBJ=_tmp1381; HEAD=TERMS; DATA={t:c})
                     _tmp1381 = cls(TERMS, {t:c})
                     return _tmp1381
-                #NEG_DICT_VALUES(DICT_IN=other.data; DICT_OUT=pairs)
-                pairs = dict([(t, -c) for t,c in other.data.iteritems()])
+                #NEG_DICT_VALUES(DICT_IN=rdata; DICT_OUT=pairs)
+                pairs = dict([(t, -c) for t,c in rdata.iteritems()])
                 #RETURN_NEW(HEAD=TERMS; DATA=pairs)
                 #NEWINSTANCE(OBJ=_tmp1402; HEAD=TERMS; DATA=pairs)
                 _tmp1402 = cls(TERMS, pairs)
@@ -1512,8 +1512,8 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
         if isinstance(other, cls.coefftypes):
             if lhead is NUMBER:
                 #DIV_NUMBER_VALUE(VALUE=other; LHS=self; LHSDATA=ldata)
-                #RETURN_NEW2(HEAD=NUMBER; DATA=div(self.data, other, cls))
-                _tmp2676 = div(self.data, other, cls)
+                #RETURN_NEW2(HEAD=NUMBER; DATA=div(ldata, other, cls))
+                _tmp2676 = div(ldata, other, cls)
                 if isinstance(_tmp2676, Infinity):
                     return _tmp2676
                 #RETURN_NEW(HEAD=NUMBER; DATA=_tmp2676)
@@ -1585,9 +1585,9 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
     if lhead is NUMBER:
         if rhead is NUMBER:
             #DIV_NUMBER_NUMBER(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
-            #DIV_VALUE_NUMBER(VALUE=self.data; RHS=other)
-            #RETURN_NEW2(HEAD=NUMBER; DATA=div(self.data, other.data, cls))
-            _tmp2823 = div(self.data, other.data, cls)
+            #DIV_VALUE_NUMBER(VALUE=ldata; RHS=other; RHSDATA=rdata)
+            #RETURN_NEW2(HEAD=NUMBER; DATA=div(ldata, rdata, cls))
+            _tmp2823 = div(ldata, rdata, cls)
             if isinstance(_tmp2823, Infinity):
                 return _tmp2823
             #RETURN_NEW(HEAD=NUMBER; DATA=_tmp2823)
@@ -1600,7 +1600,7 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
             _tmp2851 = ldata
             if not _tmp2851:
                 return cls.zero
-            pairs = other.data
+            pairs = rdata
             if len(pairs)==1:
                 t, c = pairs.items()[0]
                 c = div(ldata, c, cls)

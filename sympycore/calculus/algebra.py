@@ -38,7 +38,7 @@ class Calculus(CommutativeRingWithPairs):
         if cls is Verbatim:
             return self.as_verbatim()
         if cls is classes.Unit:
-            return cls(self, NUMBER)
+            return cls(NUMBER, self)
         if issubclass(cls, PolynomialRing):
             return self.as_polynom(cls)
         return self.as_verbatim().as_algebra(cls)
@@ -253,15 +253,15 @@ class Calculus(CommutativeRingWithPairs):
         """
         if ring_cls is None:
             data, variables = self.to_polynomial_data()
-            return PolynomialRing[tuple(variables)](data)
+            return PolynomialRing[tuple(variables)].convert(data)
         else:
             data, variables = self.to_polynomial_data(ring_cls.variables, True)
-            return ring_cls(data)
+            return ring_cls.convert(data)
 
     def __divmod__(self, other):
         if isinstance(other, Calculus):
             lhs = self.as_polynom()
-            rhs = other.as_polynom(lhs.__class__)
+            rhs = other.as_polynom(type(lhs))
             return divmod(lhs, rhs)
         return NotImplemented
 

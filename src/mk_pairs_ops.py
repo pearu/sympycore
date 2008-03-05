@@ -118,7 +118,7 @@ if len(op_pairs)==1:
     if c==1:
         return t
     @RETURN_NEW(HEAD=TERMS; DATA={t:c})
-@NEG_DICT_VALUES(DICT_IN=%(OP)s.data; DICT_OUT=pairs)
+@NEG_DICT_VALUES(DICT_IN=%(OPDATA)s; DICT_OUT=pairs)
 @RETURN_NEW(HEAD=TERMS; DATA=pairs)
 '''
 NEG_FACTORS = '@NEG_SYMBOL(OP=%(OP)s; OPDATA=%(OPDATA)s)\n'
@@ -387,9 +387,9 @@ if number == 1:
 # DIV macros
 #======================================
 
-DIV_VALUE_NUMBER='@RETURN_NEW2(HEAD=NUMBER; DATA=div(%(VALUE)s, %(RHS)s.data, cls))\n'
-DIV_NUMBER_VALUE='@RETURN_NEW2(HEAD=NUMBER; DATA=div(%(LHS)s.data, %(VALUE)s, cls))\n'
-DIV_NUMBER_NUMBER = '@DIV_VALUE_NUMBER(VALUE=%(LHS)s.data; RHS=%(RHS)s)\n'
+DIV_VALUE_NUMBER='@RETURN_NEW2(HEAD=NUMBER; DATA=div(%(VALUE)s, %(RHSDATA)s, cls))\n'
+DIV_NUMBER_VALUE='@RETURN_NEW2(HEAD=NUMBER; DATA=div(%(LHSDATA)s, %(VALUE)s, cls))\n'
+DIV_NUMBER_NUMBER = '@DIV_VALUE_NUMBER(VALUE=%(LHSDATA)s; RHS=%(RHS)s; RHSDATA=%(RHSDATA)s)\n'
 DIV_VALUE_SYMBOL = '''\
 %(TMP)s = %(VALUE)s
 if not %(TMP)s:
@@ -408,7 +408,7 @@ DIV_VALUE_TERMS = '''\
 %(TMP)s = %(VALUE)s
 if not %(TMP)s:
     return cls.zero
-pairs = %(RHS)s.data
+pairs = %(RHSDATA)s
 if len(pairs)==1:
     t, c = pairs.items()[0]
     c = div(%(VALUE)s, c, cls)
