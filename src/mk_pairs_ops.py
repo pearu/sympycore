@@ -455,7 +455,8 @@ if len(pairs)==1:
     t, c = pairs.items()[0]
     if t==%(RHS)s:
         return cls.convert(c)
-    return (t / %(RHS)s) * c
+    t = t / %(RHS)s
+    @RETURN_NEW(HEAD=TERMS; DATA={t: c})
 @RETURN_NEW(HEAD=FACTORS; DATA={%(LHS)s: 1, %(RHS)s: -1})
 '''
 DIV_TERMS_TERMS = '''
