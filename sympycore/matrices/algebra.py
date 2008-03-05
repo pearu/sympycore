@@ -10,9 +10,9 @@ __all__ = ['MatrixRing', 'SquareMatrix', 'PermutationMatrix']
 import random
 
 from ..core import classes
-from ..utils import SYMBOL, NUMBER, ADD, MUL, POW
+from ..utils import SYMBOL, NUMBER, ADD, MUL, POW, MATRIX
 from ..basealgebra.ring import CommutativeRing
-from ..basealgebra import PrimitiveAlgebra
+from ..basealgebra.verbatim import Verbatim
 from ..arithmetic.numbers import div
 
 class MatrixRingFactory(type):
@@ -94,20 +94,19 @@ def newinstance(cls, data):
     return obj
 
 
-class MatrixRing(object, CommutativeRing):
+class MatrixRing(CommutativeRing):
     """ Base class to matrix rings that hold matrix element information
     pairs ``(<indices>: <element>)`` stored in Python dictionary.
 
     Represents rectangular matrix.
     """
 
-    __slots__ = ['data']
-
     __metaclass__ = MatrixRingFactory
 
     is_square = None
 
-    def __new__(cls, data={}):
+    @classmethod
+    def convert(cls, data, typeerror=True):
         if isinstance(data, list):
             if data and isinstance(data[0], list):
                 d = {}
@@ -117,28 +116,28 @@ class MatrixRing(object, CommutativeRing):
                             d[i,j] = element
                 data = d
             else:
-                data = dict(data)
-        elif not isinstance(data, dict):
-            return cls.convert(data)
-        return newinstance(cls, data)
+                data = dict(data)    
+        if isinstance(data, dict):
+            return cls(MATRIX, data)
+        return super(CommutativeRing, cls).convert(data, typeerror=typeerror)
 
     @classmethod
     def random(cls, interval=(-10,10)):
         n,m = cls.shape
         d = {}
-        r = newinstance(cls, d)
         for i in range(n):
             for j in range(m):
                 num = random.randint(*interval)
                 if num:
                     d[i,j] = num
-        return r
+        return cls(MATRIX, d)
     
     def copy(self):
-        return newinstance(self.__class__, dict(self.data))
+        head, data = self.pair
+        return type(self)(head, dict(data))
 
     def __eq__(self, other):
-        return other.__class__ == self.__class__ and self.data == other.data
+        return type(self)==type(other) and self.pair == other.pair
 
     def __array__(self):
         import numpy
@@ -150,13 +149,13 @@ class MatrixRing(object, CommutativeRing):
     @classmethod
     def Number(cls, obj):
         if cls.shape is None:
-            return newinstance(cls, {():obj})
+            return cls(MATRIX, {(): obj})
         if cls.shape[0]==1:
-            return newinstance(cls, dict([((1,i),obj) for i in range(cls.shape[0])]))
+            return cls(MATRIX, dict([((1,i),obj) for i in range(cls.shape[0])]))
         if cls.shape[1]==1:
-            return newinstance(cls, dict([((i,1),obj) for i in range(cls.shape[0])]))
+            return cls(MATRIX, dict([((i,1),obj) for i in range(cls.shape[0])]))
         m = min(cls.shape)
-        return newinstance(cls, dict([((i,i),obj) for i in range(m)]))
+        return cls(MATRIX, dict([((i,i),obj) for i in range(m)]))
 
     def __str__(self):
         if self.shape is not None:
@@ -191,12 +190,12 @@ class MatrixRing(object, CommutativeRing):
         return self.data.get(key, 0)
 
     def __neg__(self):
-        return newinstance(self.__class__, dict([(index,-element) for index, element in self.data.iteritems()]))
+        return type(self)(MATRIX, dict([(index,-element) for index, element in self.data.iteritems()]))
 
     def __mul__(self, other):
         if isinstance(other, MatrixRing):
-            cls1 = self.__class__
-            cls2 = other.__class__
+            cls1 = type(self)
+            cls2 = type(other)
             if cls1.ring==cls2.ring:
                 if cls1.shape and cls2.shape:
                     if cls1.shape[-1]==cls2.shape[0]:
@@ -205,15 +204,15 @@ class MatrixRing(object, CommutativeRing):
                 else:
                     return mul_MATRIX_MATRIX(self, other, MatrixRing[cls1.ring])
         elif isinstance(other, (self.ring, int, long)):
-            return mul_MATRIX_SCALAR(self, other, self.__class__)
+            return mul_MATRIX_SCALAR(self, other, type(self))
         return NotImplemented
 
     def __add__(self, other):
         if isinstance(other, (self.ring, int, long)):
             other = self.Number(other)
         if isinstance(other, MatrixRing):
-            cls1 = self.__class__
-            cls2 = other.__class__
+            cls1 = type(self)
+            cls2 = type(other)
             if cls1.ring==cls2.ring:
                 if cls1==cls2:
                     return add_MATRIX_MATRIX(self, other, cls1)
@@ -226,7 +225,7 @@ class MatrixRing(object, CommutativeRing):
 
     def __div__(self, other):
         if isinstance(other, (self.ring, int, long)):
-            return div_MATRIX_SCALAR(self, other, self.__class__)
+            return div_MATRIX_SCALAR(self, other, type(self))
         return NotImplemented
 
     def row_indices(self, column=None):
@@ -301,10 +300,9 @@ class MatrixRing(object, CommutativeRing):
         else:
             cls = MatrixRing[(self.shape[-1],self.shape[0]), self.ring]
         d = {}
-        r = cls(d)
         for (i,j), element in self.data.iteritems():
             d[j, i] = element
-        return r
+        return cls(MATRIX, d)
 
     def lu(self):
         """ Perform LU factorization of a m x n matrix A.
@@ -324,8 +322,8 @@ class MatrixRing(object, CommutativeRing):
         """
         M,N = self.shape
         K = min(M, N)
-        L = MatrixRing[(M,K), self.ring]({})
-        U = MatrixRing[(K,N), self.ring](dict(self.data))
+        L = MatrixRing[(M,K), self.ring](MATRIX, {})
+        U = MatrixRing[(K,N), self.ring](MATRIX, dict(self.data))
         if M>N:
             for i in xrange(N,M):
                 U.data[(i,i)] = 1
@@ -359,7 +357,7 @@ class MatrixRing(object, CommutativeRing):
         L[K-1,K-1] = 1
         if M>N:
             U.crop()
-        P = PermutationMatrix(pivot_table).T
+        P = PermutationMatrix.convert(pivot_table).T
         return P, L, U
 
     def inv_l(self):
@@ -396,8 +394,9 @@ class SquareMatrix(MatrixRing):
 
 class PermutationMatrix(SquareMatrix):
     """ Represents a square permutation matrix."""
-    
-    def __new__(cls, data):
+
+    @classmethod
+    def convert(cls, data, typeerror=True):
         if isinstance(data, (list,tuple)):
             if cls is PermutationMatrix:
                 cls = PermutationMatrix[(len(data),)*2]
@@ -407,13 +406,12 @@ class PermutationMatrix(SquareMatrix):
                 d[i, index] = one
             data = d
         elif not isinstance(data, dict):
-            return cls.convert(data)
-        return newinstance(cls, data)        
-
+            return super(SquareMatrix, cls).convert(data, typeerror=typeerror)
+        return cls(MATRIX, data)
+    
 
 def mul_MATRIX_MATRIX(lhs, rhs, cls):
     d = {}
-    r = newinstance(cls, d)
     indices = set([])
     lhs_row_indices = set([])
     rhs_column_indices = set([])
@@ -438,11 +436,10 @@ def mul_MATRIX_MATRIX(lhs, rhs, cls):
                 c_ij += a_ik * b_kj
             if c_ij:
                 d[i,j] = c_ij
-    return r
+    return cls(MATRIX, d)
 
 def add_MATRIX_MATRIX(lhs, rhs, cls):
     d = dict(lhs.data)
-    r = newinstance(cls, d)
     for index, element in rhs.data.iteritems():
         b = d.get(index)
         if b is None:
@@ -453,11 +450,10 @@ def add_MATRIX_MATRIX(lhs, rhs, cls):
                 d[index] = b
             else:
                 del d[index]
-    return r
+    return cls(MATRIX, d)
 
 def sub_MATRIX_MATRIX(lhs, rhs, cls):
     d = dict(lhs.data)
-    r = newinstance(cls, d)
     for index, element in rhs.data.iteritems():
         b = d.get(index)
         if b is None:
@@ -468,18 +464,16 @@ def sub_MATRIX_MATRIX(lhs, rhs, cls):
                 d[index] = b
             else:
                 del d[index]
-    return r
+    return cls(MATRIX, d)
 
 def mul_MATRIX_SCALAR(lhs, rhs, cls):
     d = {}
-    r = newinstance(cls, d)
     for index, element in lhs.data.iteritems():
         d[index] = element * rhs
-    return r
+    return cls(MATRIX, d)
 
 def div_MATRIX_SCALAR(lhs, rhs, cls):
     d = {}
-    r = newinstance(cls, d)
     for index, element in lhs.data.iteritems():
         d[index] = div(element, rhs)
-    return r
+    return cls(MATRIX, d)

@@ -9,15 +9,15 @@ __docformat__ = "restructuredtext"
 __all__ = "PolynomialRing"
 
 from ..core import classes
-from ..utils import SYMBOL, NUMBER, ADD, MUL, POW
+from ..utils import SYMBOL, NUMBER, ADD, MUL, POW, POLY
+from ..basealgebra.algebra import Algebra
 from ..basealgebra.ring import CommutativeRing
-from ..basealgebra import PrimitiveAlgebra
+from ..basealgebra.verbatim import Verbatim
 from ..arithmetic.numbers import div
 from ..arithmetic.number_theory import multinomial_coefficients
 
 def cmp_symbols(x, y):
     return cmp(str(x), str(y))
-
 
 class PolynomialRingFactory(type):
     """ Factory of polynomial rings with symbols and coefficient ring.
@@ -104,12 +104,6 @@ class PolynomialRingFactory(type):
             return False
         return set(other.variables).issubset(self.variables)
 
-def newinstance(cls, data):
-    obj = object.__new__(cls)
-    obj.data = data
-    return obj
-
-
 class AdditiveTuple(tuple):
     """ A tuple that can be added element-wise.
 
@@ -145,34 +139,37 @@ class AdditiveTuple(tuple):
         return tuple.__new__(self.__class__, l)
 
 
-class PolynomialRing(object, CommutativeRing):
+class PolynomialRing(CommutativeRing):
     """ Base class to polynomial rings that holds polynomial information
     using pairs ``(<exponents>: <coefficient>)`` stored in Python dictionary.
 
     Suitable for representing sparse multivariate polynomials.
     """
 
-    __slots__ = ['data', '_degree', '_ldegree']
+    __slots__ = ['_degree', '_ldegree']
     _degree = None
     _ldegree = None
-
+    _str_value = None
+    
     __metaclass__ = PolynomialRingFactory
 
     __str__ = CommutativeRing.__str__
     __repr__ = CommutativeRing.__repr__
 
-    def __new__(cls, data = {}):
+    @classmethod
+    def convert(cls, data, typeerror=True):
         if isinstance(data, list):
             if cls.nvars==1 and data:
                 if type(data[0]) not in [tuple,list,set]:
                     data = [(i,c) for (i,c) in enumerate(data) if c]
             data = dict(data)
-        elif not isinstance(data, dict):
-            return cls.convert(data)
-        return newinstance(cls, data)
-
+            return cls(POLY, data)
+        elif isinstance(data, dict):
+            return cls(POLY, data)
+        return super(CommutativeRing, cls).convert(data, typeerror=True)
+    
     def __eq__(self, other):
-        return other.__class__==self.__class__ and self.data == other.data
+        return type(other)==type(self) and self.pair == other.pair
 
     @classmethod
     def Symbol(cls, obj):
@@ -194,7 +191,7 @@ class PolynomialRing(object, CommutativeRing):
             i = list(cls.variables).index(obj)
         l = [0]*cls.nvars
         l[i] = 1
-        return newinstance(cls, {AdditiveTuple(l):1})
+        return cls(POLY, {AdditiveTuple(l):1})
 
     @classmethod
     def Number(cls, obj):
@@ -205,13 +202,12 @@ class PolynomialRing(object, CommutativeRing):
           r = PolynomialRing['x']
           r.Number(2) -> r({0:2})
         """
-        if obj:
-            return newinstance(cls, {AdditiveTuple((0,)*cls.nvars): obj})
-        return newinstance(cls, {})
+        data = {AdditiveTuple((0,)*cls.nvars): obj} if obj else {}        
+        return cls(POLY, data)
 
     @classmethod
     def Add(cls, *seq):
-        r = cls({})
+        r = cls(POLY, {})
         for t in seq:
             tcls = t.__class__
             if cls==tcls:
@@ -285,16 +281,16 @@ class PolynomialRing(object, CommutativeRing):
         else:
             return NotImplemented
 
-    def as_primitive(self):
+    def as_verbatim(self):
         data = self.data
-        symbols = [PrimitiveAlgebra(v) for v in self.variables]
+        symbols = [Verbatim.convert(v) for v in self.variables]
         terms = []
         for exps in sorted(data.keys(), reverse=True):
             coeff = data[exps]
             if coeff==1:
                 factors = []
             else:
-                factors = [PrimitiveAlgebra(coeff)]
+                factors = [Verbatim.convert(coeff)]
             if not isinstance(exps, tuple):
                 exps = exps,
             for s,e in zip(symbols, exps):
@@ -302,18 +298,18 @@ class PolynomialRing(object, CommutativeRing):
                     if e==1:
                         factors.append(s)
                     else:
-                        factors.append(s**e)
+                        factors.append(s**e) #XXX: ????
             if not factors:
-                terms.append(PrimitiveAlgebra(coeff))
+                terms.append(Verbatim.convert(coeff))
             elif len(factors)==1:
                 terms.append(factors[0])
             else:
-                terms.append(PrimitiveAlgebra((MUL,tuple(factors))))
+                terms.append(Verbatim(MUL,tuple(factors)))
         if not terms:
-            return PrimitiveAlgebra(0)
+            return Verbatim.convert(0)
         if len(terms)==1:
             return terms[0]
-        return PrimitiveAlgebra((ADD, tuple(terms)))
+        return Verbatim(ADD, tuple(terms))
 
     def as_algebra(self, target_cls):
         cls = self.__class__
@@ -341,7 +337,8 @@ class PolynomialRing(object, CommutativeRing):
         return NotImplemented
 
     def __neg__(self):
-        return newinstance(self.__class__,dict([(e,-c) for e, c in self.data.iteritems()]))
+        head, data = self.pair
+        return type(self)(head, dict([(e,-c) for e, c in data.iteritems()]))
         
     def __add__(self, other):
         cls = self.__class__
@@ -455,20 +452,20 @@ class PolynomialRing(object, CommutativeRing):
     def diff(self, index=0):
         if self.nvars==0:
             return self.zero
+        head, data = self.pair
         d = {}
-        r = newinstance(self.__class__, d)
         if self.nvars==1:
             assert index==0,`index`
-            for exps, coeff in self.data.iteritems():
+            for exps, coeff in data.iteritems():
                 if exps:
                     d[exps-1] = coeff * exps
         else:
             assert 0<=index<self.nvars, `index`
-            for exps, coeff in self.data.iteritems():
+            for exps, coeff in data.iteritems():
                 e = exps[index]
                 if e:
                     d[exps.add(index,-1)] = coeff * e
-        return r
+        return type(self)(head, d)
 
 
 def divmod_POLY1_POLY1_SPARSE(lhs, rhs, cls):
@@ -479,8 +476,6 @@ def divmod_POLY1_POLY1_SPARSE(lhs, rhs, cls):
     other_iter = rhs.data.iteritems
     dq = {}
     dr = dict(lhs.data)
-    q = newinstance(cls, dq)
-    r = newinstance(cls, dr)
     dseq = [0] + dr.keys()
     dr_get = dr.get
     dseq_append = dseq.append
@@ -488,7 +483,7 @@ def divmod_POLY1_POLY1_SPARSE(lhs, rhs, cls):
     while 1:
         d1 = max(dseq)
         if d1 < d2:
-            return q, r
+            return cls(POLY, dq), cls(POLY, dr)
         c1 = dr[d1]
         e = d1 - d2
         c = div(c1, c2)
@@ -541,12 +536,9 @@ def pow_POLY_INT(base, exp, cls):
     data = base.data
     if len(data)==1:
         exps, coeff = data.items()[0]
-        r = object.__new__(cls)
-        r.data = {exps * exp: coeff ** exp}
-        return r
+        return cls(POLY, {exps * exp: coeff ** exp})
     nvars = cls.nvars
     d = {}
-    r = newinstance(cls, d)
     items = data.items()
     m = len(data)
     for k,c_kn in multinomial_coefficients(m, exp).iteritems():
@@ -566,13 +558,11 @@ def pow_POLY_INT(base, exp, cls):
                 d[new_exps] = c
             else:
                 del d[new_exps]
-    return r
+    return cls(POLY, d)
     
 
 def add_POLY_POLY(lhs, rhs, cls):
     d = dict(lhs.data)
-    r = object.__new__(cls)
-    r.data = d
     for exps, coeff in rhs.data.iteritems():
         b = d.get(exps)
         if b is None:
@@ -583,7 +573,7 @@ def add_POLY_POLY(lhs, rhs, cls):
                 d[exps] = c
             else:
                 del d[exps]
-    return r
+    return cls(POLY, d)
 
 def iadd_POLY_POLY(lhs, rhs, cls):
     d = lhs.data
@@ -600,8 +590,7 @@ def iadd_POLY_POLY(lhs, rhs, cls):
     
 
 def mul_POLY_POLY(lhs, rhs, cls):
-    r = object.__new__(cls)
-    r.data = d = {}
+    d = {}
     for exps1, coeff1 in lhs.data.iteritems():
         for exps2, coeff2 in rhs.data.iteritems():
             exps = exps1 + exps2
@@ -615,11 +604,10 @@ def mul_POLY_POLY(lhs, rhs, cls):
                     d[exps] = c
                 else:
                     del d[exps]
-    return r
+    return cls(POLY, d)
 
 def mul_POLY_COEFF(lhs, rhs, cls):
-    r = object.__new__(cls)
-    r.data = d = {}
+    d = {}
     for exps, coeff in lhs.data.iteritems():
         b = d.get(exps)
         if b is None:
@@ -630,4 +618,4 @@ def mul_POLY_COEFF(lhs, rhs, cls):
                 d[exps] = c
             else:
                 del d[exps]
-    return r
+    return cls(POLY, d)

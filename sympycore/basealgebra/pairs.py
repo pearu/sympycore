@@ -9,13 +9,13 @@ __docformat__ = "restructuredtext"
 __all__ = ['CommutativeRingWithPairs']
 
 
-from ..core import classes, Expr
+from ..core import classes
 from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_NUMBER
 from ..utils import TERMS, FACTORS, SYMBOL, NUMBER, APPLY, POW, TUPLE, head_to_string
 
-from .algebra import BasicAlgebra
+from .algebra import Algebra
 from .ring import CommutativeRing
-from .primitive import PrimitiveAlgebra
+from .verbatim import Verbatim
 from ..arithmetic.numbers import FractionTuple, realtypes
 
 from .pairs_ops import (add_method, sub_method, rsub_method, neg_method,
@@ -27,7 +27,7 @@ from .pairs_iops import (inplace_add, inplace_add2, inplace_sub,
 
 from .pairs_expand import expand
 
-class CommutativeRingWithPairs(Expr, CommutativeRing):
+class CommutativeRingWithPairs(CommutativeRing):
     """ Implementation of a commutative ring where sums and products
     are represented as dictionaries of pairs.
     """
@@ -70,12 +70,12 @@ class CommutativeRingWithPairs(Expr, CommutativeRing):
     def __nonzero__(self):
         return self.head is not NUMBER or bool(self.data)
 
-    def copy(self, new=Expr.__new__):
+    def copy(self):
         """ Return a copy of self.
         """
-        head = self.head
+        head, data = self.pair
         if head is TERMS or head is FACTORS:
-            return new(type(self), self.head, self.data)
+            return type(self)(head, dict(data))
         return self
 
     #def __repr__(self):
@@ -125,7 +125,7 @@ class CommutativeRingWithPairs(Expr, CommutativeRing):
 
     @classmethod
     def callable_to_str_data(cls, obj, sort=True):
-        if isinstance(obj, BasicAlgebra):
+        if isinstance(obj, Algebra):
             return obj.to_str_data(sort=True)
         if hasattr(obj, '__name__'):
             return str_SYMBOL, obj.__name__
@@ -339,60 +339,58 @@ class CommutativeRingWithPairs(Expr, CommutativeRing):
             return data.items()
         return [(self, self.one_e)]
     
-    def as_primitive(self):
-        """ Convert algebra element to a primitive algebra element.
+    def as_verbatim(self):
+        """ Convert algebra element to a verbatim algebra element.
         """
         head, data = self.pair
         func = self.func
         args = self.args
         if func==self.Add:
-            r = PrimitiveAlgebra((TERMS,tuple(map(PrimitiveAlgebra, args))))
+            r = Verbatim(TERMS,tuple([a.as_verbatim() for a in args]))
             r.commutative_add = True
         elif func==self.Mul:
             h, d = args[0].pair
             if h is NUMBER and d < 0:
                 if d==-1:
-                    args = map(PrimitiveAlgebra,args[1:])
+                    args = [a.as_verbatim() for a in args[1:]]
                     if len(args)==1:
-                        self._primitive = r = -args[0]
-                        return r
+                        return -args[0]
                 else:
-                    args = [PrimitiveAlgebra(-args[0])] + map(PrimitiveAlgebra,args[1:])
-                r = PrimitiveAlgebra((FACTORS,tuple(args)))
+                    args = [(-args[0]).as_verbatim()] + [a.as_verbatim() for a in args[1:]]
+                r = Verbatim(FACTORS, tuple(args))
                 r.commutative_mul = True
                 r = -r
             else:
-                args = map(PrimitiveAlgebra, args)
-                r = PrimitiveAlgebra((FACTORS, tuple(args)))
+                r = Verbatim(FACTORS, tuple([a.as_verbatim() for a in args]))
             r.commutative_mul = True
         elif func==self.Pow:
-            r = PrimitiveAlgebra((POW, tuple(map(PrimitiveAlgebra, args))))
+            r = Verbatim(POW, tuple(map(Verbatim.convert, args)))
         elif head is NUMBER:
             value = data
-            if hasattr(value, 'as_primitive'):
-                r = value.as_primitive()
+            if hasattr(value, 'as_verbatim'):
+                r = value.as_verbatim()
             elif isinstance(value, (int, long, float)) and value<0:
-                r = -PrimitiveAlgebra((NUMBER, -value))
+                r = -Verbatim(NUMBER, -value)
             else:
-                r = PrimitiveAlgebra((NUMBER, value))
+                r = Verbatim(NUMBER, value)
         elif head is SYMBOL:
-            if hasattr(data, 'as_primitive'):
-                r = data.as_primitive()
+            if hasattr(data, 'as_verbatim'):
+                r = data.as_verbatim()
             else:
-                r = PrimitiveAlgebra((SYMBOL, data))
+                r = Verbatim(SYMBOL, data)
         elif callable(head):
-            if hasattr(data, 'as_primitive'):
-                args = data.as_primitive(),
+            if hasattr(data, 'as_verbatim'):
+                args = data.as_verbatim(),
             elif isinstance(data, tuple):
-                args = tuple(map(PrimitiveAlgebra, data))
+                args = tuple([a.as_verbatim() for a in args])
             else:
-                args = PrimitiveAlgebra(data),
-            r = PrimitiveAlgebra((APPLY, (head,)+args))
+                args = data.as_verbatim()
+            r = Verbatim(APPLY, (head,)+args)
         else:
-            if hasattr(data, 'as_primitive'):
-                r = data.as_primitive()
+            if hasattr(data, 'as_verbatim'):
+                r = data.as_verbatim()
             else:
-                r = PrimitiveAlgebra((SYMBOL, (head, data)))
+                r = Verbatim(SYMBOL, (head, data))
         return r
 
     @classmethod

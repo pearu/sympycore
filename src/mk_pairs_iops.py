@@ -100,7 +100,7 @@ def inplace_sub(cls, obj, pairs, pairs_get, one):
             value = data
             if value:
                 @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=-; USIGN=-)
-        elif HEAD is TERMS:
+        elif head is TERMS:
             for t,c in data.iteritems():
                 @ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=t; VALUE=c; SIGN=-; USIGN=-)
         else:

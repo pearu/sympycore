@@ -56,9 +56,9 @@ Calculus('x + 2/5')
 >>> x,y,z,v,w=map(Symbol,'xyzvw')
 
 To construct expression from a string, use the corresponding algebra
-class, for example,
+class ``convert`` method, for example,
 
->>> Calculus('x+y+1/4 + x**2')+x
+>>> Calculus.convert('x+y+1/4 + x**2')+x
 Calculus('y + x**2 + 1/4 + 2*x')
 
 More examples on ``sympycore`` features can be found in `Demo documentation`__.
@@ -119,14 +119,14 @@ are internally saved as Python dictionary keys), and the arguments to
 ``Float``, ``Complex`` instances (these are defined in
 ``sympycore.arithmetic`` package).
 
-One can construct symbolic objects from Python strings using them as
-single arguments to algebra class constructor. For example,
+One can construct symbolic objects from Python strings using algebra
+``convert`` class method. For example,
 
->>> Calculus('a-3/4+b**2')
+>>> Calculus.convert('a-3/4+b**2')
 Calculus('a + b**2 - 3/4')
->>> Calculus('a-3/4+b**2').func
+>>> Calculus.convert('a-3/4+b**2').func
 <bound method type.Add of <class 'sympycore.calculus.algebra.Calculus'>>
->>> Calculus('a-3/4+b**2').args
+>>> Calculus.convert('a-3/4+b**2').args
 [Calculus('a'), Calculus('-3/4'), Calculus('b**2')]
 
 Package structure
@@ -212,7 +212,7 @@ Output methods
 ``str(<symbolic object>)``
   return a nice string representation of the symbolic object. For example,
 
-  >>> expr = Calculus('-x + 2')
+  >>> expr = Calculus.convert('-x + 2')
   >>> str(expr)
   '2 - x'
 
@@ -220,14 +220,14 @@ Output methods
   return a string representation of the symbolic object that can be
   used to reproduce an equal object:
 
-  >>> expr=Calculus('-x+2')
+  >>> expr=Calculus.convert('-x+2')
   >>> repr(expr)
   "Calculus('2 - x')"
 
 ``<symbolic object>.as_tree()``
   return a tree string representation of the symbolic object. For example,
 
-  >>> expr = Calculus('-x + 2+y**3')
+  >>> expr = Calculus.convert('-x + 2+y**3')
   >>> print expr.as_tree()
   Calculus:
   ADD[
@@ -246,36 +246,36 @@ Output methods
 Conversation methods
 --------------------
 
-``<symbolic object>.as_primitive()``
-  return symbolic object as an instance of ``PrimitiveAlgebra`` class. All
-  algebra classes must implement ``as_primitive`` method as this allows
+``<symbolic object>.as_verbatim()``
+  return symbolic object as an instance of ``Verbatim`` class. All
+  algebra classes must implement ``as_verbatim`` method as this allows
   converting symbolic objects from one algebra to another that is
   compatible with respect to algebraic operations. Also, producing the
   string representations of symbolic objects is done via converting
-  them to PrimitiveAlgebra that implements the corresponding printing
+  them to Verbatim that implements the corresponding printing
   method. For example,
 
   >>> expr
   Calculus('2 + y**3 - x')
-  >>> expr.as_primitive()
-  PrimitiveAlgebra('2 + y**3 - x')
+  >>> expr.as_verbatim()
+  Verbatim('2 + y**3 - x')
 
 ``<symbolic object>.as_algebra(<algebra class>)``
   return symbolic object as an instance of given algebra class. The
   transformation is done by first converting the symbolic object to
-  ``PrimitiveAlgebra`` instance which in turn is converted to the instance
+  ``Verbatim`` instance which in turn is converted to the instance
   of targer algebra class by executing the corresponding target
   algebra operators on operands. For example,
 
-  >>> expr = Calculus('-x + 2')
+  >>> expr = Calculus.convert('-x + 2')
   >>> print expr.as_tree()
   Calculus:
   ADD[
     -1:SYMBOL[x]
     2:NUMBER[1]
   ]
-  >>> print expr.as_algebra(PrimitiveAlgebra).as_tree()
-  PrimitiveAlgebra:
+  >>> print expr.as_algebra(Verbatim).as_tree()
+  Verbatim:
   ADD[
     NEG[
       SYMBOL[x]
@@ -296,7 +296,7 @@ Substitution of expressions
   return a copy of ``<symbolic object>`` with all occurances of
   ``<sub-expr>`` replaced with ``<new-expr>``. For example,
 
-  >>> expr = Calculus('-x + 2+y**3')
+  >>> expr = Calculus.convert('-x + 2+y**3')
   >>> expr
   Calculus('2 + y**3 - x')
   >>> expr.subs('y', '2*z')
@@ -351,15 +351,15 @@ A symbolic object is atomic if ``<symbolic object>.args == ()``.
 ``<symbolic object>.has(<symbol>)``
   returns ``True`` if the symbolic expression contains ``<symbol>``.
 
-Primitive algebra
-=================
+Verbatim algebra
+================
 
-Primitive algebra elements are symbolic expressions that are not
+Verbatim algebra elements are symbolic expressions that are not
 simplified in anyway when performing operatons. For example,
 
->>> s=PrimitiveAlgebra('s')
+>>> s=Verbatim.convert('s')
 >>> s+s
-PrimitiveAlgebra('s + s')
+Verbatim('s + s')
 
 Commutative ring
 ================
@@ -528,7 +528,7 @@ For example, let us define a customized sinus function:
 >>> def mysin(x):
 ...     if x==0:
 ...         return x
-...     return Calculus(x, head=mysin)
+...     return Calculus(mysin, x)
 ...
 >>> mysin(0)
 0
@@ -574,14 +574,13 @@ implementations for polynomials: ``UnivariatePolynomial`` and
 ------------------------
 
 The ``UnivariatePolynomial`` class stores polynomial coefficients in a
-Python list. The exponents are implicitly defined as indices of the
+Python tuple. The exponents are implicitly defined as indices of the
 list so that the degree of a polynomial is equal to the length of the
 list minus 1. ``UnivariatePolynomial`` is most efficient for
 manipulating low order and dense polynomials. To specify the variable
 symbol of a polynomial, use ``symbol`` keyword argument (default
 variable symbol is ``x``).
 
->>> poly = UnivariatePolynomial
 >>> poly([4,3,2,1])
 4 + 3*x + 2*x**2 + x**3
 >>> poly([4,3,2,1]).degree
@@ -630,13 +629,13 @@ To create a polynomial with given exponents and coefficients pairs,
 the ``PolynomialRing`` constructor accepts dictinary objects
 containing the corresponding pairs:
 
->>> polyXY({(0,0):4, (2,1):3, (0,3):2})
+>>> polyXY.convert({(0,0):4, (2,1):3, (0,3):2})
 PolynomialRing[(X, Y), Calculus]('3*X**2*Y + 2*Y**3 + 4')
 
 Univariate polynomials can also be constructed from a list in the same
 way as ``UnivariatePolynomial`` instances were constructed above:
 
->>> PolynomialRing[1]([4,3,2,1])
+>>> PolynomialRing[1].convert([4,3,2,1])
 PolynomialRing[X0, Calculus]('X0**3 + 2*X0**2 + 3*X0 + 4')
 
 
@@ -658,7 +657,7 @@ default element ring.
 
 For example,
 
->>> m=MatrixRing[3,4]()
+>>> m=MatrixRing[3,4].convert({})
 >>> print m
  0  0  0  0
  0  0  0  0
@@ -676,17 +675,17 @@ pairs ``(<rowindex>,<column-index>): <non-zero element>``.
 Matrix instances can be constructed from Python dictionary or from a
 Python list:
 
->>> print MatrixRing[2,2]({(0,0):1,(0,1):2,(1,1):3})
+>>> print MatrixRing[2,2].convert({(0,0):1,(0,1):2,(1,1):3})
  1  2
  0  3
->>> print MatrixRing[2,2]([[1,2],[3,4]])
+>>> print MatrixRing[2,2].convert([[1,2],[3,4]])
  1  2
  3  4
 
 Permutation matrices can be constructed from a sequence of
 integers:
 
->>> print PermutationMatrix([1,0,2])
+>>> print PermutationMatrix.convert([1,0,2])
  0  1  0
  1  0  0
  0  0  1
@@ -764,16 +763,16 @@ the desired form, special-purpose rewriting functions like ``collect()``,
 
 It can sometimes be useful to bypass automatic transformations, for
 example to keep the expression ``2*(x+y)`` in factored form. The most
-general way to achieve this is to use the ``PrimitiveAlgebra`` class
+general way to achieve this is to use the ``Verbatim`` class
 (which performs no simplifications whatsoever) instead of ``Calculus``.
 
-    >>> PrimitiveAlgebra('2*(x+pi)')
-    PrimitiveAlgebra('2*(x + pi)')
+    >>> Verbatim.convert('2*(x+pi)')
+    Verbatim('2*(x + pi)')
 
 You can also construct non-canonical ``Calculus`` instances by manually
 passing data to the ``Calculus`` constructor. For example:
 
-    >>> p = Calculus({(pi+x):2}, head=utils.TERMS)
+    >>> p = Calculus(utils.TERMS, {(pi+x):2})
     >>> print p
     2*(pi + x)
 
@@ -790,7 +789,7 @@ will be available at the top of the expression. Thus:
     Calculus('sin(2*(pi + x))')
 
 To canonize an expression, either use the function XXX or convert it to
-``PrimitiveAlgebra`` and then back to ``Calculus``.
+``Verbatim`` and then back to ``Calculus``.
 
-    >>> Calculus(PrimitiveAlgebra(p))
+    >>> Calculus.convert(Verbatim.convert(p))
     Calculus('2*pi + 2*x')

@@ -1,7 +1,7 @@
-"""Provides classes BasicAlgebra, PrimitiveAlgebra, and CommutativeRingWithPairs.
+"""Provides classes BasicAlgebra, Verbatim, and CommutativeRingWithPairs.
 """
 __docformat__ = 'restructuredtext'
 
-from .algebra import BasicAlgebra
-from .primitive import PrimitiveAlgebra
+from .algebra import Algebra
+from .verbatim import Verbatim
 from .pairs import CommutativeRingWithPairs

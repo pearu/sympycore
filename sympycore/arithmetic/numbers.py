@@ -44,8 +44,8 @@ from . import mpmath
 
 __docformat__ = "restructuredtext"
 
-from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_NUMBER
-from ..basealgebra.primitive import PrimitiveAlgebra, NUMBER, SYMBOL
+from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_NUMBER, NUMBER, SYMBOL
+from ..basealgebra.verbatim import Verbatim
 
 inttypes = (int, long)
 
@@ -115,11 +115,11 @@ class mpq(tuple):
         p, q = self
         return from_rational(p, q, getprec(), round_half_even)
 
-    def as_primitive(self):
+    def as_verbatim(self):
         p, q = self
         if p<0:
-            return -(PrimitiveAlgebra(-p, head=NUMBER) / PrimitiveAlgebra(q, head=NUMBER))
-        return PrimitiveAlgebra(p, head=NUMBER) / PrimitiveAlgebra(q, head=NUMBER)
+            return -(Verbatim(NUMBER, -p) / Verbatim(NUMBER, q))
+        return Verbatim(NUMBER, p) / Verbatim(NUMBER, q)
 
     def to_str_data(self,sort=True):
         if self[0]<0:
@@ -234,18 +234,18 @@ class mpqc(object):
     def __str__(self):
         return self.to_str_data()[1]
 
-    def as_primitive(self):
+    def as_verbatim(self):
         re, im = self.real, self.imag
         if re < 0: 
-            r = -PrimitiveAlgebra(-self.real)
+            r = -Verbatim(NUMBER, -self.real)
         else:
-            r = PrimitiveAlgebra(self.real)
+            r = Verbatim(NUMBER, self.real)
         if im < 0:
-            i = -PrimitiveAlgebra(-self.imag)
-            ni = PrimitiveAlgebra(-self.imag)
+            i = -Verbatim(NUMBER, -self.imag)
+            ni = Verbatim(NUMBER, -self.imag)
         else:
-            i = PrimitiveAlgebra(self.imag)
-        I = PrimitiveAlgebra(mpqc(0,1), head=NUMBER)
+            i = Verbatim(NUMBER, self.imag)
+        I = Verbatim(NUMBER, mpqc(0,1))
         if re==0:
             if im == 1: return I
             if im == -1: return -I

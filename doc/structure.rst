@@ -34,24 +34,25 @@ Implementation of principles
 ============================
 
 In sympycore, a symbolic expression is defined as an instance of a
-``Pair`` class (the actual implementation of any code that follows
+``Expr`` class (the actual implementation of any code that follows
 below may differ because of efficiency, here we just explain some
 basic ideas)::
 
-  class Pair(object):
+  class Expr(object):
 
       def __init__(self, head, data):
+          self.pair = (head, data)
           self.head = head
 	  self.data = data
 
-In a way, the ``Pair`` class represents an algebra with no
+In a way, the ``Expr`` class represents an algebra with no
 mathematical properties - it just holds some *head* and some *data*.
 
 To define an algebra with additional features such as opertions
-between its elements, a Python class is derived from the ``Pair``
+between its elements, a Python class is derived from the ``Expr``
 class:
 
-  class AlgebraicStructure(Pair):
+  class AlgebraicStructure(Expr):
       
        def operation(self, other):
            ...
@@ -62,7 +63,7 @@ where the operation result is implemented in a method ``operation``.
 For example. a commutative ring element can be represented as an
 instance of the following class::
 
-  class CommutativeRing(Pair):
+  class CommutativeRing(Expr):
  
        def __add__(self, other):
            return CommutativeRing('+', (self, other))
@@ -73,7 +74,7 @@ instance of the following class::
            return CommutativeRing('*', (self, other))
 
 For convenience, some additional methods can be provided to simplify
-creating instances of the ``Pair`` based classes. For example, to
+creating instances of the ``Expr`` based classes. For example, to
 define a symbol of a commutative ring::
 
   def Symbol(name):
@@ -158,3 +159,11 @@ respectively.
 
 In general, there is no preferred representation for symbolic
 expressions, each have pros and cons depending on the tasks.
+
+
+Verbatim algebra
+================
+
+Sympycore defines ``Verbatim`` class that represents verbatim algebra,
+that is, it contains expressions in unevaluated form.
+

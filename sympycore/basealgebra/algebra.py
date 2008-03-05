@@ -2,10 +2,11 @@
 """
 
 __docformat__ = "restructuredtext"
+__all__ = ['Algebra']
 
-from ..core import classes
+from ..core import classes, Expr
 
-class BasicAlgebra:
+class Algebra(Expr):
     """ Represents an element of an algebraic structure.
 
     This class collects implementation specific methods of algebra
@@ -13,7 +14,7 @@ class BasicAlgebra:
     
     For implemented algebras, see:
 
-      PrimitiveAlgebra
+      Verbatim
       CommutativeRingWithPairs
     
     New algebras may need to redefine the following methods::
@@ -22,7 +23,7 @@ class BasicAlgebra:
       convert(cls, obj, typeerror=True)
       convert_coefficient(cls, obj, typeerror=True)
       convert_exponent(cls, obj, typeerror=True)
-      as_primitive(self)
+      as_verbatim(self)
       as_algebra(self, cls)
 
     and the following properties::
@@ -31,7 +32,7 @@ class BasicAlgebra:
       func(self)
 
     """
-    __slots__ = ['_str_value']
+    #__slots__ = ['_str_value']
 
     _str_value = None
 
@@ -41,14 +42,22 @@ class BasicAlgebra:
     def __str__(self):
         s = self._str_value
         if s is None:
-            s = self._str_value = str(self.as_primitive())
+            s = self._str_value = str(self.as_verbatim())
         return s
 
     def __repr__(self):
         return '%s(%r)' % (self.__class__.__name__, str(self))
 
+    def __eq__(self, other):
+        if type(other) is type(self):
+            return self.pair == other.pair
+        return False
+
+    def __nonzero__(self):
+        return not not self.data
+
     def as_tree(self, tab='', level=0):
-        return self.as_primitive().as_tree(tab,level)
+        return self.as_verbatim().as_tree(tab,level)
 
     @classmethod
     def convert(cls, obj, typeerror=True):
@@ -62,8 +71,8 @@ class BasicAlgebra:
             return obj
 
         # parse algebra expression from string:
-        if isinstance(obj, (str, unicode, PrimitiveAlgebra)):
-            return PrimitiveAlgebra(obj).as_algebra(cls)
+        if isinstance(obj, (str, unicode, Verbatim)):
+            return Verbatim.convert(obj).as_algebra(cls)
 
         # check if obj belongs to coefficient algebra
         r = cls.convert_coefficient(obj, typeerror=False)
@@ -71,7 +80,7 @@ class BasicAlgebra:
             return cls.Number(r)
 
         # as a last resort, convert from another algebra:
-        if isinstance(obj, BasicAlgebra):
+        if isinstance(obj, Algebra):
             return obj.as_algebra(cls)
 
         if typeerror:
@@ -107,21 +116,21 @@ class BasicAlgebra:
         else:
             return NotImplemented
 
-    def as_primitve(self):
-        raise NotImplementedError('%s must define as_primitive method' #pragma NO COVER
+    def as_verbatim(self):
+        raise NotImplementedError('%s must define as_verbatim method' #pragma NO COVER
                                   % (self.__class__.__name__))         #pragma NO COVER
 
     def as_algebra(self, cls):
         """ Convert algebra to another algebra.
 
-        This method uses default conversation via primitive algebra that
+        This method uses default conversation via verbatim algebra that
         might not be the most efficient. For efficiency, algebras should
         redefine this method to implement direct conversation.
         """
-        # todo: cache primitive algebras
-        if cls is classes.PrimitiveAlgebra:
-            return self.as_primitive()
-        return self.as_primitive().as_algebra(cls)
+        # todo: cache verbatim algebras
+        if cls is classes.Verbatim:
+            return self.as_verbatim()
+        return self.as_verbatim().as_algebra(cls)
 
     @classmethod
     def get_predefined_symbols(cls, name):
@@ -313,4 +322,4 @@ class BasicAlgebra:
                                   % (self.__class__.__name__))      #pragma NO COVER
 
 
-from .primitive import PrimitiveAlgebra
+from .verbatim import Verbatim

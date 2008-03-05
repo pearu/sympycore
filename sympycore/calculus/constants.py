@@ -7,7 +7,7 @@ __docformat__ = "restructuredtext"
 __all__ = ['Constant', 'const_pi', 'const_E', 'const_gamma']
 
 from ..core import classes
-from ..basealgebra.primitive import SYMBOL, NUMBER
+from ..utils import SYMBOL, NUMBER
 from ..arithmetic.evalf import evalf
 from ..arithmetic import mpmath, setdps
 

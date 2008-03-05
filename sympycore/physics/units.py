@@ -23,11 +23,11 @@ class Unit(CommutativeRingWithPairs):
     def as_algebra(self, cls):
         """ Convert algebra to another algebra.
         """
-        if cls is classes.PrimitiveAlgebra:
-            return self.as_primitive()
+        if cls is classes.Verbatim:
+            return self.as_verbatim()
         if cls is Calculus:
             return NotImplemented
-        return self.as_primitive().as_algebra(cls)
+        return self.as_verbatim().as_algebra(cls)
 
 classes.Unit = Unit
 

@@ -47,6 +47,10 @@ SYMBOL = intern('S')
 APPLY = intern('A')
 TUPLE = intern('T')
 LAMBDA = intern('L')
+POLY = intern('P')
+DENSE_POLY = intern('DP')
+MATRIX = intern('M')
+DENSE_MATRIX = intern('DM')
 
 head_to_string = {\
     OR:'OR', AND:'AND', NOT:'NOT',
@@ -54,4 +58,5 @@ head_to_string = {\
     BAND:'BAND', BOR:'BOR', BXOR:'BXOR', INVERT:'INVERT',
     POS:'POS', NEG:'NEG', ADD:'ADD', SUB:'SUB', MOD:'MOD', MUL:'MUL', DIV:'DIV', POW:'POW',
     NUMBER:'NUMBER', SYMBOL:'SYMBOL', APPLY:'APPLY', TUPLE:'TUPLE', LAMBDA:'LAMBDA',
+    POLY:'POLY', DENSE_POLY:'DENSE_POLY', MATRIX:'MATRIX', DENSE_MATRIX:'DENSE_MATRIX'
     }

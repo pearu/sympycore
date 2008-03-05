@@ -6,18 +6,18 @@
 """
 from __future__ import absolute_import
 __docformat__ = "restructuredtext"
-__all__ = ['PrimitiveAlgebra']
+__all__ = ['Verbatim']
 
 import types
 import re
 import compiler
 from compiler import ast
 
-from .algebra import BasicAlgebra
+from .algebra import Algebra
 from ..utils import (OR, AND, NOT, LT, LE, GT, GE, EQ, NE, BAND, BOR, BXOR,
                      INVERT, POS, NEG, ADD, SUB, MOD, MUL, DIV, POW,
                      NUMBER, SYMBOL, APPLY, TUPLE, LAMBDA, head_to_string)
-from ..core import classes
+from ..core import classes, Expr
 
 # XXX: Unimplemented expression parts:
 # XXX: LeftShift, RightShift, List*, Subscript, Slice, KeyWord, GetAttr, Ellipsis
@@ -70,15 +70,15 @@ def tree_sort(a, b):
         if callable(b):
             return cmp(str(a),str(b))
         else:
-            return cmp(head_order.index(APPLY), head_order.index(b.tree[0]))
+            return cmp(head_order.index(APPLY), head_order.index(b.head))
     elif callable(b):
-        return cmp(head_order.index(a.tree[0]), head_order.index(APPLY))
-    h1 = a.tree[0]
-    h2 = b.tree[0]
+        return cmp(head_order.index(a.head), head_order.index(APPLY))
+    h1 = a.head
+    h2 = b.head
     c = cmp(head_order.index(h1), head_order.index(h2))
     if c:
         return c
-    t1,t2 = a.tree[1], b.tree[1]
+    t1,t2 = a.data, b.data
     if h1 is SYMBOL or h1 is NUMBER:
         return cmp(t1, t2)
     c = cmp(len(t1), len(t2))
@@ -92,11 +92,9 @@ def tree_sort(a, b):
         if c: return c
     return 0
 
-class PrimitiveAlgebra(object, BasicAlgebra):
+class Verbatim(Algebra):
     """ Represents an unevaluated expression.
     """
-
-    __slots__ = ['tree', '_str']
 
     commutative_add = None
     commutative_mul = None
@@ -104,38 +102,21 @@ class PrimitiveAlgebra(object, BasicAlgebra):
 
     _str = None
 
-    def __new__(cls, tree, head=None):
-        if head is None:
-            return cls.convert(tree)
-        if isinstance(tree, cls):
-            return tree
-        if type(tree) is not tuple:
-            tree = (head, tree)
-        obj = object.__new__(cls)
-        obj.tree = tree
-        return obj
-
-    __repr__ = BasicAlgebra.__repr__
-
-    #def __repr__(self):
-    #    return '%s(%r, head=%s)' % (self.__class__.__name__, self.tree[1],
-    #                                head_to_string[self.tree[0]])
-
     @classmethod
     def convert(cls, obj):
         if isinstance(obj, (str, unicode)):
-            obj = string2PrimitiveAlgebra(obj)
-        if hasattr(obj, 'as_primitive'):
-            return obj.as_primitive()
+            obj = string2Verbatim(obj)
+        if hasattr(obj, 'as_verbatim'):
+            return obj.as_verbatim()
         if isinstance(obj, cls):
             return obj
-        return PrimitiveAlgebra(obj, head=SYMBOL)
+        return Verbatim(SYMBOL, obj)
 
-    def as_primitive(self):
+    def as_verbatim(self):
         return self
 
     def as_algebra(self, cls, source=None):
-        head, rest = self.tree
+        head, rest = self.pair
         if head is NUMBER:
             if hasattr(rest,'coefftypes') and isinstance(rest, cls.coefftypes):
                 return cls.Number(rest)
@@ -148,21 +129,28 @@ class PrimitiveAlgebra(object, BasicAlgebra):
         if head is ADD:
             return cls.Add(*[r.as_algebra(cls) for r in rest])
         if head is SUB:
+            return cls.Sub(*[r.as_algebra(cls) for r in rest])
             return rest[0].as_algebra(cls) - cls.Add(*[r.as_algebra(cls) for r in rest[1:]])
         if head is MUL:
             return cls.Mul(*[r.as_algebra(cls) for r in rest])
         if head is DIV:
-            return rest[0].as_algebra(cls) / cls.Mul(*[r.as_algebra(cls) for r in rest[1:]])
+            return cls.Div(*[r.as_algebra(cls) for r in rest])
         if head is POW:
             base, exp = rest
-            h, r = exp.tree
+            h, r = exp.pair
             if h is NUMBER:
                 return cls.Pow(base.as_algebra(cls), cls.convert_exponent(r))
             return cls.Pow(base.as_algebra(cls), exp.as_algebra(cls))
         if head is NEG:
-            return -(rest[0].as_algebra(cls))
+            if isinstance(rest, tuple):
+                assert len(rest)==1,`rest`
+                rest = rest[0]
+            return -(rest.as_algebra(cls))
         if head is POS:
-            return +(rest[0].as_algebra(cls))
+            if isinstance(rest, tuple):
+                assert len(rest)==1,`rest`
+                rest = rest[0]
+            return +(rest.as_algebra(cls))
         if head is APPLY:
             func = rest[0].as_algebra(cls)
             args = [a.as_algebra(cls) for a in rest[1:]]
@@ -178,7 +166,7 @@ class PrimitiveAlgebra(object, BasicAlgebra):
         return s
 
     def _compute_str(self):
-        head, rest = self.tree
+        head, rest = self.pair
         if head is SYMBOL or head is NUMBER:
             s = str(rest)
             if not (_is_name(s) or _is_number(s)) and not s.startswith('('):
@@ -200,25 +188,26 @@ class PrimitiveAlgebra(object, BasicAlgebra):
             return 'lambda %s: %s' % (str(args)[1:-1], body)
         if head is TUPLE:
             return '(%s)' % (', '.join(map(str,rest)))
-        if len(rest)>100:
-            self.disable_sorting = True
+        if head is NEG or head is POS:
+            return '%s%s' % (head, rest)
         if head is ADD:
+            if len(rest)>100:
+                self.disable_sorting = True
             if self.commutative_add:
                 if not self.disable_sorting:
                     rest = sorted(rest, cmp=tree_sort)
             r = ''
             for t in rest:
-                h = t.tree[0]
+                h = t.head
                 while h is POS:
-                    t = t.tree[1][0]
-                    h = t.tree[0]
+                    h,t = r.pair
                 sign = ' + '
                 if h is NEG:
                     if not r:
                         r = str(t)
                         continue
                     sign = ' - '
-                    s = str(t.tree[1][0])
+                    s = str(t.data)
                 else:
                     s = str(t)
                     if not r:
@@ -228,11 +217,13 @@ class PrimitiveAlgebra(object, BasicAlgebra):
                 r += sign + s
             return r
         if head is MUL and self.commutative_mul:
+            if len(rest)>100:
+                self.disable_sorting = True
             if not self.disable_sorting:
                 rest = sorted(rest, cmp=tree_sort)
         l = []
         for t in rest:
-            h = t.tree[0]
+            h = t.head
             s = str(t)
             if h is NUMBER and s.startswith('-'):
                 h = ADD
@@ -254,65 +245,64 @@ class PrimitiveAlgebra(object, BasicAlgebra):
             r = []
         else:
             r = [self.__class__.__name__+':']
-        head, rest = self.tree
+        head, rest = self.pair
         if head in [SYMBOL, NUMBER]:
             r.append(tab + '%s[%s]' % (head_to_string[head], rest))
         else:
             r.append(tab + '%s[' % (head_to_string[head]))
+            if isinstance(rest, Verbatim):
+                rest = rest,
             for t in rest:
                 r.append(t.as_tree(tab=tab + '  ', level=level+1))
             r.append(tab+']')
         return '\n'.join(r)
 
     def __eq__(self, other):
-        if type(other) is PrimitiveAlgebra:
-            return self.tree == other.tree
-        return self.tree == other
-
-    def __hash__(self):
-        return hash(self.tree)
+        if type(other) is Verbatim:
+            return self.pair == other.pair
+        return False
 
     def __pos__(self):
-        return PrimitiveAlgebra((POS, (self,)))
+        return Verbatim(POS, self)
     def __neg__(self):
-        return PrimitiveAlgebra((NEG, (self,)))
+        return Verbatim(NEG, self)
     def __add__(self, other):
         other = self.convert(other)
-        return PrimitiveAlgebra((ADD, (self, other)))
+        return Verbatim(ADD, (self, other))
     def __radd__(self, other):
         other = self.convert(other)
-        return PrimitiveAlgebra((ADD, (other, self)))
+        return Verbatim(ADD, (other, self))
     def __sub__(self, other):
         other = self.convert(other)
-        return PrimitiveAlgebra((SUB, (self, other)))
+        return Verbatim(SUB, (self, other))
     def __rsub__(self, other):
         other = self.convert(other)
-        return PrimitiveAlgebra((SUB, (other, self)))
+        return Verbatim(SUB, (other, self))
     def __mul__(self, other):
         other = self.convert(other)
-        return PrimitiveAlgebra((MUL, (self, other)))
+        return Verbatim(MUL, (self, other))
     def __rmul__(self, other):
         other = self.convert(other)
-        return PrimitiveAlgebra((MUL, (other, self)))
+        return Verbatim(MUL, (other, self))
     def __div__(self, other):
         other = self.convert(other)
-        return PrimitiveAlgebra((DIV, (self, other)))
+        return Verbatim(DIV, (self, other))
     def __rdiv__(self, other):
         other = self.convert(other)
-        return PrimitiveAlgebra((DIV, (other, self)))
+        return Verbatim(DIV, (other, self))
     def __pow__(self, other):
         other = self.convert(other)
-        return PrimitiveAlgebra((POW, (self, other)))
+        return Verbatim(POW, (self, other))
     def __rpow__(self, other):
         other = self.convert(other)
-        return PrimitiveAlgebra((POW, (other, self)))
+        return Verbatim(POW, (other, self))
     __truediv__ = __div__
     __rtruediv__ = __rdiv__
 
 
-classes.PrimitiveAlgebra = PrimitiveAlgebra
+classes.Verbatim = Verbatim
 
-########### string to PrimitiveAlgebra parser ############
+########### string to Verbatim parser ############
 
 node_names = []
 skip_names = ['Module','Stmt','Discard']
@@ -331,7 +321,7 @@ node_map = dict(Add='ADD', Mul='MUL', Sub='SUB', Div='DIV', FloorDiv='DIV',
 compare_map = {'<':LT, '>':GT, '<=':LT, '>=':GE,
                '==':EQ, '!=':NE}
 
-class PrimitiveWalker:
+class VerbatimWalker:
     """ Helper class for expression parser.
     """
 
@@ -355,10 +345,10 @@ class PrimitiveWalker:
                 # apply associativity:
                 last[1].extend(lst)
                 return
-        self.append(PrimitiveAlgebra((head, tuple(lst))))
+        self.append(Verbatim(head, tuple(lst)))
     # for atomic instance:
-    def add(self, obj):
-        self.append(PrimitiveAlgebra(obj))
+    def add(self, *args):
+        self.append(Verbatim(*args))
 
     for _n in node_names:
         if _n in node_map:
@@ -383,10 +373,10 @@ def visit%s(self, node):
 
     # visitNode methods:
     def visitName(self, node):
-        self.add((SYMBOL, node.name))
+        self.add(SYMBOL, node.name)
 
     def visitConst(self, node):
-        self.add((NUMBER, node.value))
+        self.add(NUMBER, node.value)
 
     def visitCompare(self, node):
         lhs = node.expr
@@ -407,8 +397,8 @@ def visit%s(self, node):
         self.visit(node.code)
         self.end()
 
-def string2PrimitiveAlgebra(expr):
-    """ Parse string expr to PrimitiveAlgebra.
+def string2Verbatim(expr):
+    """ Parse string expr to Verbatim.
     """
     node = compiler.parse(expr)
-    return compiler.walk(node, PrimitiveWalker()).stack.pop()
+    return compiler.walk(node, VerbatimWalker()).stack.pop()

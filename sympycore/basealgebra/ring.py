@@ -4,9 +4,9 @@
 __docformat__ = "restructuredtext"
 __all__ = ['CommutativeRing']
 
-from .algebra import BasicAlgebra
+from .algebra import Algebra
 
-class CommutativeRing(BasicAlgebra):
+class CommutativeRing(Algebra):
     """ Base class to commutative rings.
 
     Derived classes may redefine the following methods::
@@ -272,4 +272,4 @@ class CommutativeRing(BasicAlgebra):
             return pattern._matches_seq(pattern.args, expr.args, repl_dict, wild_info)
         return
 
-from .primitive import NUMBER, SYMBOL
+from ..utils import NUMBER, SYMBOL

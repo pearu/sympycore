@@ -8,8 +8,7 @@ __all__ = ['Calculus', 'I']
 
 from ..core import classes
 from ..utils import TERMS, str_PRODUCT, FACTORS, SYMBOL, NUMBER
-from ..basealgebra import BasicAlgebra
-from ..basealgebra.primitive import PrimitiveAlgebra
+from ..basealgebra import Algebra, Verbatim
 from ..basealgebra.pairs import CommutativeRingWithPairs
 
 from ..arithmetic.numbers import normalized_fraction, mpq, mpf, mpc, mpqc, try_power
@@ -36,13 +35,13 @@ class Calculus(CommutativeRingWithPairs):
     def as_algebra(self, cls):
         """ Convert algebra to another algebra.
         """
-        if cls is classes.PrimitiveAlgebra:
-            return self.as_primitive()
+        if cls is Verbatim:
+            return self.as_verbatim()
         if cls is classes.Unit:
             return cls(self, NUMBER)
         if issubclass(cls, PolynomialRing):
             return self.as_polynom(cls)
-        return self.as_primitive().as_algebra(cls)
+        return self.as_verbatim().as_algebra(cls)
 
     defined_functions = {}
 
@@ -87,11 +86,11 @@ class Calculus(CommutativeRingWithPairs):
             return mpc(obj.real, obj.imag)
 
         # parse algebra expression from string:
-        if isinstance(obj, (str, unicode, PrimitiveAlgebra)):
-            return PrimitiveAlgebra(obj).as_algebra(cls)
+        if isinstance(obj, (str, unicode, Verbatim)):
+            return Verbatim.convert(obj).as_algebra(cls)
 
         # convert from another algebra:
-        if isinstance(obj, BasicAlgebra):
+        if isinstance(obj, Algebra):
             return obj.as_algebra(cls)
 
         if typeerror:

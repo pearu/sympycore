@@ -152,7 +152,7 @@ def test_Factors_args():
     assert Factors(*m.as_Factors_args())==m
     assert Factors(*m2.as_Factors_args())==m2
 
-def test_as_primitive():
+def test_as_verbatim():
     a = Symbol('a')
     b = Symbol('b')
     n = Number(2)
@@ -162,13 +162,13 @@ def test_as_primitive():
     m = a ** 2
     m2 = a*b
 
-    assert str(a.as_primitive())=='a'
-    assert str(n.as_primitive())=='2'
-    assert str(t.as_primitive())=='-3'
-    assert str(s.as_primitive())=='2 + a'
-    assert str(s1.as_primitive())=='2*a'
-    assert str(m.as_primitive())=='a**2'
-    assert str(m2.as_primitive())=='a*b'
+    assert str(a.as_verbatim())=='a'
+    assert str(n.as_verbatim())=='2'
+    assert str(t.as_verbatim())=='-3'
+    assert str(s.as_verbatim())=='2 + a'
+    assert str(s1.as_verbatim())=='2*a'
+    assert str(m.as_verbatim())=='a**2'
+    assert str(m2.as_verbatim())=='a*b'
 
 def test_Mul():
     a = Symbol('a')

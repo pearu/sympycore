@@ -173,7 +173,7 @@ def inplace_sub(cls, obj, pairs, pairs_get, one):
                         pairs[one] = _tmp100
                     else:
                         del pairs[one]
-        elif HEAD is TERMS:
+        elif head is TERMS:
             for t,c in data.iteritems():
                 #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=t; VALUE=c; SIGN=-; USIGN=-)
                 _tmp107 = pairs_get(t)

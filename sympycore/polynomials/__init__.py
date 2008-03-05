@@ -5,5 +5,4 @@ __docformat__ = "restructuredtext"
 
 from .algebra import PolynomialRing
 
-from .univariate import UnivariatePolynomial
-poly = UnivariatePolynomial
+from .univariate import UnivariatePolynomial, poly
