@@ -158,7 +158,7 @@ where the data structures are interpreted as follows::
 respectively.
 
 In general, there is no preferred representation for symbolic
-expressions, each have pros and cons depending on the tasks.
+expressions, each have their pros and cons depending on the tasks.
 
 
 Verbatim algebra

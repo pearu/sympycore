@@ -195,13 +195,14 @@ class Calculus(CommutativeRingWithPairs):
         return
 
     def __eq__(self, other):
-        if self is other:
-            return True
-        if type(self) is type(other):
-            return self.pair == other.pair
+        try:
+            return other.pair == self.pair
+        except AttributeError:
+            pass
         head, data = self.pair
         if head is NUMBER and isinstance(other, convertible_numbers):
-            if type(other) in (float, complex):
+            tother = type(other)
+            if tother is float or tother is complex:
                 return data == float_one * other
             return data == other
         return NotImplemented
