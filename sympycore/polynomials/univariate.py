@@ -45,6 +45,13 @@ class UnivariatePolynomial(Algebra):
     """ Represents (dense) univariate polynomial.
     """
 
+    @classmethod
+    def convert(cls, data, typeerror=True):
+        if isinstance(data, (list, tuple)):
+            coefs = data or [0]
+            return cls(PolynomHead('x'), normalized(coefs))
+        return super(CommutativeRing, cls).convert(data, typeerror=True)
+
     @property
     def degree(self):
         return len(self.data)-1

@@ -15,6 +15,11 @@ SympyCore User's Guide
 :Created:
   January 2008
 
+:Website: http://sympycore.googlecode.com/
+:Version: sympycore 0.2-svn.
+   Other versions: `0.1`__.
+
+__ http://sympycore.googlecode.com/svn-history/r818/trunk/doc/html/userguide.html
 
 .. section-numbering::
 
@@ -29,8 +34,6 @@ Introduction
 
 The aim of the SympyCore project is to develop a robust, consistent,
 and easy to extend Computer Algebra System model for Python.
-
-SympyCore projects home page is http://sympycore.googlecode.com/.
 
 Editorial notes:
 - This document is written in `reStructuredText <http://docutils.sourceforge.net/rst.html>`_ format.
@@ -56,9 +59,9 @@ Calculus('x + 2/5')
 >>> x,y,z,v,w=map(Symbol,'xyzvw')
 
 To construct expression from a string, use the corresponding algebra
-class ``convert`` method, for example,
+class with one argument. For example,
 
->>> Calculus.convert('x+y+1/4 + x**2')+x
+>>> Calculus('x+y+1/4 + x**2')+x
 Calculus('y + x**2 + 1/4 + 2*x')
 
 More examples on ``sympycore`` features can be found in `Demo documentation`__.
@@ -120,13 +123,14 @@ are internally saved as Python dictionary keys), and the arguments to
 ``sympycore.arithmetic`` package).
 
 One can construct symbolic objects from Python strings using algebra
-``convert`` class method. For example,
+``convert`` class method or algebra constructor with one argument. For
+example,
 
 >>> Calculus.convert('a-3/4+b**2')
 Calculus('a + b**2 - 3/4')
->>> Calculus.convert('a-3/4+b**2').func
+>>> Calculus('a-3/4+b**2').func
 <bound method type.Add of <class 'sympycore.calculus.algebra.Calculus'>>
->>> Calculus.convert('a-3/4+b**2').args
+>>> Calculus('a-3/4+b**2').args
 [Calculus('a'), Calculus('-3/4'), Calculus('b**2')]
 
 Package structure
@@ -212,7 +216,7 @@ Output methods
 ``str(<symbolic object>)``
   return a nice string representation of the symbolic object. For example,
 
-  >>> expr = Calculus.convert('-x + 2')
+  >>> expr = Calculus('-x + 2')
   >>> str(expr)
   '2 - x'
 
@@ -220,14 +224,14 @@ Output methods
   return a string representation of the symbolic object that can be
   used to reproduce an equal object:
 
-  >>> expr=Calculus.convert('-x+2')
+  >>> expr=Calculus('-x+2')
   >>> repr(expr)
   "Calculus('2 - x')"
 
 ``<symbolic object>.as_tree()``
   return a tree string representation of the symbolic object. For example,
 
-  >>> expr = Calculus.convert('-x + 2+y**3')
+  >>> expr = Calculus('-x + 2+y**3')
   >>> print expr.as_tree()
   Calculus:
   ADD[
@@ -267,7 +271,7 @@ Conversation methods
   of targer algebra class by executing the corresponding target
   algebra operators on operands. For example,
 
-  >>> expr = Calculus.convert('-x + 2')
+  >>> expr = Calculus('-x + 2')
   >>> print expr.as_tree()
   Calculus:
   ADD[
@@ -296,7 +300,7 @@ Substitution of expressions
   return a copy of ``<symbolic object>`` with all occurances of
   ``<sub-expr>`` replaced with ``<new-expr>``. For example,
 
-  >>> expr = Calculus.convert('-x + 2+y**3')
+  >>> expr = Calculus('-x + 2+y**3')
   >>> expr
   Calculus('2 + y**3 - x')
   >>> expr.subs('y', '2*z')
@@ -357,7 +361,7 @@ Verbatim algebra
 Verbatim algebra elements are symbolic expressions that are not
 simplified in anyway when performing operatons. For example,
 
->>> s=Verbatim.convert('s')
+>>> s=Verbatim('s')
 >>> s+s
 Verbatim('s + s')
 
@@ -657,7 +661,7 @@ default element ring.
 
 For example,
 
->>> m=MatrixRing[3,4].convert({})
+>>> m=MatrixRing[3,4]({})
 >>> print m
  0  0  0  0
  0  0  0  0
@@ -675,17 +679,17 @@ pairs ``(<rowindex>,<column-index>): <non-zero element>``.
 Matrix instances can be constructed from Python dictionary or from a
 Python list:
 
->>> print MatrixRing[2,2].convert({(0,0):1,(0,1):2,(1,1):3})
+>>> print MatrixRing[2,2]({(0,0):1,(0,1):2,(1,1):3})
  1  2
  0  3
->>> print MatrixRing[2,2].convert([[1,2],[3,4]])
+>>> print MatrixRing[2,2]([[1,2],[3,4]])
  1  2
  3  4
 
 Permutation matrices can be constructed from a sequence of
 integers:
 
->>> print PermutationMatrix.convert([1,0,2])
+>>> print PermutationMatrix([1,0,2])
  0  1  0
  1  0  0
  0  0  1
@@ -766,7 +770,7 @@ example to keep the expression ``2*(x+y)`` in factored form. The most
 general way to achieve this is to use the ``Verbatim`` class
 (which performs no simplifications whatsoever) instead of ``Calculus``.
 
-    >>> Verbatim.convert('2*(x+pi)')
+    >>> Verbatim('2*(x+pi)')
     Verbatim('2*(x + pi)')
 
 You can also construct non-canonical ``Calculus`` instances by manually
@@ -791,5 +795,5 @@ will be available at the top of the expression. Thus:
 To canonize an expression, either use the function XXX or convert it to
 ``Verbatim`` and then back to ``Calculus``.
 
-    >>> Calculus.convert(Verbatim.convert(p))
+    >>> Calculus(Verbatim(p))
     Calculus('2*pi + 2*x')

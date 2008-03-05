@@ -44,7 +44,7 @@ static char Expr_doc[] = \
   "    head, data = a.pair             - fastest way\n"			\
   "\n"									\
   "When Expr constructor is called with one argument, say ``x``, then\n"\
-  "``<Expr subclass>.convert(x)`` will be returned\n"                   \ 
+  "``<Expr subclass>.convert(x)`` will be returned\n"                   \
   "\nThis is C version of Expr type.\n"
 ;
 
@@ -112,7 +112,7 @@ Expr_new(PyTypeObject *type, PyObject *args, PyObject *kws)
   }  
   if (len!=2) {
     PyErr_SetString(PyExc_TypeError,
-		    "Expr.__new__ expects exactly 2 arguments: (head, data)");
+		    "Expr.__new__ expects 1 or 2 arguments: obj or (head, data)");
     return NULL;
   }
   

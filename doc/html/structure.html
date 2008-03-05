@@ -312,6 +312,7 @@ ul.auto-toc {
 <li><a class="reference" href="#implementation-of-principles" id="id2" name="id2">2&nbsp;&nbsp;&nbsp;Implementation of principles</a></li>
 <li><a class="reference" href="#low-level-numbers" id="id3" name="id3">3&nbsp;&nbsp;&nbsp;Low-level numbers</a></li>
 <li><a class="reference" href="#various-representations" id="id4" name="id4">4&nbsp;&nbsp;&nbsp;Various representations</a></li>
+<li><a class="reference" href="#verbatim-algebra" id="id5" name="id5">5&nbsp;&nbsp;&nbsp;Verbatim algebra</a></li>
 </ul>
 </div>
 </div>
@@ -330,23 +331,24 @@ given algebraic structure.</p>
 <div class="section">
 <h1><a class="toc-backref" href="#id2" id="implementation-of-principles" name="implementation-of-principles">2&nbsp;&nbsp;&nbsp;Implementation of principles</a></h1>
 <p>In sympycore, a symbolic expression is defined as an instance of a
-<tt class="docutils literal"><span class="pre">Pair</span></tt> class (the actual implementation of any code that follows
+<tt class="docutils literal"><span class="pre">Expr</span></tt> class (the actual implementation of any code that follows
 below may differ because of efficiency, here we just explain some
 basic ideas):</p>
 <pre class="literal-block">
-class Pair(object):
+class Expr(object):
 
     def __init__(self, head, data):
+        self.pair = (head, data)
         self.head = head
         self.data = data
 </pre>
-<p>In a way, the <tt class="docutils literal"><span class="pre">Pair</span></tt> class represents an algebra with no
+<p>In a way, the <tt class="docutils literal"><span class="pre">Expr</span></tt> class represents an algebra with no
 mathematical properties - it just holds some <em>head</em> and some <em>data</em>.</p>
 <p>To define an algebra with additional features such as opertions
-between its elements, a Python class is derived from the <tt class="docutils literal"><span class="pre">Pair</span></tt>
+between its elements, a Python class is derived from the <tt class="docutils literal"><span class="pre">Expr</span></tt>
 class:</p>
 <blockquote>
-<p>class AlgebraicStructure(Pair):</p>
+<p>class AlgebraicStructure(Expr):</p>
 <blockquote>
 <dl class="docutils">
 <dt>def operation(self, other):</dt>
@@ -359,7 +361,7 @@ return result</dd>
 <p>For example. a commutative ring element can be represented as an
 instance of the following class:</p>
 <pre class="literal-block">
-class CommutativeRing(Pair):
+class CommutativeRing(Expr):
 
      def __add__(self, other):
          return CommutativeRing('+', (self, other))
@@ -370,7 +372,7 @@ class CommutativeRing(Pair):
          return CommutativeRing('*', (self, other))
 </pre>
 <p>For convenience, some additional methods can be provided to simplify
-creating instances of the <tt class="docutils literal"><span class="pre">Pair</span></tt> based classes. For example, to
+creating instances of the <tt class="docutils literal"><span class="pre">Expr</span></tt> based classes. For example, to
 define a symbol of a commutative ring:</p>
 <pre class="literal-block">
 def Symbol(name):
@@ -459,6 +461,11 @@ x**3 * y**0 * 1 + x**0 * y**1 * 2
 <p>respectively.</p>
 <p>In general, there is no preferred representation for symbolic
 expressions, each have pros and cons depending on the tasks.</p>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id5" id="verbatim-algebra" name="verbatim-algebra">5&nbsp;&nbsp;&nbsp;Verbatim algebra</a></h1>
+<p>Sympycore defines <tt class="docutils literal"><span class="pre">Verbatim</span></tt> class that represents verbatim algebra,
+that is, it contains expressions in unevaluated form.</p>
 </div>
 </div>
 </body>
