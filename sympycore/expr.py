@@ -66,14 +66,22 @@ Python::
     head, data = a.head, a.data     - for backward compatibility	
     head, data = a.pair             - fastest way			
 
+When Expr constructor is called with one argument, say ``x``, then
+``<Expr subclass>.convert(x)`` will be returned.
+
 This is Python version of Expr type.
 """
 
     __slots__ = ['head', 'data', 'pair', '_hash']
 
-    def __init__(self, head, data):
-        self.pair = (head, data)
-        self._hash = None
+    def __init__(self, head, data=None):
+        if data is None:
+            obj = self.convert(head)
+            self.pair = obj.pair
+            self._hash = obj._hash
+        else:
+            self.pair = (head, data)
+            self._hash = None
 
     def __repr__(self):
         return '%s%r' % (type(self).__name__, self.pair)

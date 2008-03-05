@@ -43,7 +43,9 @@ static char Expr_doc[] = \
   "    head, data = a.head, a.data     - for backward compatibility\n"	\
   "    head, data = a.pair             - fastest way\n"			\
   "\n"									\
-  "This is C version of Expr type.\n"
+  "When Expr constructor is called with one argument, say ``x``, then\n"\
+  "``<Expr subclass>.convert(x)`` will be returned\n"                   \ 
+  "\nThis is C version of Expr type.\n"
 ;
 
 #include <Python.h>
@@ -89,31 +91,38 @@ Expr_dealloc(Expr* self)
 }
 
 static PyObject *
-Expr_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+Expr_new(PyTypeObject *type, PyObject *args, PyObject *kws)
 {
   Py_ssize_t len;
-  Expr *self = (Expr *)type->tp_alloc(type, 0);
+  Expr *self = NULL;
+ 
+  if (!PyTuple_Check(args)) {
+    PyErr_SetString(PyExc_SystemError,
+		    "new style getargs format but argument is not a tuple");
+    return NULL;
+  }
 
+  len = PyTuple_GET_SIZE(args);
+  if (len==1) {
+    return PyObject_CallMethodObjArgs((PyObject*)type,
+				      PyString_FromString("convert"),
+				      PyTuple_GET_ITEM(args, 0),
+				      NULL
+				      );
+  }  
+  if (len!=2) {
+    PyErr_SetString(PyExc_TypeError,
+		    "Expr.__new__ expects exactly 2 arguments: (head, data)");
+    return NULL;
+  }
+  
+  self = (Expr *)type->tp_alloc(type, 0);
   if (self != NULL) {
-    
-    if (!PyTuple_Check(args)) {
-      PyErr_SetString(PyExc_SystemError,
-		      "new style getargs format but argument is not a tuple");
-      return NULL;
-    }
-
-    len = PyTuple_GET_SIZE(args);
-    if (len!=2) {
-      PyErr_SetString(PyExc_TypeError,
-		      "Expr.__new__ expects exactly 2 arguments: (head, data)");
-      return NULL;
-    }
-
     self->pair = args;    
     self->hash = -1;
     Py_INCREF(self->pair);
   }
-    return (PyObject *)self;
+  return (PyObject *)self;
 }
 
 static long dict_hash(PyObject *d);
