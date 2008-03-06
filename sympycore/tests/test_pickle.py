@@ -28,7 +28,5 @@ def test_pickle():
     assert obj.data == obj2.data,`obj.data, obj2.data`
     assert obj.pair == obj2.pair,`obj.pair, obj2.pair`
 
-    #assert obj==obj2,`obj,obj2`
-
-
+    assert obj==obj2,`obj,obj2`
     os.remove(fn)

@@ -141,3 +141,18 @@ This is Python version of Expr type.
             raise NotImplementedError('pickle state version %s' % (version))
         return  _reconstruct, (version, state)
 
+    def __cmp__(self, other):
+        if type(other) is not type(self):
+            return NotImplemented
+        ah, ad = self.pair
+        bh, bd = other.pair
+        if ah is bh:
+            if ad is bd:
+                return 0
+            return cmp(ad, bd)
+        c = cmp(ah, bh)
+        if c:
+            return c
+        elif ad is bd:
+            return 0
+        return cmp(ad, bd)

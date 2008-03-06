@@ -240,7 +240,6 @@ Expr_repr(Expr *self)
 				      self->pair));
 }
 
-
 /* Pickle support */
 static PyObject *
 Expr_reduce(Expr *self)
@@ -274,14 +273,40 @@ Expr_reduce(Expr *self)
   PyTuple_SET_ITEM(ret, 0, obj);
   /* version=1 state: */
   PyTuple_SET_ITEM(ret, 1,
-		   Py_BuildValue("N(OOl)",
-				 PyInt_FromLong(version),
+		   Py_BuildValue("l(OOl)",
+				 version,
 				 (PyObject *)self->ob_type,
 				 self->pair,
 				 self->hash));
   return ret;
 }
 
+static int
+Expr_compare(Expr* a, Expr* b)
+{
+  PyObject* ah = PyTuple_GET_ITEM(a->pair, 0);
+  PyObject* bh = PyTuple_GET_ITEM(b->pair, 0);
+  PyObject* ad = PyTuple_GET_ITEM(a->pair, 1);
+  PyObject* bd = PyTuple_GET_ITEM(b->pair, 1);
+  int res;
+  if (ah == bh)
+    if (ad == bd)
+      res = 0;
+    else
+      res = PyObject_Compare(ad, bd);
+  else
+    { 
+      res = PyObject_Compare(ah, bh);
+      if (!res) 
+	{
+	  if (ad==bd)
+	    res = 0;
+	  else
+	    res = PyObject_Compare(ad, bd);
+	}
+    }
+  return res;
+}
 
 static PyGetSetDef Expr_getseters[] = {
     {"head", (getter)Expr_gethead, NULL,
@@ -302,8 +327,6 @@ static PyMethodDef Expr_methods[] = {
   {NULL, NULL}           /* sentinel */
 };
 
-  
-
 static PyTypeObject ExprType = {
   PyObject_HEAD_INIT(NULL)
   0,                         /*ob_size*/
@@ -314,7 +337,7 @@ static PyTypeObject ExprType = {
   0,                         /*tp_print*/
   0,                         /*tp_getattr*/
   0,                         /*tp_setattr*/
-  0,                         /*tp_compare*/
+  (cmpfunc)Expr_compare,     /*tp_compare*/
   (reprfunc)Expr_repr,       /*tp_repr*/
   0,                         /*tp_as_number*/
   0,                         /*tp_as_sequence*/
