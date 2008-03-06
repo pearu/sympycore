@@ -189,6 +189,17 @@ Expr_hash(PyObject *self)
 }
 
 static PyObject *
+Expr_sethash(Expr *self, PyObject *args)
+{
+  long h = -1;
+  if (PyArg_ParseTuple(args, "l", &h)==-1)
+    return NULL;
+  self->hash = h;
+  return Py_BuildValue("");
+}
+
+
+static PyObject *
 Expr_gethead(Expr *self, void *closure)
 {
   PyObject *obj = PyTuple_GET_ITEM(self->pair, 0);
@@ -229,6 +240,49 @@ Expr_repr(Expr *self)
 				      self->pair));
 }
 
+
+/* Pickle support */
+static PyObject *
+Expr_reduce(Expr *self)
+{
+  /* version number of this pickle type. Increment if we need to
+     change the format. Be sure to handle the old versions in
+     sympycore.core._reconstruct. */
+  const int version = 1;
+  PyObject *mod = NULL;
+  PyObject *ret = NULL;
+  PyObject *obj = NULL;
+
+  /* __reduce__ will return a tuple consisting of the following items:
+     1) A callable object that will be called to create the initial
+        version of the object:  sympycore.core._reconstruct.
+     2) A tuple of arguments for the callable object:
+           (version, state)
+        where state = (cls, pair, hash) for version=1.
+   */
+
+  ret = PyTuple_New(2);
+  if (ret == NULL) return NULL;
+
+  mod = PyImport_ImportModule("sympycore.core");
+  if (mod == NULL) return NULL;
+  Py_DECREF(mod);
+
+  obj = PyObject_GetAttrString(mod, "_reconstruct");
+  if (obj == NULL) return NULL;
+
+  PyTuple_SET_ITEM(ret, 0, obj);
+  /* version=1 state: */
+  PyTuple_SET_ITEM(ret, 1,
+		   Py_BuildValue("N(OOl)",
+				 PyInt_FromLong(version),
+				 (PyObject *)self->ob_type,
+				 self->pair,
+				 self->hash));
+  return ret;
+}
+
+
 static PyGetSetDef Expr_getseters[] = {
     {"head", (getter)Expr_gethead, NULL,
      "read-only head attribute", NULL},
@@ -240,6 +294,15 @@ static PyGetSetDef Expr_getseters[] = {
      "True when hash has not been computed", NULL},
     {NULL}  /* Sentinel */
 };
+
+static PyMethodDef Expr_methods[] = {
+  /* for Pickling */
+  {"__reduce__", (PyCFunction)Expr_reduce, METH_VARARGS, NULL},
+  {"_sethash", (PyCFunction)Expr_sethash, METH_VARARGS, NULL },
+  {NULL, NULL}           /* sentinel */
+};
+
+  
 
 static PyTypeObject ExprType = {
   PyObject_HEAD_INIT(NULL)
@@ -270,7 +333,7 @@ static PyTypeObject ExprType = {
   0,	                     /* tp_weaklistoffset */
   0,	                     /* tp_iter */
   0,	                     /* tp_iternext */
-  0,                         /* tp_methods */
+  Expr_methods,              /* tp_methods */
   0,                         /* tp_members */
   Expr_getseters,            /* tp_getset */
   0,                         /* tp_base */

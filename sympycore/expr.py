@@ -31,6 +31,7 @@ Python Expr:
 # Author: Pearu Peterson
 # Created: March 2008
 
+__all__ = ['Expr']
 
 class Expr(object):
     """Represents an symbolic expression in a pair form: (head, data)	
@@ -113,3 +114,30 @@ This is Python version of Expr type.
     @property
     def data(self):
         return self.pair[1]
+
+    # Pickle support:
+    def _sethash(self, hashvalue):
+        """ Set hash value for the object.
+
+        If hashvalue==-1, then the hash value will be reset.
+
+        Used by pickle support in sympycore.core._reconstruct. DO NOT
+        use this method directly.
+        """
+        if hashvalue==-1:
+            self._hash = None
+        else:
+            self._hash = hashvalue
+
+    def __reduce__(self):
+        version = 1
+        from sympycore.core import _reconstruct
+        if version==1:
+            hashvalue = self._hash
+            if hashvalue is None:
+                hashvalue = -1
+            state = (type(self), self.pair, hashvalue)
+        else:
+            raise NotImplementedError('pickle state version %s' % (version))
+        return  _reconstruct, (version, state)
+

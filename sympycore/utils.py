@@ -60,3 +60,14 @@ head_to_string = {\
     NUMBER:'NUMBER', SYMBOL:'SYMBOL', APPLY:'APPLY', TUPLE:'TUPLE', LAMBDA:'LAMBDA',
     POLY:'POLY', DENSE_POLY:'DENSE_POLY', MATRIX:'MATRIX', DENSE_MATRIX:'DENSE_MATRIX'
     }
+
+def get_head(head):
+    """ Return head from head copy.
+
+    Used by unpickler to ensure that objects head's can be compared
+    using ``is``.
+    """
+    n = head_to_string.get(head, None)
+    if n is None:
+        return head
+    return globals().get(n, head)

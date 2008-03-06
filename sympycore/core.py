@@ -4,13 +4,37 @@
 __docformat__ = 'restructuredtext'
 __all__ = ['classes', 'Expr']
 
+using_C_Expr = False
 try:
     from .expr_ext import Expr
+    using_C_Expr = True
 except ImportError, msg:
     msg = str(msg)
     if msg!='No module named expr_ext':
         print msg
     from .expr import Expr
+
+# Pickling support:
+from .utils import get_head
+def _reconstruct(version, state):
+    # Used in <Expr instance>.__reduce__
+    if version==1:
+        cls, (head, data), hashvalue = state
+        head = get_head(head)
+        obj = cls(head, data)
+        obj._sethash(hashvalue)
+        return obj
+    raise NotImplementedError('pickle _reconstruct version=%r' % (version))
+
+if using_C_Expr:
+    # To add support pickling pure Expr instances, uncomment the
+    # following line (but it is hackish):
+    #
+    #__builtins__['Expr'] = Expr
+    #
+    # Pickling Python classes derived from Expr should work fine
+    # without this hack.
+    pass
 
 class Holder:
     """ Holds pairs ``(name, value)`` as instance attributes.
@@ -44,5 +68,6 @@ class Holder:
 
 
 classes = Holder('Sympy Basic subclass holder (%(_counter)s classes)')
+classes.Expr = Expr
 #objects = Holder('Sympy predefined objects holder (%(_counter)s objects)')
 
