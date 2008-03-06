@@ -58,6 +58,10 @@ typedef struct {
 
 static PyTypeObject ExprType;
 
+static PyObject* NUMBER;
+static PyObject* SYMBOL;
+static PyObject * Expr_as_lowlevel(Expr *self);
+
 #define Expr_Check(op) PyObject_TypeCheck(op, &ExprType)
 #define Expr_CheckExact(op) ((op)->ob_type == &ExprType)
 
@@ -182,9 +186,15 @@ static long
 Expr_hash(PyObject *self)
 {
   Expr *o = (Expr *)self;
+  PyObject *obj = NULL;
   if (o->hash!=-1)
     return o->hash;
-  o->hash = tuple2_hash(PyTuple_GET_ITEM(o->pair, 0), PyTuple_GET_ITEM(o->pair, 1));
+  //obj = PyObject_CallMethod(self, "as_lowlevel", "");
+  obj = Expr_as_lowlevel(o);
+  if (obj==o->pair || obj==NULL)
+    o->hash = tuple2_hash(PyTuple_GET_ITEM(o->pair, 0), PyTuple_GET_ITEM(o->pair, 1));
+  else
+    o->hash = PyObject_Hash(obj);
   return o->hash;
 }
 
@@ -197,7 +207,6 @@ Expr_sethash(Expr *self, PyObject *args)
   self->hash = h;
   return Py_BuildValue("");
 }
-
 
 static PyObject *
 Expr_gethead(Expr *self, void *closure)
@@ -265,9 +274,8 @@ Expr_reduce(Expr *self)
 
   mod = PyImport_ImportModule("sympycore.core");
   if (mod == NULL) return NULL;
-  Py_DECREF(mod);
-
   obj = PyObject_GetAttrString(mod, "_reconstruct");
+  Py_DECREF(mod);
   if (obj == NULL) return NULL;
 
   PyTuple_SET_ITEM(ret, 0, obj);
@@ -312,12 +320,14 @@ Expr_compare(Expr* a, Expr* b)
 static PyObject *
 Expr_as_lowlevel(Expr *self)
 {
-  Py_INCREF(Py_NotImplemented);
-  return Py_NotImplemented;
-  /*
-    Py_INCREF(self->pair);
-    return self->pair;
-  */
+  PyObject *head = PyTuple_GET_ITEM(self->pair, 0);
+  if (head==NUMBER || head==SYMBOL) {
+    PyObject *data = PyTuple_GET_ITEM(self->pair, 1);
+    Py_INCREF(data);
+    return data;
+  }
+  Py_INCREF(self->pair);
+  return self->pair;
 }
 
 static PyObject *
@@ -357,29 +367,29 @@ Expr_richcompare(PyObject *v, PyObject *w, int op)
   } 
   if (!Expr_Check(v)) {
     if (Expr_Check(w)) {
-      PyObject* obj = PyObject_CallMethod(w,"as_lowlevel","");
-      if (obj==NULL)
-	return NULL;
-      if (obj==Py_NotImplemented) {
-	return obj;
-	Py_DECREF(obj);
-	Py_RETURN_FALSE;  /*XXX: fix me*/
-      }
-      return PyObject_RichCompare(v, obj, op);
+      //PyObject* obj = PyObject_CallMethod(w,"as_lowlevel","");
+      //if (obj==NULL)
+      return PyObject_RichCompare(v, Expr_as_lowlevel(we), op);
+      //if (obj==Py_NotImplemented) {
+      //return obj;
+      //Py_DECREF(obj);
+      //Py_RETURN_FALSE;
+      //}
+      //return PyObject_RichCompare(v, obj, op);
     }
     Py_INCREF(Py_NotImplemented);
     return Py_NotImplemented;
   }
   if (v->ob_type != w->ob_type) {
-    PyObject* obj = PyObject_CallMethod(v,"as_lowlevel","");
-    if (obj==NULL)
-      return NULL;
-    if (obj==Py_NotImplemented) {
-      return obj;
-      Py_DECREF(obj);
-      Py_RETURN_FALSE; /*XXX: fix me*/
-    }
-    return PyObject_RichCompare(obj, w, op);
+    //PyObject* obj = PyObject_CallMethod(v,"as_lowlevel","");
+    //if (obj==NULL)
+    return PyObject_RichCompare(Expr_as_lowlevel(ve), w, op);
+    //if (obj==Py_NotImplemented) {
+    //  return obj;
+    //  Py_DECREF(obj);
+    //  Py_RETURN_FALSE; /*XXX: fix me*/
+    //}
+    //return PyObject_RichCompare(obj, w, op);
   }
   {
 
@@ -403,7 +413,7 @@ static PyMethodDef Expr_methods[] = {
   /* for Pickling */
   {"__reduce__", (PyCFunction)Expr_reduce, METH_VARARGS, NULL},
   {"_sethash", (PyCFunction)Expr_sethash, METH_VARARGS, NULL },
-  {"as_lowlevel", (PyCFunction)Expr_as_lowlevel, METH_VARARGS, NULL },
+  //{"as_lowlevel", (PyCFunction)Expr_as_lowlevel, METH_VARARGS, NULL },
   {NULL, NULL}           /* sentinel */
 };
 
@@ -459,17 +469,32 @@ static PyMethodDef module_methods[] = {
 PyMODINIT_FUNC
 initexpr_ext(void) 
 {
-  PyObject* m;
-  
+  PyObject* m = NULL;
+
   if (PyType_Ready(&ExprType) < 0)
     return;
-  
+
+  m = PyImport_ImportModule("sympycore.utils");
+  if (m == NULL)
+    return;
+  NUMBER = PyObject_GetAttrString(m, "NUMBER");
+  if (NUMBER==NULL) {
+    Py_DECREF(m);
+    return;
+  }
+  SYMBOL = PyObject_GetAttrString(m, "SYMBOL");
+  if (SYMBOL==NULL) {
+    Py_DECREF(m);
+    return;
+  }
+  Py_DECREF(m);
+
   m = Py_InitModule3("expr_ext", module_methods,
 		     "Provides extension type Expr.");
   
   if (m == NULL)
     return;
-  
+
   Py_INCREF(&ExprType);
   PyModule_AddObject(m, "Expr", (PyObject *)&ExprType);
 }

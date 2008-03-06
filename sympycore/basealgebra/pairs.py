@@ -60,12 +60,6 @@ class CommutativeRingWithPairs(CommutativeRing):
     def __nonzero__(self):
         return self.head is not NUMBER or bool(self.data)
 
-    def as_lowlevel(self):
-        head, data = self.pair
-        if head is NUMBER or head is SYMBOL:
-            return data
-        return NotImplemented
-
     def copy(self):
         """ Return a copy of self.
         """

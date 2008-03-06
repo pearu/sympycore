@@ -95,8 +95,9 @@ This is Python version of Expr type.
         """
         h = self._hash
         if not h:
+            pair = self.pair
             obj = self.as_lowlevel()
-            if obj is not NotImplemented:
+            if obj is not pair and obj is not NotImplemented:
                 h = hash(obj)
             else:
                 head, data = pair = self.pair
@@ -168,7 +169,10 @@ This is Python version of Expr type.
         In case of success, the low-level object instance is used
         in comparisons as well as in hash computation.
         """
-        return NotImplemented
+        head, data = pair = self.pair
+        if head is NUMBER or head is SYMBOL:
+            return data
+        return pair
 
     def __nonzero__(self):
         return not not self.data
@@ -204,3 +208,5 @@ This is Python version of Expr type.
                 return False
             return ad < bd
         return ah < bh
+
+from .utils import NUMBER, SYMBOL
