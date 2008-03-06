@@ -95,11 +95,15 @@ This is Python version of Expr type.
         """
         h = self._hash
         if not h:
-            head, data = pair = self.pair
-            if type(data) is dict:
-                h = hash((head, frozenset(data.iteritems())))
+            num = self.as_number()
+            if num is not NotImplemented:
+                h = hash(num)
             else:
-                h = hash(pair)
+                head, data = pair = self.pair
+                if type(data) is dict:
+                    h = hash((head, frozenset(data.iteritems())))
+                else:
+                    h = hash(pair)
             self._hash = h
         return h
 
@@ -156,3 +160,52 @@ This is Python version of Expr type.
         elif ad is bd:
             return 0
         return cmp(ad, bd)
+
+    def as_number(self):
+        """ Return self as low-level number instance or NotImplemented.
+
+        In case of success, the low-level number instance is used
+        in comparisons as well as in hash computation.
+        """
+        return NotImplemented
+
+    def __eq__(self, other):
+        if type(other) is not type(self):
+            num = self.as_number()
+            if num is NotImplemented:
+                return False
+            return num == other
+        ah, ad = self.pair
+        bh, bd = other.pair
+        if ah is bh:
+            if ad is bd:
+                return True
+            return ad==bd
+        elif ah == bh:
+            if ad is bd:
+                return True
+            return ad==bd
+        return False
+
+    def __ne__(self, other):
+        return not (self==other)
+
+    #XXX: it is not really necessary that Expr will implement the following
+    #XXX: similarly implement __gt__, __le__, __ge__
+    def __lt__(self, other):
+        if type(other) is not type(self):
+            num = self.as_number()
+            if num is NotImplemented:
+                return type(self) < type(other)
+            return num < other
+        ah, ad = self.pair
+        bh, bd = other.pair
+        if ah is bh:
+            if ad is bd:
+                return False
+            return ad < bd
+        elif ah == bh:
+            if ad is bd:
+                return False
+            return ad < bd
+        return ah < bh
