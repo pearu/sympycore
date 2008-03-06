@@ -57,18 +57,14 @@ class CommutativeRingWithPairs(CommutativeRing):
 
     __repr__ = CommutativeRing.__repr__
 
-    def __eq__(self, other):
-        if self is other:
-            return True
-        to = type(other)
-        if to is type(self):
-            return self.pair == other.pair
-        if self.head is NUMBER and (to is int or to is long):
-            return self.data == other
-        return False
-
     def __nonzero__(self):
         return self.head is not NUMBER or bool(self.data)
+
+    def as_lowlevel(self):
+        head, data = self.pair
+        if head is NUMBER or head is SYMBOL:
+            return data
+        return NotImplemented
 
     def copy(self):
         """ Return a copy of self.

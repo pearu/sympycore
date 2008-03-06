@@ -308,6 +308,85 @@ Expr_compare(Expr* a, Expr* b)
   return res;
 }
 
+/* Pickle support */
+static PyObject *
+Expr_as_lowlevel(Expr *self)
+{
+  Py_INCREF(Py_NotImplemented);
+  return Py_NotImplemented;
+  /*
+    Py_INCREF(self->pair);
+    return self->pair;
+  */
+}
+
+static PyObject *
+Expr_richcompare(PyObject *v, PyObject *w, int op)
+{
+  Expr *ve = (Expr *)v;
+  Expr *we = (Expr *)w;
+  if (Expr_Check(v) && v->ob_type == w->ob_type) {
+    PyObject* vh = PyTuple_GET_ITEM(ve->pair, 0);
+    PyObject* wh = PyTuple_GET_ITEM(we->pair, 0);
+    PyObject* vd = PyTuple_GET_ITEM(ve->pair, 1);
+    PyObject* wd = PyTuple_GET_ITEM(we->pair, 1);
+    switch(op) {
+    case Py_EQ:
+      if (vh==wh) {
+	if (vd==wd) {
+	  Py_RETURN_TRUE;
+	}
+	if (vd->ob_type == wd->ob_type) {
+	  return PyObject_RichCompare(vd, wd, op); 
+	}
+      }
+      if (vd->ob_type == wd->ob_type) {
+	return PyObject_RichCompare(ve->pair, we->pair, op);
+      }
+      Py_RETURN_FALSE;
+    case Py_NE:
+      if (vh==wh) {
+      	if (vd==wd) {
+	  Py_RETURN_FALSE;
+	}
+	return PyObject_RichCompare(vd, wd, op);
+      }
+      //Py_RETURN_TRUE;
+    }
+    return PyObject_RichCompare(ve->pair, we->pair, op);
+  } 
+  if (!Expr_Check(v)) {
+    if (Expr_Check(w)) {
+      PyObject* obj = PyObject_CallMethod(w,"as_lowlevel","");
+      if (obj==NULL)
+	return NULL;
+      if (obj==Py_NotImplemented) {
+	return obj;
+	Py_DECREF(obj);
+	Py_RETURN_FALSE;  /*XXX: fix me*/
+      }
+      return PyObject_RichCompare(v, obj, op);
+    }
+    Py_INCREF(Py_NotImplemented);
+    return Py_NotImplemented;
+  }
+  if (v->ob_type != w->ob_type) {
+    PyObject* obj = PyObject_CallMethod(v,"as_lowlevel","");
+    if (obj==NULL)
+      return NULL;
+    if (obj==Py_NotImplemented) {
+      return obj;
+      Py_DECREF(obj);
+      Py_RETURN_FALSE; /*XXX: fix me*/
+    }
+    return PyObject_RichCompare(obj, w, op);
+  }
+  {
+
+  }
+  return PyObject_RichCompare(ve->pair, we->pair, op);    
+}
+
 static PyGetSetDef Expr_getseters[] = {
     {"head", (getter)Expr_gethead, NULL,
      "read-only head attribute", NULL},
@@ -324,6 +403,7 @@ static PyMethodDef Expr_methods[] = {
   /* for Pickling */
   {"__reduce__", (PyCFunction)Expr_reduce, METH_VARARGS, NULL},
   {"_sethash", (PyCFunction)Expr_sethash, METH_VARARGS, NULL },
+  {"as_lowlevel", (PyCFunction)Expr_as_lowlevel, METH_VARARGS, NULL },
   {NULL, NULL}           /* sentinel */
 };
 
@@ -337,7 +417,7 @@ static PyTypeObject ExprType = {
   0,                         /*tp_print*/
   0,                         /*tp_getattr*/
   0,                         /*tp_setattr*/
-  (cmpfunc)Expr_compare,     /*tp_compare*/
+  0,/*(cmpfunc)Expr_compare,*/     /*tp_compare*/
   (reprfunc)Expr_repr,       /*tp_repr*/
   0,                         /*tp_as_number*/
   0,                         /*tp_as_sequence*/
@@ -352,7 +432,7 @@ static PyTypeObject ExprType = {
   Expr_doc,                  /* tp_doc */
   (traverseproc)Expr_traverse,  /* tp_traverse */
   (inquiry)Expr_clear,       /* tp_clear */
-  0,	                     /* tp_richcompare */
+  Expr_richcompare,	     /* tp_richcompare */
   0,	                     /* tp_weaklistoffset */
   0,	                     /* tp_iter */
   0,	                     /* tp_iternext */

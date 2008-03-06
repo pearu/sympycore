@@ -194,7 +194,7 @@ class Calculus(CommutativeRingWithPairs):
             return True
         return
 
-    def __eq__(self, other):
+    def __eq2__(self, other):
         try:
             return other.pair == self.pair
         except AttributeError:

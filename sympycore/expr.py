@@ -95,9 +95,9 @@ This is Python version of Expr type.
         """
         h = self._hash
         if not h:
-            num = self.as_number()
-            if num is not NotImplemented:
-                h = hash(num)
+            obj = self.as_lowlevel()
+            if obj is not NotImplemented:
+                h = hash(obj)
             else:
                 head, data = pair = self.pair
                 if type(data) is dict:
@@ -145,6 +145,7 @@ This is Python version of Expr type.
             raise NotImplementedError('pickle state version %s' % (version))
         return  _reconstruct, (version, state)
 
+    #XXX: remove when rich-comparison is fully implemented
     def __cmp__(self, other):
         if type(other) is not type(self):
             return NotImplemented
@@ -161,43 +162,37 @@ This is Python version of Expr type.
             return 0
         return cmp(ad, bd)
 
-    def as_number(self):
-        """ Return self as low-level number instance or NotImplemented.
+    def as_lowlevel(self):
+        """ Return self as low-level object instance or NotImplemented.
 
-        In case of success, the low-level number instance is used
+        In case of success, the low-level object instance is used
         in comparisons as well as in hash computation.
         """
         return NotImplemented
 
+    def __nonzero__(self):
+        return not not self.data
+
     def __eq__(self, other):
         if type(other) is not type(self):
-            num = self.as_number()
-            if num is NotImplemented:
+            obj = self.as_lowlevel()
+            if obj is NotImplemented:
                 return False
-            return num == other
-        ah, ad = self.pair
-        bh, bd = other.pair
-        if ah is bh:
-            if ad is bd:
-                return True
-            return ad==bd
-        elif ah == bh:
-            if ad is bd:
-                return True
-            return ad==bd
-        return False
+            return obj == other
+        return self.pair==other.pair
 
     def __ne__(self, other):
         return not (self==other)
 
     #XXX: it is not really necessary that Expr will implement the following
     #XXX: similarly implement __gt__, __le__, __ge__
-    def __lt__(self, other):
+    def __lt2__(self, other):
         if type(other) is not type(self):
-            num = self.as_number()
-            if num is NotImplemented:
-                return type(self) < type(other)
-            return num < other
+            obj = self.as_lowlevel()
+            if obj is NotImplemented:
+                return NotImplemented
+                #return type(self) < type(other)
+            return obj < other
         ah, ad = self.pair
         bh, bd = other.pair
         if ah is bh:

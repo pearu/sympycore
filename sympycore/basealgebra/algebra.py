@@ -48,11 +48,6 @@ class Algebra(Expr):
     def __repr__(self):
         return '%s(%r)' % (self.__class__.__name__, str(self))
 
-    def __eq__(self, other):
-        if type(other) is type(self):
-            return self.pair == other.pair
-        return False
-
     def __nonzero__(self):
         return not not self.data
 
