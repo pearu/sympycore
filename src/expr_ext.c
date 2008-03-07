@@ -62,6 +62,7 @@ static PyObject* NUMBER;
 static PyObject* SYMBOL;
 static PyObject* Expr_as_lowlevel(Expr *self);
 static PyObject* str_as_lowlevel;
+static PyObject* str_convert;
 
 #define Expr_Check(op) PyObject_TypeCheck(op, &ExprType)
 #define Expr_CheckExact(op) ((op)->ob_type == &ExprType)
@@ -108,13 +109,12 @@ Expr_new(PyTypeObject *type, PyObject *args, PyObject *kws)
   }
 
   len = PyTuple_GET_SIZE(args);
-  if (len==1) {
+  if (len==1)
     return PyObject_CallMethodObjArgs((PyObject*)type,
-				      PyString_FromString("convert"),
+				      str_convert,
 				      PyTuple_GET_ITEM(args, 0),
 				      NULL
-				      );
-  }  
+				      );  
   if (len!=2) {
     PyErr_SetString(PyExc_TypeError,
 		    "Expr.__new__ expects 1 or 2 arguments: obj or (head, data)");
@@ -417,7 +417,7 @@ static PyMethodDef Expr_methods[] = {
 static PyTypeObject ExprType = {
   PyObject_HEAD_INIT(NULL)
   0,                         /*ob_size*/
-  "Expr",           /*tp_name*/
+  "Expr",                    /*tp_name*/
   sizeof(Expr),              /*tp_basicsize*/
   0,                         /*tp_itemsize*/
   (destructor)Expr_dealloc,  /*tp_dealloc*/
@@ -488,6 +488,9 @@ initexpr_ext(void)
 
   str_as_lowlevel = PyString_FromString("as_lowlevel");
   if (str_as_lowlevel==NULL)
+    return;
+  str_convert = PyString_FromString("convert");
+  if (str_convert==NULL)
     return;
 
   m = Py_InitModule3("expr_ext", module_methods,

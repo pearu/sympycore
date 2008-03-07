@@ -97,7 +97,7 @@ This is Python version of Expr type.
         if not h:
             pair = self.pair
             obj = self.as_lowlevel()
-            if obj is not pair and obj is not NotImplemented:
+            if obj is not pair:
                 h = hash(obj)
             else:
                 head, data = pair = self.pair
@@ -165,12 +165,14 @@ This is Python version of Expr type.
         return not not self.data
 
     def __eq__(self, other):
-        if type(other) is not type(self):
+        pair = self.pair
+        tother = type(other)
+        if tother is not type(self):
             obj = self.as_lowlevel()
-            if obj is NotImplemented:
-                return False
-            return obj == other
-        return self.pair==other.pair
+            if obj is not pair or type(obj) is tother:
+                return obj == other
+            return False # because types are different
+        return pair==other.pair
 
     def __ne__(self, other):
         return not (self==other)
