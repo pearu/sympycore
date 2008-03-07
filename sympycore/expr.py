@@ -146,28 +146,15 @@ This is Python version of Expr type.
             raise NotImplementedError('pickle state version %s' % (version))
         return  _reconstruct, (version, state)
 
-    #XXX: remove when rich-comparison is fully implemented
-    def __cmp__(self, other):
-        if type(other) is not type(self):
-            return NotImplemented
-        ah, ad = self.pair
-        bh, bd = other.pair
-        if ah is bh:
-            if ad is bd:
-                return 0
-            return cmp(ad, bd)
-        c = cmp(ah, bh)
-        if c:
-            return c
-        elif ad is bd:
-            return 0
-        return cmp(ad, bd)
 
     def as_lowlevel(self):
-        """ Return self as low-level object instance or NotImplemented.
+        """ Return self as low-level object instance that will be
+        used in comparison and in hash computation.
 
-        In case of success, the low-level object instance is used
-        in comparisons as well as in hash computation.
+        By default. as_lowlevel returns ``data`` part if the ``head``
+        part is ``SYMBOL`` or ``NUMBER``. Otherwise it returns
+        ``pair`` tuple. Note that returning a copy of the tuple will
+        disable using ``frozenset`` hash algorithm for dictionaries.
         """
         head, data = pair = self.pair
         if head is NUMBER or head is SYMBOL:
