@@ -308,6 +308,25 @@ Expr_as_lowlevel(Expr *self)
   return self->pair;
 }
 
+/*
+  Return true if v and w type instances are comparable even when their
+  types are different. Currently only exact types are checked.
+ */
+static int
+check_comparable_types(PyObject *v, PyObject *w) {
+  if (v->ob_type == w->ob_type)
+    return 1;
+  if (PyInt_CheckExact(v))
+    return (PyLong_CheckExact(w) || PyFloat_CheckExact(w) || PyComplex_CheckExact(w));
+  else if (PyLong_CheckExact(v))
+    return (PyInt_CheckExact(w) || PyFloat_CheckExact(w) || PyComplex_CheckExact(w));
+  else if (PyFloat_CheckExact(v))
+    return (PyLong_CheckExact(w) || PyInt_CheckExact(w) || PyComplex_CheckExact(w));
+  else if (PyComplex_CheckExact(v))
+    return (PyLong_CheckExact(w) || PyFloat_CheckExact(w) || PyInt_CheckExact(w));
+  return 0;
+}
+
 static PyObject *
 Expr_richcompare(PyObject *v, PyObject *w, int op)
 {
@@ -316,7 +335,7 @@ Expr_richcompare(PyObject *v, PyObject *w, int op)
   Expr *we = (Expr *)w;
   if (Expr_Check(v) && v->ob_type == w->ob_type) {
     /* shortcut EQ and NE for speed: heads are singletons and data
-       types are not comparable. XXX: handle int and long. */
+       types are not comparable. */
     PyObject* vh = PyTuple_GET_ITEM(ve->pair, 0);
     PyObject* wh = PyTuple_GET_ITEM(we->pair, 0);
     PyObject* vd = PyTuple_GET_ITEM(ve->pair, 1);
@@ -327,12 +346,11 @@ Expr_richcompare(PyObject *v, PyObject *w, int op)
 	if (vd==wd) {
 	  Py_RETURN_TRUE;
 	}
-	if (vd->ob_type == wd->ob_type) {
+	if (check_comparable_types(vd, wd))
 	  return PyObject_RichCompare(vd, wd, op); 
-	}
 	Py_RETURN_FALSE;
       }
-      if (vd->ob_type == wd->ob_type)
+      if (check_comparable_types(vd, wd))
 	break;
       Py_RETURN_FALSE;
     case Py_NE:
@@ -340,12 +358,11 @@ Expr_richcompare(PyObject *v, PyObject *w, int op)
       	if (vd==wd) {
 	  Py_RETURN_FALSE;
 	}
-	if (vd->ob_type == wd->ob_type) {
+	if (check_comparable_types(vd, wd))
 	  return PyObject_RichCompare(vd, wd, op);
-	}
 	Py_RETURN_TRUE;
       }
-      if (vd->ob_type == wd->ob_type)
+      if (check_comparable_types(vd, wd))
 	break;
       Py_RETURN_TRUE;
     }
