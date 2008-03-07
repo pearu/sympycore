@@ -60,7 +60,8 @@ static PyTypeObject ExprType;
 
 static PyObject* NUMBER;
 static PyObject* SYMBOL;
-static PyObject * Expr_as_lowlevel(Expr *self);
+static PyObject* Expr_as_lowlevel(Expr *self);
+static PyObject* str_as_lowlevel;
 
 #define Expr_Check(op) PyObject_TypeCheck(op, &ExprType)
 #define Expr_CheckExact(op) ((op)->ob_type == &ExprType)
@@ -191,7 +192,7 @@ Expr_hash(PyObject *self)
   PyObject *obj = NULL;
   if (o->hash!=-1)
     return o->hash;
-  obj = PyObject_CallMethod(self, "as_lowlevel", "");
+  obj = PyObject_CallMethodObjArgs(self, str_as_lowlevel, NULL);
   if (obj==NULL)
     return -1;
   if (obj==o->pair)
@@ -371,7 +372,7 @@ Expr_richcompare(PyObject *v, PyObject *w, int op)
   } 
   if (!Expr_Check(v)) {
     if (Expr_Check(w)) {
-      PyObject* obj = PyObject_CallMethod(w,"as_lowlevel","");
+      PyObject* obj = PyObject_CallMethodObjArgs(w, str_as_lowlevel, NULL);
       if (obj==NULL)
 	return NULL;
       res = PyObject_RichCompare(v, obj, op);
@@ -382,7 +383,7 @@ Expr_richcompare(PyObject *v, PyObject *w, int op)
     return Py_NotImplemented;
   }
   if (v->ob_type != w->ob_type) {
-    PyObject* obj = PyObject_CallMethod(v,"as_lowlevel","");
+    PyObject* obj = PyObject_CallMethodObjArgs(v, str_as_lowlevel, NULL);
     if (obj==NULL)
       return NULL;
     res = PyObject_RichCompare(obj, w, op);
@@ -484,6 +485,10 @@ initexpr_ext(void)
     return;
   }
   Py_DECREF(m);
+
+  str_as_lowlevel = PyString_FromString("as_lowlevel");
+  if (str_as_lowlevel==NULL)
+    return;
 
   m = Py_InitModule3("expr_ext", module_methods,
 		     "Provides extension type Expr.");
