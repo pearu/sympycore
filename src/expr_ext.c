@@ -347,8 +347,12 @@ Expr_richcompare(PyObject *v, PyObject *w, int op)
 	if (vd==wd) {
 	  Py_RETURN_TRUE;
 	}
-	if (check_comparable_types(vd, wd))
-	  return PyObject_RichCompare(vd, wd, op); 
+	if (check_comparable_types(vd, wd)) {
+	  int r = PyObject_RichCompareBool(vd, wd, op);
+	  if (r==-1) return NULL;
+	  if (r) Py_RETURN_TRUE;
+	  Py_RETURN_FALSE;
+	}
 	Py_RETURN_FALSE;
       }
       if (check_comparable_types(vd, wd))
@@ -359,8 +363,12 @@ Expr_richcompare(PyObject *v, PyObject *w, int op)
       	if (vd==wd) {
 	  Py_RETURN_FALSE;
 	}
-	if (check_comparable_types(vd, wd))
-	  return PyObject_RichCompare(vd, wd, op);
+	if (check_comparable_types(vd, wd)) {
+	  int r = PyObject_RichCompareBool(vd, wd, op);
+	  if (r==-1) return NULL;
+	  if (r) Py_RETURN_TRUE;
+	  Py_RETURN_FALSE;
+	}
 	Py_RETURN_TRUE;
       }
       if (check_comparable_types(vd, wd))
@@ -373,22 +381,33 @@ Expr_richcompare(PyObject *v, PyObject *w, int op)
   if (!Expr_Check(v)) {
     if (Expr_Check(w)) {
       PyObject* obj = PyObject_CallMethodObjArgs(w, str_as_lowlevel, NULL);
+      int r;
       if (obj==NULL)
 	return NULL;
-      res = PyObject_RichCompare(v, obj, op);
+      r = PyObject_RichCompareBool(v, obj, op);
       Py_DECREF(obj);
-      return res;
+      if (r==-1) return NULL;
+      if (r) Py_RETURN_TRUE;
+      Py_RETURN_FALSE;
+      //res = PyObject_RichCompare(v, obj, op);
+      //return res;
     }
     Py_INCREF(Py_NotImplemented);
     return Py_NotImplemented;
   }
   if (v->ob_type != w->ob_type) {
     PyObject* obj = PyObject_CallMethodObjArgs(v, str_as_lowlevel, NULL);
+    int r;
     if (obj==NULL)
       return NULL;
-    res = PyObject_RichCompare(obj, w, op);
+    r = PyObject_RichCompareBool(obj, w, op);
     Py_DECREF(obj);
-    return res;
+    if (r==-1) return NULL;
+    if (r) Py_RETURN_TRUE;
+    Py_RETURN_FALSE;
+    //res = PyObject_RichCompare(obj, w, op);
+    //Py_DECREF(obj);
+    //return res;
   }
   Py_INCREF(Py_NotImplemented);
   return Py_NotImplemented;

@@ -11,6 +11,7 @@ __license__ = 'New BSD License'
 from .core import classes
 from basealgebra import *
 from arithmetic import *
+from logic import *
 from calculus import *
 from polynomials import *
 from matrices import *

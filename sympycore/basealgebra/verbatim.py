@@ -223,7 +223,7 @@ class Verbatim(Algebra):
                 rest = sorted(rest, cmp=tree_sort)
         l = []
         for t in rest:
-            h = t.head
+            h = t.head if isinstance(t, Algebra) else None
             s = str(t)
             if h is NUMBER and s.startswith('-'):
                 h = ADD

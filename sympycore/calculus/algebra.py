@@ -7,7 +7,7 @@ __docformat__ = "restructuredtext"
 __all__ = ['Calculus', 'I']
 
 from ..core import classes
-from ..utils import TERMS, str_PRODUCT, FACTORS, SYMBOL, NUMBER
+from ..utils import TERMS, str_PRODUCT, FACTORS, SYMBOL, NUMBER, EQ, LT, NE, GT, LE, GE
 from ..basealgebra import Algebra, Verbatim
 from ..basealgebra.pairs import CommutativeRingWithPairs
 
@@ -15,6 +15,8 @@ from ..arithmetic.numbers import normalized_fraction, mpq, mpf, mpc, mpqc, try_p
 
 from ..arithmetic import mpmath, setdps
 from ..arithmetic.evalf import evalf
+
+from ..logic import Logic
 
 algebra_numbers = (int, long, mpq, mpqc, mpf, mpc)
 convertible_numbers = algebra_numbers + (float, complex)
@@ -194,48 +196,12 @@ class Calculus(CommutativeRingWithPairs):
             return True
         return
 
-    def __eq2__(self, other):
-        try:
-            return other.pair == self.pair
-        except AttributeError:
-            pass
-        head, data = self.pair
-        if head is NUMBER and isinstance(other, convertible_numbers):
-            tother = type(other)
-            if tother is float or tother is complex:
-                return data == float_one * other
-            return data == other
-        return NotImplemented
-
-    def __lt__(self, other):
-        other = self.convert(other)
-        if self.head is NUMBER and other.head is NUMBER:
-            return self.data < other.data
-        return Lt(self, other)
-
-    def __le__(self, other):
-        other = self.convert(other)
-        head, data = self.pair
-        ohead, odata = other.pair
-        if head is NUMBER and ohead is NUMBER:
-            return data <= odata
-        return Le(self, other)
-
-    def __gt__(self, other):
-        other = self.convert(other)
-        head, data = self.pair
-        ohead, odata = other.pair
-        if head is NUMBER and ohead is NUMBER:
-            return data > odata
-        return Gt(self, other)
-
-    def __ge__(self, other):
-        other = self.convert(other)
-        head, data = self.pair
-        ohead, odata = other.pair
-        if head is NUMBER and ohead is NUMBER:
-            return data >= odata
-        return Ge(self, other)
+    def __eq__(self, other): return Logic(EQ, (self, other))
+    def __ne__(self, other): return Logic(NE, (self, other))
+    def __lt__(self, other): return Logic(LT, (self, other))
+    def __le__(self, other): return Logic(LE, (self, other))
+    def __gt__(self, other): return Logic(GT, (self, other))
+    def __ge__(self, other): return Logic(GE, (self, other))
 
     def as_polynom(self, ring_cls=None):
         """ Convert expression to an element of polynomial ring.

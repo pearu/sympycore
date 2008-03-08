@@ -10,7 +10,8 @@ __all__ = ['Assumptions', 'is_positive']
 from sympycore.arithmetic.numbers import numbertypes, realtypes
 from sympycore.calculus import Calculus, pi, E
 from sympycore.calculus.algebra import Positive, Nonnegative
-from sympycore.utils import NUMBER, ADD, MUL, POW
+from sympycore.utils import NUMBER, ADD, MUL, POW, LT, LE, GT, GE
+from ..logic import Logic
 
 def is_number(x):
     return isinstance(x, numbertypes) or (isinstance(x, Calculus) \
@@ -30,6 +31,16 @@ class Assumptions:
                 self.pos_values.append(stmt.a)
             elif isinstance(stmt, Nonnegative):
                 self.nonneg_values.append(stmt.a)
+            elif isinstance(stmt, Logic) and stmt.head in [LT, LE, GT, GE]:
+                head, (lhs, rhs) = stmt.pair
+                if head is LT:
+                    self.pos_values.append(rhs - lhs)
+                if head is LE:
+                    self.nonneg_values.append(rhs - lhs)
+                if head is GT:
+                    self.pos_values.append(lhs - rhs)
+                if head is GE:
+                    self.nonneg_values.append(lhs - rhs)
             else:
                 raise ValueError("unknown assumption type: " + repr(stmt))
 
@@ -49,7 +60,17 @@ class Assumptions:
             return cond
         if isinstance(cond, Positive): return self.positive(cond.a)
         if isinstance(cond, Nonnegative): return self.nonnegative(cond.a)
-        raise ValueError
+        if isinstance(cond, Logic):
+            head, (lhs, rhs) = cond.pair
+            if head is LT:
+                return self.positive(rhs - lhs)
+            if head is LE:
+                return self.nonnegative(rhs - lhs)
+            if head is GT:
+                return self.positive(lhs - rhs)
+            if head is GE:
+                return self.nonnegative(lhs - rhs)
+        raise ValueError(`cond`)
 
     def eq(s, a, b): return s.zero(a-b)
     def ne(s, a, b): return s.nonzero(a-b)

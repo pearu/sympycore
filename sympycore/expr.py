@@ -177,25 +177,14 @@ This is Python version of Expr type.
     def __ne__(self, other):
         return not (self==other)
 
-    #XXX: it is not really necessary that Expr will implement the following
-    #XXX: similarly implement __gt__, __le__, __ge__
-    def __lt2__(self, other):
-        if type(other) is not type(self):
+    def __lt__(self, other):
+        pair = self.pair
+        tother = type(other)
+        if tother is not type(self):
             obj = self.as_lowlevel()
-            if obj is NotImplemented:
-                return NotImplemented
-                #return type(self) < type(other)
-            return obj < other
-        ah, ad = self.pair
-        bh, bd = other.pair
-        if ah is bh:
-            if ad is bd:
-                return False
-            return ad < bd
-        elif ah == bh:
-            if ad is bd:
-                return False
-            return ad < bd
-        return ah < bh
+            if obj is not pair or type(obj) is tother:
+                return obj < other
+            return NotImplemented # because types are different
+        return pair < other.pair
 
 from .utils import NUMBER, SYMBOL
