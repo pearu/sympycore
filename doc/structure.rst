@@ -164,6 +164,6 @@ expressions, each have their pros and cons depending on the tasks.
 Verbatim algebra
 ================
 
-Sympycore defines ``Verbatim`` class that represents verbatim algebra,
-that is, it contains expressions in unevaluated form.
+Sympycore defines ``Verbatim`` class that represents verbatim algebra.
+Verbatim algebra contains expressions in unevaluated form.
 

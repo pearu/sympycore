@@ -431,6 +431,47 @@ class CommutativeRingWithPairs(CommutativeRing):
             inplace_add2(cls, t, c, d, d_get, one)
         return return_terms(cls, d)
 
+    def __iadd__(self, other):
+        head, data = self.pair
+        cls = type(self)
+        if self.is_writable and head is TERMS:
+            if type(other) is not cls:
+                t = cls.convert(other)
+            else:
+                t = other
+            h, d = t.pair
+            if h is TERMS and len(d)==1:
+                t, c = d.items()[0]
+            elif h is NUMBER:
+                c = d
+                t = cls.one
+            else:
+                c = 1
+            inplace_add2(cls, t, c, data, data.get, cls.one)
+            return self
+        return self + other
+
+    def __imul__(self, other):
+        head, data = self.pair
+        cls = type(self)
+        if self.is_writable and head is FACTORS:
+            if type(other) is not cls:
+                t = cls.convert(other)
+            else:
+                t = other
+            h, d = t.pair
+            if h is FACTORS and len(d)==1:
+                t, c = d.items()[0]
+            elif h is NUMBER:
+                return self * t
+            elif h is TERMS and len(d)==1:
+                return self * t
+            else:
+                c = 1
+            inplace_mul2(cls, t, c, data, data.get, cls.one)
+            return self
+        return self * other
+
     @classmethod
     def Mul(cls, *seq):
         """ Return canonized product as an algebra element.
