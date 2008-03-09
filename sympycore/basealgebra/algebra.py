@@ -2,27 +2,27 @@
 """
 
 __docformat__ = "restructuredtext"
-__all__ = ['Algebra', 'EnableLogic']
+__all__ = ['Algebra', 'SymbolicEquality']
 
 from ..core import classes, Expr
 from ..utils import LT, GT, LE, GE, NE, EQ
 
-logic_map = dict(__eq__=EQ, __ne__=NE,
-                 __lt__=LT,__le__=LE,
-                 __gt__=GT,__ge__=GE,
-                 )
+symbolic_comparison_map = dict(
+    equality = dict(__eq__=EQ, __ne__=NE),
+    inequality = dict(__lt__=LT,__le__=LE, __gt__=GT,__ge__=GE)
+    )
 
-class EnableLogic:
+class SymbolicEquality:
     """ Contex for logical operations.
 
-    In the ``EnableLogic(<Algebra class>)`` context relational
+    In the ``SymbolicEquality(<Algebra class>)`` context relational
     operations return ``Logic`` instances instead of computing
     lexicographic value of relational operations.
 
     For example,
 
     >>> x = Calculus('x')
-    >>> with EnableLogic(Calculus):
+    >>> with SymbolicEquality(Calculus):
     >>>     print x==x
     ...     
     ...     
@@ -40,12 +40,13 @@ class EnableLogic:
 
     def __enter__(self):
         for cls in self.classes:
-            cls.enable_logic()
+            cls.enable_symbolic_comparison()
 
     def __exit__(self, type, value, tb):
         for cls in self.classes:
-            cls.disable_logic()
+            cls.disable_symbolic_comparison()
         return tb is None
+
 
 class Algebra(Expr):
     """ Represents an element of an algebraic structure.
@@ -93,23 +94,32 @@ class Algebra(Expr):
         return not not self.data
 
     @classmethod
-    def enable_logic(cls):
+    def enable_symbolic_comparison(cls, name = 'equality'):
         """ Enable returning Logic instances from relational methods.
         """
-        d = getattr(cls, '_previous_logic_map', None)
-        if d is not None:
-            return
-        d = cls._previous_logic_map = {}
-        Logic = classes.Logic
-        for mthname, head in logic_map.items():
-            d[mthname] = getattr(cls, mthname, None)
-            setattr(cls, mthname, lambda self, other, head=head: Logic(head, (self, other)))
+        logic_map = symbolic_comparison_map.get(name)
+        if logic_map is None:
+            raise ValueError('Unknown symbolic comparison name: %r. Valid names are %s'\
+                             % (name, ', '.join([repr(k) for k in symbolic_comparison_map])))
+        logic_map_name = '_%s_map' % (name)
+        d = getattr(cls, logic_map_name, None)
+        if d is None:
+            d = {}
+            setattr(cls, logic_map_name, d)
+            for mthname, head in logic_map.items():
+                d[mthname] = getattr(cls, mthname, None)
+                setattr(cls, mthname, lambda self, other, head=head: classes.Logic(head, (self, other)))
 
     @classmethod
-    def disable_logic(cls):
+    def disable_symbolic_comparison(cls, name = 'equality'):
         """ Disable returning Logic instances from relational methods.
         """
-        d = getattr(cls, '_previous_logic_map', None)
+        logic_map = symbolic_comparison_map.get(name)
+        if logic_map is None:
+            raise ValueError('Unknown symbolic comparison name: %r. Valid names are %s'\
+                             % (name, ', '.join([repr(k) for k in symbolic_comparison_map])))
+        logic_map_name = '_%s_map' % (name)
+        d = getattr(cls, logic_map_name, None)
         if d is None:
             return
         for mthname, mth in d.items():
@@ -117,7 +127,7 @@ class Algebra(Expr):
                 delattr(cls, mthname)
             else:
                 setattr(cls, mthname, mth)
-        delattr(cls, '_previous_logic_map')
+        delattr(cls, logic_map_name)
 
     def as_tree(self, tab='', level=0):
         return self.as_verbatim().as_tree(tab,level)

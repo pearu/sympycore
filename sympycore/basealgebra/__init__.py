@@ -2,6 +2,6 @@
 """
 __docformat__ = 'restructuredtext'
 
-from .algebra import Algebra, EnableLogic
+from .algebra import Algebra, SymbolicEquality
 from .verbatim import Verbatim
 from .pairs import CommutativeRingWithPairs

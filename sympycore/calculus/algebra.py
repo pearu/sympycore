@@ -225,6 +225,8 @@ class Calculus(CommutativeRingWithPairs):
 
 classes.Calculus = Calculus
 
+Calculus.enable_symbolic_comparison('inequality')
+
 class Positive:
     def __init__(self, a, nonzero=None):
         self.a = a
