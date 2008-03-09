@@ -33,6 +33,8 @@ Python Expr:
 
 __all__ = ['Expr']
 
+rc_switch = []
+
 class Expr(object):
     """Represents an symbolic expression in a pair form: (head, data)	
                 									
@@ -186,5 +188,36 @@ This is Python version of Expr type.
                 return obj < other
             return NotImplemented # because types are different
         return pair < other.pair
+
+    def __le__(self, other):
+        pair = self.pair
+        tother = type(other)
+        if tother is not type(self):
+            obj = self.as_lowlevel()
+            if obj is not pair or type(obj) is tother:
+                return obj <= other
+            return NotImplemented # because types are different
+        return pair <= other.pair
+
+    def __gt__(self, other):
+        pair = self.pair
+        tother = type(other)
+        if tother is not type(self):
+            obj = self.as_lowlevel()
+            if obj is not pair or type(obj) is tother:
+                return obj > other
+            return NotImplemented # because types are different
+        return pair > other.pair
+
+    def __ge__(self, other):
+        pair = self.pair
+        tother = type(other)
+        if tother is not type(self):
+            obj = self.as_lowlevel()
+            if obj is not pair or type(obj) is tother:
+                return obj >= other
+            return NotImplemented # because types are different
+        return pair >= other.pair
+
 
 from .utils import NUMBER, SYMBOL

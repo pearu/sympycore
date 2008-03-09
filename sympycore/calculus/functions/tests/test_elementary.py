@@ -1,5 +1,6 @@
 from __future__ import with_statement
 
+from sympycore import EnableLogic
 from sympycore.calculus import Calculus as A
 from sympycore.calculus.algebra import I
 from sympycore.calculus.infinity import oo, zoo, undefined
@@ -33,8 +34,9 @@ def test_exp_log():
 def test_log_assumptions():
     x = Symbol('x')
     assert log(x**2) != 2*log(x)
-    with Assumptions([x > 0]):
-        assert log(x**2) == 2*log(x)
+    with EnableLogic(A):
+        with Assumptions([x > 0]):
+            assert log(x**2) == 2*log(x)
 
 def test_trig_values():
     sqrt2 = A.convert('2**(1/2)')

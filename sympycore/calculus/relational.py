@@ -170,3 +170,4 @@ globalctx = GlobalContext()
 globalctx.assumptions = no_assumptions
 
 is_positive = lambda e: globalctx.assumptions.positive(e)
+

@@ -1,6 +1,16 @@
 
+from ..core import classes
 from ..utils import EQ, NE, LT, LE, GT, GE
 from ..basealgebra import Algebra, Verbatim
+
+head_mth_map = {
+    EQ: Algebra.__eq__,
+    NE: Algebra.__ne__,
+    LT: Algebra.__lt__,
+    LE: Algebra.__le__,
+    GT: Algebra.__gt__,
+    GE: Algebra.__ge__,
+    }
 
 class Logic(Algebra):
     """ Represents n-ary predicate expressions.
@@ -21,16 +31,14 @@ class Logic(Algebra):
 
     """
 
-    def __nonzero__(self):
-        head, data = self.pair
-        if head is EQ: return Algebra.__eq__(*data)
-        if head is NE: return Algebra.__ne__(*data)
-        if head is LT: return Algebra.__lt__(*data)
-        if head is LE: return Algebra.__le__(*data)
-        if head is GT: return Algebra.__gt__(*data)
-        if head is GE: return Algebra.__ge__(*data)
-        #...
-        return True
-
+    def __nonzero__(self, head_mth_get=head_mth_map.get):
+        head, (lhs, rhs) = self.pair
+        mth = head_mth_get(head)
+        if mth is None:
+            return True
+        return mth(lhs, rhs)
+        
     def as_verbatim(self):
         return Verbatim(self.head, self.data)
+
+classes.Logic = Logic

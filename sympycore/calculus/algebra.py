@@ -16,8 +16,6 @@ from ..arithmetic.numbers import normalized_fraction, mpq, mpf, mpc, mpqc, try_p
 from ..arithmetic import mpmath, setdps
 from ..arithmetic.evalf import evalf
 
-from ..logic import Logic
-
 algebra_numbers = (int, long, mpq, mpqc, mpf, mpc)
 convertible_numbers = algebra_numbers + (float, complex)
 
@@ -195,13 +193,6 @@ class Calculus(CommutativeRingWithPairs):
                     return b
             return True
         return
-
-    def __eq__(self, other): return Logic(EQ, (self, other))
-    def __ne__(self, other): return Logic(NE, (self, other))
-    def __lt__(self, other): return Logic(LT, (self, other))
-    def __le__(self, other): return Logic(LE, (self, other))
-    def __gt__(self, other): return Logic(GT, (self, other))
-    def __ge__(self, other): return Logic(GE, (self, other))
 
     def as_polynom(self, ring_cls=None):
         """ Convert expression to an element of polynomial ring.

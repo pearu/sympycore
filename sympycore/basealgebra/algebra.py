@@ -2,9 +2,50 @@
 """
 
 __docformat__ = "restructuredtext"
-__all__ = ['Algebra']
+__all__ = ['Algebra', 'EnableLogic']
 
 from ..core import classes, Expr
+from ..utils import LT, GT, LE, GE, NE, EQ
+
+logic_map = dict(__eq__=EQ, __ne__=NE,
+                 __lt__=LT,__le__=LE,
+                 __gt__=GT,__ge__=GE,
+                 )
+
+class EnableLogic:
+    """ Contex for logical operations.
+
+    In the ``EnableLogic(<Algebra class>)`` context relational
+    operations return ``Logic`` instances instead of computing
+    lexicographic value of relational operations.
+
+    For example,
+
+    >>> x = Calculus('x')
+    >>> with EnableLogic(Calculus):
+    >>>     print x==x
+    ...     
+    ...     
+    x==x
+    >>> print x==x
+    True
+
+    Add ``from __future__ import with_statement`` to the header of
+    python file when using Python version 2.5.
+    
+    """
+
+    def __init__(self, *classes):
+        self.classes = classes
+
+    def __enter__(self):
+        for cls in self.classes:
+            cls.enable_logic()
+
+    def __exit__(self, type, value, tb):
+        for cls in self.classes:
+            cls.disable_logic()
+        return tb is None
 
 class Algebra(Expr):
     """ Represents an element of an algebraic structure.
@@ -50,6 +91,33 @@ class Algebra(Expr):
 
     def __nonzero__(self):
         return not not self.data
+
+    @classmethod
+    def enable_logic(cls):
+        """ Enable returning Logic instances from relational methods.
+        """
+        d = getattr(cls, '_previous_logic_map', None)
+        if d is not None:
+            return
+        d = cls._previous_logic_map = {}
+        Logic = classes.Logic
+        for mthname, head in logic_map.items():
+            d[mthname] = getattr(cls, mthname, None)
+            setattr(cls, mthname, lambda self, other, head=head: Logic(head, (self, other)))
+
+    @classmethod
+    def disable_logic(cls):
+        """ Disable returning Logic instances from relational methods.
+        """
+        d = getattr(cls, '_previous_logic_map', None)
+        if d is None:
+            return
+        for mthname, mth in d.items():
+            if mth is None:
+                delattr(cls, mthname)
+            else:
+                setattr(cls, mthname, mth)
+        delattr(cls, '_previous_logic_map')
 
     def as_tree(self, tab='', level=0):
         return self.as_verbatim().as_tree(tab,level)
