@@ -64,7 +64,7 @@ if len(%(DICT)s)==1:
    if c==1:
        return t
    if t==cls.one:
-       return cls.convert(c)
+       return cls(NUMBER, c)
 '''
 
 CANONIZE_FACTORS_DICT = '''\
@@ -296,7 +296,7 @@ if len(pairs)==1:
     t,c = pairs.items()[0]
     t = t * %(RHS)s
     if t==cls.one:
-        return cls.convert(c)
+        return cls(NUMBER, c)
     @RETURN_NEW(HEAD=TERMS; DATA={t: c})
 coeff, terms = %(LHS)s._coeff_terms
 if terms is not None:
@@ -315,7 +315,7 @@ if len(lpairs)==1:
         t = t1 * t2
         c = c1 * c2
         if t == cls.one:
-            return cls.convert(c)
+            return cls(NUMBER, c)
         if c==1:
             return t
         @RETURN_NEW(HEAD=TERMS; DATA={t: c})
@@ -416,7 +416,7 @@ if len(pairs)==1:
     if c==1:
         return t
     if t==cls.one:
-        return cls.convert(c)
+        return cls(NUMBER, c)
     @RETURN_NEW(HEAD=TERMS; DATA={t: c})
 @NEWINSTANCE(OBJ=%(TMP)s; HEAD=FACTORS; DATA={%(RHS)s: -1})
 if %(VALUE)s==1:
@@ -454,7 +454,7 @@ pairs = %(LHSDATA)s
 if len(pairs)==1:
     t, c = pairs.items()[0]
     if t==%(RHS)s:
-        return cls.convert(c)
+        return cls(NUMBER, c)
     if t.head is FACTORS:
         %(TMP)s = t / %(RHS)s
         @RETURN_NEW(HEAD=TERMS; DATA={%(TMP)s: c})
@@ -473,7 +473,7 @@ if len(lpairs)==1:
         t2, c2 = rpairs.items()[0]
         c = div(c1, c2, cls)
         if t2==t1:
-            return cls.convert(c)
+            return cls(NUMBER, c)
         if c==1:
             @RETURN_NEW(HEAD=FACTORS; DATA={t1:1, t2:-1})
         @NEWINSTANCE(OBJ=%(TMP)s; HEAD=FACTORS; DATA={t1:1, t2:-1})
@@ -484,7 +484,7 @@ elif len(rpairs)==1:
     t2, c2 = rpairs.items()[0]
     c = div(1, c2, cls)
     if t2==%(LHS)s:
-        return cls.convert(c)
+        return cls(NUMBER, c)
     %(TMP)s = %(LHS)s / t2
     @RETURN_NEW(HEAD=TERMS; DATA={%(TMP)s:c})
 @RETURN_NEW(HEAD=FACTORS; DATA={%(LHS)s:1, %(RHS)s:-1})
@@ -494,7 +494,7 @@ pairs = %(RHSDATA)s
 if len(pairs)==1:
     t,c = pairs.items()[0]
     if %(LHS)s==t:
-        return cls.convert(div(1, c, cls))
+        return cls(NUMBER, div(1, c, cls))
     @NEWINSTANCE(OBJ=%(TMP)s; HEAD=FACTORS; DATA={%(LHS)s:1, t:-1})
     @RETURN_NEW(HEAD=TERMS; DATA={%(TMP)s: div(1, c, cls)})
 @RETURN_NEW(HEAD=FACTORS; DATA={%(LHS)s:1, %(RHS)s:-1})
@@ -521,7 +521,7 @@ if len(lpairs)==1:
     t, c = lpairs.items()[0]
     t = t / %(RHS)s
     if t==cls.one:
-        return cls.convert(c)
+        return cls(NUMBER, c)
     head, data = t.pair
     if head is NUMBER:
         @RETURN_NEW(HEAD=NUMBER; DATA=data * c)
@@ -547,7 +547,7 @@ if len(rpairs)==1:
     t = %(LHS)s / t
     c = div(1, c, cls)
     if t==cls.one:
-        return cls.convert(c)
+        return cls(NUMBER, c)
     head, data = t.pair
     if head is NUMBER:
         @RETURN_NEW(HEAD=NUMBER; DATA=data * c)
@@ -611,7 +611,7 @@ if not sym:
     @RETURN_NEW(HEAD=NUMBER; DATA=z)
 factors = {}
 for t,c in sym:
-    factors[cls.convert(t)] = c
+    factors[cls(NUMBER, t)] = c
 @NEWINSTANCE(OBJ=%(TMP)s; HEAD=FACTORS; DATA=factors)
 if z==1:
     return %(TMP)s
@@ -630,7 +630,7 @@ if len(pairs)==1:
             z, sym = try_power(c, %(VALUE)s)
             factors = {t: %(VALUE)s}
         for t,c in sym:
-            factors[cls.convert(t)] = c
+            factors[cls(NUMBER, t)] = c
         @NEWINSTANCE(OBJ=%(TMP)s; HEAD=FACTORS; DATA=factors)
         if z==1:
             return %(TMP)s

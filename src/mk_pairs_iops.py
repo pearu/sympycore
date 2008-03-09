@@ -38,7 +38,7 @@ def return_terms(cls, pairs, new=new):
         if c==1:
             return t
         if t==cls.one:
-            return cls.convert(c)
+            return cls(NUMBER, c)
     @RETURN_NEW(HEAD=TERMS; DATA=pairs)
 
 def return_factors(cls, pairs, new=new):
