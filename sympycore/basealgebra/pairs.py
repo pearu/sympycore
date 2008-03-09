@@ -417,7 +417,7 @@ class CommutativeRingWithPairs(CommutativeRing):
         d_get = d.get
         one = cls.one
         if seq:
-            inplace_sub(cls, seq[0], d, d_get, one)
+            inplace_add(cls, seq[0], d, d_get, one)
         for t in seq[1:]:
             inplace_sub(cls, t, d, d_get, one)
         return return_terms(cls, d)
