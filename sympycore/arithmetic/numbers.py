@@ -130,7 +130,7 @@ class mpq(tuple):
         return "%i/%i" % self
 
     def __repr__(self):
-        return "FractionTuple((%r, %r))" % (self)
+        return "%s((%r, %r))" % (type(self).__name__, self)
 
     def __float__(self):
         p, q = self
@@ -217,6 +217,13 @@ class mpqc(object):
 
     def __mpcval__(self):
         return mpc(self.real, self.imag)
+
+    def __getstate__(self):
+        return (self.real, self.imag)
+
+    def __setstate__(self, (real, imag)):
+        self.real = real
+        self.imag = imag
 
     def to_str_data(self,sort=True):
         re, im = self.real, self.imag

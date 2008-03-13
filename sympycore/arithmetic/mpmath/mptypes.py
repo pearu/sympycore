@@ -161,6 +161,12 @@ class mpf(mpnumeric):
     exp = property(lambda self: self.val[1])
     bc = property(lambda self: self.val[2])
 
+    def __getstate__(self):
+        return self.val
+
+    def __setstate__(self, val):
+        self.val = val
+
     def __repr__(s): return "mpf('%s')" % to_str(s.val, g_dps+2)
     def __str__(s): return to_str(s.val, g_dps)
     def __hash__(s): return fhash(s.val)
@@ -315,6 +321,8 @@ class mpc(mpnumeric):
     for the real part and another for the imaginary part.) The mpc
     class behaves fairly similarly to Python's complex type."""
 
+    __slots__ = ['real', 'imag']
+
     def __new__(cls, real=0, imag=0):
         s = object.__new__(cls)
         if isinstance(real, complex_types):
@@ -329,6 +337,12 @@ class mpc(mpnumeric):
         r = repr(s.real)[4:-1]
         i = repr(s.imag)[4:-1]
         return "mpc(real=%s, imag=%s)" % (r, i)
+
+    def __getstate__(self):
+        return (self.real, self.imag)
+    def __setstate__(self, (real, imag)):
+        self.real = real
+        self.imag = imag
 
     def __str__(s): return "(%s + %sj)" % (s.real, s.imag)
     def __complex__(s): return complex(float(s.real), float(s.imag))

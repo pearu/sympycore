@@ -23,10 +23,11 @@ def test_pickle():
     f = open(fn, 'rb')
     obj2 = pickle.load(f)
     f.close()
+    os.remove(fn)
+    
     assert obj.head == obj2.head,`obj.head, obj2.head`
     assert obj.head is obj2.head,`obj.head, obj2.head, id(obj.head), id(obj2.head)`
     assert obj.data == obj2.data,`obj.data, obj2.data`
     assert obj.pair == obj2.pair,`obj.pair, obj2.pair`
-
     assert obj==obj2,`obj,obj2`
-    os.remove(fn)
+

@@ -10,6 +10,6 @@ Arithmetic package provides:
 __docformat__ = "restructuredtext"
 
 from . import mpmath
-from .numbers import FractionTuple, Float, Complex, mpf, mpc, mpqc, setdps, getdps
+from .numbers import FractionTuple, Float, Complex, mpq, mpf, mpc, mpqc, setdps, getdps
 from .number_theory import gcd, lcm, multinomial_coefficients
 from .infinity import Infinity
