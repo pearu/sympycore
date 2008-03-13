@@ -3,3 +3,7 @@ When adding a new html file to html/ directory, execute the following
 command:
 
   svn propset svn:mime-type text/html html/filename.html
+
+When adding a new pdf file, execute the following command:
+
+  svn propset svn:mime-type application/pdf filename.pdf

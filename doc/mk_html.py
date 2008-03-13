@@ -12,11 +12,14 @@ except:
 
 from docutils.core import publish_file
 
-for n in ['userguide', 'evaluation_rules', 'demo0_2',
+for n in ['usersguide', 'evaluation_rules', 'demo0_2',
           'structure']:
     publish_file(source_path=path(n+'.rst'),
                  destination_path=path('html',n+'.html'),
-                 writer_name='html')
+                 writer_name='html',
+                 settings_overrides = dict(stylesheet_path=path('sympycore.css'),
+                                           section_numbering=True),
+                 )
 
 
 publish_file(source_path=path('..','README.txt'),

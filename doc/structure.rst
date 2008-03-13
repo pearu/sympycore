@@ -5,6 +5,7 @@ Structure of SympyCore
 ======================
 
 :Author: Pearu Peterson
+:Website: http://sympycore.googlecode.com
 :Created: March 2008
 
 .. section-numbering::

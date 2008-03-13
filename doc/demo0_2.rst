@@ -5,7 +5,7 @@ SympyCore Release 0.2 Demo
 ==========================
 
 :Authors:
-  Pearu Peterson <pearu.peterson AT gmail DOT com>
+  Pearu Peterson
 
 :Created:
   February 2008
