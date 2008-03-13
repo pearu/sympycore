@@ -23,7 +23,7 @@ __ http://sympycore.googlecode.com/svn-history/r818/trunk/doc/html/userguide.htm
 
 :Other formats: `PDF`__
 
-__ http://sympycore.googlecode.com/trunk/doc/sympycore_usersguide.pdf
+__ http://sympycore.googlecode.com/svn/trunk/doc/sympycore_usersguide.pdf
 
 .. section-numbering::
 
