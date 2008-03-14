@@ -331,7 +331,6 @@ check_comparable_types(PyObject *v, PyObject *w) {
 static PyObject *
 Expr_richcompare(PyObject *v, PyObject *w, int op)
 {
-  PyObject* res = NULL;
   Expr *ve = (Expr *)v;
   Expr *we = (Expr *)w;
   if (Expr_Check(v) && v->ob_type == w->ob_type) {
@@ -389,8 +388,6 @@ Expr_richcompare(PyObject *v, PyObject *w, int op)
       if (r==-1) return NULL;
       if (r) Py_RETURN_TRUE;
       Py_RETURN_FALSE;
-      //res = PyObject_RichCompare(v, obj, op);
-      //return res;
     }
     Py_INCREF(Py_NotImplemented);
     return Py_NotImplemented;
@@ -405,9 +402,6 @@ Expr_richcompare(PyObject *v, PyObject *w, int op)
     if (r==-1) return NULL;
     if (r) Py_RETURN_TRUE;
     Py_RETURN_FALSE;
-    //res = PyObject_RichCompare(obj, w, op);
-    //Py_DECREF(obj);
-    //return res;
   }
   Py_INCREF(Py_NotImplemented);
   return Py_NotImplemented;
