@@ -9,7 +9,7 @@ __docformat__ = "restructuredtext"
 __all__ = ['CollectingField']
 
 
-from ..core import classes
+from ..core import classes, Expr
 from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_NUMBER
 from ..utils import TERMS, FACTORS, SYMBOL, NUMBER, APPLY, POW, TUPLE, head_to_string
 
@@ -26,6 +26,14 @@ from .pairs_iops import (inplace_add, inplace_add2, inplace_sub,
                          inplace_mul, inplace_mul2)
 
 from .pairs_expand import expand
+
+class ConstantFunc(Expr):
+    """ Constant function returned by .func property of symbols and
+    numbers.
+    """
+
+    def __call__(self):
+        return self.data
 
 class CollectingField(CommutativeRing):
     """ Implementation of a commutative ring where sums and products
@@ -222,7 +230,7 @@ class CollectingField(CommutativeRing):
         head = self.head
         data = self.data
         if head is SYMBOL or head is NUMBER:
-            return lambda : self
+            return ConstantFunc(None, self)
         elif head is TERMS:
             if len(self.data)==1:
                 return self.Mul

@@ -88,7 +88,7 @@ class Algebra(Expr):
         return s
 
     def __repr__(self):
-        return '%s(%r)' % (self.__class__.__name__, str(self))
+        return '%s(%r)' % (type(self).__name__, str(self))
 
     def __nonzero__(self):
         return not not self.data
@@ -96,6 +96,8 @@ class Algebra(Expr):
     @classmethod
     def enable_symbolic_comparison(cls, name = 'equality'):
         """ Enable returning Logic instances from relational methods.
+
+        Argument ``name`` can be 'equality' or 'inequality'.
         """
         logic_map = symbolic_comparison_map.get(name)
         if logic_map is None:
@@ -113,6 +115,8 @@ class Algebra(Expr):
     @classmethod
     def disable_symbolic_comparison(cls, name = 'equality'):
         """ Disable returning Logic instances from relational methods.
+
+        Argument ``name`` can be 'equality' or 'inequality'.
         """
         logic_map = symbolic_comparison_map.get(name)
         if logic_map is None:
