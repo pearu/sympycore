@@ -99,7 +99,7 @@ class mpq(tuple):
     """Represents a fraction."""
 
     # These methods are inherited directly from tuple for speed. This works
-    # as long as all FractionTuples are normalized:
+    # as long as all mpqs are normalized:
     # __new__/__init__
     # __nonzero__
     # __eq__
@@ -410,7 +410,6 @@ def try_power(x, y):
         return x ** y, []
     return 1, [(x, y)]
 
-FractionTuple = mpq
 Complex = mpqc
 
 

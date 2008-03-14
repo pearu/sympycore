@@ -71,10 +71,10 @@ return %(TMP)s
 
 IF_CHECK_INT = 'if %(T)s is int or %(T)s is long:'
 ELIF_CHECK_INT = 'elif %(T)s is int or %(T)s is long:'
-IF_CHECK_REAL = 'if %(T)s is int or %(T)s is long or %(T)s is FractionTuple or %(T)s is float or %(T)s is Float:'
+IF_CHECK_REAL = 'if %(T)s is int or %(T)s is long or %(T)s is mpq or %(T)s is float or %(T)s is Float:'
 IF_CHECK_COMPLEX = 'if %(T)s is cls or %(T)s is complex:'
 
-ELIF_CHECK_NUMBER = 'elif %(T)s is int or %(T)s is long or %(T)s is FractionTuple or %(T)s is float or %(T)s is Float or %(T)s is Complex or %(T)s is complex:'
+ELIF_CHECK_NUMBER = 'elif %(T)s is int or %(T)s is long or %(T)s is mpq or %(T)s is float or %(T)s is Float or %(T)s is Complex or %(T)s is complex:'
 
 ADD_TERM_VALUE_DICT='''\
 %(TMP)s = %(DICT_GET)s(%(TERM)s)

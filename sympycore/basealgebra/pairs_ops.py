@@ -9,7 +9,7 @@ DO NOT CHANGE THIS FILE DIRECTLY!!!
 from ..core import Expr
 from ..utils import NUMBER, SYMBOL, TERMS, FACTORS
 from ..arithmetic.numbers import (normalized_fraction,
-  FractionTuple, try_power, numbertypes)
+  mpq, try_power, numbertypes)
 from ..arithmetic.infinity import Infinity
 
 #new = Expr.__new__
@@ -28,7 +28,7 @@ def div(a, b, cls):
             return a * cls.zoo
         if b == 1:
             return a
-        return a * FractionTuple((1,b))
+        return a * mpq((1,b))
     return a / b
 
 
@@ -435,7 +435,7 @@ def pow_method(self, other, z = None, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTOR
         #NEWINSTANCE(OBJ=_tmp702; HEAD=TERMS; DATA={_tmp674: z})
         _tmp702 = cls(TERMS, {_tmp674: z})
         return _tmp702
-    if type_other is FractionTuple:
+    if type_other is mpq:
         if lhead is TERMS:
             #POW_TERMS_FRAC(VALUE=other; LHS=self; LHSDATA=ldata)
             pairs = ldata

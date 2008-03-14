@@ -6,7 +6,6 @@ __all__ = ['expand']
 __docformat__ = "restructuredtext"
 
 from ..core import Expr
-from ..arithmetic.numbers import Complex, Float, FractionTuple, try_power
 from ..arithmetic.number_theory import multinomial_coefficients
 from ..utils import NUMBER, TERMS, FACTORS
 from .pairs_iops import inplace_add2, return_terms, return_factors

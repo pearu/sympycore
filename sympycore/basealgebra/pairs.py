@@ -16,7 +16,7 @@ from ..utils import TERMS, FACTORS, SYMBOL, NUMBER, APPLY, POW, TUPLE, head_to_s
 from .algebra import Algebra
 from .ring import CommutativeRing
 from .verbatim import Verbatim
-from ..arithmetic.numbers import FractionTuple, realtypes
+from ..arithmetic.numbers import mpq, realtypes
 
 from .pairs_ops import (add_method, sub_method, rsub_method, neg_method,
                         mul_method, div_method, rdiv_method, pow_method)
@@ -41,8 +41,8 @@ class CommutativeRingWithPairs(CommutativeRing):
     _symbols = None
     _symbols_data = None
 
-    coefftypes = (int, long, FractionTuple)
-    exptypes = (int, long, FractionTuple)
+    coefftypes = (int, long, mpq)
+    exptypes = (int, long, mpq)
 
     _coeff_terms = (1, None) # set by MUL_VALUE_TERMS
     __neg__ = neg_method
@@ -658,14 +658,14 @@ class CommutativeRingWithPairs(CommutativeRing):
                 return self.one, data
             if td is FractionTyple:
                 n,p = data
-                return self.Number(FractionTuple((1, p))), n
+                return self.Number(mpq((1, p))), n
         elif head is TERMS:
             if len(data)==1:
                 t, c = data.items()[0]
                 td = type(c)
                 if td is int or td is long:
                     return t, c
-                if td is FractionTuple:
+                if td is mpq:
                     n,p = c
                     return t * FractionTyple((1,p)), n
         return self, 1
@@ -719,9 +719,9 @@ class CommutativeRingWithPairs(CommutativeRing):
                             f = f**r
                         else:
                             te = type(e)
-                            if te is FractionTuple:
+                            if te is mpq:
                                 n,p = e
-                                f = f ** FractionTuple((1,p))
+                                f = f ** mpq((1,p))
                                 e = n
                             elif te is int or te is long:
                                 pass
@@ -778,9 +778,9 @@ class CommutativeRingWithPairs(CommutativeRing):
                     f = f**r
                 else:
                     te = type(e)
-                    if te is FractionTuple:
+                    if te is mpq:
                         n,p = e
-                        f = f ** FractionTuple((1,p))
+                        f = f ** mpq((1,p))
                         e = n
                     elif te is int or te is long:
                         pass

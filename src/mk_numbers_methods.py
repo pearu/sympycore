@@ -19,7 +19,7 @@ See http://sympycore.googlecode.com/ for more information.
 DO NOT CHANGE THIS FILE DIRECTLY!!!
 """
 
-from .numbers import Complex, Float, FractionTuple
+from .numbers import Complex, Float, mpq
 '''
 
 DIV_VALUE_VALUE = '''\
@@ -34,7 +34,7 @@ _tp = type(_p)
         if _rq == 1:
             %(RESULT)s = _rp
         else:
-            %(RESULT)s = FractionTuple((_rp, _rq))
+            %(RESULT)s = mpq((_rp, _rq))
     else:
         %(RESULT)s = _p / _q
 else:
@@ -218,14 +218,14 @@ if not a:
         @RETURN_COMPLEX(REAL=0; IMAG=-b**n)
 ta, tb = type(a), type(b)
 m = 1
-if ta is FractionTuple:
-    if tb is FractionTuple:
+if ta is mpq:
+    if tb is mpq:
         m = (a[1] * b[1]) ** n
         a, b = a[0]*b[1], a[1]*b[0]
     @ELIF_CHECK_INT(T=tb)
         m = a[1] ** n
         a, b = a[0], a[1]*b
-elif tb is FractionTuple:
+elif tb is mpq:
     @IF_CHECK_INT(T=ta)
         m = b[1] ** n
         a, b = a*b[1], b[0]
@@ -245,14 +245,14 @@ if m==1:
 if re_q==1:
     re = re_p
 else:
-    re = FractionTuple((re_p, re_q))
+    re = mpq((re_p, re_q))
 if not d:
     return re
 @FRACTION_NORMALIZE(NUMER=d; DENOM=m; RNUMER=im_p; RDENOM=im_q; MOD=%(MOD)s)
 if im_q==1:
     im = im_p
 else:
-    im = FractionTuple((im_p, im_q))
+    im = mpq((im_p, im_q))
 @RETURN_COMPLEX(REAL=re; IMAG=im)
 '''
 
@@ -262,7 +262,7 @@ def main():
     print >> f, template
     print >> f, preprocess('''
 
-def fraction_add(self, other, cls=FractionTuple):
+def fraction_add(self, other, cls=mpq):
     t = type(other)
     @IF_CHECK_INT(T=t)
         @ADD_FRACTION_INT(LHS=self; RHS=other)
@@ -270,7 +270,7 @@ def fraction_add(self, other, cls=FractionTuple):
         @ADD_FRACTION_FRACTION(LHS=self; RHS=other)
     return NotImplemented
 
-def fraction_sub(self, other, cls=FractionTuple):
+def fraction_sub(self, other, cls=mpq):
     t = type(other)
     @IF_CHECK_INT(T=t)
         @SUB_FRACTION_INT(LHS=self; RHS=other)
@@ -278,13 +278,13 @@ def fraction_sub(self, other, cls=FractionTuple):
         @SUB_FRACTION_FRACTION(LHS=self; RHS=other)
     return NotImplemented
 
-def fraction_rsub(self, other, cls=FractionTuple):
+def fraction_rsub(self, other, cls=mpq):
     t = type(other)
     @IF_CHECK_INT(T=t)
         @SUB_INT_FRACTION(RHS=self; LHS=other)
     return NotImplemented
 
-def fraction_mul(self, other, cls=FractionTuple):
+def fraction_mul(self, other, cls=mpq):
     t = type(other)
     @IF_CHECK_INT(T=t)
         @MUL_FRACTION_INT(LHS=self; RHS=other; MOD=%)
@@ -292,7 +292,7 @@ def fraction_mul(self, other, cls=FractionTuple):
         @MUL_FRACTION_FRACTION(LHS=self; RHS=other; MOD=%)
     return NotImplemented
 
-def fraction_div(self, other, cls=FractionTuple):
+def fraction_div(self, other, cls=mpq):
     t = type(other)
     @IF_CHECK_INT(T=t)
         @DIV_FRACTION_INT(LHS=self; RHS=other; MOD=%)
@@ -300,13 +300,13 @@ def fraction_div(self, other, cls=FractionTuple):
         @DIV_FRACTION_FRACTION(LHS=self; RHS=other; MOD=%)
     return NotImplemented
 
-def fraction_rdiv(self, other, cls=FractionTuple):
+def fraction_rdiv(self, other, cls=mpq):
     t = type(other)
     @IF_CHECK_INT(T=t)
         @DIV_INT_FRACTION(RHS=self; LHS=other; MOD=%)
     return NotImplemented
 
-def fraction_pow(self, other, m=None, cls=FractionTuple):
+def fraction_pow(self, other, m=None, cls=mpq):
     t = type(other)
     @IF_CHECK_INT(T=t)
         if not other:
@@ -383,7 +383,7 @@ def complex_pow(self, other, m=None, new=object.__new__, cls=Complex):
 
     for (n,s) in [('lt','<'), ('le','<='), ('gt','>'), ('ge','>=')]:
         print >> f, preprocess('''\
-def fraction_%s(self, other, cls=FractionTuple):
+def fraction_%s(self, other, cls=mpq):
     p, q = self
     t = type(other)
     @IF_CHECK_INT(T=t)

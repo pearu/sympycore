@@ -7,11 +7,11 @@ See http://sympycore.googlecode.com/ for more information.
 DO NOT CHANGE THIS FILE DIRECTLY!!!
 """
 
-from .numbers import Complex, Float, FractionTuple
+from .numbers import Complex, Float, mpq
 
 
 
-def fraction_add(self, other, cls=FractionTuple):
+def fraction_add(self, other, cls=mpq):
     t = type(other)
     #IF_CHECK_INT(T=t)
     if t is int or t is long:
@@ -42,7 +42,7 @@ def fraction_add(self, other, cls=FractionTuple):
         return cls((_p, _q))
     return NotImplemented
 
-def fraction_sub(self, other, cls=FractionTuple):
+def fraction_sub(self, other, cls=mpq):
     t = type(other)
     #IF_CHECK_INT(T=t)
     if t is int or t is long:
@@ -73,7 +73,7 @@ def fraction_sub(self, other, cls=FractionTuple):
         return cls((_p, _q))
     return NotImplemented
 
-def fraction_rsub(self, other, cls=FractionTuple):
+def fraction_rsub(self, other, cls=mpq):
     t = type(other)
     #IF_CHECK_INT(T=t)
     if t is int or t is long:
@@ -83,7 +83,7 @@ def fraction_rsub(self, other, cls=FractionTuple):
         return cls((q*(other) - p, q))
     return NotImplemented
 
-def fraction_mul(self, other, cls=FractionTuple):
+def fraction_mul(self, other, cls=mpq):
     t = type(other)
     #IF_CHECK_INT(T=t)
     if t is int or t is long:
@@ -121,7 +121,7 @@ def fraction_mul(self, other, cls=FractionTuple):
         return cls((_p, _q))
     return NotImplemented
 
-def fraction_div(self, other, cls=FractionTuple):
+def fraction_div(self, other, cls=mpq):
     t = type(other)
     #IF_CHECK_INT(T=t)
     if t is int or t is long:
@@ -159,7 +159,7 @@ def fraction_div(self, other, cls=FractionTuple):
         return cls((_p, _q))
     return NotImplemented
 
-def fraction_rdiv(self, other, cls=FractionTuple):
+def fraction_rdiv(self, other, cls=mpq):
     t = type(other)
     #IF_CHECK_INT(T=t)
     if t is int or t is long:
@@ -180,7 +180,7 @@ def fraction_rdiv(self, other, cls=FractionTuple):
         return cls((_p, _q))
     return NotImplemented
 
-def fraction_pow(self, other, m=None, cls=FractionTuple):
+def fraction_pow(self, other, m=None, cls=mpq):
     t = type(other)
     #IF_CHECK_INT(T=t)
     if t is int or t is long:
@@ -205,7 +205,7 @@ def fraction_pow(self, other, m=None, cls=FractionTuple):
 def complex_add(self, other, new=object.__new__, cls=Complex):
     t = type(other)
     #IF_CHECK_REAL(T=t)
-    if t is int or t is long or t is FractionTuple or t is float or t is Float:
+    if t is int or t is long or t is mpq or t is float or t is Float:
         #ADD_COMPLEX_REAL(LHS=self; RHS=other)
         #RETURN_COMPLEX(REAL=self.real + other; IMAG=self.imag)
         _tmp345 = new(cls)
@@ -229,7 +229,7 @@ def complex_add(self, other, new=object.__new__, cls=Complex):
 def complex_sub(self, other, new=object.__new__, cls=Complex):
     t = type(other)
     #IF_CHECK_REAL(T=t)
-    if t is int or t is long or t is FractionTuple or t is float or t is Float:
+    if t is int or t is long or t is mpq or t is float or t is Float:
         #SUB_COMPLEX_REAL(LHS=self; RHS=other)
         #RETURN_COMPLEX(REAL=self.real - other; IMAG=self.imag)
         _tmp394 = new(cls)
@@ -253,7 +253,7 @@ def complex_sub(self, other, new=object.__new__, cls=Complex):
 def complex_rsub(self, other, new=object.__new__, cls=Complex):
     t = type(other)
     #IF_CHECK_REAL(T=t)
-    if t is int or t is long or t is FractionTuple or t is float or t is Float:
+    if t is int or t is long or t is mpq or t is float or t is Float:
         #SUB_REAL_COMPLEX(LHS=other; RHS=self)
         #RETURN_COMPLEX(REAL=other - self.real; IMAG=-self.imag)
         _tmp443 = new(cls)
@@ -276,7 +276,7 @@ def complex_rsub(self, other, new=object.__new__, cls=Complex):
 def complex_mul(self, other, new=object.__new__, cls=Complex):
     t = type(other)
     #IF_CHECK_REAL(T=t)
-    if t is int or t is long or t is FractionTuple or t is float or t is Float:
+    if t is int or t is long or t is mpq or t is float or t is Float:
         #MUL_COMPLEX_REAL(LHS=self; RHS=other)
         #RETURN_COMPLEX2(REAL=self.real*other; IMAG=self.imag*other)
         _tmp485 = self.imag*other
@@ -306,7 +306,7 @@ def complex_mul(self, other, new=object.__new__, cls=Complex):
 def complex_div(self, other, new=object.__new__, cls=Complex):
     t = type(other)
     #IF_CHECK_REAL(T=t)
-    if t is int or t is long or t is FractionTuple or t is float or t is Float:
+    if t is int or t is long or t is mpq or t is float or t is Float:
         #DIV_COMPLEX_REAL(LHS=self; RHS=other; MOD=%)
         #DIV_VALUE_VALUE(LHS=self.real; RHS=other; RESULT=re; MOD=%)
         _p, _q = self.real, other
@@ -329,7 +329,7 @@ def complex_div(self, other, new=object.__new__, cls=Complex):
                 if _rq == 1:
                     re = _rp
                 else:
-                    re = FractionTuple((_rp, _rq))
+                    re = mpq((_rp, _rq))
             else:
                 re = _p / _q
         else:
@@ -355,7 +355,7 @@ def complex_div(self, other, new=object.__new__, cls=Complex):
                 if _rq == 1:
                     im = _rp
                 else:
-                    im = FractionTuple((_rp, _rq))
+                    im = mpq((_rp, _rq))
             else:
                 im = _p / _q
         else:
@@ -393,7 +393,7 @@ def complex_div(self, other, new=object.__new__, cls=Complex):
                 if _rq == 1:
                     re = _rp
                 else:
-                    re = FractionTuple((_rp, _rq))
+                    re = mpq((_rp, _rq))
             else:
                 re = _p / _q
         else:
@@ -421,7 +421,7 @@ def complex_div(self, other, new=object.__new__, cls=Complex):
                 if _rq == 1:
                     im = _rp
                 else:
-                    im = FractionTuple((_rp, _rq))
+                    im = mpq((_rp, _rq))
             else:
                 im = _p / _q
         else:
@@ -436,7 +436,7 @@ def complex_div(self, other, new=object.__new__, cls=Complex):
 def complex_rdiv(self, other, new=object.__new__, cls=Complex):
     t = type(other)
     #IF_CHECK_REAL(T=t)
-    if t is int or t is long or t is FractionTuple or t is float or t is Float:
+    if t is int or t is long or t is mpq or t is float or t is Float:
         #DIV_REAL_COMPLEX(LHS=other; RHS=self; MOD=%)
         _tmp688 = other
         c, d = self.real, self.imag
@@ -462,7 +462,7 @@ def complex_rdiv(self, other, new=object.__new__, cls=Complex):
                 if _rq == 1:
                     im = _rp
                 else:
-                    im = FractionTuple((_rp, _rq))
+                    im = mpq((_rp, _rq))
             else:
                 im = _p / _q
         else:
@@ -488,7 +488,7 @@ def complex_rdiv(self, other, new=object.__new__, cls=Complex):
                 if _rq == 1:
                     re = _rp
                 else:
-                    re = FractionTuple((_rp, _rq))
+                    re = mpq((_rp, _rq))
             else:
                 re = _p / _q
         else:
@@ -525,7 +525,7 @@ def complex_rdiv(self, other, new=object.__new__, cls=Complex):
                 if _rq == 1:
                     re = _rp
                 else:
-                    re = FractionTuple((_rp, _rq))
+                    re = mpq((_rp, _rq))
             else:
                 re = _p / _q
         else:
@@ -553,7 +553,7 @@ def complex_rdiv(self, other, new=object.__new__, cls=Complex):
                 if _rq == 1:
                     im = _rp
                 else:
-                    im = FractionTuple((_rp, _rq))
+                    im = mpq((_rp, _rq))
             else:
                 im = _p / _q
         else:
@@ -602,15 +602,15 @@ def complex_pow(self, other, m=None, new=object.__new__, cls=Complex):
                 return _tmp849
         ta, tb = type(a), type(b)
         m = 1
-        if ta is FractionTuple:
-            if tb is FractionTuple:
+        if ta is mpq:
+            if tb is mpq:
                 m = (a[1] * b[1]) ** n
                 a, b = a[0]*b[1], a[1]*b[0]
             #ELIF_CHECK_INT(T=tb)
             elif tb is int or tb is long:
                 m = a[1] ** n
                 a, b = a[0], a[1]*b
-        elif tb is FractionTuple:
+        elif tb is mpq:
             #IF_CHECK_INT(T=ta)
             if ta is int or ta is long:
                 m = b[1] ** n
@@ -646,7 +646,7 @@ def complex_pow(self, other, m=None, new=object.__new__, cls=Complex):
         if re_q==1:
             re = re_p
         else:
-            re = FractionTuple((re_p, re_q))
+            re = mpq((re_p, re_q))
         if not d:
             return re
         #FRACTION_NORMALIZE(NUMER=d; DENOM=m; RNUMER=im_p; RDENOM=im_q; MOD=%)
@@ -660,7 +660,7 @@ def complex_pow(self, other, m=None, new=object.__new__, cls=Complex):
         if im_q==1:
             im = im_p
         else:
-            im = FractionTuple((im_p, im_q))
+            im = mpq((im_p, im_q))
         #RETURN_COMPLEX(REAL=re; IMAG=im)
         _tmp898 = new(cls)
         _tmp898.real = re
@@ -668,7 +668,7 @@ def complex_pow(self, other, m=None, new=object.__new__, cls=Complex):
         return _tmp898
     return NotImplemented
     
-def fraction_lt(self, other, cls=FractionTuple):
+def fraction_lt(self, other, cls=mpq):
     p, q = self
     t = type(other)
     #IF_CHECK_INT(T=t)
@@ -679,7 +679,7 @@ def fraction_lt(self, other, cls=FractionTuple):
         return p*s < q*r
     return NotImplemented
     
-def fraction_le(self, other, cls=FractionTuple):
+def fraction_le(self, other, cls=mpq):
     p, q = self
     t = type(other)
     #IF_CHECK_INT(T=t)
@@ -690,7 +690,7 @@ def fraction_le(self, other, cls=FractionTuple):
         return p*s <= q*r
     return NotImplemented
     
-def fraction_gt(self, other, cls=FractionTuple):
+def fraction_gt(self, other, cls=mpq):
     p, q = self
     t = type(other)
     #IF_CHECK_INT(T=t)
@@ -701,7 +701,7 @@ def fraction_gt(self, other, cls=FractionTuple):
         return p*s > q*r
     return NotImplemented
     
-def fraction_ge(self, other, cls=FractionTuple):
+def fraction_ge(self, other, cls=mpq):
     p, q = self
     t = type(other)
     #IF_CHECK_INT(T=t)

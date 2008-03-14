@@ -8,7 +8,7 @@ DO NOT CHANGE THIS FILE DIRECTLY!!!
 """
 
 from ..core import Expr
-from ..arithmetic.numbers import Complex, Float, FractionTuple, try_power
+from ..arithmetic.numbers import Complex, Float, mpq, try_power
 from ..utils import NUMBER, TERMS, FACTORS
 new = Expr.__new__
 
@@ -82,7 +82,7 @@ def inplace_add(cls, obj, pairs, pairs_get, one):
                 else:
                     del pairs[obj]
     #ELIF_CHECK_NUMBER(T=tobj)
-    elif tobj is int or tobj is long or tobj is FractionTuple or tobj is float or tobj is Float or tobj is Complex or tobj is complex:
+    elif tobj is int or tobj is long or tobj is mpq or tobj is float or tobj is Float or tobj is Complex or tobj is complex:
         if obj:
             #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=obj; SIGN=+; USIGN=)
             _tmp58 = pairs_get(one)
@@ -140,7 +140,7 @@ def inplace_add2(cls, obj, coeff, pairs, pairs_get, one):
                 else:
                     del pairs[obj]
     #ELIF_CHECK_NUMBER(T=tobj)
-    elif tobj is int or tobj is long or tobj is FractionTuple or tobj is float or tobj is Float or tobj is Complex or tobj is complex:
+    elif tobj is int or tobj is long or tobj is mpq or tobj is float or tobj is Float or tobj is Complex or tobj is complex:
         value = coeff * obj
         if value:
             #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=+; USIGN=)
@@ -197,7 +197,7 @@ def inplace_sub(cls, obj, pairs, pairs_get, one):
                 else:
                     del pairs[obj]
     #ELIF_CHECK_NUMBER(T=tobj)
-    elif tobj is int or tobj is long or tobj is FractionTuple or tobj is float or tobj is Float or tobj is Complex or tobj is complex:
+    elif tobj is int or tobj is long or tobj is mpq or tobj is float or tobj is Float or tobj is Complex or tobj is complex:
         if obj:
             #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=obj; SIGN=-; USIGN=-)
             _tmp128 = pairs_get(one)
@@ -356,7 +356,7 @@ def inplace_mul(cls, obj, pairs, pairs_get, try_power=try_power, NUMBER=NUMBER):
                     del pairs[obj]
             return number
     #ELIF_CHECK_NUMBER(T=tobj)
-    elif tobj is int or tobj is long or tobj is FractionTuple or tobj is float or tobj is Float or tobj is Complex or tobj is complex:
+    elif tobj is int or tobj is long or tobj is mpq or tobj is float or tobj is Float or tobj is Complex or tobj is complex:
         return obj
     else:
         return inplace_mul(cls, cls.convert(obj), pairs, pairs_get)
@@ -508,7 +508,7 @@ def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NU
                     del pairs[obj]
             return number
     #ELIF_CHECK_NUMBER(T=tobj)
-    elif tobj is int or tobj is long or tobj is FractionTuple or tobj is float or tobj is Float or tobj is Complex or tobj is complex:
+    elif tobj is int or tobj is long or tobj is mpq or tobj is float or tobj is Float or tobj is Complex or tobj is complex:
         return obj ** exp
     else:
         return inplace_mul2(cls, cls.convert(obj), exp, pairs, pairs_get)

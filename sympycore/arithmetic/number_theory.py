@@ -1,6 +1,6 @@
 """Provides algorithms from number theory.
 """
-from .numbers import FractionTuple, normalized_fraction, Complex, Float, div
+from .numbers import mpq, normalized_fraction, Complex, Float, div
 
 __all__ = ['gcd', 'lcm', 'factorial',
            'integer_digits', 'real_digits',
@@ -68,7 +68,7 @@ def real_digits(x, base=10, truncation=10):
     digits, the length reaches `truncation` digits, the iteration is
     stopped."""
     assert base > 1
-    assert isinstance(x, (int, long, FractionTuple))
+    assert isinstance(x, (int, long, mpq))
     if x == 0:
         return ([0], 1)
     x = abs(x)

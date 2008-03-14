@@ -20,7 +20,7 @@ DO NOT CHANGE THIS FILE DIRECTLY!!!
 """
 
 from ..core import Expr
-from ..arithmetic.numbers import Complex, Float, FractionTuple, try_power
+from ..arithmetic.numbers import Complex, Float, mpq, try_power
 from ..utils import NUMBER, TERMS, FACTORS
 new = Expr.__new__
 '''

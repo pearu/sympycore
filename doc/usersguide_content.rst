@@ -88,7 +88,7 @@ Python objects as arguments. For example, the argument to
 requirement comes from the fact terms of sums and factors of products
 are internally saved as Python dictionary keys), and the arguments to
 ``Calculus.Number`` can be Python number types such as ``int``,
-``long``, ``float``, ``complex`` as well as ``FractionTuple``,
+``long``, ``float``, ``complex`` as well as ``mpq``,
 ``Float``, ``Complex`` instances (these are defined in
 ``sympycore.arithmetic`` package).
 
@@ -127,7 +127,7 @@ several modules and subpackages:
    >>> classes.CommutativeRingWithPairs
    <class 'sympycore.basealgebra.pairs.CommutativeRingWithPairs'>
 
-#. ``arithmetic/`` - provides ``FractionTuple``, ``Float``,
+#. ``arithmetic/`` - provides ``mpq``, ``Float``,
    ``Complex`` classes that represent low-level fractions,
    multiprecision floating point numbers, and complex numbers with
    rational parts. This package also defines symbols like ``oo``,
