@@ -52,8 +52,6 @@ inttypes = (int, long)
 from .mpmath import mpf, mpc
 from .mpmath.lib import round_half_even, from_rational
 
-Float = mpf
-
 def mpf_to_str_data(self, sort=True):
     if self < 0:
         return str_SUM, str(self)
@@ -288,9 +286,6 @@ class mpqc(object):
                 return mpq((p,q))
         raise NotImplementedError('abs(%r)' % (self))
 
-Complex = mpqc
-
-
 #----------------------------------------------------------------------------
 # Interface functions
 #
@@ -410,9 +405,6 @@ def try_power(x, y):
         return x ** y, []
     return 1, [(x, y)]
 
-Complex = mpqc
-
-
 from .evalf import evalf
 from .infinity import Infinity
 
@@ -435,10 +427,10 @@ mpq.__le__ = fraction_le
 mpq.__gt__ = fraction_gt
 mpq.__ge__ = fraction_ge
 
-Complex.__add__ = Complex.__radd__ = complex_add
-Complex.__sub__ = complex_sub
-Complex.__rsub__ = complex_rsub
-Complex.__mul__ = Complex.__rmul__ = complex_mul
-Complex.__div__ = complex_div
-Complex.__rdiv__ = complex_rdiv
-Complex.__pow__ = complex_pow
+mpqc.__add__ = mpqc.__radd__ = complex_add
+mpqc.__sub__ = complex_sub
+mpqc.__rsub__ = complex_rsub
+mpqc.__mul__ = mpqc.__rmul__ = complex_mul
+mpqc.__div__ = complex_div
+mpqc.__rdiv__ = complex_rdiv
+mpqc.__pow__ = complex_pow

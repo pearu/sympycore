@@ -89,7 +89,7 @@ requirement comes from the fact terms of sums and factors of products
 are internally saved as Python dictionary keys), and the arguments to
 ``Calculus.Number`` can be Python number types such as ``int``,
 ``long``, ``float``, ``complex`` as well as ``mpq``,
-``Float``, ``Complex`` instances (these are defined in
+``mpf``, ``mpqc`` instances (these are defined in
 ``sympycore.arithmetic`` package).
 
 One can construct symbolic objects from Python strings using algebra
@@ -127,15 +127,11 @@ several modules and subpackages:
    >>> classes.CommutativeRingWithPairs
    <class 'sympycore.basealgebra.pairs.CommutativeRingWithPairs'>
 
-#. ``arithmetic/`` - provides ``mpq``, ``Float``,
-   ``Complex`` classes that represent low-level fractions,
+#. ``arithmetic/`` - provides ``mpq``, ``mpf``, ``mpqc``,
+   ``mpc`` classes that represent low-level fractions,
    multiprecision floating point numbers, and complex numbers with
-   rational parts. This package also defines symbols like ``oo``,
-   ``zoo``, ``undefined`` that extend the number sets with infinities
-   and undefined symbols (eg ``0/0 -> undefined``) to make the number
-   sets closed with respect to all algebraic operations: ``+``, ``-``,
-   ``*``, ``/``, ``**``. For more information about the package, see
-   [section on number theory support].
+   rational parts. The package defines also ``Infinity`` class to
+   represent extended numbers.
 
 #. ``basealgebra/`` - provides abstract base classes representing
    algebras: ``BasicAlgebra``, ``CommutativeRing``, etc, and base
@@ -438,8 +434,8 @@ attribute ``data`` content:
    and *n* is a number saved in ``<obj>.data``. Usually ``<obj>.data``
    is a Python ``int``, ``long``, ``float``, ``complex`` object but it
    can be also any other number-like object that supports arithmetic
-   operations with Python numbers. An examples are ``Fraction``,
-   ``Float``, ``Complex`` classes defined in ``sympycore.arithmetic``
+   operations with Python numbers. An examples are ``mpq``,
+   ``mpf``, ``mpqc`` classes defined in ``sympycore.arithmetic``
    package.
 
 #. If ``<obj>.head==TERMS`` then ``<obj>.data`` contains a Python
@@ -516,9 +512,9 @@ Calculus
 The default algebra of symbolic expressions with commutative ring
 operations is represented by the ``Calculus`` class (derived from
 ``CommutativeAlgebraWithPairs``). The ``Calculus`` class can handle
-rational numbers represented by the ``Fraction`` class, multi-precision
-floating point numbers represented by the ``Float`` class, and
-rational complex numbers represented by the ``Complex`` class.
+rational numbers represented by the ``mpq`` class, multi-precision
+floating point numbers represented by the ``mpf`` class, and
+rational complex numbers represented by the ``mpqc`` class.
 
 The ``sympycore.calculus.functions`` package defines the following
 symbolic functions: ``sqrt``, ``exp``, ``log``, ``sin``, ``cos``,

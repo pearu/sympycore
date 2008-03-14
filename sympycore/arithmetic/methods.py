@@ -7,7 +7,7 @@ See http://sympycore.googlecode.com/ for more information.
 DO NOT CHANGE THIS FILE DIRECTLY!!!
 """
 
-from .numbers import Complex, Float, mpq
+from .numbers import mpqc, mpf, mpq, mpc
 
 
 
@@ -202,10 +202,10 @@ def fraction_pow(self, other, m=None, cls=mpq):
         return cls(((-q)**_tmp303, (-p)**_tmp303))
     return NotImplemented
 
-def complex_add(self, other, new=object.__new__, cls=Complex):
+def complex_add(self, other, new=object.__new__, cls=mpqc):
     t = type(other)
     #IF_CHECK_REAL(T=t)
-    if t is int or t is long or t is mpq or t is float or t is Float:
+    if t is int or t is long or t is mpq or t is float or t is mpf:
         #ADD_COMPLEX_REAL(LHS=self; RHS=other)
         #RETURN_COMPLEX(REAL=self.real + other; IMAG=self.imag)
         _tmp345 = new(cls)
@@ -213,7 +213,7 @@ def complex_add(self, other, new=object.__new__, cls=Complex):
         _tmp345.imag = self.imag
         return _tmp345
     #IF_CHECK_COMPLEX(T=t)
-    if t is cls or t is complex:
+    if t is mpqc or t is complex or t is mpc:
         #ADD_COMPLEX_COMPLEX(LHS=self; RHS=other)
         #RETURN_COMPLEX2(REAL=self.real + other.real; IMAG=self.imag + other.imag)
         _tmp366 = self.imag + other.imag
@@ -226,10 +226,10 @@ def complex_add(self, other, new=object.__new__, cls=Complex):
         return _tmp373
     return NotImplemented
 
-def complex_sub(self, other, new=object.__new__, cls=Complex):
+def complex_sub(self, other, new=object.__new__, cls=mpqc):
     t = type(other)
     #IF_CHECK_REAL(T=t)
-    if t is int or t is long or t is mpq or t is float or t is Float:
+    if t is int or t is long or t is mpq or t is float or t is mpf:
         #SUB_COMPLEX_REAL(LHS=self; RHS=other)
         #RETURN_COMPLEX(REAL=self.real - other; IMAG=self.imag)
         _tmp394 = new(cls)
@@ -237,7 +237,7 @@ def complex_sub(self, other, new=object.__new__, cls=Complex):
         _tmp394.imag = self.imag
         return _tmp394
     #IF_CHECK_COMPLEX(T=t)
-    if t is cls or t is complex:
+    if t is mpqc or t is complex or t is mpc:
         #SUB_COMPLEX_COMPLEX(LHS=self; RHS=other)
         #RETURN_COMPLEX2(REAL=self.real - other.real; IMAG=self.imag - other.imag)
         _tmp415 = self.imag - other.imag
@@ -250,10 +250,10 @@ def complex_sub(self, other, new=object.__new__, cls=Complex):
         return _tmp422
     return NotImplemented
 
-def complex_rsub(self, other, new=object.__new__, cls=Complex):
+def complex_rsub(self, other, new=object.__new__, cls=mpqc):
     t = type(other)
     #IF_CHECK_REAL(T=t)
-    if t is int or t is long or t is mpq or t is float or t is Float:
+    if t is int or t is long or t is mpq or t is float or t is mpf:
         #SUB_REAL_COMPLEX(LHS=other; RHS=self)
         #RETURN_COMPLEX(REAL=other - self.real; IMAG=-self.imag)
         _tmp443 = new(cls)
@@ -273,10 +273,10 @@ def complex_rsub(self, other, new=object.__new__, cls=Complex):
         return _tmp464
     return NotImplemented
 
-def complex_mul(self, other, new=object.__new__, cls=Complex):
+def complex_mul(self, other, new=object.__new__, cls=mpqc):
     t = type(other)
     #IF_CHECK_REAL(T=t)
-    if t is int or t is long or t is mpq or t is float or t is Float:
+    if t is int or t is long or t is mpq or t is float or t is mpf:
         #MUL_COMPLEX_REAL(LHS=self; RHS=other)
         #RETURN_COMPLEX2(REAL=self.real*other; IMAG=self.imag*other)
         _tmp485 = self.imag*other
@@ -288,7 +288,7 @@ def complex_mul(self, other, new=object.__new__, cls=Complex):
         _tmp492.imag = _tmp485
         return _tmp492
     #IF_CHECK_COMPLEX(T=t)
-    if t is cls or t is complex:
+    if t is mpqc or t is complex or t is mpc:
         #MUL_COMPLEX_COMPLEX(LHS=self; RHS=other)
         a, b = self.real, self.imag
         c, d = other.real, other.imag
@@ -303,10 +303,10 @@ def complex_mul(self, other, new=object.__new__, cls=Complex):
         return _tmp520
     return NotImplemented
 
-def complex_div(self, other, new=object.__new__, cls=Complex):
+def complex_div(self, other, new=object.__new__, cls=mpqc):
     t = type(other)
     #IF_CHECK_REAL(T=t)
-    if t is int or t is long or t is mpq or t is float or t is Float:
+    if t is int or t is long or t is mpq or t is float or t is mpf:
         #DIV_COMPLEX_REAL(LHS=self; RHS=other; MOD=%)
         #DIV_VALUE_VALUE(LHS=self.real; RHS=other; RESULT=re; MOD=%)
         _p, _q = self.real, other
@@ -366,7 +366,7 @@ def complex_div(self, other, new=object.__new__, cls=Complex):
         _tmp597.imag = im
         return _tmp597
     #IF_CHECK_COMPLEX(T=t)
-    if t is cls or t is complex:
+    if t is mpqc or t is complex or t is mpc:
         #DIV_COMPLEX_COMPLEX(LHS=self; RHS=other; MOD=%)
         a, b = self.real, self.imag
         c, d = other.real, other.imag
@@ -433,10 +433,10 @@ def complex_div(self, other, new=object.__new__, cls=Complex):
         return _tmp674
     return NotImplemented
 
-def complex_rdiv(self, other, new=object.__new__, cls=Complex):
+def complex_rdiv(self, other, new=object.__new__, cls=mpqc):
     t = type(other)
     #IF_CHECK_REAL(T=t)
-    if t is int or t is long or t is mpq or t is float or t is Float:
+    if t is int or t is long or t is mpq or t is float or t is mpf:
         #DIV_REAL_COMPLEX(LHS=other; RHS=self; MOD=%)
         _tmp688 = other
         c, d = self.real, self.imag
@@ -565,7 +565,7 @@ def complex_rdiv(self, other, new=object.__new__, cls=Complex):
         return _tmp821
     return NotImplemented
 
-def complex_pow(self, other, m=None, new=object.__new__, cls=Complex):
+def complex_pow(self, other, m=None, new=object.__new__, cls=mpqc):
     t = type(other)
     #IF_CHECK_INT(T=t)
     if t is int or t is long:

@@ -244,7 +244,7 @@ requirement comes from the fact terms of sums and factors of products
 are internally saved as Python dictionary keys), and the arguments to
 <tt class="docutils literal"><span class="pre">Calculus.Number</span></tt> can be Python number types such as <tt class="docutils literal"><span class="pre">int</span></tt>,
 <tt class="docutils literal"><span class="pre">long</span></tt>, <tt class="docutils literal"><span class="pre">float</span></tt>, <tt class="docutils literal"><span class="pre">complex</span></tt> as well as <tt class="docutils literal"><span class="pre">mpq</span></tt>,
-<tt class="docutils literal"><span class="pre">Float</span></tt>, <tt class="docutils literal"><span class="pre">Complex</span></tt> instances (these are defined in
+<tt class="docutils literal"><span class="pre">mpf</span></tt>, <tt class="docutils literal"><span class="pre">mpqc</span></tt> instances (these are defined in
 <tt class="docutils literal"><span class="pre">sympycore.arithmetic</span></tt> package).</p>
 <p>One can construct symbolic objects from Python strings using algebra
 <tt class="docutils literal"><span class="pre">convert</span></tt> class method or algebra constructor with one argument. For
@@ -282,15 +282,11 @@ defined in <tt class="docutils literal"><span class="pre">core.py</span></tt>). 
 &lt;class 'sympycore.basealgebra.pairs.CommutativeRingWithPairs'&gt;
 </pre>
 </li>
-<li><p class="first"><tt class="docutils literal"><span class="pre">arithmetic/</span></tt> - provides <tt class="docutils literal"><span class="pre">mpq</span></tt>, <tt class="docutils literal"><span class="pre">Float</span></tt>,
-<tt class="docutils literal"><span class="pre">Complex</span></tt> classes that represent low-level fractions,
+<li><p class="first"><tt class="docutils literal"><span class="pre">arithmetic/</span></tt> - provides <tt class="docutils literal"><span class="pre">mpq</span></tt>, <tt class="docutils literal"><span class="pre">mpf</span></tt>, <tt class="docutils literal"><span class="pre">mpqc</span></tt>,
+<tt class="docutils literal"><span class="pre">mpc</span></tt> classes that represent low-level fractions,
 multiprecision floating point numbers, and complex numbers with
-rational parts. This package also defines symbols like <tt class="docutils literal"><span class="pre">oo</span></tt>,
-<tt class="docutils literal"><span class="pre">zoo</span></tt>, <tt class="docutils literal"><span class="pre">undefined</span></tt> that extend the number sets with infinities
-and undefined symbols (eg <tt class="docutils literal"><span class="pre">0/0</span> <span class="pre">-&gt;</span> <span class="pre">undefined</span></tt>) to make the number
-sets closed with respect to all algebraic operations: <tt class="docutils literal"><span class="pre">+</span></tt>, <tt class="docutils literal"><span class="pre">-</span></tt>,
-<tt class="docutils literal"><span class="pre">*</span></tt>, <tt class="docutils literal"><span class="pre">/</span></tt>, <tt class="docutils literal"><span class="pre">**</span></tt>. For more information about the package, see
-[section on number theory support].</p>
+rational parts. The package defines also <tt class="docutils literal"><span class="pre">Infinity</span></tt> class to
+represent extended numbers.</p>
 </li>
 <li><p class="first"><tt class="docutils literal"><span class="pre">basealgebra/</span></tt> - provides abstract base classes representing
 algebras: <tt class="docutils literal"><span class="pre">BasicAlgebra</span></tt>, <tt class="docutils literal"><span class="pre">CommutativeRing</span></tt>, etc, and base
@@ -610,8 +606,8 @@ represented as <em>one * n</em> where <em>one</em> is unit element of the ring
 and <em>n</em> is a number saved in <tt class="docutils literal"><span class="pre">&lt;obj&gt;.data</span></tt>. Usually <tt class="docutils literal"><span class="pre">&lt;obj&gt;.data</span></tt>
 is a Python <tt class="docutils literal"><span class="pre">int</span></tt>, <tt class="docutils literal"><span class="pre">long</span></tt>, <tt class="docutils literal"><span class="pre">float</span></tt>, <tt class="docutils literal"><span class="pre">complex</span></tt> object but it
 can be also any other number-like object that supports arithmetic
-operations with Python numbers. An examples are <tt class="docutils literal"><span class="pre">Fraction</span></tt>,
-<tt class="docutils literal"><span class="pre">Float</span></tt>, <tt class="docutils literal"><span class="pre">Complex</span></tt> classes defined in <tt class="docutils literal"><span class="pre">sympycore.arithmetic</span></tt>
+operations with Python numbers. An examples are <tt class="docutils literal"><span class="pre">mpq</span></tt>,
+<tt class="docutils literal"><span class="pre">mpf</span></tt>, <tt class="docutils literal"><span class="pre">mpqc</span></tt> classes defined in <tt class="docutils literal"><span class="pre">sympycore.arithmetic</span></tt>
 package.</li>
 <li>If <tt class="docutils literal"><span class="pre">&lt;obj&gt;.head==TERMS</span></tt> then <tt class="docutils literal"><span class="pre">&lt;obj&gt;.data</span></tt> contains a Python
 dictionary holding the pairs <tt class="docutils literal"><span class="pre">(&lt;ring</span> <span class="pre">element&gt;,</span> <span class="pre">&lt;coefficient&gt;)</span></tt>.
@@ -681,9 +677,9 @@ mysin(x + y)
 <p>The default algebra of symbolic expressions with commutative ring
 operations is represented by the <tt class="docutils literal"><span class="pre">Calculus</span></tt> class (derived from
 <tt class="docutils literal"><span class="pre">CommutativeAlgebraWithPairs</span></tt>). The <tt class="docutils literal"><span class="pre">Calculus</span></tt> class can handle
-rational numbers represented by the <tt class="docutils literal"><span class="pre">Fraction</span></tt> class, multi-precision
-floating point numbers represented by the <tt class="docutils literal"><span class="pre">Float</span></tt> class, and
-rational complex numbers represented by the <tt class="docutils literal"><span class="pre">Complex</span></tt> class.</p>
+rational numbers represented by the <tt class="docutils literal"><span class="pre">mpq</span></tt> class, multi-precision
+floating point numbers represented by the <tt class="docutils literal"><span class="pre">mpf</span></tt> class, and
+rational complex numbers represented by the <tt class="docutils literal"><span class="pre">mpqc</span></tt> class.</p>
 <p>The <tt class="docutils literal"><span class="pre">sympycore.calculus.functions</span></tt> package defines the following
 symbolic functions: <tt class="docutils literal"><span class="pre">sqrt</span></tt>, <tt class="docutils literal"><span class="pre">exp</span></tt>, <tt class="docutils literal"><span class="pre">log</span></tt>, <tt class="docutils literal"><span class="pre">sin</span></tt>, <tt class="docutils literal"><span class="pre">cos</span></tt>,
 <tt class="docutils literal"><span class="pre">tan</span></tt>, <tt class="docutils literal"><span class="pre">cot</span></tt>. It also provides <tt class="docutils literal"><span class="pre">Calculus</span></tt> based interfaces to

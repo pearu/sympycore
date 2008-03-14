@@ -12,7 +12,7 @@ from ..infinity import oo, undefined, CalculusInfinity
 from ..constants import const_pi, const_E, const_gamma
 from ..function import Function
 from ...arithmetic.evalf import evalf
-from ...arithmetic.numbers import Complex, realtypes, inttypes
+from ...arithmetic.numbers import complextypes, realtypes, inttypes
 from ...arithmetic.number_theory import factorial
 from ...arithmetic import infinity
 
@@ -90,7 +90,7 @@ class log(Function):
                 return v
             if isinstance(data, realtypes) and data < 0:
                 return Ipi + log(-arg)
-            if isinstance(data, Complex) and data.real == 0:
+            if isinstance(data, complextypes) and data.real == 0:
                 im = data.imag
                 if im > 0: return Calculus(cls, Calculus(NUMBER, im)) + Ipi2
                 if im < 0: return Calculus(cls, Calculus(NUMBER, -im)) - Ipi2

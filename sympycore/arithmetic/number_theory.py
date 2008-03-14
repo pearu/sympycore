@@ -1,6 +1,6 @@
 """Provides algorithms from number theory.
 """
-from .numbers import mpq, normalized_fraction, Complex, Float, div
+from .numbers import mpq, div
 
 __all__ = ['gcd', 'lcm', 'factorial',
            'integer_digits', 'real_digits',

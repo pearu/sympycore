@@ -2,8 +2,7 @@ from sympycore.arithmetic.numbers import *
 from sympycore.arithmetic.infinity import *
 
 mpq = normalized_fraction
-mpf = Float
-mpc = Complex
+mpc = mpqc
 
 nan = undefined = Infinity(0)
 oo = Infinity(1)

@@ -138,12 +138,6 @@ class Calculus(CommutativeRingWithPairs):
         convert = self.convert
         return self.func(*[convert(a).evalf(n) for a in self.args])
 
-    def to_Float(self, n=None):
-        f = self.evalf(n)
-        if f.is_Number:
-            return f.data
-        return NotImplemented
-
     def get_direction(self):
         head, data = self.pair
         if head is NUMBER:

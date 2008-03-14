@@ -19,7 +19,7 @@ See http://sympycore.googlecode.com/ for more information.
 DO NOT CHANGE THIS FILE DIRECTLY!!!
 """
 
-from .numbers import Complex, Float, mpq
+from .numbers import mpqc, mpf, mpq, mpc
 '''
 
 DIV_VALUE_VALUE = '''\
@@ -316,7 +316,7 @@ def fraction_pow(self, other, m=None, cls=mpq):
         @POW_FRACTION_INT(LHS=self; RHS=other)
     return NotImplemented
 
-def complex_add(self, other, new=object.__new__, cls=Complex):
+def complex_add(self, other, new=object.__new__, cls=mpqc):
     t = type(other)
     @IF_CHECK_REAL(T=t)
         @ADD_COMPLEX_REAL(LHS=self; RHS=other)
@@ -324,7 +324,7 @@ def complex_add(self, other, new=object.__new__, cls=Complex):
         @ADD_COMPLEX_COMPLEX(LHS=self; RHS=other)
     return NotImplemented
 
-def complex_sub(self, other, new=object.__new__, cls=Complex):
+def complex_sub(self, other, new=object.__new__, cls=mpqc):
     t = type(other)
     @IF_CHECK_REAL(T=t)
         @SUB_COMPLEX_REAL(LHS=self; RHS=other)
@@ -332,7 +332,7 @@ def complex_sub(self, other, new=object.__new__, cls=Complex):
         @SUB_COMPLEX_COMPLEX(LHS=self; RHS=other)
     return NotImplemented
 
-def complex_rsub(self, other, new=object.__new__, cls=Complex):
+def complex_rsub(self, other, new=object.__new__, cls=mpqc):
     t = type(other)
     @IF_CHECK_REAL(T=t)
         @SUB_REAL_COMPLEX(LHS=other; RHS=self)
@@ -340,7 +340,7 @@ def complex_rsub(self, other, new=object.__new__, cls=Complex):
         @SUB_COMPLEX_COMPLEX(LHS=other; RHS=self)
     return NotImplemented
 
-def complex_mul(self, other, new=object.__new__, cls=Complex):
+def complex_mul(self, other, new=object.__new__, cls=mpqc):
     t = type(other)
     @IF_CHECK_REAL(T=t)
         @MUL_COMPLEX_REAL(LHS=self; RHS=other)
@@ -348,7 +348,7 @@ def complex_mul(self, other, new=object.__new__, cls=Complex):
         @MUL_COMPLEX_COMPLEX(LHS=self; RHS=other)
     return NotImplemented
 
-def complex_div(self, other, new=object.__new__, cls=Complex):
+def complex_div(self, other, new=object.__new__, cls=mpqc):
     t = type(other)
     @IF_CHECK_REAL(T=t)
         @DIV_COMPLEX_REAL(LHS=self; RHS=other; MOD=%)
@@ -356,7 +356,7 @@ def complex_div(self, other, new=object.__new__, cls=Complex):
         @DIV_COMPLEX_COMPLEX(LHS=self; RHS=other; MOD=%)
     return NotImplemented
 
-def complex_rdiv(self, other, new=object.__new__, cls=Complex):
+def complex_rdiv(self, other, new=object.__new__, cls=mpqc):
     t = type(other)
     @IF_CHECK_REAL(T=t)
         @DIV_REAL_COMPLEX(LHS=other; RHS=self; MOD=%)
@@ -364,7 +364,7 @@ def complex_rdiv(self, other, new=object.__new__, cls=Complex):
         @DIV_COMPLEX_COMPLEX(LHS=other; RHS=self; MOD=%)
     return NotImplemented
 
-def complex_pow(self, other, m=None, new=object.__new__, cls=Complex):
+def complex_pow(self, other, m=None, new=object.__new__, cls=mpqc):
     t = type(other)
     @IF_CHECK_INT(T=t)
         if not other:

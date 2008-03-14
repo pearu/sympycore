@@ -3,7 +3,7 @@
 __docformat__ = "restructuredtext"
 __all__ = ['Infinity']
 
-from .numbers import realtypes, complextypes, Complex, numbertypes, div
+from .numbers import realtypes, complextypes, mpqc, numbertypes, div
 
 def is_undefined(obj):
     if isinstance(obj, Infinity):
@@ -79,7 +79,7 @@ class Infinity(object):
         if isinstance(x, Infinity):
             return True
         if isinstance(x, numbertypes):
-            # XXX: handle Float nan, inf
+            # XXX: handle mpf, nan, inf
             return False
         return NotImplemented
 
@@ -101,11 +101,11 @@ class Infinity(object):
             re, im = direction.real, direction.imag
             if re:
                 if abs(im) > abs(re):
-                    obj.data = Complex(re, im)/im
+                    obj.data = mpqc(re, im)/im
                 else:
-                    obj.data = Complex(re, im)/re
+                    obj.data = mpqc(re, im)/re
             elif im:
-                obj.data = Complex(re, im)/im
+                obj.data = mpqc(re, im)/im
             else:
                 obj.data = 0
         else:
