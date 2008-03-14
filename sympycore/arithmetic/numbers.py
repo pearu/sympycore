@@ -49,8 +49,8 @@ from ..basealgebra.verbatim import Verbatim
 
 inttypes = (int, long)
 
-from .mpmath import mpf, mpc
-from .mpmath.lib import round_half_even, from_rational
+from .mpmath import mpf, mpc, mp
+from .mpmath.lib import from_rational, round_nearest
 
 def mpf_to_str_data(self, sort=True):
     if self < 0:
@@ -63,18 +63,18 @@ def mpc_to_str_data(self, sort=True):
 mpf.to_str_data = mpf_to_str_data
 mpc.to_str_data = mpc_to_str_data
 
-rounding = round_half_even
+rounding = round_nearest
 
 def getdps():
-    return mpf.dps
+    return mp.dps
 
 def setdps(n):
-    p = mpf.dps
-    mpf.dps = int(n)
+    p = mp.dps
+    mp.dps = int(n)
     return p
 
 def getprec():
-    return mpf.prec
+    return mp.prec
 
 #----------------------------------------------------------------------------
 # Fractions
@@ -109,9 +109,10 @@ class mpq(tuple):
 
     __slots__ = []
 
-    def __mpfval__(self):
+    @property
+    def _mpf_(self):
         p, q = self
-        return from_rational(p, q, getprec(), round_half_even)
+        return from_rational(p, q, getprec(), rounding)
 
     def as_verbatim(self):
         p, q = self

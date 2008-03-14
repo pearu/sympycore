@@ -1,5 +1,8 @@
 import lib
+
 from mptypes import *
-from apps.extrafun import gamma, factorial, lower_gamma, upper_gamma, erf, zeta
-from apps.quad import quadts
-from apps.interval import mpi
+from intervals import mpi
+from calculus import diff, diffc, secant, polyval, polyroots, quadts
+from specfun import gamma, factorial, lower_gamma, upper_gamma, erf, zeta, \
+    jv, j0, j1
+
