@@ -511,7 +511,7 @@ Calculus
 
 The default algebra of symbolic expressions with commutative ring
 operations is represented by the ``Calculus`` class (derived from
-``CommutativeAlgebraWithPairs``). The ``Calculus`` class can handle
+``CollectingField``). The ``Calculus`` class can handle
 rational numbers represented by the ``mpq`` class, multi-precision
 floating point numbers represented by the ``mpf`` class, and
 rational complex numbers represented by the ``mpqc`` class.
