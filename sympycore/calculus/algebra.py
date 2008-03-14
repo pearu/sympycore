@@ -7,7 +7,7 @@ __docformat__ = "restructuredtext"
 __all__ = ['Calculus', 'I']
 
 from ..core import classes
-from ..utils import TERMS, str_PRODUCT, FACTORS, SYMBOL, NUMBER, EQ, LT, NE, GT, LE, GE
+from ..utils import TERMS, str_PRODUCT, FACTORS, SYMBOL, NUMBER
 from ..basealgebra import Algebra, Verbatim
 from ..basealgebra.pairs import CollectingField
 
@@ -19,7 +19,7 @@ from ..arithmetic.evalf import evalf
 algebra_numbers = (int, long, mpq, mpqc, mpf, mpc)
 convertible_numbers = algebra_numbers + (float, complex)
 
-float_one = mpf(1.0)
+float_one = mpf('1.0')
 
 class Calculus(CollectingField):
     """ Represents an element of a symbolic algebra.
@@ -219,44 +219,8 @@ class Calculus(CollectingField):
 
 classes.Calculus = Calculus
 
+# as a result, x<y will return Logic(LT, (x, y)):
 Calculus.enable_symbolic_comparison('inequality')
-
-class Positive:
-    def __init__(self, a, nonzero=None):
-        self.a = a
-        self.nonzero = nonzero
-    def __repr__(self):
-        return "(%s) > 0" % self.a
-    def __nonzero__(self):
-        nonzero = self.nonzero
-        if nonzero is None:
-            return True
-        return nonzero()
-
-class Nonnegative:
-    def __init__(self, a, nonzero=None):
-        self.a = a
-        self.nonzero = nonzero
-    def __repr__(self):
-        return "(%s) >= 0" % self.a
-    def __nonzero__(self):
-        nonzero = self.nonzero
-        if nonzero is None:
-            return True
-        return nonzero()
-
-def Lt(a, b):
-    nonzero = lambda a=a,b=b: CollectingField.__lt__(a, b)
-    return Positive(b-a, nonzero)
-def Le(a, b):
-    nonzero = lambda a=a,b=b: CollectingField.__le__(a, b)
-    return Nonnegative(b-a, nonzero)
-def Gt(a, b):
-    nonzero = lambda a=a,b=b: CollectingField.__gt__(a, b)
-    return Positive(a-b, nonzero)
-def Ge(a, b):
-    nonzero = lambda a=a,b=b: CollectingField.__ge__(a, b)
-    return Nonnegative(a-b, nonzero)
 
 one = Calculus.Number(1)
 zero = Calculus.Number(0)

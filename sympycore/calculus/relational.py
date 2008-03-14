@@ -9,9 +9,8 @@ __all__ = ['Assumptions', 'is_positive']
 
 from sympycore.arithmetic.numbers import numbertypes, realtypes
 from sympycore.calculus import Calculus, pi, E
-from sympycore.calculus.algebra import Positive, Nonnegative
 from sympycore.utils import NUMBER, ADD, MUL, POW, LT, LE, GT, GE
-from ..logic import Logic
+from ..logic import Logic, Lt, Le
 
 def is_number(x):
     return isinstance(x, numbertypes) or (isinstance(x, Calculus) \
@@ -27,26 +26,24 @@ class Assumptions:
                 continue
             if stmt is False:
                 raise ValueError("got False as assumption")
-            if isinstance(stmt, Positive):
-                self.pos_values.append(stmt.a)
-            elif isinstance(stmt, Nonnegative):
-                self.nonneg_values.append(stmt.a)
-            elif isinstance(stmt, Logic) and stmt.head in [LT, LE, GT, GE]:
+            if isinstance(stmt, Logic):
                 head, (lhs, rhs) = stmt.pair
                 if head is LT:
                     self.pos_values.append(rhs - lhs)
-                if head is LE:
+                elif head is LE:
                     self.nonneg_values.append(rhs - lhs)
-                if head is GT:
+                elif head is GT:
                     self.pos_values.append(lhs - rhs)
-                if head is GE:
+                elif head is GE:
                     self.nonneg_values.append(lhs - rhs)
+                else:
+                    raise ValueError("unknown assumption: " + repr(stmt))
             else:
                 raise ValueError("unknown assumption type: " + repr(stmt))
 
     def __repr__(self):
-        ps = [repr(Positive(a)) for a in self.pos_values]
-        ns = [repr(Nonnegative(a)) for a in self.nonneg_values]
+        ps = [repr(Lt(0, a)) for a in self.pos_values]
+        ns = [repr(Le(0, a)) for a in self.nonneg_values]
         return "Assumptions([%s])" % ", ".join(ps + ns)
 
     def __enter__(self):
@@ -58,8 +55,6 @@ class Assumptions:
     def check(self, cond):
         if isinstance(cond, (bool, type(None))):
             return cond
-        if isinstance(cond, Positive): return self.positive(cond.a)
-        if isinstance(cond, Nonnegative): return self.nonnegative(cond.a)
         if isinstance(cond, Logic):
             head, (lhs, rhs) = cond.pair
             if head is LT:

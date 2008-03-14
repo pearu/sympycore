@@ -41,4 +41,11 @@ class Logic(Algebra):
     def as_verbatim(self):
         return Verbatim(self.head, self.data)
 
+    is_Lt = property(lambda self: self.head is LT)
+    is_Le = property(lambda self: self.head is LE)
+    is_Gt = property(lambda self: self.head is GT)
+    is_Ge = property(lambda self: self.head is GE)
+    is_Eq = property(lambda self: self.head is EQ)
+    is_Ne = property(lambda self: self.head is NE)
+
 classes.Logic = Logic
