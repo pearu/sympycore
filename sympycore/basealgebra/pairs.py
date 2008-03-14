@@ -2,11 +2,11 @@
 # Author: Pearu Peterson
 # Created: January 2008
 #
-"""Provides CommutativeRingWithPairs class.
+"""Provides CollectingField class.
 """
 __docformat__ = "restructuredtext"
 
-__all__ = ['CommutativeRingWithPairs']
+__all__ = ['CollectingField']
 
 
 from ..core import classes
@@ -27,7 +27,7 @@ from .pairs_iops import (inplace_add, inplace_add2, inplace_sub,
 
 from .pairs_expand import expand
 
-class CommutativeRingWithPairs(CommutativeRing):
+class CollectingField(CommutativeRing):
     """ Implementation of a commutative ring where sums and products
     are represented as dictionaries of pairs.
     """
@@ -822,9 +822,9 @@ class CommutativeRingWithPairs(CommutativeRing):
                 return {exps[0]: coeff}, variables
             return {tuple(exps): coeff}, variables
 
-classes.CommutativeRingWithPairs = CommutativeRingWithPairs
+classes.CollectingField = CollectingField
 
 # initialize one and zero attributes:
-CommutativeRingWithPairs.one = CommutativeRingWithPairs.Number(1)
-CommutativeRingWithPairs.zero = CommutativeRingWithPairs.Number(0)
+CollectingField.one = CollectingField.Number(1)
+CollectingField.zero = CollectingField.Number(0)
 

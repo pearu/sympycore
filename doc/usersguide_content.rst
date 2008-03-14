@@ -124,8 +124,8 @@ several modules and subpackages:
    <class 'sympycore.calculus.algebra.Calculus'>
    >>> classes.Unit
    <class 'sympycore.physics.units.Unit'>
-   >>> classes.CommutativeRingWithPairs
-   <class 'sympycore.basealgebra.pairs.CommutativeRingWithPairs'>
+   >>> classes.CollectingField
+   <class 'sympycore.basealgebra.pairs.CollectingField'>
 
 #. ``arithmetic/`` - provides ``mpq``, ``mpf``, ``mpqc``,
    ``mpc`` classes that represent low-level fractions,
@@ -136,7 +136,7 @@ several modules and subpackages:
 #. ``basealgebra/`` - provides abstract base classes representing
    algebras: ``BasicAlgebra``, ``CommutativeRing``, etc, and base
    classes for algebras with implementations: ``Primitive``,
-   ``CommutativeRingWithPairs``, etc.
+   ``CollectingField``, etc.
 
 #. ``calculus/`` - provides class ``Calculus`` that represents the
    algebra of symbolic expressions. The ``Calculus`` class defines the
@@ -252,8 +252,8 @@ Conversation methods
     ]
     NUMBER[2]
   ]
-  >>> print expr.as_algebra(CommutativeRingWithPairs).as_tree()
-  CommutativeRingWithPairs:
+  >>> print expr.as_algebra(CollectingField).as_tree()
+  CollectingField:
   ADD[
     -1:SYMBOL[x]
     2:NUMBER[1]
@@ -418,9 +418,9 @@ Commutative ring implementation
 ===============================
 
 Commutative ring operations are implemented in the class
-``CommutativeRingWithPairs`` (derived from ``CommutativeRing``).
+``CollectingField`` (derived from ``CommutativeRing``).
 
-The class ``CommutativeRingWithPairs`` holds two attributes, ``head``
+The class ``CollectingField`` holds two attributes, ``head``
 and ``data``. The attribute ``head`` defines the meaning of the
 attribute ``data`` content:
 
@@ -482,11 +482,11 @@ True
 Calculus('x')
 
 
-Defining functions for ``CommutativeRingWithPairs``
+Defining functions for ``CollectingField``
 ---------------------------------------------------
 
 The representation of an applied function within the class
-``CommutativeRingWithPairs`` can hold any Python callable object that
+``CollectingField`` can hold any Python callable object that
 satisfies the following basic condition: it must return an instance of
 a algebra class. The instance may represent an evaluated result of
 applying the function to its arguments, or when evaluation is not

@@ -5,7 +5,7 @@ __docformat__ = 'restructuredtext'
 
 # The following constants define both the order of operands
 # as well as placing parenthesis for classes deriving from
-# CommutativeRingWithPairs:
+# CollectingField:
 
 str_SUM = -1
 str_PRODUCT = -2
@@ -15,7 +15,7 @@ str_SYMBOL = -5
 str_NUMBER = -6
 
 # The following constants are used by PrimitiveAlgebra and
-# CommutativeRingWithPairs classes.
+# CollectingField classes.
 
 OR = intern(' or ')
 AND = intern(' and ')

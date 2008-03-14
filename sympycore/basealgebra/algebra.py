@@ -57,7 +57,7 @@ class Algebra(Expr):
     For implemented algebras, see:
 
       Verbatim
-      CommutativeRingWithPairs
+      CollectingField
     
     New algebras may need to redefine the following methods::
     

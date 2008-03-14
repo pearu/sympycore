@@ -1,4 +1,4 @@
-""" Provides the implementation of CommutativeAlgebraWithPairs.expand method.
+""" Provides the implementation of CollectingField.expand method.
 """
 
 __all__ = ['expand']

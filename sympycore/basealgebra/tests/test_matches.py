@@ -1,5 +1,5 @@
 
-from sympycore import CommutativeRingWithPairs as Algebra
+from sympycore import CollectingField as Algebra
 
 Symbol = Algebra.Symbol
 Number = Algebra.Number

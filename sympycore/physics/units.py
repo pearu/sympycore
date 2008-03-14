@@ -11,9 +11,9 @@ __all__ = [\
 from ..core import classes
 
 from ..calculus.algebra import Calculus, algebra_numbers
-from ..basealgebra.pairs import CommutativeRingWithPairs
+from ..basealgebra.pairs import CollectingField
 
-class Unit(CommutativeRingWithPairs):
+class Unit(CollectingField):
     """ Represents an algebra of physical units.
 
     Elements of the units algebra are unit symbols.

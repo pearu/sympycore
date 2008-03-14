@@ -9,7 +9,7 @@ __all__ = ['Calculus', 'I']
 from ..core import classes
 from ..utils import TERMS, str_PRODUCT, FACTORS, SYMBOL, NUMBER, EQ, LT, NE, GT, LE, GE
 from ..basealgebra import Algebra, Verbatim
-from ..basealgebra.pairs import CommutativeRingWithPairs
+from ..basealgebra.pairs import CollectingField
 
 from ..arithmetic.numbers import normalized_fraction, mpq, mpf, mpc, mpqc, try_power
 
@@ -21,7 +21,7 @@ convertible_numbers = algebra_numbers + (float, complex)
 
 float_one = mpf(1.0)
 
-class Calculus(CommutativeRingWithPairs):
+class Calculus(CollectingField):
     """ Represents an element of a symbolic algebra.
 
     The set of a symbolic algebra is a set of expressions.
@@ -246,16 +246,16 @@ class Nonnegative:
         return nonzero()
 
 def Lt(a, b):
-    nonzero = lambda a=a,b=b: CommutativeRingWithPairs.__lt__(a, b)
+    nonzero = lambda a=a,b=b: CollectingField.__lt__(a, b)
     return Positive(b-a, nonzero)
 def Le(a, b):
-    nonzero = lambda a=a,b=b: CommutativeRingWithPairs.__le__(a, b)
+    nonzero = lambda a=a,b=b: CollectingField.__le__(a, b)
     return Nonnegative(b-a, nonzero)
 def Gt(a, b):
-    nonzero = lambda a=a,b=b: CommutativeRingWithPairs.__gt__(a, b)
+    nonzero = lambda a=a,b=b: CollectingField.__gt__(a, b)
     return Positive(a-b, nonzero)
 def Ge(a, b):
-    nonzero = lambda a=a,b=b: CommutativeRingWithPairs.__ge__(a, b)
+    nonzero = lambda a=a,b=b: CollectingField.__ge__(a, b)
     return Nonnegative(a-b, nonzero)
 
 one = Calculus.Number(1)
