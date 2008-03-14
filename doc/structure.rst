@@ -35,15 +35,13 @@ classes is based on the following assertions:
 
 * Any symbolic expression can be expressed as a pair of *expression
   head* and *expression data*. The *expression head* contains
-  information how the *expression data* is interpreted. The head and
-  data pair will be saved as attributes of ``Expr`` class.
+  information how the *expression data* is interpreted. 
 
 * The mathematical meaning of symbolic expressions depends on the
   assumption to what *algebraic structure* the possible values of a
   symbolic expression belong. The specified algebraic structure
   defines the rules for how the symbolic expressions can be combined
-  in algebraic operations. These rules are implemented in classes
-  derived from the ``Expr`` class.
+  in algebraic operations.
 
 In the following we call a algebraic structure as an algebra for
 brevity.
@@ -51,13 +49,21 @@ brevity.
 Implementation of principles
 ----------------------------
 
+The assertions of the fundamental idea is implemented as follows:
+
+* To hold the head and data parts of symbolic expressions, a class
+  ``Expr`` is defined that instances will have an attribute ``pair``
+  holding the head and data pair.
+
+* To define the algebraic rules for symbolic expressions, subclasses
+  of ``Expr`` implement the corresponding methods.
+
 .. warning::
 
   The Python code fragments shown in this section are presented only
   for illustration purposes. The ``sympycore`` may use slightly
   different implementation (explained in the following sections) that
-  gives a better performance. However, the basic ideas remain the
-  same.
+  gives a better performance. However, the basic idea remain the same.
 
 In ``sympycore``, any symbolic expression is defined as an instance of a
 ``Expr`` class (or one of its subclasses)::
@@ -66,8 +72,9 @@ In ``sympycore``, any symbolic expression is defined as an instance of a
 
       def __init__(self, head, data):
           self.pair = (head, data)
-          self.head = head
-	  self.data = data
+
+      head = property(lambda self: self.pair[0])
+      data = property(lambda self: self.pair[1])
 
 In a way, the ``Expr`` class represents an algebra with no
 mathematical properties - it just holds some *head* and some *data*.
@@ -126,7 +133,7 @@ ring, one can define::
 
 Since ``sympycore`` defines many classes representing different
 algebras, the functions above are usually implemented as Python
-``classmethod``'s of the corresponding algebra classes. Also, the used
+``classmethod``-s of the corresponding algebra classes. Also, the
 ``head`` parts may be changed to anything more appropiate.
 
 Various representations
@@ -156,21 +163,41 @@ In general, there is no preferred representation for a symbolic
 expression, each representation has its pros and cons depending on
 applications.
 
-Classes in Sympycore
+Classes in SympyCore
 ====================
 
-The following diagram summarizes the class structure of ``sympycore``::
+The following diagram summarizes what classes ``sympycore`` uses and
+defines::
 
   object
     Expr
       Algebra
         Verbatim
+        Logic
         CommutativeRing
           CollectingField
             Calculus
             Unit
         PolynomialRing[<variables>, <coefficient ring>]
         MatrixRing[<shape>, <element ring>]
+        UnivariatePolynomial
+
+    Infinity
+      CalculusInfinity
+
+    Function
+      sign, exp, log
+      TrigonometricFunction
+        sin, cos, tan, cot
+
+    str
+      Constant
+
+    tuple
+      mpq
+    mpqc
+    mpf, mpc
+    int, long, float, complex
 
 Low-level numbers
 -----------------
@@ -193,7 +220,8 @@ are numbers):
 +-----------+----------------------------------------------------+
 
 Python ``float`` and ``complex`` instances are converted to ``mpf``
-and ``mpc`` instances, respectively.
+and ``mpc`` instances, respectively, when used in operations with
+symbolic expressions.
 
 These number types are called "low-level" numbers because some of
 their properties may be unusual for generic numbers but these
@@ -201,7 +229,7 @@ properties are introduced to improve the efficiency of number
 operations.
 
 For example, ``mpq`` number is assumed to hold a normalized rational
-number that is not integer.  Operation between ``mpq`` instances that
+number that is not integer.  Operations between ``mpq`` instances that
 would produce integer result, will return ``int`` (or ``long``)
 instance. Similarly, the real valued result of an operation between
 complex numbers ``mpqc`` (or ``mpc``) will be an instance of ``int``
@@ -211,6 +239,24 @@ or ``long`` or ``mpq`` (or ``mpf``) type.
 Verbatim algebra
 ----------------
 
-Sympycore defines ``Verbatim`` class that represents verbatim algebra.
-Verbatim algebra contains expressions in unevaluated form.
+SympyCore defines ``Verbatim`` class that represents verbatim algebra.
+Verbatim algebra contains expressions in unevaluated form. The
+verbatim algebra can be used to implement generic methods for
+transforming symbolic expressions to strings, or to instances of other
+algebras.
 
+Logic algebra
+-------------
+
+SympyCore defines ``Logic`` class that represents n-ary predicate
+expressions.
+
+Collecting field
+----------------
+
+SympyCore defines ``CollectingField`` class to represent sums and
+products in ``{<term>:<coefficent>}`` and ``{<base>:<exponent>}``
+forms, respectively. The class name contains prefix "Collecting"
+because in operations with ``CollectingField`` instances, equal terms
+and equal bases are automatically collected by upgrading the
+coefficient and exponent values, respectively.
