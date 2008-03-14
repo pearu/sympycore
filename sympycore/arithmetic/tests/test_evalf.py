@@ -21,7 +21,7 @@ def test_compiled():
     f1 = compile_mpmath([], exp(2))
     f2 = compile_mpmath('x', exp(x))
     f3 = compile_mpmath(['x', 'y'], cos(x)+sin(y)*I)
-    mpmath.mpf.dps = 15
+    mpmath.mp.dps = 15
     assert abs(f1() - math.exp(2)) < 1e-14
     assert abs(f2(2) - math.exp(2)) < 1e-14
     assert abs(f3(3,4) - (cmath.cos(3)+cmath.sin(4)*1j)) < 1e-14
