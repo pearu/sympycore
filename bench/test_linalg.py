@@ -1,15 +1,21 @@
 START_REVISION=568
 
-from sympycore import MatrixRing
-
 N = 5
+try:
+    from sympycore import MatrixRing
+    a = MatrixRing[N,N].random()
+    b = MatrixRing[N,N].random()
+    c = MatrixRing[N,N].random((0,1))
+    d = MatrixRing[N,N].random((0,1))
+    m = MatrixRing[N,N].random()
+except ImportError:
+    from sympycore import MatrixBase
+    a = MatrixBase.random(N, N)
+    b = MatrixBase.random(N, N)
+    c = MatrixBase.random(N, N, (0,1))
+    d = MatrixBase.random(N, N, (0,1))
+    m = MatrixBase.random(N, N)
 
-a = MatrixRing[N,N].random()
-b = MatrixRing[N,N].random()
-c = MatrixRing[N,N].random((0,1))
-d = MatrixRing[N,N].random((0,1))
-
-m = MatrixRing[N,N].random()
 for i in range(N):
     m[i,i] = 100 + i
 

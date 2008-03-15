@@ -1,6 +1,6 @@
 
 from ..core import classes
-from ..utils import EQ, NE, LT, LE, GT, GE
+from ..utils import EQ, NE, LT, LE, GT, GE, SYMBOL
 from ..basealgebra import Algebra, Verbatim
 
 head_mth_map = {
@@ -47,5 +47,11 @@ class Logic(Algebra):
     is_Ge = property(lambda self: self.head is GE)
     is_Eq = property(lambda self: self.head is EQ)
     is_Ne = property(lambda self: self.head is NE)
+
+    @classmethod
+    def Symbol(cls, obj):
+        return cls(SYMBOL, obj)
+
+    
 
 classes.Logic = Logic

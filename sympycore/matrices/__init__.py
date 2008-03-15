@@ -2,4 +2,4 @@
 """
 __docformat__ = "restructuredtext"
 
-from .algebra import MatrixRing, PermutationMatrix, SquareMatrix
+from .algebra import Matrix, MatrixBase
