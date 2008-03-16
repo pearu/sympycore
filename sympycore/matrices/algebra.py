@@ -364,7 +364,20 @@ class MatrixDict(MatrixBase):
         else:
             ret = self.copy()
         rows, cols = self.head.shape
-        if isinstance(other, MatrixBase):
+        if type(other) is type(self):
+            head1, data1 = ret.pair
+            head2, data2 = other.pair
+            assert head1.shape==head2.shape,`head1, head2`
+            if head1.is_transpose:
+                if head2.is_transpose:
+                    iadd_MATRIX_MATRIX_TT(data1, data2)
+                else:
+                    iadd_MATRIX_MATRIX_TA(data1, data2)
+            elif head2.is_transpose:
+                iadd_MATRIX_MATRIX_AT(data1, data2)
+            else:
+                iadd_MATRIX_MATRIX_AA(data1, data2)
+        elif isinstance(other, MatrixBase):
             assert other.head.shape == self.head.shape
             for i in xrange(rows):
                 for j in xrange(cols):
@@ -586,7 +599,46 @@ class PermutationMatrix(MatrixDict):
                 d[i, index] = 1
             return MatrixDict(MATRIX(n, n, MATRIX_DICT), d)
         return super(MatrixDict, cls).convert(data, typeerror=typeerror)
-    
+
+def iadd_MATRIX_MATRIX_AA(data1, data2):
+    for key,x in data2.items():
+        b = data1.get(key)
+        if b is None:
+            data1[key] = x
+        else:
+            b += x
+            if b:
+                data1[key] = b
+            else:
+                del data1[key]
+
+def iadd_MATRIX_MATRIX_AT(data1, data2):
+    for (j,i),x in data2.items():
+        key = i,j
+        b = data1.get(key)
+        if b is None:
+            data1[key] = x
+        else:
+            b += x
+            if b:
+                data1[key] = b
+            else:
+                del data1[key]
+
+def iadd_MATRIX_MATRIX_TA(data1, data2):
+    for (i,j),x in data2.items():
+        key = j,i
+        b = data1.get(key)
+        if b is None:
+            data1[key] = x
+        else:
+            b += x
+            if b:
+                data1[key] = b
+            else:
+                del data1[key]
+
+iadd_MATRIX_MATRIX_TT = iadd_MATRIX_MATRIX_AA
 
 def imul_MATRIX_MATRIX_AA(data1, data2):
     for key in data1:
