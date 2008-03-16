@@ -3,8 +3,36 @@ from ..utils import MATRIX, MATRIX_DICT
 from ..arithmetic.numbers import div
 from .algebra import MatrixDict, Matrix
 
-def MATRIX_DICT_lu(self):
+def MATRIX_DICT_gauss_jordan_elimination(self, overwrite=False):
+    """ Perform Gauss-Jordan elimination of a m x n matrix A.
+
+    Outputs::
+
+      P - m x m permutation matrix
+      B - m x n matrix where the lhs part is unit matrix
+    """
+    head, data = self.pair
+    m, n = head.shape
+    k = min(m,n)
+    if overwrite and self.is_writable:
+        udata = data
+    else:
+        udata = dict(data)
+    if head.is_transpose:
+        raise NotImplementedError
+        B = MatrixDict(MATRIX(k, n, MATRIX_DICT_T), udata)
+        gauss_jordan_elimination_MATRIX_T(m, n, udata)
+    else:
+        B = MatrixDict(MATRIX(k, n, MATRIX_DICT), udata)
+        gauss_jordan_elimination_MATRIX(m, n, udata)
+    return B
+
+def MATRIX_DICT_lu(self, overwrite=False):
     """ Perform LU factorization of a m x n matrix A.
+
+    Parameters::
+
+      overwrite=False - if True then discard the content of matrix A
 
     Outputs::
     
@@ -23,7 +51,10 @@ def MATRIX_DICT_lu(self):
     m, n = head.shape
     k = min(m, n)
     ldata = {}
-    udata = dict(data)
+    if overwrite and self.is_writable:
+        udata = data
+    else:
+        udata = dict(data)
     L = MatrixDict(MATRIX(m, k, MATRIX_DICT), ldata)
     if head.is_transpose:
         U = MatrixDict(MATRIX(k, n, MATRIX_DICT_T), udata)
@@ -34,6 +65,47 @@ def MATRIX_DICT_lu(self):
     P = Matrix(pivot_table, permutation=True).T
     return P, L, U
 
+def gauss_jordan_elimination_MATRIX(m, n, data):
+    data_get = data.get
+    for i in xrange(m):
+        a_ii = data_get((i,i))
+        if a_ii is None:
+            for j in xrange(i+1, m):
+                a_ii = data_get((j,i))
+                if a_ii is not None:
+                    break
+            if a_ii is None:
+                continue
+            swap_rows_MATRIX(data, i, j)
+        for j in range(m):
+            if j==i:
+                continue
+            u_ji = data_get((j,i))
+            if u_ji is None:
+                continue
+            c = div(u_ji, a_ii)
+            for p in range(i,n):
+                u_ip = data_get((i,p))
+                if u_ip is None:
+                    continue
+                jp = j,p
+                b = data_get(jp)
+                if b is None:
+                    data[jp] = -u_ip*c
+                else:
+                    b -= u_ip*c
+                    if b:
+                        data[jp] = b
+                    else:
+                        del data[jp]
+        data[i,i] = 1
+        for p in range(i+1, n):
+            ip = i,p
+            u_ip = data_get(ip)
+            if u_ip is None:
+                continue
+            data[ip] = div(u_ip, a_ii)
+
 def lu_MATRIX(m, n, k, ldata, udata):
     if m>n:
         for i in xrange(n,m):
@@ -41,7 +113,7 @@ def lu_MATRIX(m, n, k, ldata, udata):
     pivot_table = range(m)
     udata_get = udata.get
     for i in xrange(m-1):
-        a_ii = udata.get((i,i))
+        a_ii = udata_get((i,i))
         if a_ii is None:
             for j in xrange(i+1, m):
                 a_ii = udata_get((j,i))
@@ -129,6 +201,8 @@ def lu_MATRIX_T(m, n, k, ldata, udata):
 def MATRIX_DICT_crop(self):
     """ Remove elements that are out of dimensions.
     """
+    if not self.is_writable:
+        raise TypeError('Cannot crop read-only matrix inplace')
     head, data = self.pair
     m, n = head.shape
     if head.is_transpose:
@@ -188,6 +262,8 @@ swap_rows_MATRIX_T = swap_cols_MATRIX
 swap_cols_MATRIX_T = swap_rows_MATRIX
 
 def MATRIX_DICT_swap_rows(self, i, j):
+    if not self.is_writable:
+        raise TypeError('Cannot swap rows of a read-only matrix')
     head, data = self.pair
     if head.is_transpose:
         swap_rows_MATRIX_T(data, i, j)
@@ -195,6 +271,8 @@ def MATRIX_DICT_swap_rows(self, i, j):
         swap_rows_MATRIX(data, i, j)
 
 def MATRIX_DICT_swap_cols(self, i, j):
+    if not self.is_writable:
+        raise TypeError('Cannot swap columns of a read-only matrix')
     head, data = self.pair
     if head.is_transpose:
         swap_cols_MATRIX_T(data, i, j)

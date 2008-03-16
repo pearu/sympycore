@@ -69,15 +69,18 @@ def Matrix(*args, **kws):
                         l = len(row)
                         n = max(n, l)
                         for j, x in enumerate(row):
-                            data[i,j] = x
+                            if x:
+                                data[i,j] = x
                     else:
                         n = max(n, 1)
-                        data[i,0] = row
+                        if row:
+                            data[i,0] = row
             else:
                 n = m
                 if kws.get('diagonal'):
                     for i, x in enumerate(a):
-                        data[i, i] = x
+                        if x:
+                            data[i, i] = x
                 elif kws.get('permutation'):
                     for i,x in enumerate(a):
                         assert 0<=x<m,`x,m`
@@ -85,7 +88,8 @@ def Matrix(*args, **kws):
                 else: # single column matrix
                     n = 1
                     for i,x in enumerate(a):
-                        data[i, 0] = x
+                        if x:
+                            data[i, 0] = x
         else:
             raise TypeError('Matrix call with 1 argument: argument must be integer or a sequence, got %r' % (type(a)))
     elif len(args)==2:
@@ -112,10 +116,13 @@ def Matrix(*args, **kws):
 
     return MatrixDict(MATRIX(m, n, MATRIX_DICT), data)
 
-#XXX: implement PermuationMatrix function.
 
 class MatrixBase(Algebra):
     """ Base class to matrix classes.
+
+    Currently the following matrix classes are implemented:
+
+      MatrixDict - matrix content is saved in a dictonary
     """
 
     @classmethod
@@ -249,10 +256,10 @@ class MatrixDict(MatrixBase):
                 col_indices = {j:0}
             elif ti is int and tj is slice:
                 row_indices = {i:0}
-                col_indices = dict([(j0,k) for k,j0 in enumerate(xrange(*j.indices(head.rows)))])
+                col_indices = dict([(j0,k) for k,j0 in enumerate(xrange(*j.indices(head.cols)))])
             elif ti is slice and tj is slice:
                 row_indices = dict([(i0,k) for k,i0 in enumerate(xrange(*i.indices(head.rows)))])
-                col_indices = dict([(j0,k) for k,j0 in enumerate(xrange(*j.indices(head.rows)))])
+                col_indices = dict([(j0,k) for k,j0 in enumerate(xrange(*j.indices(head.cols)))])
             else:
                 raise NotImplementedError(`key`)
             newdata = {}
@@ -403,6 +410,22 @@ class MatrixDict(MatrixBase):
     def inv(self):
         """ Return inverse of a square matrix.
         """
+        head, data = self.pair
+        m, n = head.shape
+        assert m==n,`m,n`
+        if head.is_transpose:
+            d = {}
+            for (i,j),x in data.items():
+                d[j,i] = x
+        else:
+            d = dict(data)
+        for i in range(m):
+            d[i,i+m] = 1
+        a = MatrixDict(MATRIX(m, 2*m, MATRIX_DICT), d)
+        # XXX: catch singular matrices
+        b = a.gauss_jordan_elimination(overwrite=True)
+        return b[:,m:]
+        
         p, l, u = self.lu()
         # a = p*l*u
         # a^-1 = u^-1 * l^-1 * p.T
@@ -413,21 +436,8 @@ class MatrixDict(MatrixBase):
             return uinv * linv * p.T
         raise ZeroDivisionError
 
-class PermutationMatrix(MatrixDict):
-    """ Represents a square permutation matrix."""
-
-    @classmethod
-    def convert(cls, data, typeerror=True):
-        if isinstance(data, (list,tuple)):
-            n = len(data)
-            d = {}
-            for i,index in enumerate(data):
-                d[i, index] = 1
-            return MatrixDict(MATRIX(n, n, MATRIX_DICT), d)
-        return super(MatrixDict, cls).convert(data, typeerror=typeerror)
-
 from .matrix_operations import MATRIX_DICT_iadd, MATRIX_DICT_imul
-from .linalg import MATRIX_DICT_swap_rows, MATRIX_DICT_swap_cols, MATRIX_DICT_lu, MATRIX_DICT_crop
+from .linalg import MATRIX_DICT_swap_rows, MATRIX_DICT_swap_cols, MATRIX_DICT_lu, MATRIX_DICT_crop, MATRIX_DICT_gauss_jordan_elimination
 
 MatrixDict.__iadd__ = MATRIX_DICT_iadd
 MatrixDict.__imul__ = MATRIX_DICT_imul
@@ -435,3 +445,4 @@ MatrixDict.swap_rows = MATRIX_DICT_swap_rows
 MatrixDict.swap_cols = MATRIX_DICT_swap_cols
 MatrixDict.crop = MATRIX_DICT_crop
 MatrixDict.lu = MATRIX_DICT_lu
+MatrixDict.gauss_jordan_elimination = MATRIX_DICT_gauss_jordan_elimination
