@@ -9,8 +9,23 @@ def test_Matrix1():
 
     a = Matrix([1,2])
     assert a.rows==2
+    assert a.cols==1
+    assert a.tolist()==[[1], [2]]
+
+    a = Matrix([1,2], diagonal=True)
+    assert a.rows==2
     assert a.cols==2
     assert a.tolist()==[[1,0], [0,2]]
+
+    a = Matrix([0,1], permutation=True)
+    assert a.rows==2
+    assert a.cols==2
+    assert a.tolist()==[[1,0], [0,1]]
+
+    a = Matrix([1,0], permutation=True)
+    assert a.rows==2
+    assert a.cols==2
+    assert a.tolist()==[[0,1], [1,0]]
 
     a = Matrix([1,[2]])
     assert a.rows==2
