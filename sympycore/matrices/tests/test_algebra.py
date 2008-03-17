@@ -119,6 +119,31 @@ def test_set_item():
     b = Matrix([[1,2,3],[7,8,9]])
     a[::2] = b
     assert a.tolist()==[[1,2,3],[0,0,0],[7,8,9]]
+    a[:2,:] = 0*b
+    assert a.tolist()==[[0,0,0],[0,0,0],[7,8,9]]
+    a.T[0,:] = [[1,0,0]]
+    assert a.tolist()==[[1,0,0],[0,0,0],[0,8,9]]
+    
+    a = Matrix([[1,2],[3,4]])
+    a.T[1,0] = 22
+    a.T[0,1] = 0
+    assert a.tolist()==[[1,22],[0,4]]
+    a.T[0,1] = 0
+    assert a.tolist()==[[1,22],[0,4]]
+
+    a = Matrix([[1,2,3],[4,5,6],[7,8,9]])
+    a[:2,:2] = 11
+    assert a.tolist()==[[11,11,3],[11,11,6],[7,8,9]]
+    a[1:,:] = 0
+    assert a.tolist()==[[11,11,3],[0,0,0],[0,0,0]]
+    a[:,:1] = 0
+    assert a.tolist()==[[0,11,3],[0,0,0],[0,0,0]]
+    a.T[::2,1] = 22
+    assert a.tolist()==[[0,11,3],[22,0,22],[0,0,0]]
+    a.T[:,0] = 0
+    assert a.tolist()==[[0,0,0],[22,0,22],[0,0,0]]
+    a.T[:1,:] = 0
+    assert a.tolist()==[[0,0,0],[0,0,22],[0,0,0]]
     
 def test_iadd():
     a = a2 = Matrix([[1,2], [3,4]])
@@ -152,6 +177,9 @@ def test_iadd():
     a += a2
     assert a.tolist()==[[2,3],[4,5]]
 
+    a += a.T
+    assert a.tolist()==[[4,7],[7,10]]
+
 def test_add():
     a = Matrix([[1,2], [3,4]])
     assert (a+1).tolist()==[[2,3],[4,5]]
@@ -160,8 +188,31 @@ def test_add():
     b = Matrix([[1,-2], [-3,4]])
     assert (a+b).tolist()==[[2,0],[0,8]]
 
-def test_neg():
+def test_isub():
+    a = a2 = Matrix([[1,2], [3,4]])
+    a -= 1
+    assert a.tolist()==[[0,1],[2,3]]
+    assert a.data is a2.data
+
+    b = Matrix([[1,-2], [-3,4]])
+    a -= b
+    assert a.tolist()==[[-1,3],[5,-1]]
+    assert a.data is a2.data
+
+    a -= a.T
+    assert a.tolist()==[[0,-2],[2,0]]
+    assert a.data is a2.data
+
+def test_sub():
+    a = Matrix([[1,2],[3,4]])
+    assert (1-a).tolist()==[[0,-1],[-2,-3]]
+    assert (a-1).tolist()==[[0,1],[2,3]]
+    b = Matrix([[3,4],[1,2]])
+    assert (a-b).tolist()==[[-2,-2],[2,2]]
+    
+def test_posneg():
     a = Matrix([[1,2], [3,4]])
+    assert (+a).tolist() == [[1,2],[3,4]]
     assert (-a).tolist() == [[-1,-2],[-3,-4]]
 
 def test_imul():
@@ -213,3 +264,5 @@ def test_views():
     assert not a.head.is_array
     assert not a.M.head.is_array
     assert a.A.head.is_array
+    b = a.A
+    assert b.A is b

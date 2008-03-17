@@ -163,7 +163,14 @@ class MatrixBase(Algebra):
         ret += other
         return ret
 
-    __radd__ = __add__
+    def __radd__(self, other):
+        t = type(other)
+        if t is list or t is tuple:
+            return Matrix(other) + self
+        # other is scalar
+        ret = self.copy()
+        ret += other
+        return ret
 
     def __isub__(self, other):
         self += -other
