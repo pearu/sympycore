@@ -437,7 +437,10 @@ class MatrixDict(MatrixBase):
         raise ZeroDivisionError
 
 from .matrix_operations import MATRIX_DICT_iadd, MATRIX_DICT_imul
-from .linalg import MATRIX_DICT_swap_rows, MATRIX_DICT_swap_cols, MATRIX_DICT_lu, MATRIX_DICT_crop, MATRIX_DICT_gauss_jordan_elimination
+from .linalg import (MATRIX_DICT_swap_rows, MATRIX_DICT_swap_cols,
+                     MATRIX_DICT_lu, MATRIX_DICT_crop,
+                     MATRIX_DICT_gauss_jordan_elimination)
+from .linalg_determinant import MATRIX_DICT_determinant
 
 MatrixDict.__iadd__ = MATRIX_DICT_iadd
 MatrixDict.__imul__ = MATRIX_DICT_imul
@@ -446,3 +449,4 @@ MatrixDict.swap_cols = MATRIX_DICT_swap_cols
 MatrixDict.crop = MATRIX_DICT_crop
 MatrixDict.lu = MATRIX_DICT_lu
 MatrixDict.gauss_jordan_elimination = MATRIX_DICT_gauss_jordan_elimination
+MatrixDict.det = MATRIX_DICT_determinant

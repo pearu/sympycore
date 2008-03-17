@@ -1,3 +1,5 @@
+# Author: Pearu Peterson
+# Created: March 2008
 
 from ..utils import MATRIX, MATRIX_DICT
 from ..arithmetic.numbers import div
