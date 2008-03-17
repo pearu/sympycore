@@ -26,7 +26,9 @@ def MATRIX_DICT_iadd(self, other):
             iadd_MATRIX_MATRIX_AT(data1, data2)
         else:
             iadd_MATRIX_MATRIX_AA(data1, data2)
-        return ret
+        if head2.is_array:
+            return ret.A
+        return ret.M
     elif isinstance(other, MatrixBase):
         raise NotImplementedError(`type(other)`)
     else:
@@ -48,7 +50,6 @@ def MATRIX_DICT_iadd(self, other):
 def MATRIX_DICT_imul(self, other):
     """ Inplace matrix multiplication.
     """
-
     t = type(other)
     if t is list or t is tuple:
         other = Matrix(other)
@@ -72,18 +73,22 @@ def MATRIX_DICT_imul(self, other):
                 imul_MATRIX_MATRIX_AT(data1, data2)
             else:
                 imul_MATRIX_MATRIX_AA(data1, data2)
-            return ret
+            if head2.is_array:
+                return ret.A
+            return ret.M
         else:
             assert head1.cols==head2.rows,`head1, head2`
             args = data1, data2, head1.rows, head2.cols, head1.cols
             if head1.is_transpose:
                 if head2.is_transpose:
-                    return mul_MATRIX_MATRIX_MTT(*args)
-                return mul_MATRIX_MATRIX_TM(*args)
+                    ret = mul_MATRIX_MATRIX_MTT(*args)
+                else:
+                    ret = mul_MATRIX_MATRIX_TM(*args)
             elif head2.is_transpose:
-                return mul_MATRIX_MATRIX_MT(*args)
+                ret = mul_MATRIX_MATRIX_MT(*args)
             else:
-                return mul_MATRIX_MATRIX_MM(*args)
+                ret = mul_MATRIX_MATRIX_MM(*args)
+            return ret
     elif isinstance(other, MatrixBase):
         raise NotImplementedError(`type(other)`)
     else:

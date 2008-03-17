@@ -221,6 +221,8 @@ class MatrixDict(MatrixBase):
         """ Return array view of a matrix.
         """
         head, data = self.pair
+        if head.is_array:
+            return self
         newhead = head.A
         if newhead is head:
             return self
@@ -231,6 +233,8 @@ class MatrixDict(MatrixBase):
         """ Return matrix view of a matrix.
         """
         head, data = self.pair
+        if not head.is_array:
+            return self
         newhead = head.M
         if newhead is head:
             return self

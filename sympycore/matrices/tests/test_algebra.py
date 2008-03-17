@@ -124,20 +124,20 @@ def test_iadd():
     a = a2 = Matrix([[1,2], [3,4]])
     a += 1
     assert a.tolist()==[[2,3],[4,5]]
-    assert a is a2
+    assert a.data is a2.data
 
     a = a2 = Matrix([[1,2], [3,4]])
     hash(a)
     a += 1
     assert a.tolist()==[[2,3],[4,5]]
     assert a2.tolist()==[[1,2],[3,4]]
-    assert a is not a2
+    assert a.data is not a2.data
 
     a = a2 = Matrix([[1,2], [3,4]])
     b = Matrix([[1,-2], [-3,4]])
     a += b
     assert a.tolist()==[[2,0],[0,8]]
-    assert a is a2
+    assert a.data is a2.data
 
     a = a2 = Matrix([[1,2], [3,4]])
     b = Matrix([[1,-2], [-3,4]])
@@ -145,7 +145,7 @@ def test_iadd():
     a += b
     assert a.tolist()==[[2,0],[0,8]]
     assert a2.tolist()==[[1,2],[3,4]]
-    assert a is not a2
+    assert a.data is not a2.data
 
     a = 1
     a2 = Matrix([[1,2], [3,4]])
@@ -168,14 +168,14 @@ def test_imul():
     a = a2 = Matrix([[1,2], [3,4]])
     a *= 2
     assert a.tolist() == [[2,4],[6,8]]
-    assert a is a2
+    assert a.data is a2.data
 
     a = a2 = Matrix([[1,2], [3,4]])
     hash(a)
     a *= 2
     assert a.tolist() == [[2,4],[6,8]]
     assert a2.tolist() == [[1,2],[3,4]]
-    assert a is not a2
+    assert a.data is not a2.data
 
     a = a2 = Matrix([[1,2], [3,4]])
     a *= a
@@ -185,14 +185,14 @@ def test_imul():
     a = a2 = Matrix([[1,2], [3,4]])
     a *= a.A
     assert a.tolist()==[[1,4],[9,16]]
-    assert a is a2
+    assert a.data is a2.data
 
     a = a2 = Matrix([[1,2], [3,4]])
     hash(a)
     a *= a.A
     assert a.tolist()==[[1,4],[9,16]]
     assert a2.tolist()==[[1,2],[3,4]]
-    assert a is not a2
+    assert a.data is not a2.data
 
 def test_mul():
     a = Matrix([[1,2], [3,4]])
@@ -208,3 +208,8 @@ def test_mul():
     assert (a*2).tolist() == [[2,4],[6,8]]
     assert (2*a).tolist() == [[2,4],[6,8]]
 
+def test_views():
+    a = Matrix([[1,2], [3,4]])
+    assert not a.head.is_array
+    assert not a.M.head.is_array
+    assert a.A.head.is_array
