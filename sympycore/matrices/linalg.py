@@ -280,3 +280,20 @@ def MATRIX_DICT_swap_cols(self, i, j):
         swap_cols_MATRIX_T(data, i, j)
     else:
         swap_cols_MATRIX(data, i, j)
+
+def MATRIX_DICT_trace(self):
+    head, data = self.pair
+    m, n = head.shape
+    s = 0
+    if m != n:
+        raise ValueError("matrix trace is only defined for square matrices")
+    sparse = len(data) < m
+    if sparse:
+        for (i, j), element in data.items():
+            if i == j:
+                s += element
+    else:
+        dget = data.get
+        for i in xrange(n):
+            s += dget((i, i), 0)
+    return s

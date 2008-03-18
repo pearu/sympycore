@@ -266,3 +266,12 @@ def test_views():
     assert a.A.head.is_array
     b = a.A
     assert b.A is b
+
+def test_trace():
+    assert Matrix([[1,3],[6,9]]).trace() == 10
+    assert Matrix([[1,2,3],[4,5,6],[7,8,9]]).trace() == 15
+    b = Matrix(10000, 10000)
+    assert b.trace() == 0
+    b[100,100] = 3
+    b[1000,1000] = 4
+    assert b.trace() == 7

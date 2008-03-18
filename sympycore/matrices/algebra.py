@@ -450,7 +450,8 @@ class MatrixDict(MatrixBase):
 from .matrix_operations import MATRIX_DICT_iadd, MATRIX_DICT_imul
 from .linalg import (MATRIX_DICT_swap_rows, MATRIX_DICT_swap_cols,
                      MATRIX_DICT_lu, MATRIX_DICT_crop,
-                     MATRIX_DICT_gauss_jordan_elimination)
+                     MATRIX_DICT_gauss_jordan_elimination,
+                     MATRIX_DICT_trace)
 from .linalg_determinant import MATRIX_DICT_determinant
 
 MatrixDict.__iadd__ = MATRIX_DICT_iadd
@@ -461,3 +462,4 @@ MatrixDict.crop = MATRIX_DICT_crop
 MatrixDict.lu = MATRIX_DICT_lu
 MatrixDict.gauss_jordan_elimination = MATRIX_DICT_gauss_jordan_elimination
 MatrixDict.det = MATRIX_DICT_determinant
+MatrixDict.trace = MATRIX_DICT_trace
