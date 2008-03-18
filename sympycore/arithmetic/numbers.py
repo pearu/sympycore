@@ -129,7 +129,8 @@ class mpq(tuple):
         return "%i/%i" % self
 
     def __repr__(self):
-        return "%s((%r, %r))" % (type(self).__name__, self)
+        p, q = self
+        return "%s((%s, %s))" % (type(self).__name__, p, q)
 
     def __float__(self):
         p, q = self
