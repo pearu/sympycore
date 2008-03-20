@@ -70,6 +70,11 @@ def test_Matrix3():
     assert a.cols==3
     assert a.tolist()==[[1,0,0], [0,0,2]]
 
+    a = Matrix(2, 3, [1,2,3,4,5,6])
+    assert a.rows==2
+    assert a.cols==3
+    assert a.tolist()==[[1,2,3],[4,5,6]]
+
 def test_T():
     a = Matrix([[1,2], [3,4]]).T
     assert a.tolist()==[[1,3],[2,4]]

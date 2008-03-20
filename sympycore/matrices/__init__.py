@@ -3,3 +3,4 @@
 __docformat__ = "restructuredtext"
 
 from .algebra import Matrix, MatrixBase
+from .functions import eye

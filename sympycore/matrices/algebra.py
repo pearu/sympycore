@@ -46,6 +46,7 @@ def Matrix(*args, **kws):
       Matrix(array)       - m x n matrix where m=len(array), n=max(len(array[:]))
       Matrix(m, n, dict)  - m x n matrix with nonzero elements defined by dict,
                             dict keys must be 2-tuples of integers.
+      Matrix(m, n, seq)   - m x n matrix with elements in seq row-wise.
     """
     if len(args)==1:
         a = args[0]
@@ -110,9 +111,26 @@ def Matrix(*args, **kws):
                         data[i,j] = num                
     elif len(args)==3:
         m, n, data = args
-        if not (isinstance(m, int) and isinstance(n, int) and isinstance(data, dict)):
-            raise TypeError('Matrix call with 3 arguments: arguments must be integers and a dictionary, got %r, %r, %r'\
+        flag = True
+        if isinstance(data, dict):
+            pass
+        elif is_sequence(data):
+            k = 0
+            d = {}
+            for i in range(m):
+                for j in xrange(n):
+                    x = data[k]
+                    if x:
+                        d[i,j] = x
+                    k += 1
+            data = d
+        else:
+            flag = False
+        if not (isinstance(m, int) and isinstance(n, int) and flag):
+            raise TypeError('Matrix call with 3 arguments: arguments must be integers and a dictionary|sequence, got %r, %r, %r'\
                             % (type(m), type(n), type(data)))
+        
+        
     else:
         raise TypeError('Matrix takes 1, 2, or 3 arguments, got %r' % (len(args)))
 
@@ -236,7 +254,15 @@ class MatrixDict(MatrixBase):
     def is_orthogonal(self):
         if not self.is_square:
             return False
-        return self*self.T == Matrix([1]*self.rows, diagonal=True)
+        return (self*self.T).is_identity
+
+    @property
+    def is_identity(self):
+        head, data = self.pair
+        m, n = head.shape
+        if m!=n or len(data)!=n:
+            return False
+        return all(i==j and x==1 for (i,j),x in data.iteritems())
 
     @property
     def T(self):
@@ -268,6 +294,12 @@ class MatrixDict(MatrixBase):
         if newhead is head:
             return self
         return type(self)(newhead, data)
+
+    @property
+    def I(self):
+        """ Return inverse matrix.
+        """
+        return self.inv()
 
     def resize(self, m, n):
         """ Return resized view of a matrix.
