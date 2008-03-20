@@ -21,9 +21,9 @@ def MATRIX_DICT_gauss_jordan_elimination(self, overwrite=False):
     else:
         udata = dict(data)
     if head.is_transpose:
-        raise NotImplementedError
-        B = MatrixDict(MATRIX(k, n, MATRIX_DICT_T), udata)
-        gauss_jordan_elimination_MATRIX_T(m, n, udata)
+        raise NotImplementedError(`head`)
+    elif head.is_diagonal:
+        raise NotImplementedError(`head`)
     else:
         B = MatrixDict(MATRIX(k, n, MATRIX_DICT), udata)
         gauss_jordan_elimination_MATRIX(m, n, udata)
@@ -61,6 +61,8 @@ def MATRIX_DICT_lu(self, overwrite=False):
     if head.is_transpose:
         U = MatrixDict(MATRIX(k, n, MATRIX_DICT_T), udata)
         pivot_table = lu_MATRIX_T(m, n, k, ldata, udata)
+    elif head.is_diagonal:
+        raise NotImplementedError(`head`)
     else:
         U = MatrixDict(MATRIX(k, n, MATRIX_DICT), udata)
         pivot_table = lu_MATRIX(m, n, k, ldata, udata)
@@ -209,6 +211,8 @@ def MATRIX_DICT_crop(self):
     m, n = head.shape
     if head.is_transpose:
         crop_MATRIX_T(m, n, data)
+    elif head.is_diagonal:
+        raise NotImplementedError(`head`)
     else:
         crop_MATRIX(m, n, data)
     return self
@@ -270,6 +274,8 @@ def MATRIX_DICT_swap_rows(self, i, j):
     head, data = self.pair
     if head.is_transpose:
         swap_rows_MATRIX_T(data, i, j)
+    elif head.is_diagonal:
+        raise NotImplementedError(`head`)
     else:
         swap_rows_MATRIX(data, i, j)
 
@@ -279,15 +285,21 @@ def MATRIX_DICT_swap_cols(self, i, j):
     head, data = self.pair
     if head.is_transpose:
         swap_cols_MATRIX_T(data, i, j)
+    elif head.is_diagonal:
+        raise NotImplementedError(`head`)
     else:
         swap_cols_MATRIX(data, i, j)
 
 def MATRIX_DICT_trace(self):
+    """ Return trace of a matrix.
+    """
     head, data = self.pair
     m, n = head.shape
     s = 0
     if m != n:
         raise ValueError("matrix trace is only defined for square matrices")
+    if head.is_diagonal:
+        raise NotImplementedError(`head`)
     sparse = len(data) < m
     if sparse:
         for (i, j), element in data.items():

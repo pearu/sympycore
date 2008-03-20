@@ -31,28 +31,36 @@ def concatenate(*args, **kws):
 
     concatenate(m1, m2, ..) - join matrices m1, m2, .. together along rows
     concatenate(m1, m2, .., axis=1) - join matrices m1, m2, .. together along columns
+    concatenate(m1, m2, .., diagonal=True) - join matrices m1, m2, .. together along diagonal
     """
     assert args,`args`
-    axis = 0
-    if kws:
-        assert len(kws)==1,`kws`
-        axis = kws['axis']
-        assert axis in [0,1],`axis`
+    assert set(kws).issubset(['axis','diagonal']) and len(kws)<=1,`kws`
+    axis = kws.get('axis',0)
+    diagonal = kws.get('diagonal',False)
     d = {}
     rows, cols = 0, 0
     if axis:
         for a in args:
             head, data = Matrix(a)[:].pair
-            assert not head.is_transpose
+            assert not (head.is_transpose or head.is_diagonal)
             m, n = head.shape
             for (i,j),x in data.items():
                 d[rows + i,j] = x
             rows += m
             cols = max(cols, n)
+    elif diagonal:
+        for a in args:
+            head, data = Matrix(a)[:].pair
+            assert not (head.is_transpose or head.is_diagonal)
+            m, n = head.shape
+            for (i,j),x in data.items():
+                d[rows + i, cols + j] = x
+            rows += m
+            cols += n
     else:
         for a in args:
             head, data = Matrix(a)[:].pair
-            assert not head.is_transpose
+            assert not (head.is_transpose or head.is_diagonal)
             m, n = head.shape
             for (i,j),x in data.items():
                 d[i,cols+j] = x

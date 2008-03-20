@@ -12,10 +12,13 @@ def MATRIX_DICT_determinant(self, overwrite=False):
     For n<=3, direct expressions are used.
     """
     head, data = self.pair
+    if head.is_diagonal:
+        raise NotImplementedError(`head`)
     m, n = head.shape
     assert m==n,`m,n`
     if not (overwrite and self.is_writable):
         data = dict(data)
+
     return determinant_MATRIX(m, data)
 
 def get_minor_MATRIX(p, q, data):

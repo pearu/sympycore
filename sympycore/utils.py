@@ -83,12 +83,8 @@ MATRIX_DICT = intern('MATRIX_DICT')
 MATRIX_DICT_T = intern('MATRIX_DICT_T')
 MATRIX_DICT_A = intern('MATRIX_DICT_A')
 MATRIX_DICT_TA = intern('MATRIX_DICT_TA')
-
-
-def _default_key_map(key):
-    return key
-def _transpose_key_map(key):
-    return key[1], key[0]
+MATRIX_DICT_D = intern('MATRIX_DICT_D')
+MATRIX_DICT_TD = intern('MATRIX_DICT_TD')
 
 class MATRIX(HEAD):
     """ Matrix head singleton class.
@@ -102,7 +98,8 @@ class MATRIX(HEAD):
       ``<rows>``     - number of matrix rows
       ``<cols>``     - number of matrix columns
       ``<strorage>`` - constant describing data storage properties:
-                       MATRIX_DICT, MATRIX_DICT_T, MATRIX_DICT_A, MATRIX_DICT_TA
+                       MATRIX_DICT, MATRIX_DICT_T, MATRIX_DICT_A, MATRIX_DICT_TA,
+                       MATRIX_DICT_D, MATRIX_DICT_DT
     """
     
     def init(self, rows, cols, storage):
@@ -111,32 +108,42 @@ class MATRIX(HEAD):
         self.shape = (rows, cols)
         self.storage = storage
 
-        self.is_transpose = is_transpose = storage in [MATRIX_DICT_T, MATRIX_DICT_TA]
+        self.is_transpose = is_transpose = storage in [MATRIX_DICT_T, MATRIX_DICT_TA, MATRIX_DICT_TD]
         self.is_array = storage in [MATRIX_DICT_A, MATRIX_DICT_TA]
+        self.is_diagonal = storage in [MATRIX_DICT_D, MATRIX_DICT_TD]
 
         if storage==MATRIX_DICT:
             self.T = type(self)(cols, rows,  MATRIX_DICT_T)
             self.A = type(self)(rows, cols,  MATRIX_DICT_A)
             self.M = self
+            self.D = type(self)(rows, cols,  MATRIX_DICT_D)
         elif storage==MATRIX_DICT_T:
             self.T = type(self)(cols, rows,  MATRIX_DICT)
             self.A = type(self)(rows, cols,  MATRIX_DICT_TA)
             self.M = self
+            self.D = type(self)(rows, cols,  MATRIX_DICT_TD)
         elif storage==MATRIX_DICT_A:
             self.T = type(self)(cols, rows,  MATRIX_DICT_TA)
             self.A = self
             self.M = type(self)(rows, cols,  MATRIX_DICT)
+            self.D = type(self)(rows, cols,  MATRIX_DICT_D)
         elif storage==MATRIX_DICT_TA:
             self.T = type(self)(cols, rows,  MATRIX_DICT_A)
             self.A = self
             self.M = type(self)(rows, cols,  MATRIX_DICT_T)
+            self.D = type(self)(rows, cols,  MATRIX_DICT_TD)
+        elif storage==MATRIX_DICT_D:
+            self.T = type(self)(cols, rows,  MATRIX_DICT_T)
+            self.A = type(self)(rows, cols,  MATRIX_DICT_A)
+            self.M = type(self)(rows, cols,  MATRIX_DICT)
+            self.D = self
+        elif storage==MATRIX_DICT_TD:
+            self.T = type(self)(cols, rows,  MATRIX_DICT)
+            self.A = type(self)(rows, cols,  MATRIX_DICT_TA)
+            self.M = type(self)(rows, cols,  MATRIX_DICT_T)
+            self.D = self
         else:
             raise NotImplementedError(`storage`)
-
-        if is_transpose:
-            self.map = _transpose_key_map
-        else:
-            self.map = _default_key_map
 
 def get_head(head):
     """ Return head from head copy.

@@ -334,6 +334,8 @@ class MatrixDict(MatrixBase):
             if ti is int and tj is int:
                 if head.is_transpose:
                     key = j, i
+                elif head.is_diagonal:
+                    raise NotImplementedError(`head`)
                 return data.get(key, 0)
             if ti is slice and tj is int:
                 row_indices = dict([(i0,k) for k,i0 in enumerate(xrange(*i.indices(head.rows)))])
@@ -354,6 +356,8 @@ class MatrixDict(MatrixBase):
                         kj = col_indices.get(j)
                         if kj is not None:
                             newdata[ki, kj] = x
+            elif head.is_diagonal:
+                raise NotImplementedError(`head`)
             else:
                 for (i,j), x in data.items():
                     ki = row_indices.get(i)
@@ -375,6 +379,8 @@ class MatrixDict(MatrixBase):
         head, data = self.pair
         tkey = type(key)
         if tkey is int or tkey is slice:
+            if head.is_diagonal:
+                raise NotImplementedError(`head`)
             self[key, :] = value
             return
         i, j = key
@@ -382,6 +388,8 @@ class MatrixDict(MatrixBase):
         if ti is int and tj is int:
             if head.is_transpose:
                 key = j,i
+            elif head.is_diagonal:
+                raise NotImplementedError(`head`)
             if value:
                 data[key] = value
             else:
@@ -416,6 +424,8 @@ class MatrixDict(MatrixBase):
                                 del data[j, i]
                             except KeyError:
                                 pass
+            elif head.is_diagonal:
+                raise NotImplementedError(`head`)
             else:
                 for i,ki in row_indices:
                     for j,kj in col_indices:
@@ -433,6 +443,8 @@ class MatrixDict(MatrixBase):
                     for i,ki in row_indices:
                         for j,kj in col_indices:
                             data[j, i] = value
+                elif head.is_diagonal:
+                    raise NotImplementedError(`head`)
                 else:
                     for i,ki in row_indices:
                         for j,kj in col_indices:
@@ -445,6 +457,8 @@ class MatrixDict(MatrixBase):
                                 del data[j, i]
                             except KeyError:
                                 pass
+                elif head.is_diagonal:
+                    raise NotImplementedError(`head`)
                 else:
                     for i,ki in row_indices:
                         for j,kj in col_indices:
@@ -471,6 +485,8 @@ class MatrixDict(MatrixBase):
         if head.is_transpose:
             for (j, i),e in data.items():
                 r[i][j] = e
+        elif head.is_diagonal:
+            raise NotImplementedError(`head`)
         else:
             for (i,j),e in data.items():
                 r[i][j] = e
@@ -506,6 +522,8 @@ class MatrixDict(MatrixBase):
             d = {}
             for (i,j),x in data.items():
                 d[j,i] = x
+        elif head.is_diagonal:
+            raise NotImplementedError(`head`)
         else:
             d = dict(data)
         for i in range(m):
@@ -537,6 +555,8 @@ class MatrixDict(MatrixBase):
             d = {}
             for (i,j), x in data.items():
                 d[j,i] = x
+        elif head.is_diagonal:
+            raise NotImplementedError(`head`)
         else:
             d = dict(data)
         rhead, rdata = rhs.pair
