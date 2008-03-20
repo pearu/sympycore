@@ -275,3 +275,35 @@ def test_trace():
     b[100,100] = 3
     b[1000,1000] = 4
     assert b.trace() == 7
+
+def test_solve():
+    assert Matrix([[1,2],[3,4]]).solve([1,2]).tolist()==[[0],[mpq((1,2))]]
+    assert Matrix([[1,2],[3,4]]).solve([2,1]).tolist()==[[-3],[mpq((5,2))]]
+
+    while 1:
+        m = Matrix(3,3,random=True)
+        if m.det():
+            break
+
+    b = Matrix(3,1,random=True)
+    assert m * (m//b) == b
+    
+    b = Matrix(3,2,random=True)
+    assert m * (m//b) == b
+
+    b = Matrix(3,15,random=True)
+    assert m * (m//b) == b
+
+    while 1:
+        m = Matrix(5,5,random=True)
+        if m.det():
+            break
+
+    b = Matrix(5,1,random=True)
+    assert m * (m//b) == b
+    
+    b = Matrix(5,2,random=True)
+    assert m * (m//b) == b
+
+    b = Matrix(5,15,random=True)
+    assert m * (m//b) == b

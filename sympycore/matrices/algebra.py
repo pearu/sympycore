@@ -4,6 +4,8 @@
 #
 """ Provides Matrix support.
 """
+from __future__ import division
+
 __docformat__ = "restructuredtext"
 __all__ = ['Matrix', 'MatrixBase', 'MatrixDict']
 
@@ -436,17 +438,46 @@ class MatrixDict(MatrixBase):
         # XXX: catch singular matrices
         b = a.gauss_jordan_elimination(overwrite=True)
         return b[:,m:]
-        
-        p, l, u = self.lu()
-        # a = p*l*u
-        # a^-1 = u^-1 * l^-1 * p.T
-        det = reduce(lambda x,y:x*y,[u[i,i] for i in range(min(u.head.shape))],1)
-        if det:
-            linv = l.inv_l()
-            uinv = u.T.inv_l().T
-            return uinv * linv * p.T
-        raise ZeroDivisionError
 
+    def solve(self, rhs):
+        """ Solve system of linear equations A * x = b.
+
+        Usage:
+
+          A // b -> x
+        
+        For example::
+
+          Matrix([[1,2], [3,4]]) // [1,2] -> Matrix([[0],[1/2]])
+        
+        """
+        t = type(rhs)
+        if t is tuple or t is list:
+            rhs = Matrix(rhs)
+        head, data = self.pair
+        m, n = head.shape
+        assert m==n,`m,n`
+        if head.is_transpose:
+            d = {}
+            for (i,j), x in data.items():
+                d[j,i] = x
+        else:
+            d = dict(data)
+        rhead, rdata = rhs.pair
+        p, q = rhead.shape
+        assert p==m,`p,m`
+        if rhead.is_transpose:
+            for (j,i),x in rdata.items():
+                d[i,j+n] = x
+        else:
+            for (i,j),x in rdata.items():
+                d[i,j+n] = x
+        a = MatrixDict(MATRIX(m, n+q, MATRIX_DICT), d)
+        b = a.gauss_jordan_elimination(overwrite=True)
+        return b[:,m:]
+
+    __floordiv__ = solve
+    
 from .matrix_operations import MATRIX_DICT_iadd, MATRIX_DICT_imul
 from .linalg import (MATRIX_DICT_swap_rows, MATRIX_DICT_swap_cols,
                      MATRIX_DICT_lu, MATRIX_DICT_crop,
