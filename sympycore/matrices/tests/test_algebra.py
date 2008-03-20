@@ -307,3 +307,21 @@ def test_solve():
 
     b = Matrix(5,15,random=True)
     assert m * (m//b) == b
+
+def test_resize():
+
+    m = Matrix([[1,2],[3,4]])
+    assert m.resize(3,3).tolist()==[[1,2,0],[3,4,0],[0,0,0]]
+
+    m = Matrix([[1,2],[3,4]])
+    assert m.resize(2,3).tolist()==[[1,2,0],[3,4,0]]
+
+    m = Matrix([[1,2],[3,4]])
+    assert m.resize(2,1).tolist()==[[1],[3]]
+
+    m = Matrix([[1,2],[3,4]])
+    assert m.resize(2,1).resize(2,2).tolist()==[[1,2],[3,4]]
+
+    m = Matrix([[1,2],[3,4]])
+    assert m.resize(2,1).crop().resize(2,2).tolist()==[[1,0],[3,0]]
+    assert m.tolist()==[[1,0],[3,0]]

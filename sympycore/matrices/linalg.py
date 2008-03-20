@@ -201,7 +201,7 @@ def lu_MATRIX_T(m, n, k, ldata, udata):
     return pivot_table
 
 def MATRIX_DICT_crop(self):
-    """ Remove elements that are out of dimensions.
+    """ Remove matrix elements that are out of dimensions inplace and return the matrix.
     """
     if not self.is_writable:
         raise TypeError('Cannot crop read-only matrix inplace')
@@ -211,15 +211,16 @@ def MATRIX_DICT_crop(self):
         crop_MATRIX_T(m, n, data)
     else:
         crop_MATRIX(m, n, data)
+    return self
 
 def crop_MATRIX(m, n, data):
-    for (i,j) in data:
+    for (i,j) in data.keys():
         if 0<=i<m and 0<=j<n:
             continue
         del data[i,j]
 
 def crop_MATRIX_T(m, n, data):
-    for (j, i) in data:
+    for (j, i) in data.keys():
         if 0<=i<m and 0<=j<n:
             continue
         del data[j, i]

@@ -249,6 +249,23 @@ class MatrixDict(MatrixBase):
             return self
         return type(self)(newhead, data)
 
+    def resize(self, m, n):
+        """ Return resized view of a matrix.
+
+        Notes:
+
+         - Use crop() to remove elements out-of-matrix bounds.
+         - If matrix is not writable then matrix data is copied.
+        """
+        head, data = self.pair
+        p, q = head.shape
+        if p==m and q==n:
+            return self
+        newhead = MATRIX(m, n, head.storage)
+        if not self.is_writable:
+            data = dict(data)
+        return type(self)(newhead, data)
+
     def tolist(self):
         """Convert matrix to a list of lists."""
         rows, cols = self.head.shape
@@ -383,10 +400,15 @@ class MatrixDict(MatrixBase):
                                 pass
     
     def copy(self):
+        """ Return a copy of a matrix.
+        """
         head, data = self.pair
         return MatrixDict(head, dict(data))
 
+
     def __array__(self):
+        """ Return matrix as numpy array.
+        """
         import numpy
         head, data = self.pair
         storage = head.storage
