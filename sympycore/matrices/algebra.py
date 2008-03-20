@@ -50,7 +50,9 @@ def Matrix(*args, **kws):
     """
     if len(args)==1:
         a = args[0]
-        if isinstance(a, int):
+        if isinstance(a, MatrixBase):
+            return a
+        elif isinstance(a, int):
             m, n = a, a
             data = {}
             interval = kws.get('random')

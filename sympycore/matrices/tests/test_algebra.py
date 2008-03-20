@@ -346,3 +346,12 @@ def test_resize():
     m = Matrix([[1,2],[3,4]])
     assert m.resize(2,1).crop().resize(2,2).tolist()==[[1,0],[3,0]]
     assert m.tolist()==[[1,0],[3,0]]
+
+def test_concatenate():
+
+    m = Matrix([[1,2],[3,4]])
+    assert concatenate(m,m).tolist()==[[1,2,1,2],[3,4,3,4]]
+    assert concatenate(m,m,[5,6],[[7,8]]).tolist()==[[1,2,1,2,5,7,8],[3,4,3,4,6,0,0]]
+
+    assert concatenate(m,m,axis=1).tolist()==[[1,2],[3,4],[1,2],[3,4]]
+    assert concatenate(m,m,[5,6],[[7,8]],axis=1).tolist()==[[1,2],[3,4],[1,2],[3,4],[5,0],[6,0],[7,8]]
