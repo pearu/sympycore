@@ -13,7 +13,7 @@ except:
 from docutils.core import publish_file
 
 for n in ['usersguide', 'evaluation_rules', 'demo0_2',
-          'structure']:
+          'structure', 'references']:
     publish_file(source_path=path(n+'.rst'),
                  destination_path=path('html',n+'.html'),
                  writer_name='html',
