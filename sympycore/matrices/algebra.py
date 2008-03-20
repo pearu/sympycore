@@ -159,6 +159,9 @@ class MatrixBase(Algebra):
 
     def __str__(self):
         rows, cols = self.rows, self.cols
+        if self.head.is_diagonal:
+            # XXX: what should be the output of diagonal view?
+            self = self.M
         columns = []
         for j in xrange(cols):
             col = []
@@ -290,9 +293,21 @@ class MatrixDict(MatrixBase):
         """ Return matrix view of a matrix.
         """
         head, data = self.pair
-        if not head.is_array:
+        if not (head.is_array or head.is_diagonal):
             return self
         newhead = head.M
+        if newhead is head:
+            return self
+        return type(self)(newhead, data)
+
+    @property
+    def D(self):
+        """ Return diagonal view of a matrix.
+        """
+        head, data = self.pair
+        if head.is_diagonal:
+            return self
+        newhead = head.D
         if newhead is head:
             return self
         return type(self)(newhead, data)
@@ -325,9 +340,30 @@ class MatrixDict(MatrixBase):
         rows, cols = self.head.shape
         return [[self[i,j] for j in xrange(cols)] for i in xrange(rows)]
 
+    def _get_diagonal(self, key):
+        head, data = self.pair
+        rows, cols = head.shape
+        t = type(key)
+        if t is int or t is long:
+            if key<0:
+                m = min(rows, cols) + key
+            else:
+                m = min(rows, cols) - key
+            d = {}
+            if head.is_transpose:
+                key = -key
+            for (i,j),x in data.items():
+                if j-i==key:
+                    k = min(i,j)
+                    d[k,0] = x
+            return Matrix(m, 1, d)
+        raise NotImplementedError(`head, key`)
+
     def __getitem__(self, key):
         tkey = type(key)
         head, data = self.pair
+        if head.is_diagonal:
+            return self._get_diagonal(key)
         if tkey is tuple:
             i, j = key
             ti, tj = type(i), type(j)
@@ -370,6 +406,34 @@ class MatrixDict(MatrixBase):
             return self[key, :]
         raise NotImplementedError(`key`)
 
+    def _set_diagonal(self, key, value):
+        head, data = self.pair
+        assert type(key) in [int, long],`type(key)`
+        rows, cols = head.shape
+        if head.is_transpose:
+            key = -key
+        if key<0:
+            k = min(rows, cols) + key
+        else:
+            k = min(rows, cols) - key
+        if isinstance(value, MatrixBase):
+            m, n = value.head.shape
+            assert n==1,`m,n`
+            assert m==k,`m,k,rows,cols`
+            if key<0:
+                for (i,j),x in value.data.items():
+                    data[i-key,i] = x
+            else:
+                for (i,j),x in value.data.items():
+                    data[i,i+key] = x
+        else:
+            if key < 0:
+                for i in range(k):
+                    data[i-key, i] = value
+            else:
+                for i in range(k):
+                    data[i, i+key] = value
+
     def __setitem__(self, key, value):
         if not self.is_writable:
             raise TypeError('Matrix content is read-only')
@@ -377,6 +441,8 @@ class MatrixDict(MatrixBase):
             self[key] = Matrix(value)
             return
         head, data = self.pair
+        if head.is_diagonal:
+            return self._set_diagonal(key, value)
         tkey = type(key)
         if tkey is int or tkey is slice:
             if head.is_diagonal:

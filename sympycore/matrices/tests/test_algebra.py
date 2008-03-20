@@ -165,6 +165,50 @@ def test_set_item():
     assert a.tolist()==[[0,0,0],[22,0,22],[0,0,0]]
     a.T[:1,:] = 0
     assert a.tolist()==[[0,0,0],[0,0,22],[0,0,0]]
+
+def test_get_diagonal():
+    a = Matrix([[1,2,3],
+                [4,5,6],
+                [7,8,9]])
+    assert a.D[0].tolist()==[[1],
+                             [5],
+                             [9]]
+    assert a.D[1].tolist()==[[2],
+                             [6],
+                             ]
+    assert a.D[-1].tolist()==[[4],
+                             [8],
+                             ]
+
+def test_set_diagonal():
+    a = Matrix([[1,2,3],[4,5,6],[7,8,9]])
+    a.D[0] = 0
+    assert a.tolist()==[[0,2,3],
+                        [4,0,6],
+                        [7,8,0]]
+    a.D[1] = 1
+    assert a.tolist()==[[0,1,3],
+                        [4,0,1],
+                        [7,8,0]]
+    a.D[-1] = 2
+    assert a.tolist()==[[0,1,3],
+                        [2,0,1],
+                        [7,2,0]]
+
+    a.T.D[1] = 3
+    assert a.tolist()==[[0,1,3],
+                        [3,0,1],
+                        [7,3,0]]
+
+    a.D[0] = [1,2,3]
+    assert a.tolist()==[[1,1,3],
+                        [3,2,1],
+                        [7,3,3]]
+
+    a.D[1] = [7,8]
+    assert a.tolist()==[[1,7,3],
+                        [3,2,8],
+                        [7,3,3]]
     
 def test_iadd():
     a = a2 = Matrix([[1,2], [3,4]])
