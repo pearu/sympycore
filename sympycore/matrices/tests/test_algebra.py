@@ -42,6 +42,22 @@ def test_Matrix1():
     assert a.cols==3
     assert a.tolist()==[[1,2,3], [4,5,6]]
 
+def test_Matrix_properties():
+    a = Matrix([[1,0,0,0],[1,1,0,0],[1,1,1,0],[1,1,1,1]])
+    assert a.is_square
+    assert a.is_lower
+    assert not a.is_upper
+    assert a.T.is_upper
+    a[0,2] = 1
+    assert not a.is_lower
+    assert not a.is_upper
+    assert not a.T.is_upper
+    assert Matrix([[1,0],[0,1]]).is_orthogonal
+    assert Matrix([[1,0],[0,-1]]).is_orthogonal
+    assert Matrix([[0,0,0,1],[0,0,1,0],[1,0,0,0],[0,1,0,0]]).is_orthogonal
+    assert not Matrix([[1,0],[2,-1]]).is_orthogonal
+    assert not Matrix([[1,0],[0,1],[0,1]]).is_orthogonal
+
 def test_Matrix2():
     a = Matrix(2, 3)
     assert a.rows==2

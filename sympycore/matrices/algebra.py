@@ -219,6 +219,26 @@ class MatrixDict(MatrixBase):
     is_square = property(lambda self: self.head.rows==self.head.cols)
 
     @property
+    def is_lower(self):
+        head, data = self.pair
+        if head.is_transpose:
+            return all(i<=j for i, j in data)
+        return all(i>=j for i, j in data)
+
+    @property
+    def is_upper(self):
+        head, data = self.pair
+        if head.is_transpose:
+            return all(i>=j for i, j in data)
+        return all(i<=j for i, j in data)
+
+    @property
+    def is_orthogonal(self):
+        if not self.is_square:
+            return False
+        return self*self.T == Matrix([1]*self.rows, diagonal=True)
+
+    @property
     def T(self):
         """ Return transposed view of a matrix.
         """
