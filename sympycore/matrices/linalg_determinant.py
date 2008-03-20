@@ -3,6 +3,7 @@
 # Author: Pearu Peterson
 # Created: March 2008
 from ..arithmetic.numbers import div
+from .linalg import swap_rows_MATRIX
 
 def MATRIX_DICT_determinant(self, overwrite=False):
     """ Determinant of a n x n matrix.
