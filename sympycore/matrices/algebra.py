@@ -231,6 +231,9 @@ class MatrixBase(Algebra):
         return self * div(1, other)
 
     def __rdiv__(self, other):
+        head, data = self.pair
+        if head.is_array:
+            return type(self)(head, dict([(ij,div(other,x)) for ij,x in data.iteritems()]))
         return other * self.inv()
 
     def __pow__(self, other):

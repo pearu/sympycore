@@ -354,6 +354,7 @@ def test_rdiv():
     r = 1
     r /= a
     assert r==a.inv()
+    assert (1/a.A).tolist()==[[1,mpq((1,2))],[mpq((1,3)),mpq((1,4))]]
     
 def test_pow():
     a = Matrix([[1,2],[3,4]])
