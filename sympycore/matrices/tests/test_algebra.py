@@ -245,6 +245,10 @@ def test_iadd():
     a += a.T
     assert a.tolist()==[[4,7],[7,10]]
 
+    r = 2
+    r += a
+    assert r==2+a
+
 def test_add():
     a = Matrix([[1,2], [3,4]])
     assert (a+1).tolist()==[[2,3],[4,5]]
@@ -268,13 +272,18 @@ def test_isub():
     assert a.tolist()==[[0,-2],[2,0]]
     assert a.data is a2.data
 
+    r = 2
+    r -= a
+    assert r==2-a
+    
+
 def test_sub():
     a = Matrix([[1,2],[3,4]])
     assert (1-a).tolist()==[[0,-1],[-2,-3]]
     assert (a-1).tolist()==[[0,1],[2,3]]
     b = Matrix([[3,4],[1,2]])
     assert (a-b).tolist()==[[-2,-2],[2,2]]
-    
+
 def test_posneg():
     a = Matrix([[1,2], [3,4]])
     assert (+a).tolist() == [[1,2],[3,4]]
@@ -310,6 +319,10 @@ def test_imul():
     assert a2.tolist()==[[1,2],[3,4]]
     assert a.data is not a2.data
 
+    r = 2
+    r *= a
+    assert r==2*a
+
 def test_mul():
     a = Matrix([[1,2], [3,4]])
     assert (a*a).tolist() == [[7,10],[15,22]]
@@ -323,6 +336,25 @@ def test_mul():
 
     assert (a*2).tolist() == [[2,4],[6,8]]
     assert (2*a).tolist() == [[2,4],[6,8]]
+
+def test_div():
+    a = a2 = Matrix([[1,2], [3,4]])*2
+    assert (a/2).tolist() == [[1,2],[3,4]]
+    assert (a/4).tolist() == [[mpq((1,2)),1],[mpq((3,2)),2]]
+
+    a /= 2
+    assert a.tolist() == [[1,2],[3,4]]
+    assert a.data is a2.data
+
+def test_rdiv():
+    a = Matrix([[1,2],[3,4]])
+    assert (1/a) == a.inv()
+    assert (a/a).is_identity
+
+    r = 1
+    r /= a
+    assert r==a.inv()
+    
 
 def test_views():
     a = Matrix([[1,2], [3,4]])

@@ -228,9 +228,10 @@ class MatrixBase(Algebra):
         return self
 
     def __div__(self, other):
-        iother = div(1, other)
-        return self * iother
+        return self * div(1, other)
 
+    def __rdiv__(self, other):
+        return other * self.inv()
 
 class MatrixDict(MatrixBase):
     """ Implementation of matrix where elements are stored in a dictionary.
