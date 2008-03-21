@@ -217,6 +217,12 @@ class Calculus(CollectingField):
             return divmod(lhs, rhs)
         return NotImplemented
 
+    def __float__(self):
+        head, data = self.pair
+        if head is NUMBER:
+            return float(data)
+        raise TypeError('Cannot convert %r to float' % (self))
+
 classes.Calculus = Calculus
 
 # as a result, x<y will return Logic(LT, (x, y)):
