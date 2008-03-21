@@ -355,7 +355,22 @@ def test_rdiv():
     r /= a
     assert r==a.inv()
     
+def test_pow():
+    a = Matrix([[1,2],[3,4]])
+    assert a ** 0 == eye(2)
+    assert a ** 1 == a
+    assert a ** 2 == a*a
+    assert a ** 3 == a*a*a
+    assert a ** 4 == a*a*a*a
+    assert a ** 5 == a*a*a*a*a
+    assert a ** (-1) == a.inv()
+    assert a ** (-2) == a.inv()*a.inv()
+    assert a ** (-3) == a.inv()**3
 
+    assert (a.A**1).tolist()==[[1,2],[3,4]]
+    assert (a.A**2).tolist()==[[1,4],[9,16]]
+    assert (a.A**-1).tolist()==[[1,mpq((1,2))],[mpq((1,3)),mpq((1,4))]]
+    
 def test_views():
     a = Matrix([[1,2], [3,4]])
     assert not a.head.is_array
@@ -423,3 +438,7 @@ def test_resize():
     assert m.resize(2,1).crop().resize(2,2).tolist()==[[1,0],[3,0]]
     assert m.tolist()==[[1,0],[3,0]]
 
+def test_inv():
+    m = Matrix([[1,2],[3,4]])
+    assert (m*m.inv()).is_identity
+    assert (m.inv()*m).is_identity

@@ -233,6 +233,38 @@ class MatrixBase(Algebra):
     def __rdiv__(self, other):
         return other * self.inv()
 
+    def __pow__(self, other):
+        head, data = self.pair
+        m, n = head.shape
+        t = type(other)
+        if t is int or t is long:
+            if head.is_array:
+                if other<0:
+                    return type(self)(head, dict([(ij,div(1,x)**(-other)) for ij,x in data.iteritems()]))
+                return type(self)(head, dict([(ij,x**other) for ij,x in data.iteritems()]))
+            if head.is_diagonal:
+                raise NotImplementedError(`head`)
+            if other < 0:
+                return self.inv() ** (-other)
+            if other==1:
+                return self
+            if other==0:
+                return Matrix([1]*min(m,n), diagonal=True)
+            if other==2:
+                return self * self
+            r = 1
+            x = self
+            while 1:
+                if other & 1:
+                    r *= x
+                    other -= 1
+                    if not other:
+                        break
+                x = x*x
+                other //= 2
+            return r
+        return NotImplemented
+
 class MatrixDict(MatrixBase):
     """ Implementation of matrix where elements are stored in a dictionary.
     """
