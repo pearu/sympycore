@@ -221,6 +221,9 @@ class Calculus(CollectingField):
         head, data = self.pair
         if head is NUMBER:
             return float(data)
+        head, data = self.evalf().pair
+        if head is NUMBER:
+            return float(data)
         raise TypeError('Cannot convert %r to float' % (self))
 
 classes.Calculus = Calculus
