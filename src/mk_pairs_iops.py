@@ -22,6 +22,7 @@ DO NOT CHANGE THIS FILE DIRECTLY!!!
 from ..core import Expr
 from ..arithmetic.numbers import mpqc, mpf, mpq, mpc, try_power
 from ..utils import NUMBER, TERMS, FACTORS
+from .pairs_ops import div
 new = Expr.__new__
 '''
 
@@ -143,14 +144,20 @@ def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NU
     if not exp:
         return 1
     tobj = type(obj)
+    texp = type(exp)
     if tobj is cls:
         head, data = obj.pair
         if head is NUMBER:
+            if texp is int or texp is long and exp < 0:
+                return div(1, data ** -exp, cls)
             return data ** exp
         elif head is TERMS:
             if len(data)==1:
                 t, number = data.items()[0]
-                number = number ** exp
+                if texp is int or texp is long and exp < 0:
+                    number = div(1, number ** -exp, cls)
+                else:
+                    number = number ** exp
                 @MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=t; VALUE=exp; SIGN=+; USIGN=; NUMBER=number)
                 return number
             number = 1
@@ -166,6 +173,8 @@ def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NU
             @MUL_FACTOR_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; FACTOR=obj; VALUE=exp; SIGN=+; USIGN=; NUMBER=number)
             return number
     @ELIF_CHECK_NUMBER(T=tobj)
+        if texp is int or texp is long and exp < 0:
+            return div(1, obj ** -exp, cls)
         return obj ** exp
     else:
         return inplace_mul2(cls, cls.convert(obj), exp, pairs, pairs_get)
