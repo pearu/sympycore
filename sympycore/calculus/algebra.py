@@ -226,7 +226,7 @@ class Calculus(CollectingField):
             return float(data)
         raise TypeError('Cannot convert %r to float' % (self))
 
-    def __floordiv__(self, other):
+    def __or__(self, other):
         if type(other) is tuple:
             return self.subs(*other)
         return self.subs(other)

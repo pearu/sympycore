@@ -47,5 +47,5 @@ def test_diff():
 def test_subs():
     x = Symbol('x')
     y = Symbol('y')
-    assert (2*x) // (x, pi) == 2*pi
-    assert (x*y) // {x:2, y:pi} == 2*pi
+    assert 2*x | (x, pi) == 2*pi
+    assert x*y | {x:2, y:pi} == 2*pi
