@@ -37,3 +37,33 @@ def profile_expr(expr):
     stats.sort_stats('time','calls','time')
     stats.print_stats(40)
     return stats
+
+# This function is taken from sympy (and originally sage?)
+def var(s):
+    """
+    var('x y z') creates symbols x, y, z
+    """
+    import inspect
+    frame = inspect.currentframe().f_back
+    try:
+        if not isinstance(s, list):
+            s = s.split(" ")
+        res = []
+        for t in s:
+            # skip empty strings
+            if not t:
+                continue
+            sym = Symbol(t)
+            frame.f_globals[t] = sym
+            res.append(sym)
+        res = tuple(res)
+        if len(res) == 0:   # var('')
+            res = None
+        elif len(res) == 1: # var('x')
+            res = res[0]
+                            # otherwise var('a b ...')
+        return res
+    finally:
+        # we should explicitly break cyclic dependencies as stated in inspect
+        # doc
+        del frame

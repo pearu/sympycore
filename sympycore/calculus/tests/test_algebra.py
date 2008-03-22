@@ -43,3 +43,9 @@ def test_diff():
     assert (2*x**2 + x).diff(x) == 4*x + 1
     assert (x**3).diff(x) == 3*x**2
     assert ((1+x)*(2+x)*(3+x)**2).diff(x) == ((1+x)*(2+x)*(3+x)*2 + (1+x)*(3+x)**2 + (2+x)*(3+x)**2)
+
+def test_subs():
+    x = Symbol('x')
+    y = Symbol('y')
+    assert (2*x) // (x, pi) == 2*pi
+    assert (x*y) // {x:2, y:pi} == 2*pi

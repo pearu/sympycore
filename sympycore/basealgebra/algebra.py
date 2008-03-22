@@ -388,6 +388,8 @@ class Algebra(Expr):
         """
         convert = self.convert
         if newexpr is None:
+            if type(subexpr) is dict:
+                subexpr = subexpr.iteritems()
             r = self
             for s,n in subexpr:
                 r = r._subs(convert(s), convert(n))

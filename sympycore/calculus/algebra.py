@@ -226,6 +226,11 @@ class Calculus(CollectingField):
             return float(data)
         raise TypeError('Cannot convert %r to float' % (self))
 
+    def __floordiv__(self, other):
+        if type(other) is tuple:
+            return self.subs(*other)
+        return self.subs(other)
+
 classes.Calculus = Calculus
 
 # as a result, x<y will return Logic(LT, (x, y)):
