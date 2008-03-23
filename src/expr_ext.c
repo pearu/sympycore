@@ -462,6 +462,101 @@ Expr_richcompare(PyObject *v, PyObject *w, int op)
     return NULL; \
   }
 
+
+static PyObject*
+Expr_canonize_FACTORS(Expr *self) {
+  PyObject *data = PyTuple_GET_ITEM(self->pair, 1);
+  Py_ssize_t n = 0;
+  PyObject *key = NULL;
+  PyObject *value = NULL;
+  PyObject *one = NULL;
+  CHECK_DICT_ARG("Expr.canonize_FACTORS()", data);
+  switch (PyDict_Size(data)) {
+  case 0:
+    return PyObject_GetAttrString((PyObject*)self, "one");
+  case 1:
+    PyDict_Next(data, &n, &key, &value);
+    if (PyInt_CheckExact(value) && PyInt_AS_LONG(value)==1) {
+      Py_INCREF(key);
+      return key;
+    }
+    one = PyInt_FromLong(1);
+    switch (PyObject_RichCompareBool(value, one, Py_EQ)) {
+    case -1:
+      Py_DECREF(one);
+      return NULL;
+    case 1: 
+      Py_DECREF(one);
+      Py_INCREF(key);
+      return key;
+    }
+    Py_DECREF(one);
+    one = PyObject_GetAttrString((PyObject*)self, "one");
+    if (key==one || one==NULL) {
+      return one;
+    }
+    switch (PyObject_RichCompareBool(key, one, Py_EQ)) {
+    case -1:
+      Py_DECREF(one);
+      return NULL;
+    case 1: 
+      return one;
+    }
+    Py_DECREF(one);
+  }
+  Py_INCREF(self);
+  return (PyObject*)self;
+}
+
+static PyObject*
+Expr_canonize_TERMS(Expr *self) {
+  PyObject *data = PyTuple_GET_ITEM(self->pair, 1);
+  Py_ssize_t n = 0;
+  PyObject *key = NULL;
+  PyObject *value = NULL;
+  PyObject *one = NULL;
+  CHECK_DICT_ARG("Expr.canonize_TERMS()", data);
+  switch (PyDict_Size(data)) {
+  case 0:
+    return PyObject_GetAttrString((PyObject*)self, "zero");
+  case 1:
+    PyDict_Next(data, &n, &key, &value);
+    if (PyInt_CheckExact(value) && PyInt_AS_LONG(value)==1) {
+      Py_INCREF(key);
+      return key;
+    }
+    one = PyInt_FromLong(1);
+    switch (PyObject_RichCompareBool(value, one, Py_EQ)) {
+    case -1:
+      Py_DECREF(one);
+      return NULL;
+    case 1: 
+      Py_DECREF(one);
+      Py_INCREF(key);
+      return key;
+    }
+    Py_DECREF(one);
+    one = PyObject_GetAttrString((PyObject*)self, "one");
+    if (one==NULL)
+      return NULL;
+    if (key==one) {
+      Py_INCREF(one);
+      return Expr_new(((PyObject*)self)->ob_type, Py_BuildValue("(OO)", NUMBER, value), NULL);
+    }
+    switch (PyObject_RichCompareBool(key, one, Py_EQ)) {
+    case -1:
+      Py_DECREF(one);
+      return NULL;
+    case 1: 
+      Py_INCREF(one);
+      return Expr_new(((PyObject*)self)->ob_type, Py_BuildValue("(OO)", NUMBER, value), NULL);
+    }
+    Py_DECREF(one);
+  }
+  Py_INCREF(self);
+  return (PyObject*)self;
+}
+
 static PyObject*
 Expr_dict_add_dict(Expr *self, PyObject *args) {
   PyObject *sum = NULL;
@@ -672,6 +767,8 @@ static PyMethodDef Expr_methods[] = {
   {"_add_dict", (PyCFunction)Expr_dict_add_dict, METH_VARARGS, NULL},
   {"_add_dict2", (PyCFunction)Expr_dict_add_dict2, METH_VARARGS, NULL},
   {"_add_dict3", (PyCFunction)Expr_dict_add_dict3, METH_VARARGS, NULL},
+  {"canonize_FACTORS", (PyCFunction)Expr_canonize_FACTORS, METH_VARARGS, NULL},
+  {"canonize_TERMS", (PyCFunction)Expr_canonize_TERMS, METH_VARARGS, NULL},
   {NULL, NULL}           /* sentinel */
 };
 

@@ -26,6 +26,7 @@ def expand(self):
 def expand_TERMS(cls, self, one):
     data = self.data
     d = {}
+    result = cls(TERMS, d)
     d_get = d.get
     for t, c in data.iteritems():
         h = t.head
@@ -34,7 +35,7 @@ def expand_TERMS(cls, self, one):
         elif h is FACTORS:
             t = expand_FACTORS(cls, t, one)
         inplace_add2(cls, t, c, d, d_get, one)
-    return return_terms(cls, d)
+    return result.canonize_TERMS()
 
 def expand_FACTORS(cls, self, one):
     ed = None
@@ -62,37 +63,31 @@ def expand_FACTORS(cls, self, one):
         if c > 1:
             terms = t.data.items()
             mdata = multinomial_coefficients(len(terms), c)
-            d = {}
-            t = cls(TERMS, d)
+            t = cls(TERMS, {})
+            t_add_item = t._add_item
             for exps, n in mdata.iteritems():
-                d1 = {}
-                t1 = cls(FACTORS, d1)
+                t1 = cls(FACTORS, {})
                 t1_add_item = t1._add_item
                 t1_add_dict = t1._add_dict
                 t1_add_dict2 = t1._add_dict2
                 for i,e in enumerate(exps):
-                    if not e:
-                        continue
-                    t2, c2 = terms[i]
-                    h2, d2 = t2.pair
-                    if h2 is NUMBER:
-                        assert d2==1,`t2`
-                    elif h2 is FACTORS:
-                        t1_add_dict(d2) if e is 1 else t1_add_dict2(d2, e)
-                    else:
-                        t1_add_item(t2, e)
-                    if c2 is not 1:
-                        n *= c2 if e is 1 else c2**e
-                l1 = len(d1)
-                if l1==0:
-                    t1 = one
-                elif l1==1:
-                    t2, c2 = d1.items()[0]
-                    if c2==1 or t2==one:
-                        t1 = t2
-                t._add_item(t1, n)
-            if len(d)<=1:
-                t = return_terms(cls, d)
+                    if e:
+                        t2, c2 = terms[i]
+                        h2, d2 = t2.pair
+                        if h2 is NUMBER:
+                            assert d2==1,`t2`
+                        elif h2 is FACTORS:
+                            if e is 1:
+                                t1_add_dict(d2)
+                            else:
+                                t1_add_dict2(d2, e)
+                        else:
+                            t1_add_item(t2, e)
+                        if c2 is not 1:
+                            n *= c2 if e is 1 else c2**e
+                t1 = t1.canonize_FACTORS()
+                t_add_item(t1, n)
+            t = t.canonize_TERMS()
         h, data = t.pair
         if ed is None:
             if h is TERMS:
@@ -102,53 +97,58 @@ def expand_FACTORS(cls, self, one):
             else:
                 ed = {t: 1}
         elif h is TERMS:
-            if len(data) > len(ed):
+            if len(data) < len(ed):
                 iter1 = data.iteritems
                 iter2 = ed.iteritems
-                dict1,dict2 = data,ed
+                dict2 = ed
             else:
                 iter2 = data.iteritems
                 iter1 = ed.iteritems
-                dict1,dict2 = ed,data
+                dict2 = data
             d = {}
             tmp = cls(TERMS, d)
             add_item = tmp._add_item
+            add_dict2 = tmp._add_dict2
             for t1, c1 in iter1():
                 head1, data1 = t1.pair
                 if head1 is FACTORS:
+                    data1_copy = data1.copy
                     for t2, c2 in iter2():
+                        c12 = c1*c2
                         head2, data2 = t2.pair
                         if head2 is FACTORS:
-                            d12 = data1.copy()
-                            t12 = cls(FACTORS, d12)
+                            t12 = cls(FACTORS, data1_copy())
                             num = t12._add_dict3(data2)
-                            if len(d12)<=1:
-                                if not d12:
-                                    t12 = one
-                                else:
-                                    tt, cc = d12.items()[0]
-                                    if cc==1:
-                                        t12 = tt
-                                    elif tt==one:
-                                        t12 = tt
-                            if num is None or num is 1:
-                                add_item(t12, c1*c2)
-                            else:
-                                add_item(t12, num*c1*c2)
+                            if num is not None:
+                                c12 *= num
+                            t12 = t12.canonize_FACTORS()
                         elif head2 is NUMBER:
                             # data2 must be 1
-                            add_item(t1, c1*c2)
+                            t12 = t1
                         else:
-                            t12 = expand_mul_method(cls, t1, t2)
-                            add_item(t12, c1*c2)
+                            t12 = cls(FACTORS, data1_copy())
+                            t12._add_item(t2, 1)
+                            t12 = t12.canonize_FACTORS()
+                        add_item(t12, c12)
                 elif head1 is NUMBER:
                     # data1 must be 1
-                    tmp._add_dict2(dict2, c1)
+                    add_dict2(dict2, c1)
                 else:
                     for t2, c2 in iter2():
                         head2, data2 = t2.pair
-                        t12 = expand_mul_method(cls, t1, t2)
-                        add_item(t12, c1*c2)
+                        if head2 is FACTORS:
+                            t12 = cls(FACTORS, data2.copy())
+                            t12._add_item(t1, 1)
+                            t12 = t12.canonize_FACTORS()
+                        elif head2 is NUMBER:
+                            # data2 must be 1
+                            t12 = t1
+                        else:
+                            if t1==t2:
+                                t12 = cls(FACTORS, {t1:2})
+                            else:
+                                t12 = cls(FACTORS, {t1:1, t2:1})
+                        add_item(t12, c1 * c2)
             ed = d
         elif h is NUMBER:
             b = ed.get(one)
@@ -166,8 +166,5 @@ def expand_FACTORS(cls, self, one):
                 d[expand_mul_method(cls, t, t2)] = c2
             ed = d
     if ed is None:
-        return cls.one
-    result = return_terms(cls, ed)
-    return result
-
-    
+        return one
+    return cls(TERMS, ed).canonize_TERMS()

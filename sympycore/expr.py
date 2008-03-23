@@ -311,4 +311,30 @@ This is Python version of Expr type.
         self.data[key] = value
         return result
 
+    def canonize_FACTORS(self):
+        data = self.data
+        l = len(data)
+        if l==0:
+            return self.one
+        if l==1:
+            t, c = data.items()[0]
+            if c==1:
+                return t
+            if t==self.one:
+                return t
+        return self
+
+    def canonize_TERMS(self):
+        data = self.data
+        l = len(data)
+        if l==0:
+            return self.zero
+        if l==1:
+            t, c = data.items()[0]
+            if c==1:
+                return t
+            if t==self.one:
+                return type(self)(NUMBER, c)
+        return self
+
 from .utils import NUMBER, SYMBOL
