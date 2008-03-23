@@ -150,7 +150,7 @@ ADD_VALUE_TERMS = '''\
 %(TMP)s = %(VALUE)s
 if not %(TMP)s:
     return %(RHS)s
-pairs = dict(%(RHSDATA)s)
+pairs = %(RHSDATA)s.copy()
 @ADD_VALUE_DICT(DICT=pairs; VALUE=%(TMP)s)
 @RETURN_NEW(HEAD=TERMS; DATA=pairs)
 '''
@@ -159,14 +159,14 @@ ADD_NUMBER_TERMS = '@ADD_VALUE_TERMS(VALUE=%(LHSDATA)s; RHS=%(RHS)s; RHSDATA=%(R
 ADD_TERMS_NUMBER = '@ADD_TERMS_VALUE(VALUE=%(RHSDATA)s; LHS=%(LHS)s; LHSDATA=%(LHSDATA)s)\n'
 
 ADD_TERMS_SYMBOL = '''\
-pairs = dict(%(LHSDATA)s)
+pairs = %(LHSDATA)s.copy()
 @ADD_TERM_VALUE_DICT(TERM=%(RHS)s; VALUE=1; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
 @CANONIZE_TERMS_DICT(DICT=pairs)
 @RETURN_NEW(HEAD=TERMS; DATA=pairs)
 '''
 ADD_SYMBOL_TERMS = '@ADD_TERMS_SYMBOL(LHS=%(RHS)s; LHSDATA=%(RHSDATA)s; RHS=%(LHS)s; RHSDATA=%(LHSDATA)s)\n'
 ADD_TERMS_TERMS = '''\
-pairs = dict(%(LHSDATA)s)
+pairs = %(LHSDATA)s.copy()
 pairs_get = pairs.get
 for t,c in %(RHSDATA)s.iteritems():
     @ADD_TERM_VALUE_DICT(TERM=t; VALUE=c; DICT=pairs; DICT_GET=pairs_get; SIGN=+; USIGN=)
@@ -207,7 +207,7 @@ SUB_TERMS_VALUE = '@ADD_VALUE_TERMS(VALUE=-%(VALUE)s; RHS=%(LHS)s; RHSDATA=%(LHS
 SUB_NUMBER_TERMS = '@SUB_VALUE_TERMS(VALUE=%(LHSDATA)s; RHS=%(RHS)s; RHSDATA=%(RHSDATA)s)\n'
 SUB_TERMS_NUMBER = '@SUB_TERMS_VALUE(VALUE=%(RHSDATA)s; LHS=%(LHS)s; LHSDATA=%(LHSDATA)s)\n'
 SUB_TERMS_SYMBOL = '''\
-pairs = dict(%(LHSDATA)s)
+pairs = %(LHSDATA)s.copy()
 @ADD_TERM_VALUE_DICT(TERM=%(RHS)s; VALUE=-1; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
 @CANONIZE_TERMS_DICT(DICT=pairs)
 @RETURN_NEW(HEAD=TERMS; DATA=pairs)
@@ -219,7 +219,7 @@ SUB_SYMBOL_TERMS = '''\
 @RETURN_NEW(HEAD=TERMS; DATA=pairs)
 '''
 SUB_TERMS_TERMS = '''\
-pairs = dict(%(LHSDATA)s)
+pairs = %(LHSDATA)s.copy()
 pairs_get = pairs.get
 for t,c in %(RHSDATA)s.iteritems():
     @ADD_TERM_VALUE_DICT(TERM=t; VALUE=-c; DICT=pairs; DICT_GET=pairs_get; SIGN=+; USIGN=)
@@ -350,7 +350,7 @@ MUL_DICT_SYMBOL = '''\
 @RETURN_NEW(HEAD=FACTORS; DATA=%(DICT)s)
 '''
 MUL_FACTORS_SYMBOL = '''\
-pairs = dict(%(LHSDATA)s)
+pairs = %(LHSDATA)s.copy()
 @MUL_DICT_SYMBOL(DICT=pairs; RHS=%(RHS)s; RHSDATA=%(RHSDATA)s)
 '''
 MUL_SYMBOL_FACTORS = '@MUL_FACTORS_SYMBOL(LHS=%(RHS)s; LHSDATA=%(RHSDATA)s; RHS=%(LHS)s; RHSDATA=%(LHSDATA)s)\n'
@@ -363,7 +363,7 @@ if len(rpairs)==1:
 coeff, terms = %(RHS)s._coeff_terms
 if terms is None:
     @MUL_FACTORS_SYMBOL(LHS=%(LHS)s; LHSDATA=%(LHSDATA)s; RHS=%(RHS)s; RHSDATA=%(RHSDATA)s)
-pairs = dict(%(LHSDATA)s)
+pairs = %(LHSDATA)s.copy()
 @ADD_TERM_VALUE_DICT(TERM=terms; VALUE=1; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
 @CANONIZE_FACTORS_DICT(DICT=pairs; NUMBER=coeff)
 @NEWINSTANCE(OBJ=%(TMP)s; HEAD=FACTORS; DATA=pairs)
@@ -371,7 +371,7 @@ pairs = dict(%(LHSDATA)s)
 '''
 MUL_TERMS_FACTORS = '@MUL_FACTORS_TERMS(LHS=%(RHS)s; LHSDATA=%(RHSDATA)s; RHS=%(LHS)s; RHSDATA=%(LHSDATA)s)\n'
 MUL_FACTORS_FACTORS = '''\
-pairs = dict(%(LHSDATA)s)
+pairs = %(LHSDATA)s.copy()
 pairs_get = pairs.get
 number = 1
 for t,c in %(RHSDATA)s.iteritems():
@@ -537,7 +537,7 @@ DIV_DICT_SYMBOL = '''\
 @RETURN_NEW(HEAD=FACTORS; DATA=%(DICT)s)
 '''
 DIV_FACTORS_SYMBOL = '''\
-pairs = dict(%(LHSDATA)s)
+pairs = %(LHSDATA)s.copy()
 @DIV_DICT_SYMBOL(RHS=%(RHS)s; RHSDATA=%(RHSDATA)s; DICT=pairs)
 '''
 DIV_FACTORS_TERMS = '''\
@@ -558,7 +558,7 @@ if len(rpairs)==1:
 @DIV_FACTORS_SYMBOL(LHS=%(LHS)s; LHSDATA=%(LHSDATA)s; RHS=%(RHS)s; RHSDATA=%(RHSDATA)s)
 '''
 DIV_FACTORS_FACTORS = '''\
-pairs = dict(%(LHSDATA)s)
+pairs = %(LHSDATA)s.copy()
 pairs_get = pairs.get
 number = 1
 for t,c in %(RHSDATA)s.iteritems():

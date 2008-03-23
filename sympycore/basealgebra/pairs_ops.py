@@ -40,7 +40,7 @@ def expand_mul_method(cls, self, other):
     if lhead is FACTORS:
         if rhead is FACTORS:
             #MUL_FACTORS_FACTORS(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
-            pairs = dict(ldata)
+            pairs = ldata.copy()
             pairs_get = pairs.get
             number = 1
             for t,c in rdata.iteritems():
@@ -106,7 +106,7 @@ def expand_mul_method(cls, self, other):
             return self # other must be one
         else:
             #MUL_FACTORS_SYMBOL(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
-            pairs = dict(ldata)
+            pairs = ldata.copy()
             #MUL_DICT_SYMBOL(DICT=pairs; RHS=other; RHSDATA=rdata)
             #ADD_TERM_VALUE_DICT(TERM=other; VALUE=1; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
             _tmp100 = pairs.get(other)
@@ -137,7 +137,7 @@ def expand_mul_method(cls, self, other):
         if rhead is FACTORS:
             #MUL_SYMBOL_FACTORS(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
             #MUL_FACTORS_SYMBOL(LHS=other; LHSDATA=rdata; RHS=self; RHSDATA=ldata)
-            pairs = dict(rdata)
+            pairs = rdata.copy()
             #MUL_DICT_SYMBOL(DICT=pairs; RHS=self; RHSDATA=ldata)
             #ADD_TERM_VALUE_DICT(TERM=self; VALUE=1; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
             _tmp149 = pairs.get(self)
@@ -507,7 +507,7 @@ def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
                 _tmp856 = other
                 if not _tmp856:
                     return self
-                pairs = dict(ldata)
+                pairs = ldata.copy()
                 #ADD_VALUE_DICT(DICT=pairs; VALUE=_tmp856)
                 #ADD_TERM_VALUE_DICT(TERM=cls.one; VALUE=_tmp856; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
                 _tmp870 = pairs.get(cls.one)
@@ -551,7 +551,7 @@ def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
             _tmp954 = ldata
             if not _tmp954:
                 return other
-            pairs = dict(rdata)
+            pairs = rdata.copy()
             #ADD_VALUE_DICT(DICT=pairs; VALUE=_tmp954)
             #ADD_TERM_VALUE_DICT(TERM=cls.one; VALUE=_tmp954; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
             _tmp968 = pairs.get(cls.one)
@@ -585,7 +585,7 @@ def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
             _tmp1031 = rdata
             if not _tmp1031:
                 return self
-            pairs = dict(ldata)
+            pairs = ldata.copy()
             #ADD_VALUE_DICT(DICT=pairs; VALUE=_tmp1031)
             #ADD_TERM_VALUE_DICT(TERM=cls.one; VALUE=_tmp1031; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
             _tmp1045 = pairs.get(cls.one)
@@ -603,7 +603,7 @@ def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
             return _tmp1052
         elif rhead is TERMS:
             #ADD_TERMS_TERMS(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
-            pairs = dict(ldata)
+            pairs = ldata.copy()
             pairs_get = pairs.get
             for t,c in rdata.iteritems():
                 #ADD_TERM_VALUE_DICT(TERM=t; VALUE=c; DICT=pairs; DICT_GET=pairs_get; SIGN=+; USIGN=)
@@ -631,7 +631,7 @@ def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
             return _tmp1087
         else:
             #ADD_TERMS_SYMBOL(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
-            pairs = dict(ldata)
+            pairs = ldata.copy()
             #ADD_TERM_VALUE_DICT(TERM=other; VALUE=1; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
             _tmp1108 = pairs.get(other)
             if _tmp1108 is None:
@@ -670,7 +670,7 @@ def add_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
         elif rhead is TERMS:
             #ADD_SYMBOL_TERMS(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
             #ADD_TERMS_SYMBOL(LHS=other; LHSDATA=rdata; RHS=self; RHSDATA=ldata)
-            pairs = dict(rdata)
+            pairs = rdata.copy()
             #ADD_TERM_VALUE_DICT(TERM=self; VALUE=1; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
             _tmp1185 = pairs.get(self)
             if _tmp1185 is None:
@@ -722,7 +722,7 @@ def sub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
                 _tmp1262 = -other
                 if not _tmp1262:
                     return self
-                pairs = dict(ldata)
+                pairs = ldata.copy()
                 #ADD_VALUE_DICT(DICT=pairs; VALUE=_tmp1262)
                 #ADD_TERM_VALUE_DICT(TERM=cls.one; VALUE=_tmp1262; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
                 _tmp1276 = pairs.get(cls.one)
@@ -821,7 +821,7 @@ def sub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
             _tmp1507 = -rdata
             if not _tmp1507:
                 return self
-            pairs = dict(ldata)
+            pairs = ldata.copy()
             #ADD_VALUE_DICT(DICT=pairs; VALUE=_tmp1507)
             #ADD_TERM_VALUE_DICT(TERM=cls.one; VALUE=_tmp1507; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
             _tmp1521 = pairs.get(cls.one)
@@ -839,7 +839,7 @@ def sub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
             return _tmp1528
         elif rhead is TERMS:
             #SUB_TERMS_TERMS(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
-            pairs = dict(ldata)
+            pairs = ldata.copy()
             pairs_get = pairs.get
             for t,c in rdata.iteritems():
                 #ADD_TERM_VALUE_DICT(TERM=t; VALUE=-c; DICT=pairs; DICT_GET=pairs_get; SIGN=+; USIGN=)
@@ -867,7 +867,7 @@ def sub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
             return _tmp1563
         else:
             #SUB_TERMS_SYMBOL(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
-            pairs = dict(ldata)
+            pairs = ldata.copy()
             #ADD_TERM_VALUE_DICT(TERM=other; VALUE=-1; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
             _tmp1584 = pairs.get(other)
             if _tmp1584 is None:
@@ -1169,7 +1169,7 @@ def mul_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
             coeff, terms = self._coeff_terms
             if terms is None:
                 #MUL_FACTORS_SYMBOL(LHS=other; LHSDATA=rdata; RHS=self; RHSDATA=ldata)
-                pairs = dict(rdata)
+                pairs = rdata.copy()
                 #MUL_DICT_SYMBOL(DICT=pairs; RHS=self; RHSDATA=ldata)
                 #ADD_TERM_VALUE_DICT(TERM=self; VALUE=1; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
                 _tmp2095 = pairs.get(self)
@@ -1194,7 +1194,7 @@ def mul_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
                 #NEWINSTANCE(OBJ=_tmp2109; HEAD=FACTORS; DATA=pairs)
                 _tmp2109 = cls(FACTORS, pairs)
                 return _tmp2109
-            pairs = dict(rdata)
+            pairs = rdata.copy()
             #ADD_TERM_VALUE_DICT(TERM=terms; VALUE=1; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
             _tmp2123 = pairs.get(terms)
             if _tmp2123 is None:
@@ -1278,7 +1278,7 @@ def mul_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
             coeff, terms = other._coeff_terms
             if terms is None:
                 #MUL_FACTORS_SYMBOL(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
-                pairs = dict(ldata)
+                pairs = ldata.copy()
                 #MUL_DICT_SYMBOL(DICT=pairs; RHS=other; RHSDATA=rdata)
                 #ADD_TERM_VALUE_DICT(TERM=other; VALUE=1; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
                 _tmp2298 = pairs.get(other)
@@ -1303,7 +1303,7 @@ def mul_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
                 #NEWINSTANCE(OBJ=_tmp2312; HEAD=FACTORS; DATA=pairs)
                 _tmp2312 = cls(FACTORS, pairs)
                 return _tmp2312
-            pairs = dict(ldata)
+            pairs = ldata.copy()
             #ADD_TERM_VALUE_DICT(TERM=terms; VALUE=1; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
             _tmp2326 = pairs.get(terms)
             if _tmp2326 is None:
@@ -1338,7 +1338,7 @@ def mul_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
             return _tmp2361
         elif rhead is FACTORS:
             #MUL_FACTORS_FACTORS(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
-            pairs = dict(ldata)
+            pairs = ldata.copy()
             pairs_get = pairs.get
             number = 1
             for t,c in rdata.iteritems():
@@ -1402,7 +1402,7 @@ def mul_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
             return _tmp2445
         else:
             #MUL_FACTORS_SYMBOL(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
-            pairs = dict(ldata)
+            pairs = ldata.copy()
             #MUL_DICT_SYMBOL(DICT=pairs; RHS=other; RHSDATA=rdata)
             #ADD_TERM_VALUE_DICT(TERM=other; VALUE=1; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
             _tmp2473 = pairs.get(other)
@@ -1469,7 +1469,7 @@ def mul_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
         elif rhead is FACTORS:
             #MUL_SYMBOL_FACTORS(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
             #MUL_FACTORS_SYMBOL(LHS=other; LHSDATA=rdata; RHS=self; RHSDATA=ldata)
-            pairs = dict(rdata)
+            pairs = rdata.copy()
             #MUL_DICT_SYMBOL(DICT=pairs; RHS=self; RHSDATA=ldata)
             #ADD_TERM_VALUE_DICT(TERM=self; VALUE=1; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
             _tmp2620 = pairs.get(self)
@@ -1934,7 +1934,7 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
                     _tmp3432 = cls(TERMS, {t: _tmp3425})
                     return _tmp3432
             #DIV_FACTORS_SYMBOL(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
-            pairs = dict(ldata)
+            pairs = ldata.copy()
             #DIV_DICT_SYMBOL(RHS=other; RHSDATA=rdata; DICT=pairs)
             #ADD_TERM_VALUE_DICT(TERM=other; VALUE=-1; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
             _tmp3460 = pairs.get(other)
@@ -1961,7 +1961,7 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
             return _tmp3474
         elif rhead is FACTORS:
             #DIV_FACTORS_FACTORS(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
-            pairs = dict(ldata)
+            pairs = ldata.copy()
             pairs_get = pairs.get
             number = 1
             for t,c in rdata.iteritems():
@@ -2025,7 +2025,7 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
             return _tmp3558
         else:
             #DIV_FACTORS_SYMBOL(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
-            pairs = dict(ldata)
+            pairs = ldata.copy()
             #DIV_DICT_SYMBOL(RHS=other; RHSDATA=rdata; DICT=pairs)
             #ADD_TERM_VALUE_DICT(TERM=other; VALUE=-1; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
             _tmp3586 = pairs.get(other)
