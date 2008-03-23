@@ -105,15 +105,50 @@ def expand_FACTORS(cls, self, one):
             if len(data) > len(ed):
                 iter1 = data.iteritems
                 iter2 = ed.iteritems
+                dict1,dict2 = data,ed
             else:
                 iter2 = data.iteritems
                 iter1 = ed.iteritems
+                dict1,dict2 = ed,data
             d = {}
             tmp = cls(TERMS, d)
             add_item = tmp._add_item
             for t1, c1 in iter1():
-                for t2, c2 in iter2():
-                    add_item(expand_mul_method(cls, t1, t2), c1*c2)
+                head1, data1 = t1.pair
+                if head1 is FACTORS:
+                    for t2, c2 in iter2():
+                        head2, data2 = t2.pair
+                        if head2 is FACTORS:
+                            d12 = data1.copy()
+                            t12 = cls(FACTORS, d12)
+                            num = t12._add_dict3(data2)
+                            if len(d12)<=1:
+                                if not d12:
+                                    t12 = one
+                                else:
+                                    tt, cc = d12.items()[0]
+                                    if cc==1:
+                                        t12 = tt
+                                    elif tt==one:
+                                        t12 = tt
+                            if num is None or num is 1:
+                                add_item(t12, c1*c2)
+                            else:
+                                add_item(t12, num*c1*c2)
+                        elif head2 is NUMBER:
+                            # data2 must be 1
+                            add_item(t1, c1*c2)
+                        else:
+                            t12 = expand_mul_method(cls, t1, t2)
+                            add_item(t12, c1*c2)
+                elif head1 is NUMBER:
+                    # data1 must be 1
+                    tmp._add_dict2(dict2, c1)
+                else:
+                    for t2, c2 in iter2():
+                        head2, data2 = t2.pair
+                        t12 = expand_mul_method(cls, t1, t2)
+                        add_item(t12, c1*c2)
             ed = d
         elif h is NUMBER:
             b = ed.get(one)

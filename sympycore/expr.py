@@ -248,7 +248,8 @@ This is Python version of Expr type.
 
     def _add_dict2(self, d, coeff):
         head, data = self.pair
-        assert type(data) is dict
+        assert type(data) is dict,`type(data)`
+        assert type(d) is dict,`type(d)`
         for key, value in d.iteritems():
             c = data.get(key)
             if c is None:
@@ -259,5 +260,55 @@ This is Python version of Expr type.
                     data[key] = c
                 else:
                     del data[key]
+
+    def _add_dict3(self, d):
+        head, data = self.pair
+        assert type(data) is dict
+        assert type(d) is dict
+        cls = type(self)
+        result = None
+        for key, value in d.iteritems():
+            c = data.get(key)
+            if c is None:
+                data[key] = value
+            else:
+                c = c + value
+                if type(c) is cls and c.head is NUMBER:
+                    c = c.data
+                if c:
+                    if key.head is NUMBER:
+                        result = self.handle_numeric_item(result, key, c)
+                    else:
+                        data[key] = c
+                else:
+                    del data[key]
+        return result
+
+    def handle_numeric_item(self, result, key, value):
+        """ Internal method.
+
+        The method is called from the <Expr instance>._add_dict3(d) method
+        when::
+        
+          <Expr instance>.data[key] = value
+
+        needs to be executed but is left to the call::
+
+          <Expr instance>.handle_numeric_method(result, key, value)
+
+        to handle when key.head is NUMBER and value is non-zero
+        low-level number. Note that handle_numeric_method is responsible
+        for calling::
+        
+          del <Expr instance>.data[key]
+
+        if it does not reset ``<Expr instance>.data[key]``.
+
+        The handle_numeric_item() method may change the value of ``result``
+        (that is returned by the _add_dict3() method) by returning new
+        value. Initially ``result`` is ``None``.
+        """
+        self.data[key] = value
+        return result
 
 from .utils import NUMBER, SYMBOL

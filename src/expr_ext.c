@@ -63,6 +63,7 @@ static PyObject* SYMBOL;
 static PyObject* Expr_as_lowlevel(Expr *self);
 static PyObject* str_as_lowlevel;
 static PyObject* str_convert;
+static PyObject* str_handle_numeric_item;
 
 #define Expr_Check(op) PyObject_TypeCheck(op, &ExprType)
 #define Expr_CheckExact(op) ((op)->ob_type == &ExprType)
@@ -427,10 +428,6 @@ Expr_richcompare(PyObject *v, PyObject *w, int op)
   return Py_NotImplemented;
 }
 
-static PyObject*
-Expr_dict_op_dict(Expr *self, PyObject *args) {
-}
-
 #define CHECK_MTH_ARGS(MTHNAME, NOFARGS) \
   if (!PyTuple_Check(args)) { \
     PyErr_SetString(PyExc_SystemError, \
@@ -537,6 +534,71 @@ Expr_dict_add_dict2(Expr *self, PyObject *args) {
   return Py_None;
 }
 
+static PyObject*
+Expr_dict_add_dict3(Expr *self, PyObject *args) {
+  PyObject *sum = NULL;
+  PyObject *obj = NULL;
+  PyObject *data = PyTuple_GET_ITEM(self->pair, 1);
+  PyObject *dict = NULL;
+  PyObject *key = NULL;
+  PyObject *value = NULL;
+  Py_ssize_t pos = 0;
+  PyTypeObject *type = ((PyObject*)self)->ob_type;
+  PyObject *result = NULL;
+  PyObject *tmp = NULL;
+  CHECK_WRITABLE_DICTDATA("Expr._add_dict3()", self);
+  CHECK_MTH_ARGS("Expr._add_dict3()", 1);
+  dict = PyTuple_GET_ITEM(args, 0);
+  CHECK_DICT_ARG("Expr._add_dict3()", dict);
+  while (PyDict_Next(dict, &pos, &key, &value)) {
+    obj = PyDict_GetItem(data, key);
+    if (obj==NULL) { 
+      if (PyDict_SetItem(data, key, value)==-1)
+	return NULL;
+    } else {
+      if ((sum = PyNumber_Add(obj, value))==NULL)
+	return NULL;
+      if (sum->ob_type==type && PyTuple_GET_ITEM(((Expr*)sum)->pair, 0)==NUMBER) {
+	tmp = PyTuple_GET_ITEM(((Expr*)sum)->pair, 1);
+	Py_DECREF(sum);
+	sum = tmp;
+      }
+      if (PyInt_CheckExact(sum) ? PyInt_AS_LONG(sum) : PyObject_IsTrue(sum)) {
+	if (key->ob_type==type && PyTuple_GET_ITEM(((Expr*)key)->pair, 0)==NUMBER) {
+	  if (result==NULL)
+	    tmp = PyObject_CallMethodObjArgs((PyObject*)self,
+					     str_handle_numeric_item,
+					     Py_None,
+					     key,
+					     sum,
+					     NULL
+					     );
+	  else
+	    tmp = PyObject_CallMethodObjArgs((PyObject*)self,
+					     str_handle_numeric_item,
+					     result,
+					     key,
+					     sum,
+					     NULL
+					     );
+	  if (tmp==NULL) // XXX: cleanup
+	    return NULL;
+	  result = tmp;
+	} else if (PyDict_SetItem(data, key, sum)==-1)
+	  return NULL;
+      } else {
+	if (PyDict_DelItem(data, key)==-1)
+	  return NULL;
+      }
+    }
+  }
+  if (result==NULL) {
+    Py_INCREF(Py_None);
+    return Py_None;
+  }
+  return result;
+}
+
 /*
   If Expr.data is dictionary then add to it non-zero value inplace.
  */
@@ -609,6 +671,7 @@ static PyMethodDef Expr_methods[] = {
   {"_add_item", (PyCFunction)Expr_dict_add_item, METH_VARARGS, NULL},
   {"_add_dict", (PyCFunction)Expr_dict_add_dict, METH_VARARGS, NULL},
   {"_add_dict2", (PyCFunction)Expr_dict_add_dict2, METH_VARARGS, NULL},
+  {"_add_dict3", (PyCFunction)Expr_dict_add_dict3, METH_VARARGS, NULL},
   {NULL, NULL}           /* sentinel */
 };
 
@@ -690,7 +753,9 @@ initexpr_ext(void)
   str_convert = PyString_FromString("convert");
   if (str_convert==NULL)
     return;
-
+  str_handle_numeric_item = PyString_FromString("handle_numeric_item");
+  if (str_handle_numeric_item==NULL)
+    return;
   m = Py_InitModule3("expr_ext", module_methods,
 		     "Provides extension type Expr.");
   
