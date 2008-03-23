@@ -40,8 +40,6 @@ oriented design that can be easily extended.
           packages = ['sympycore',
                       'sympycore.arithmetic',
                       'sympycore.arithmetic.mpmath',
-                      'sympycore.arithmetic.mpmath.apps',
-                      'sympycore.arithmetic.mpmath.lib',
                       'sympycore.basealgebra',
                       'sympycore.calculus',
                       'sympycore.calculus.functions',
