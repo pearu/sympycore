@@ -60,94 +60,60 @@ def expand_FACTORS(cls, self, one):
             h = t.head
         assert h is TERMS,`t`
         if c > 1:
-            d = {}
-            d_get = d.get
             terms = t.data.items()
             mdata = multinomial_coefficients(len(terms), c)
+            d = {}
+            t = cls(TERMS, d)
             for exps, n in mdata.iteritems():
                 d1 = {}
-                d1_get = d1.get
+                t1 = cls(FACTORS, d1)
+                t1_add_item = t1._add_item
+                t1_add_dict = t1._add_dict
+                t1_add_dict2 = t1._add_dict2
                 for i,e in enumerate(exps):
                     if not e:
                         continue
-                    t1, c1 = terms[i]
-                    h1 = t1.head
-                    if h1 is NUMBER:
-                        assert t1.data==1,`t1`
-                    elif h1 is FACTORS:
-                        for t2, c2 in t1.data.iteritems():
-                            b = d1_get(t2)
-                            if b is None:
-                                d1[t2] = e * c2
-                            else:
-                                b = b + e * c2
-                                if b:
-                                    d1[t2] = b
-                                else:
-                                    del d1[t2]
+                    t2, c2 = terms[i]
+                    h2, d2 = t2.pair
+                    if h2 is NUMBER:
+                        assert d2==1,`t2`
+                    elif h2 is FACTORS:
+                        t1_add_dict(d2) if e is 1 else t1_add_dict2(d2, e)
                     else:
-                        b = d1_get(t1)
-                        if b is None:
-                            d1[t1] = e
-                        else:
-                            b = b + e
-                            if b:
-                                d1[t1] = b
-                            else:
-                                del d1[t1]
-                    if c1 is not 1:
-                        if e is 1:
-                            n = n * c1
-                        else:
-                            n = n * c1**e
-                if len(d1)>1:
-                    t1 = cls(FACTORS, d1)
-                else:
-                    t1 = return_factors(cls, d1)
-                b = d_get(t1)
-                if b is None:
-                    d[t1] = n
-                else:
-                    n = n + b
-                    if n:
-                        d[t1] = n
-                    else:
-                        del d[t1]
-            if len(d)>1:
-                t = cls(TERMS, d)
-            else:
+                        t1_add_item(t2, e)
+                    if c2 is not 1:
+                        n *= c2 if e is 1 else c2**e
+                l1 = len(d1)
+                if l1==0:
+                    t1 = one
+                elif l1==1:
+                    t2, c2 = d1.items()[0]
+                    if c2==1 or t2==one:
+                        t1 = t2
+                t._add_item(t1, n)
+            if len(d)<=1:
                 t = return_terms(cls, d)
-            h = t.head
-        data = t.data
+        h, data = t.pair
         if ed is None:
             if h is TERMS:
-                ed = dict(data)
+                ed = data.copy()
             elif h is NUMBER:
                 ed = {one: data}
             else:
                 ed = {t: 1}
         elif h is TERMS:
-            d = {}
-            d_get = d.get
             if len(data) > len(ed):
                 iter1 = data.iteritems
                 iter2 = ed.iteritems
             else:
                 iter2 = data.iteritems
                 iter1 = ed.iteritems
+            d = {}
+            tmp = cls(TERMS, d)
+            add_item = tmp._add_item
             for t1, c1 in iter1():
                 for t2, c2 in iter2():
-                    t = expand_mul_method(cls, t1, t2)
-                    c = c1*c2
-                    b = d_get(t)
-                    if b is None:
-                        d[t] = c
-                    else:
-                        c = b + c
-                        if c:
-                            d[t] = c
-                        else:
-                            del d[t]
+                    add_item(expand_mul_method(cls, t1, t2), c1*c2)
             ed = d
         elif h is NUMBER:
             b = ed.get(one)
@@ -161,12 +127,12 @@ def expand_FACTORS(cls, self, one):
                     del ed[one]
         else:
             d = {}
-            d_get = d.get
             for t2, c2 in ed.iteritems():
                 d[expand_mul_method(cls, t, t2)] = c2
             ed = d
     if ed is None:
         return cls.one
-    return return_terms(cls, ed)
+    result = return_terms(cls, ed)
+    return result
 
     

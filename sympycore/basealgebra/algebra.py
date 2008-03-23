@@ -380,11 +380,11 @@ class Algebra(Expr):
     def subs(self, subexpr, newexpr=None):
         """ Substitute a sub-expression with new expression.
         
-        There are two usage forms::
+        There are three usage forms::
         
           obj.subs(subexpr, newexpr)
           obj.subs([(subexpr1, newexpr1), (subexpr2, newexpr2), ..])
-        
+          obj.subs(<dict of subexpr:newexpr>)
         """
         convert = self.convert
         if newexpr is None:

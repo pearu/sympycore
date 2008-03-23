@@ -309,6 +309,26 @@ Expr_as_lowlevel(Expr *self)
   return self->pair;
 }
 
+/* <Expr>.__nonzero__() == <Expr>.data.__nonzero__() 
+   NOTE: __nonzero__ is active only for Expr subclasses.
+*/
+static PyObject*
+Expr_nonzero(Expr *self) {
+  PyObject* data = PyTuple_GET_ITEM(self->pair, 1);
+  if (PyObject_IsTrue(data))
+    Py_RETURN_TRUE;
+  Py_RETURN_FALSE;
+}
+
+static PyObject*
+Expr_nonzero2(Expr *self) {
+  PyObject* head = PyTuple_GET_ITEM(self->pair, 0);
+  PyObject* data = PyTuple_GET_ITEM(self->pair, 1);
+  if (PyObject_IsTrue(head) || PyObject_IsTrue(data))
+    Py_RETURN_TRUE;
+  Py_RETURN_FALSE;
+}
+
 /*
   Return true if v and w type instances are comparable even when their
   types are different. Currently only exact types are checked.
@@ -407,6 +427,167 @@ Expr_richcompare(PyObject *v, PyObject *w, int op)
   return Py_NotImplemented;
 }
 
+static PyObject*
+Expr_dict_op_dict(Expr *self, PyObject *args) {
+}
+
+#define CHECK_MTH_ARGS(MTHNAME, NOFARGS) \
+  if (!PyTuple_Check(args)) { \
+    PyErr_SetString(PyExc_SystemError, \
+		    "new style getargs format but argument is not a tuple"); \
+    return NULL; \
+  } else {\
+    int nofargs = PyTuple_GET_SIZE(args);\
+    if (nofargs!=(NOFARGS)) {\
+      PyErr_SetObject(PyExc_TypeError, PyString_FromFormat(MTHNAME " takes %d argument (%d given)", NOFARGS, nofargs)); \
+      return NULL;\
+    }\
+ }
+
+#define CHECK_WRITABLE_DICTDATA(MTHNAME, SELF)	\
+  if ((SELF)->hash!=-1) {\
+    PyErr_SetString(PyExc_TypeError,\
+		    MTHNAME ": data is not writable");\
+    return NULL;\
+  }\
+  if (!PyDict_CheckExact(PyTuple_GET_ITEM((SELF)->pair, 1))) {\
+    PyErr_SetString(PyExc_TypeError,\
+		    MTHNAME ": data is not dict object");\
+    return NULL;\
+  }
+
+#define CHECK_DICT_ARG(MTHNAME, OBJ) \
+  if (!PyDict_CheckExact(OBJ)) { \
+    PyErr_SetObject(PyExc_TypeError, \
+	            PyString_FromFormat(MTHNAME\
+		      ": argument must be dict object (got %s)",\
+		      PyString_AsString(PyObject_Repr(PyObject_Type(OBJ))))); \
+    return NULL; \
+  }
+
+static PyObject*
+Expr_dict_add_dict(Expr *self, PyObject *args) {
+  PyObject *sum = NULL;
+  PyObject *obj = NULL;
+  PyObject *data = PyTuple_GET_ITEM(self->pair, 1);
+  PyObject *dict = NULL;
+  PyObject *key = NULL;
+  PyObject *value = NULL;
+  Py_ssize_t pos = 0;
+  CHECK_WRITABLE_DICTDATA("Expr._add_dict()", self);
+  CHECK_MTH_ARGS("Expr._add_dict()", 1);
+  dict = PyTuple_GET_ITEM(args, 0);
+  CHECK_DICT_ARG("Expr._add_dict()", dict);
+  while (PyDict_Next(dict, &pos, &key, &value)) {
+    obj = PyDict_GetItem(data, key);
+    if (obj==NULL) { 
+      if (PyDict_SetItem(data, key, value)==-1)
+	return NULL;
+    } else {
+      if ((sum = PyNumber_Add(obj, value))==NULL)
+	return NULL;
+      if (PyInt_CheckExact(sum) ? PyInt_AS_LONG(sum) : PyObject_IsTrue(sum)) {
+	if (PyDict_SetItem(data, key, sum)==-1)
+	  return NULL;
+      } else {
+	if (PyDict_DelItem(data, key)==-1)
+	  return NULL;
+      }
+    }
+  }
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+static PyObject*
+Expr_dict_add_dict2(Expr *self, PyObject *args) {
+  PyObject *sum = NULL;
+  PyObject *obj = NULL;
+  PyObject *data = PyTuple_GET_ITEM(self->pair, 1);
+  PyObject *dict = NULL;
+  PyObject *key = NULL;
+  PyObject *value = NULL;
+  PyObject *coeff = NULL;
+  PyObject *tmp = NULL;
+  Py_ssize_t pos = 0;
+  CHECK_WRITABLE_DICTDATA("Expr._add_dict2()", self);
+  CHECK_MTH_ARGS("Expr._add_dict2()", 2);
+  dict = PyTuple_GET_ITEM(args, 0);
+  CHECK_DICT_ARG("Expr._add_dict2()", dict);
+  coeff = PyTuple_GET_ITEM(args, 1);
+  while (PyDict_Next(dict, &pos, &key, &value)) {
+    tmp = PyNumber_Multiply(value, coeff);
+    obj = PyDict_GetItem(data, key);
+    if (obj==NULL) {
+      if (PyDict_SetItem(data, key, tmp)==-1)
+	return NULL;
+    } else {
+      if ((sum = PyNumber_Add(obj, tmp))==NULL)
+	return NULL;
+      if (PyInt_CheckExact(sum) ? PyInt_AS_LONG(sum) : PyObject_IsTrue(sum)) {
+	if (PyDict_SetItem(data, key, sum)==-1)
+	  return NULL;
+      } else {
+	if (PyDict_DelItem(data, key)==-1)
+	  return NULL;
+      }
+    }
+  }
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+/*
+  If Expr.data is dictionary then add to it non-zero value inplace.
+ */
+static PyObject *
+Expr_dict_add_item(Expr *self, PyObject *args) {
+  PyObject *sum = NULL;
+  PyObject *obj = NULL;
+  PyObject *d = PyTuple_GET_ITEM(self->pair, 1);
+  PyObject *item_key = NULL;
+  PyObject *item_value = NULL;
+  if (self->hash!=-1) {
+    PyErr_SetString(PyExc_TypeError,
+		    "Expr._add_item: data is not writable");
+    return NULL;
+  }
+  if (!PyDict_CheckExact(d)) {
+    PyErr_SetString(PyExc_TypeError,
+		    "Expr._add_item: data is not dict object");
+    return NULL;
+  }
+  if (!PyTuple_Check(args)) {
+    PyErr_SetString(PyExc_SystemError,
+		    "new style getargs format but argument is not a tuple");
+    return NULL;
+  }
+  if (PyTuple_GET_SIZE(args)!=2) {
+    PyErr_SetString(PyExc_TypeError,
+		    "Expr._add_item expects 2 arguments: key, value");
+    return NULL;
+  }
+  item_key = PyTuple_GET_ITEM(args, 0);
+  item_value = PyTuple_GET_ITEM(args, 1);
+  obj = PyDict_GetItem(d, item_key);
+  if (obj==NULL) { 
+    if (PyDict_SetItem(d, item_key, item_value)==-1)
+      return NULL;
+  } else {
+    if ((sum = PyNumber_Add(obj, item_value))==NULL)
+      return NULL;
+    if (PyInt_CheckExact(sum) ? PyInt_AS_LONG(sum) : PyObject_IsTrue(sum)) {
+      if (PyDict_SetItem(d, item_key, sum)==-1)
+	return NULL;
+    } else {
+      if (PyDict_DelItem(d, item_key)==-1)
+	return NULL;
+    }
+  }
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
 static PyGetSetDef Expr_getseters[] = {
     {"head", (getter)Expr_gethead, NULL,
      "read-only head attribute", NULL},
@@ -420,10 +601,14 @@ static PyGetSetDef Expr_getseters[] = {
 };
 
 static PyMethodDef Expr_methods[] = {
-  /* for Pickling */
   {"__reduce__", (PyCFunction)Expr_reduce, METH_VARARGS, NULL},
-  {"_sethash", (PyCFunction)Expr_sethash, METH_VARARGS, NULL },
-  {"as_lowlevel", (PyCFunction)Expr_as_lowlevel, METH_VARARGS, NULL },
+  {"__nonzero__", (PyCFunction)Expr_nonzero, METH_VARARGS, NULL},
+  {"__nonzero2__", (PyCFunction)Expr_nonzero2, METH_VARARGS, NULL},
+  {"_sethash", (PyCFunction)Expr_sethash, METH_VARARGS, NULL},
+  {"as_lowlevel", (PyCFunction)Expr_as_lowlevel, METH_VARARGS, NULL},
+  {"_add_item", (PyCFunction)Expr_dict_add_item, METH_VARARGS, NULL},
+  {"_add_dict", (PyCFunction)Expr_dict_add_dict, METH_VARARGS, NULL},
+  {"_add_dict2", (PyCFunction)Expr_dict_add_dict2, METH_VARARGS, NULL},
   {NULL, NULL}           /* sentinel */
 };
 

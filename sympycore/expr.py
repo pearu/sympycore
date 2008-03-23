@@ -219,5 +219,45 @@ This is Python version of Expr type.
             return NotImplemented # because types are different
         return pair >= other.pair
 
+    def _add_item(self, key, value):
+        head, data = self.pair
+        assert type(data) is dict
+        c = data.get(key)
+        if c is None:
+            data[key] = value
+        else:
+            c = c + value
+            if c:
+                data[key] = c
+            else:
+                del data[key]
+
+    def _add_dict(self, d):
+        head, data = self.pair
+        assert type(data) is dict
+        for key, value in d.iteritems():
+            c = data.get(key)
+            if c is None:
+                data[key] = value
+            else:
+                c = c + value
+                if c:
+                    data[key] = c
+                else:
+                    del data[key]
+
+    def _add_dict2(self, d, coeff):
+        head, data = self.pair
+        assert type(data) is dict
+        for key, value in d.iteritems():
+            c = data.get(key)
+            if c is None:
+                data[key] = value * coeff
+            else:
+                c = c + value * coeff
+                if c:
+                    data[key] = c
+                else:
+                    del data[key]
 
 from .utils import NUMBER, SYMBOL
