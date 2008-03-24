@@ -50,24 +50,33 @@ def multiply(self, other):
         head1, head2, data1, data2, self, other = head2, head1, data2, data1, other, self
     if head1 is FACTORS:
         if head2 is FACTORS:
-            result = cls(FACTORS, data1.copy())
+            d = data1.copy()
+            result = cls(FACTORS, d)
             num = result._add_dict3(data2)
-            if num is None:
-                return result.canonize_FACTORS()
-            return cls(TERMS, {result.canonize_FACTORS():num}).canonize_TERMS()
+            if len(d)<=1:
+                result = result.canonize_FACTORS()
+            if num is None or num==1:
+                return result
+            if result==self.one:
+                return cls(NUMBER, num)
+            return cls(TERMS, {result:num})
         elif head2 is TERMS:
             if len(data2)==1:
                 t, c = data2.items()[0]
-                return cls(TERMS, {t * self: c}).canonize_TERMS()
+                t *= self
+                if t==self.one:
+                    return cls(NUMBER, c)
+                return cls(TERMS, {t: c})
         elif head2 is NUMBER:
             if data2 == 1:
                 return self
             if not data2:
                 return other
             return cls(TERMS, {self: data2})
-        result = cls(FACTORS, data1.copy())
+        d = data1.copy()
+        result = cls(FACTORS, d)
         result._add_item(other, 1)
-        return result.canonize_FACTORS()
+        return result.canonize_FACTORS() if len(d)<=1 else result
     elif head1 is TERMS:
         if len(data1)==1:
             t, c = data1.items()[0]
@@ -81,7 +90,13 @@ def multiply(self, other):
             if head2 is TERMS:
                 if len(data2)==1:
                     t2, c2 = data2.items()[0]
-                    return cls(TERMS, {t * t2: c * c2}).canonize_TERMS()
+                    t12 = t * t2
+                    c12 = c * c2
+                    if c12==1:
+                        return t12
+                    if t12==self.one:
+                        return cls(NUMBER, c12)
+                    return cls(TERMS, {t12: c12})
             return cls(TERMS, {t * other: c})
         if head2 is NUMBER:
             if data2 == 1:
@@ -92,7 +107,10 @@ def multiply(self, other):
         if head2 is TERMS:
             if len(data2)==1:
                 t2, c2 = data2.items()[0]
-                return cls(TERMS, {self * t2: c2}).canonize_TERMS()
+                t12 = self*t2
+                if t12==self.one:
+                    return cls(NUMBER, c2)
+                return cls(TERMS, {t12: c2})
             if data1==data2:
                 return cls(FACTORS, {self:2})
         return cls(FACTORS, {self:1, other:1})
