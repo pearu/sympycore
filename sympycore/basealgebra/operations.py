@@ -4,6 +4,7 @@
 # Created: March 2008
 
 from ..utils import TERMS, FACTORS, NUMBER
+from ..arithmetic.numbers import numbertypes_set
 
 __all__ = ['multiply', 'negate']
 
@@ -26,12 +27,12 @@ def multiply(self, other):
     cls = type(self)
     if t is not cls:
         if t in self.coefftypes_set:
+            if head1 is NUMBER:
+                return cls(NUMBER, data1 * other)
             if other == 1:
                 return self
             if not other:
                 return self.zero
-            if head1 is NUMBER:
-                return cls(NUMBER, data1 * other)
             if head1 is FACTORS:
                 return cls(TERMS, {self: other})
             if head1 is TERMS:

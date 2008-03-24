@@ -132,7 +132,11 @@ r, s = %(RHS)s
 @RETURN_FRACTION2(NUMER=p*r; DENOM=q*s; MOD=%(MOD)s)
 '''
 
-MUL_COMPLEX_REAL = '@RETURN_COMPLEX2(REAL=%(LHS)s.real*%(RHS)s; IMAG=%(LHS)s.imag*%(RHS)s)\n'
+MUL_COMPLEX_REAL = '''\
+if not %(RHS)s:
+    return 0
+@RETURN_COMPLEX(REAL=%(LHS)s.real*%(RHS)s; IMAG=%(LHS)s.imag*%(RHS)s)
+'''
 MUL_COMPLEX_COMPLEX = '''\
 a, b = %(LHS)s.real, %(LHS)s.imag
 c, d = %(RHS)s.real, %(RHS)s.imag
@@ -334,10 +338,10 @@ def complex_rsub(self, other, new=object.__new__, cls=mpqc):
 
 def complex_mul(self, other, new=object.__new__, cls=mpqc):
     t = type(other)
-    @IF_CHECK_REAL(T=t)
-        @MUL_COMPLEX_REAL(LHS=self; RHS=other)
     @IF_CHECK_COMPLEX(T=t)
         @MUL_COMPLEX_COMPLEX(LHS=self; RHS=other)
+    @IF_CHECK_REAL(T=t)
+        @MUL_COMPLEX_REAL(LHS=self; RHS=other)
     return NotImplemented
 
 def complex_div(self, other, new=object.__new__, cls=mpqc):

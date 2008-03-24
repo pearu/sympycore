@@ -30,6 +30,7 @@ class Calculus(CollectingField):
     _hash = None
 
     coefftypes = algebra_numbers
+    coefftypes_set = frozenset(coefftypes)
     exptypes = algebra_numbers
 
     def as_algebra(self, cls):
