@@ -18,7 +18,7 @@ from .ring import CommutativeRing
 from .verbatim import Verbatim
 from ..arithmetic.numbers import mpq, realtypes, try_power, numbertypes_set
 
-from .pairs_ops import (add_method, sub_method, rsub_method, neg_method,
+from .pairs_ops import (add_method, sub_method, rsub_method,
                         div_method, rdiv_method, pow_method)
 
 from .pairs_iops import (inplace_add, inplace_add2, inplace_sub,
@@ -27,7 +27,7 @@ from .pairs_iops import (inplace_add, inplace_add2, inplace_sub,
 
 from .pairs_expand import expand
 
-from .operations import multiply
+from .operations import multiply, negate
 
 class ConstantFunc(Expr):
     """ Constant function returned by .func property of symbols and
@@ -58,7 +58,7 @@ class CollectingField(CommutativeRing):
     exptypes = (int, long, mpq)
 
     _coeff_terms = (1, None) # set by MUL_VALUE_TERMS
-    __neg__ = neg_method
+    __neg__ = negate
     __add__ = __radd__ = add_method
     __sub__ = sub_method
     __rsub__ = rsub_method

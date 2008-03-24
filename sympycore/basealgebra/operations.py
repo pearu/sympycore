@@ -5,11 +5,20 @@
 
 from ..utils import TERMS, FACTORS, NUMBER
 
-__all__ = ['multiply']
+__all__ = ['multiply', 'negate']
 
 # FACTORS < TERMS < NUMBER < rest
 _swap_args_set1 = frozenset([TERMS, FACTORS, NUMBER])
 _swap_args_set = frozenset([(TERMS, FACTORS), (NUMBER, FACTORS), (NUMBER, TERMS)])
+
+def negate(self):
+    head1, data1 = self.pair
+    if head1 is NUMBER:
+        return type(self)(NUMBER, -data1)
+    if head1 is TERMS:
+        r = type(self)(TERMS, dict([(t,-c) for t,c in data1.iteritems()]))
+        return r.canonize_TERMS() if len(data1)==1 else r
+    return type(self)(TERMS, {self:-1})
 
 def multiply(self, other):
     head1, data1 = self.pair
