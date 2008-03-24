@@ -47,8 +47,10 @@ return cls((%(NUMER)s, %(DENOM)s))
 FRACTION_NORMALIZE = '''\
 %(RNUMER)s = _x = %(NUMER)s
 %(RDENOM)s = _y = %(DENOM)s
-while _y:
+while 1:
     _x, _y = _y, _x %(MOD)s _y
+    if not _y:
+        break
 if _x != 1:
     %(RNUMER)s //= _x
     %(RDENOM)s //= _x
@@ -258,7 +260,7 @@ def main():
     print >> f, template
     print >> f, preprocess('''
 
-def fraction_add(self, other, cls=mpq):
+def fraction_add(self, other, cls=mpq, inttypes_set=inttypes_set):
     t = type(other)
     @IF_CHECK_INT(T=t)
         @ADD_FRACTION_INT(LHS=self; RHS=other)
@@ -266,7 +268,7 @@ def fraction_add(self, other, cls=mpq):
         @ADD_FRACTION_FRACTION(LHS=self; RHS=other)
     return NotImplemented
 
-def fraction_sub(self, other, cls=mpq):
+def fraction_sub(self, other, cls=mpq, inttypes_set=inttypes_set):
     t = type(other)
     @IF_CHECK_INT(T=t)
         @SUB_FRACTION_INT(LHS=self; RHS=other)
@@ -274,21 +276,21 @@ def fraction_sub(self, other, cls=mpq):
         @SUB_FRACTION_FRACTION(LHS=self; RHS=other)
     return NotImplemented
 
-def fraction_rsub(self, other, cls=mpq):
+def fraction_rsub(self, other, cls=mpq, inttypes_set=inttypes_set):
     t = type(other)
     @IF_CHECK_INT(T=t)
         @SUB_INT_FRACTION(RHS=self; LHS=other)
     return NotImplemented
 
-def fraction_mul(self, other, cls=mpq):
+def fraction_mul(self, other, cls=mpq, inttypes_set=inttypes_set):
     t = type(other)
+    if t is cls:
+        @MUL_FRACTION_FRACTION(LHS=self; RHS=other; MOD=%)
     @IF_CHECK_INT(T=t)
         @MUL_FRACTION_INT(LHS=self; RHS=other; MOD=%)
-    elif t is cls:
-        @MUL_FRACTION_FRACTION(LHS=self; RHS=other; MOD=%)
     return NotImplemented
 
-def fraction_div(self, other, cls=mpq):
+def fraction_div(self, other, cls=mpq, inttypes_set=inttypes_set):
     t = type(other)
     @IF_CHECK_INT(T=t)
         @DIV_FRACTION_INT(LHS=self; RHS=other; MOD=%)
@@ -296,13 +298,13 @@ def fraction_div(self, other, cls=mpq):
         @DIV_FRACTION_FRACTION(LHS=self; RHS=other; MOD=%)
     return NotImplemented
 
-def fraction_rdiv(self, other, cls=mpq):
+def fraction_rdiv(self, other, cls=mpq, inttypes_set=inttypes_set):
     t = type(other)
     @IF_CHECK_INT(T=t)
         @DIV_INT_FRACTION(RHS=self; LHS=other; MOD=%)
     return NotImplemented
 
-def fraction_pow(self, other, m=None, cls=mpq):
+def fraction_pow(self, other, m=None, cls=mpq, inttypes_set=inttypes_set):
     t = type(other)
     @IF_CHECK_INT(T=t)
         if not other:
@@ -312,7 +314,7 @@ def fraction_pow(self, other, m=None, cls=mpq):
         @POW_FRACTION_INT(LHS=self; RHS=other)
     return NotImplemented
 
-def complex_add(self, other, new=object.__new__, cls=mpqc):
+def complex_add(self, other, new=object.__new__, cls=mpqc, realtypes_set=realtypes_set, complextypes_set=complextypes_set):
     t = type(other)
     @IF_CHECK_REAL(T=t)
         @ADD_COMPLEX_REAL(LHS=self; RHS=other)
@@ -320,7 +322,7 @@ def complex_add(self, other, new=object.__new__, cls=mpqc):
         @ADD_COMPLEX_COMPLEX(LHS=self; RHS=other)
     return NotImplemented
 
-def complex_sub(self, other, new=object.__new__, cls=mpqc):
+def complex_sub(self, other, new=object.__new__, cls=mpqc, realtypes_set=realtypes_set, complextypes_set=complextypes_set):
     t = type(other)
     @IF_CHECK_REAL(T=t)
         @SUB_COMPLEX_REAL(LHS=self; RHS=other)
@@ -328,7 +330,7 @@ def complex_sub(self, other, new=object.__new__, cls=mpqc):
         @SUB_COMPLEX_COMPLEX(LHS=self; RHS=other)
     return NotImplemented
 
-def complex_rsub(self, other, new=object.__new__, cls=mpqc):
+def complex_rsub(self, other, new=object.__new__, cls=mpqc, realtypes_set=realtypes_set):
     t = type(other)
     @IF_CHECK_REAL(T=t)
         @SUB_REAL_COMPLEX(LHS=other; RHS=self)
@@ -336,7 +338,7 @@ def complex_rsub(self, other, new=object.__new__, cls=mpqc):
         @SUB_COMPLEX_COMPLEX(LHS=other; RHS=self)
     return NotImplemented
 
-def complex_mul(self, other, new=object.__new__, cls=mpqc):
+def complex_mul(self, other, new=object.__new__, cls=mpqc, realtypes_set=realtypes_set, complextypes_set=complextypes_set):
     t = type(other)
     @IF_CHECK_COMPLEX(T=t)
         @MUL_COMPLEX_COMPLEX(LHS=self; RHS=other)
@@ -344,7 +346,7 @@ def complex_mul(self, other, new=object.__new__, cls=mpqc):
         @MUL_COMPLEX_REAL(LHS=self; RHS=other)
     return NotImplemented
 
-def complex_div(self, other, new=object.__new__, cls=mpqc):
+def complex_div(self, other, new=object.__new__, cls=mpqc, realtypes_set=realtypes_set, complextypes_set=complextypes_set):
     t = type(other)
     @IF_CHECK_REAL(T=t)
         @DIV_COMPLEX_REAL(LHS=self; RHS=other; MOD=%)
@@ -352,7 +354,7 @@ def complex_div(self, other, new=object.__new__, cls=mpqc):
         @DIV_COMPLEX_COMPLEX(LHS=self; RHS=other; MOD=%)
     return NotImplemented
 
-def complex_rdiv(self, other, new=object.__new__, cls=mpqc):
+def complex_rdiv(self, other, new=object.__new__, cls=mpqc, realtypes_set=realtypes_set):
     t = type(other)
     @IF_CHECK_REAL(T=t)
         @DIV_REAL_COMPLEX(LHS=other; RHS=self; MOD=%)
@@ -360,7 +362,7 @@ def complex_rdiv(self, other, new=object.__new__, cls=mpqc):
         @DIV_COMPLEX_COMPLEX(LHS=other; RHS=self; MOD=%)
     return NotImplemented
 
-def complex_pow(self, other, m=None, new=object.__new__, cls=mpqc):
+def complex_pow(self, other, m=None, new=object.__new__, cls=mpqc, inttypes_set=inttypes_set):
     t = type(other)
     @IF_CHECK_INT(T=t)
         if not other:
@@ -379,7 +381,7 @@ def complex_pow(self, other, m=None, new=object.__new__, cls=mpqc):
 
     for (n,s) in [('lt','<'), ('le','<='), ('gt','>'), ('ge','>=')]:
         print >> f, preprocess('''\
-def fraction_%s(self, other, cls=mpq):
+def fraction_%s(self, other, cls=mpq, inttypes_set=inttypes_set):
     p, q = self
     t = type(other)
     @IF_CHECK_INT(T=t)
