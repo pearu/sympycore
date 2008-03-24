@@ -19,22 +19,17 @@ See http://sympycore.googlecode.com/ for more information.
 DO NOT CHANGE THIS FILE DIRECTLY!!!
 """
 
-from .numbers import mpqc, mpf, mpq, mpc
+from .numbers import mpqc, mpf, mpq, mpc, inttypes_set, realtypes_set, complextypes_set, numbertypes_set
 '''
 
 DIV_VALUE_VALUE = '''\
 _p, _q = %(LHS)s, %(RHS)s
 if not _q:
     raise ZeroDivisionError(repr(%(LHS)s) + " / " + repr(%(RHS)s))
-_tp = type(_p)
-@IF_CHECK_INT(T=_tp)
-    _tq = type(_q)
-    @IF_CHECK_INT(T=_tq)
+@IF_CHECK_INT(T=type(_p))
+    @IF_CHECK_INT(T=type(_q))
         @FRACTION_NORMALIZE(NUMER=_p; DENOM=_q; RNUMER=_rp; RDENOM=_rq; MOD=%(MOD)s)
-        if _rq == 1:
-            %(RESULT)s = _rp
-        else:
-            %(RESULT)s = mpq((_rp, _rq))
+        %(RESULT)s = _rp if _rq == 1 else mpq((_rp, _rq))
     else:
         %(RESULT)s = _p / _q
 else:
@@ -242,10 +237,7 @@ if m==1:
     @RETURN_COMPLEX2(REAL=c; IMAG=d)
 # c,d,m are integers
 @FRACTION_NORMALIZE(NUMER=c; DENOM=m; RNUMER=re_p; RDENOM=re_q; MOD=%(MOD)s)
-if re_q==1:
-    re = re_p
-else:
-    re = mpq((re_p, re_q))
+re = re_p if re_q==1 else mpq((re_p, re_q))
 if not d:
     return re
 @FRACTION_NORMALIZE(NUMER=d; DENOM=m; RNUMER=im_p; RDENOM=im_q; MOD=%(MOD)s)

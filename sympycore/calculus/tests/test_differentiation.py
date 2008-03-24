@@ -24,7 +24,8 @@ def test_diff_powers():
 
 def test_diff_products():
     assert diff((1+x)*(2+x), x) == 3+2*x
-    assert diff((1+x)**3*(2+x)**2, x) == 2*(1+x)**3*(2+x) + 3*(1+x)**2 * (2+x)**2
+    assert diff((1+x)**3*(2+x)**2, x) in [(2*(1+x)**3*(2+x) + 3*(1+x)**2 * (2+x)**2),
+                                          (1 + x)**3*(4 + 2*x) + 3*(1 + x)**2*(2 + x)**2]
     assert diff(pi**2 * 2**Number(1,2) * x, x) == pi**2 * 2**Number(1,2)
 
 def test_diff_log():

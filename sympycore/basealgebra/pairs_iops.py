@@ -8,14 +8,13 @@ DO NOT CHANGE THIS FILE DIRECTLY!!!
 """
 
 from ..core import Expr
-from ..arithmetic.numbers import mpqc, mpf, mpq, mpc, try_power
+from ..arithmetic.numbers import mpqc, mpf, mpq, mpc, try_power, inttypes_set, realtypes_set, complextypes_set, numbertypes_set
 from ..utils import NUMBER, TERMS, FACTORS
 from .pairs_ops import div
-new = Expr.__new__
 
 
 
-def return_terms(cls, pairs, new=new):
+def return_terms(cls, pairs):
     if not pairs:
         return cls.zero
     if len(pairs)==1:
@@ -29,7 +28,7 @@ def return_terms(cls, pairs, new=new):
     _tmp2 = cls(TERMS, pairs)
     return _tmp2
 
-def return_factors(cls, pairs, new=new):
+def return_factors(cls, pairs):
     if not pairs:
         return cls.one
     elif len(pairs)==1:
@@ -83,7 +82,7 @@ def inplace_add(cls, obj, pairs, pairs_get, one):
                 else:
                     del pairs[obj]
     #ELIF_CHECK_NUMBER(T=tobj)
-    elif tobj is int or tobj is long or tobj is mpq or tobj is float or tobj is mpf or tobj is mpqc or tobj is mpc or tobj is complex:
+    elif tobj in numbertypes_set:
         if obj:
             #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=obj; SIGN=+; USIGN=)
             _tmp58 = pairs_get(one)
@@ -141,7 +140,7 @@ def inplace_add2(cls, obj, coeff, pairs, pairs_get, one):
                 else:
                     del pairs[obj]
     #ELIF_CHECK_NUMBER(T=tobj)
-    elif tobj is int or tobj is long or tobj is mpq or tobj is float or tobj is mpf or tobj is mpqc or tobj is mpc or tobj is complex:
+    elif tobj in numbertypes_set:
         value = coeff * obj
         if value:
             #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=value; SIGN=+; USIGN=)
@@ -198,7 +197,7 @@ def inplace_sub(cls, obj, pairs, pairs_get, one):
                 else:
                     del pairs[obj]
     #ELIF_CHECK_NUMBER(T=tobj)
-    elif tobj is int or tobj is long or tobj is mpq or tobj is float or tobj is mpf or tobj is mpqc or tobj is mpc or tobj is complex:
+    elif tobj in numbertypes_set:
         if obj:
             #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=one; VALUE=obj; SIGN=-; USIGN=-)
             _tmp128 = pairs_get(one)
@@ -357,26 +356,26 @@ def inplace_mul(cls, obj, pairs, pairs_get, try_power=try_power, NUMBER=NUMBER):
                     del pairs[obj]
             return number
     #ELIF_CHECK_NUMBER(T=tobj)
-    elif tobj is int or tobj is long or tobj is mpq or tobj is float or tobj is mpf or tobj is mpqc or tobj is mpc or tobj is complex:
+    elif tobj in numbertypes_set:
         return obj
     else:
         return inplace_mul(cls, cls.convert(obj), pairs, pairs_get)
 
 def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NUMBER):
     if not exp:
-        return 1
+        return cls.one
     tobj = type(obj)
     texp = type(exp)
     if tobj is cls:
         head, data = obj.pair
         if head is NUMBER:
-            if (texp is int or texp is long) and exp < 0:
+            if texp in inttypes_set and exp < 0:
                 return div(1, data ** -exp, cls)
             return data ** exp
         elif head is TERMS:
             if len(data)==1:
                 t, number = data.items()[0]
-                if (texp is int or texp is long) and exp < 0:
+                if  texp in inttypes_set and exp < 0:
                     number = div(1, number ** -exp, cls)
                 else:
                     number = number ** exp
@@ -515,8 +514,8 @@ def inplace_mul2(cls, obj, exp, pairs, pairs_get, try_power=try_power, NUMBER=NU
                     del pairs[obj]
             return number
     #ELIF_CHECK_NUMBER(T=tobj)
-    elif tobj is int or tobj is long or tobj is mpq or tobj is float or tobj is mpf or tobj is mpqc or tobj is mpc or tobj is complex:
-        if (texp is int or texp is long) and exp < 0:
+    elif tobj in numbertypes_set:
+        if  texp in inttypes_set and exp < 0:
             return div(1, obj ** -exp, cls)
         return obj ** exp
     else:

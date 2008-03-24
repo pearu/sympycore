@@ -42,7 +42,8 @@ def test_diff():
     assert (3*x+1).diff(x) == 3
     assert (2*x**2 + x).diff(x) == 4*x + 1
     assert (x**3).diff(x) == 3*x**2
-    assert ((1+x)*(2+x)*(3+x)**2).diff(x) == ((1+x)*(2+x)*(3+x)*2 + (1+x)*(3+x)**2 + (2+x)*(3+x)**2)
+    assert ((1+x)*(2+x)*(3+x)**2).diff(x) in [((1+x)*(2+x)*(3+x)*2 + (1+x)*(3+x)**2 + (2+x)*(3+x)**2),
+                                              (1 + x)*(2 + x)*(6 + 2*x) + (3 + x)**2*(1 + x) + (3 + x)**2*(2 + x)]
 
 def test_subs():
     x = Symbol('x')

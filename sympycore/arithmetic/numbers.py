@@ -267,7 +267,7 @@ class mpqc(object):
     def __eq__(self, other):
         if hasattr(other, "imag"):
             return self.real == other.real and self.imag == other.imag
-        return self.real == other
+        return False
 
     def __pos__(self): return self
     def __neg__(self): return mpqc(-self.real, -self.imag)
@@ -292,9 +292,15 @@ class mpqc(object):
 # Interface functions
 #
 
+inttypes = (int, long)
 numbertypes = (int, long, float, complex, mpq, mpqc, mpf, mpc)
 realtypes = (int, long, float, mpq, mpf)
 complextypes = (complex, mpqc, mpc)
+
+inttypes_set = frozenset(inttypes)
+realtypes_set = frozenset(realtypes)
+complextypes_set = frozenset(complextypes)
+numbertypes_set = frozenset(numbertypes)
 
 def div(a, b):
     """Safely compute a/b.
@@ -302,14 +308,12 @@ def div(a, b):
     If a or b is an integer, this function makes sure to convert it to
     a rational.
     """
-    tb = type(b)
-    if tb is int or tb is long:
+    if type(b) in inttypes_set:
         if not b:
             raise ZeroDivisionError('%r / %r' % (a, b))
         if b == 1:
             return a
-        ta = type(a)
-        if ta is int or ta is long:
+        if type(a) in inttypes_set:
             return normalized_fraction(a, b)
     return a / b
 
@@ -335,9 +339,11 @@ def int_root(y, n):
             guess = 1 << int(math.log(y, 2)/n)
     # Newton iteration
     xprev, x = -1, guess
-    while abs(x - xprev) > 1:
+    while 1:
         t = x**(n-1)
         xprev, x = x, x - (t*x-y)//(n*t)
+        if abs(x - xprev) < 1:
+            break
     # Compensate
     t = x**n
     while t > y:
@@ -392,10 +398,9 @@ def try_power(x, y):
             p, q = y
             r, exact = int_root(x, q)
             if exact:
-                if p > 0:
-                    g = r**p
-                else:
-                    g = normalized_fraction(1, r**(-p))
+                if r==1 or not p:
+                    return 1, []
+                g = r**p if p>0 else mpq((1, r**(-p)))
                 return g, []
     elif isinstance(x, mpq) and isinstance(y, mpq):
         a, b = x

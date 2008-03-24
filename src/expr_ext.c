@@ -704,26 +704,8 @@ Expr_dict_add_item(Expr *self, PyObject *args) {
   PyObject *d = PyTuple_GET_ITEM(self->pair, 1);
   PyObject *item_key = NULL;
   PyObject *item_value = NULL;
-  if (self->hash!=-1) {
-    PyErr_SetString(PyExc_TypeError,
-		    "Expr._add_item: data is not writable");
-    return NULL;
-  }
-  if (!PyDict_CheckExact(d)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "Expr._add_item: data is not dict object");
-    return NULL;
-  }
-  if (!PyTuple_Check(args)) {
-    PyErr_SetString(PyExc_SystemError,
-		    "new style getargs format but argument is not a tuple");
-    return NULL;
-  }
-  if (PyTuple_GET_SIZE(args)!=2) {
-    PyErr_SetString(PyExc_TypeError,
-		    "Expr._add_item expects 2 arguments: key, value");
-    return NULL;
-  }
+  CHECK_WRITABLE_DICTDATA("Expr._add_item()", self);
+  CHECK_MTH_ARGS("Expr._add_item()", 2);
   item_key = PyTuple_GET_ITEM(args, 0);
   item_value = PyTuple_GET_ITEM(args, 1);
   obj = PyDict_GetItem(d, item_key);

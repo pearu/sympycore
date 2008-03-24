@@ -76,6 +76,12 @@ IF_CHECK_COMPLEX = 'if %(T)s is mpqc or %(T)s is complex or %(T)s is mpc:'
 
 ELIF_CHECK_NUMBER = 'elif %(T)s is int or %(T)s is long or %(T)s is mpq or %(T)s is float or %(T)s is mpf or %(T)s is mpqc or %(T)s is mpc or %(T)s is complex:'
 
+IF_CHECK_INT = 'if %(T)s in inttypes_set:'
+ELIF_CHECK_INT = 'elif %(T)s in inttypes_set:'
+IF_CHECK_REAL = 'if %(T)s in realtypes_set:'
+IF_CHECK_COMPLEX = 'if %(T)s in complextypes_set:'
+ELIF_CHECK_NUMBER = 'elif %(T)s in numbertypes_set:'
+
 ADD_TERM_VALUE_DICT='''\
 %(TMP)s = %(DICT_GET)s(%(TERM)s)
 if %(TMP)s is None:

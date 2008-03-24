@@ -20,17 +20,12 @@ DO NOT CHANGE THIS FILE DIRECTLY!!!
 
 from ..core import Expr
 from ..utils import NUMBER, SYMBOL, TERMS, FACTORS
-from ..arithmetic.numbers import (normalized_fraction,
-  mpq, try_power, numbertypes)
+from ..arithmetic.numbers import (normalized_fraction, mpq, try_power, numbertypes, inttypes_set)
 from ..arithmetic.infinity import Infinity
 
-#new = Expr.__new__
-
 def div(a, b, cls):
-    tb = type(b)
-    if tb is int or tb is long:
-        ta = type(a)
-        if ta is int or tb is long:
+    if type(b) in inttypes_set:
+        if type(a) in inttypes_set:
             if not b:
                 if not a:
                     return cls.undefined
@@ -646,8 +641,7 @@ POW_FACTORS_SYMBOL = '''\
 pairs = %(LHSDATA)s
 if len(pairs)==1:
     t, c = pairs.items()[0]
-    tc = type(c)
-    if tc is int or tc is long:
+    if type(c) in inttypes_set:
         @RETURN_NEW(HEAD=FACTORS; DATA={t: %(RHS)s * c})
 @RETURN_NEW(HEAD=FACTORS; DATA={%(LHS)s: %(RHS)s})
 '''
@@ -786,7 +780,7 @@ def pow_method(self, other, z = None, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTOR
         if rhead is NUMBER:
             other = rdata
         type_other = type(other)
-    if type_other is int or type_other is long:
+    if type_other in inttypes_set:
         if not other:
             return cls.one
         if other==1:

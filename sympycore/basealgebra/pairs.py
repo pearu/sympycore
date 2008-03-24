@@ -16,16 +16,18 @@ from ..utils import TERMS, FACTORS, SYMBOL, NUMBER, APPLY, POW, TUPLE, head_to_s
 from .algebra import Algebra
 from .ring import CommutativeRing
 from .verbatim import Verbatim
-from ..arithmetic.numbers import mpq, realtypes
+from ..arithmetic.numbers import mpq, realtypes, try_power, numbertypes_set
 
 from .pairs_ops import (add_method, sub_method, rsub_method, neg_method,
-                        mul_method, div_method, rdiv_method, pow_method)
+                        div_method, rdiv_method, pow_method)
 
 from .pairs_iops import (inplace_add, inplace_add2, inplace_sub,
                          return_terms, return_factors,
                          inplace_mul, inplace_mul2)
 
 from .pairs_expand import expand
+
+from .operations import multiply
 
 class ConstantFunc(Expr):
     """ Constant function returned by .func property of symbols and
@@ -49,7 +51,10 @@ class CollectingField(CommutativeRing):
     _symbols = None
     _symbols_data = None
 
-    coefftypes = (int, long, mpq)
+
+    coefftypes_set = numbertypes_set
+    coefftypes = tuple(coefftypes_set)
+
     exptypes = (int, long, mpq)
 
     _coeff_terms = (1, None) # set by MUL_VALUE_TERMS
@@ -57,11 +62,23 @@ class CollectingField(CommutativeRing):
     __add__ = __radd__ = add_method
     __sub__ = sub_method
     __rsub__ = rsub_method
-    __mul__ = __rmul__ = mul_method
+    __mul__ = __rmul__ = multiply
     __div__ = div_method
     __rdiv__ = rdiv_method
     __pow__ = pow_method
     expand = expand
+
+    def handle_numeric_item(self, result, key, value):
+        del self.data[key]
+        z, sym = try_power(key.data, value)
+        if sym:
+            cls = type(self)
+            add_item = self._add_item
+            for t1, c1 in sym:
+                add_item(cls(NUMBER, t1), c1)
+        if result is None:
+            return z
+        return result * z
 
     __repr__ = CommutativeRing.__repr__
 

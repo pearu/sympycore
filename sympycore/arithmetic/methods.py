@@ -7,14 +7,14 @@ See http://sympycore.googlecode.com/ for more information.
 DO NOT CHANGE THIS FILE DIRECTLY!!!
 """
 
-from .numbers import mpqc, mpf, mpq, mpc
+from .numbers import mpqc, mpf, mpq, mpc, inttypes_set, realtypes_set, complextypes_set, numbertypes_set
 
 
 
 def fraction_add(self, other, cls=mpq):
     t = type(other)
     #IF_CHECK_INT(T=t)
-    if t is int or t is long:
+    if t in inttypes_set:
         #ADD_FRACTION_INT(LHS=self; RHS=other)
         p, q = self
         #RETURN_FRACTION(NUMER=p+q*(other); DENOM=q)
@@ -45,7 +45,7 @@ def fraction_add(self, other, cls=mpq):
 def fraction_sub(self, other, cls=mpq):
     t = type(other)
     #IF_CHECK_INT(T=t)
-    if t is int or t is long:
+    if t in inttypes_set:
         #SUB_FRACTION_INT(LHS=self; RHS=other)
         p, q = self
         #RETURN_FRACTION(NUMER=p-q*(other); DENOM=q)
@@ -76,7 +76,7 @@ def fraction_sub(self, other, cls=mpq):
 def fraction_rsub(self, other, cls=mpq):
     t = type(other)
     #IF_CHECK_INT(T=t)
-    if t is int or t is long:
+    if t in inttypes_set:
         #SUB_INT_FRACTION(RHS=self; LHS=other)
         p, q = self
         #RETURN_FRACTION(NUMER=q*(other) - p; DENOM=q)
@@ -86,7 +86,7 @@ def fraction_rsub(self, other, cls=mpq):
 def fraction_mul(self, other, cls=mpq):
     t = type(other)
     #IF_CHECK_INT(T=t)
-    if t is int or t is long:
+    if t in inttypes_set:
         #MUL_FRACTION_INT(LHS=self; RHS=other; MOD=%)
         p, q = self
         #RETURN_FRACTION2(NUMER=p*other; DENOM=q; MOD=%)
@@ -124,7 +124,7 @@ def fraction_mul(self, other, cls=mpq):
 def fraction_div(self, other, cls=mpq):
     t = type(other)
     #IF_CHECK_INT(T=t)
-    if t is int or t is long:
+    if t in inttypes_set:
         #DIV_FRACTION_INT(LHS=self; RHS=other; MOD=%)
         p, q = self
         #RETURN_FRACTION2(NUMER=p; DENOM=q*other; MOD=%)
@@ -162,7 +162,7 @@ def fraction_div(self, other, cls=mpq):
 def fraction_rdiv(self, other, cls=mpq):
     t = type(other)
     #IF_CHECK_INT(T=t)
-    if t is int or t is long:
+    if t in inttypes_set:
         #DIV_INT_FRACTION(RHS=self; LHS=other; MOD=%)
         p, q = self
         #RETURN_FRACTION2(NUMER=other*q; DENOM=p; MOD=%)
@@ -183,7 +183,7 @@ def fraction_rdiv(self, other, cls=mpq):
 def fraction_pow(self, other, m=None, cls=mpq):
     t = type(other)
     #IF_CHECK_INT(T=t)
-    if t is int or t is long:
+    if t in inttypes_set:
         if not other:
             return 1
         if other==1:
@@ -205,7 +205,7 @@ def fraction_pow(self, other, m=None, cls=mpq):
 def complex_add(self, other, new=object.__new__, cls=mpqc):
     t = type(other)
     #IF_CHECK_REAL(T=t)
-    if t is int or t is long or t is mpq or t is float or t is mpf:
+    if t in realtypes_set:
         #ADD_COMPLEX_REAL(LHS=self; RHS=other)
         #RETURN_COMPLEX(REAL=self.real + other; IMAG=self.imag)
         _tmp345 = new(cls)
@@ -213,7 +213,7 @@ def complex_add(self, other, new=object.__new__, cls=mpqc):
         _tmp345.imag = self.imag
         return _tmp345
     #IF_CHECK_COMPLEX(T=t)
-    if t is mpqc or t is complex or t is mpc:
+    if t in complextypes_set:
         #ADD_COMPLEX_COMPLEX(LHS=self; RHS=other)
         #RETURN_COMPLEX2(REAL=self.real + other.real; IMAG=self.imag + other.imag)
         _tmp366 = self.imag + other.imag
@@ -229,7 +229,7 @@ def complex_add(self, other, new=object.__new__, cls=mpqc):
 def complex_sub(self, other, new=object.__new__, cls=mpqc):
     t = type(other)
     #IF_CHECK_REAL(T=t)
-    if t is int or t is long or t is mpq or t is float or t is mpf:
+    if t in realtypes_set:
         #SUB_COMPLEX_REAL(LHS=self; RHS=other)
         #RETURN_COMPLEX(REAL=self.real - other; IMAG=self.imag)
         _tmp394 = new(cls)
@@ -237,7 +237,7 @@ def complex_sub(self, other, new=object.__new__, cls=mpqc):
         _tmp394.imag = self.imag
         return _tmp394
     #IF_CHECK_COMPLEX(T=t)
-    if t is mpqc or t is complex or t is mpc:
+    if t in complextypes_set:
         #SUB_COMPLEX_COMPLEX(LHS=self; RHS=other)
         #RETURN_COMPLEX2(REAL=self.real - other.real; IMAG=self.imag - other.imag)
         _tmp415 = self.imag - other.imag
@@ -253,7 +253,7 @@ def complex_sub(self, other, new=object.__new__, cls=mpqc):
 def complex_rsub(self, other, new=object.__new__, cls=mpqc):
     t = type(other)
     #IF_CHECK_REAL(T=t)
-    if t is int or t is long or t is mpq or t is float or t is mpf:
+    if t in realtypes_set:
         #SUB_REAL_COMPLEX(LHS=other; RHS=self)
         #RETURN_COMPLEX(REAL=other - self.real; IMAG=-self.imag)
         _tmp443 = new(cls)
@@ -276,7 +276,7 @@ def complex_rsub(self, other, new=object.__new__, cls=mpqc):
 def complex_mul(self, other, new=object.__new__, cls=mpqc):
     t = type(other)
     #IF_CHECK_REAL(T=t)
-    if t is int or t is long or t is mpq or t is float or t is mpf:
+    if t in realtypes_set:
         #MUL_COMPLEX_REAL(LHS=self; RHS=other)
         #RETURN_COMPLEX2(REAL=self.real*other; IMAG=self.imag*other)
         _tmp485 = self.imag*other
@@ -288,7 +288,7 @@ def complex_mul(self, other, new=object.__new__, cls=mpqc):
         _tmp492.imag = _tmp485
         return _tmp492
     #IF_CHECK_COMPLEX(T=t)
-    if t is mpqc or t is complex or t is mpc:
+    if t in complextypes_set:
         #MUL_COMPLEX_COMPLEX(LHS=self; RHS=other)
         a, b = self.real, self.imag
         c, d = other.real, other.imag
@@ -306,18 +306,16 @@ def complex_mul(self, other, new=object.__new__, cls=mpqc):
 def complex_div(self, other, new=object.__new__, cls=mpqc):
     t = type(other)
     #IF_CHECK_REAL(T=t)
-    if t is int or t is long or t is mpq or t is float or t is mpf:
+    if t in realtypes_set:
         #DIV_COMPLEX_REAL(LHS=self; RHS=other; MOD=%)
         #DIV_VALUE_VALUE(LHS=self.real; RHS=other; RESULT=re; MOD=%)
         _p, _q = self.real, other
         if not _q:
             raise ZeroDivisionError(repr(self.real) + " / " + repr(other))
-        _tp = type(_p)
-        #IF_CHECK_INT(T=_tp)
-        if _tp is int or _tp is long:
-            _tq = type(_q)
-            #IF_CHECK_INT(T=_tq)
-            if _tq is int or _tq is long:
+        #IF_CHECK_INT(T=type(_p))
+        if type(_p) in inttypes_set:
+            #IF_CHECK_INT(T=type(_q))
+            if type(_q) in inttypes_set:
                 #FRACTION_NORMALIZE(NUMER=_p; DENOM=_q; RNUMER=_rp; RDENOM=_rq; MOD=%)
                 _rp = _x = _p
                 _rq = _y = _q
@@ -326,10 +324,7 @@ def complex_div(self, other, new=object.__new__, cls=mpqc):
                 if _x != 1:
                     _rp //= _x
                     _rq //= _x
-                if _rq == 1:
-                    re = _rp
-                else:
-                    re = mpq((_rp, _rq))
+                re = _rp if _rq == 1 else mpq((_rp, _rq))
             else:
                 re = _p / _q
         else:
@@ -338,12 +333,10 @@ def complex_div(self, other, new=object.__new__, cls=mpqc):
         _p, _q = self.imag, other
         if not _q:
             raise ZeroDivisionError(repr(self.imag) + " / " + repr(other))
-        _tp = type(_p)
-        #IF_CHECK_INT(T=_tp)
-        if _tp is int or _tp is long:
-            _tq = type(_q)
-            #IF_CHECK_INT(T=_tq)
-            if _tq is int or _tq is long:
+        #IF_CHECK_INT(T=type(_p))
+        if type(_p) in inttypes_set:
+            #IF_CHECK_INT(T=type(_q))
+            if type(_q) in inttypes_set:
                 #FRACTION_NORMALIZE(NUMER=_p; DENOM=_q; RNUMER=_rp; RDENOM=_rq; MOD=%)
                 _rp = _x = _p
                 _rq = _y = _q
@@ -352,10 +345,7 @@ def complex_div(self, other, new=object.__new__, cls=mpqc):
                 if _x != 1:
                     _rp //= _x
                     _rq //= _x
-                if _rq == 1:
-                    im = _rp
-                else:
-                    im = mpq((_rp, _rq))
+                im = _rp if _rq == 1 else mpq((_rp, _rq))
             else:
                 im = _p / _q
         else:
@@ -366,7 +356,7 @@ def complex_div(self, other, new=object.__new__, cls=mpqc):
         _tmp597.imag = im
         return _tmp597
     #IF_CHECK_COMPLEX(T=t)
-    if t is mpqc or t is complex or t is mpc:
+    if t in complextypes_set:
         #DIV_COMPLEX_COMPLEX(LHS=self; RHS=other; MOD=%)
         a, b = self.real, self.imag
         c, d = other.real, other.imag
@@ -376,12 +366,10 @@ def complex_div(self, other, new=object.__new__, cls=mpqc):
         _p, _q = a*c+b*d, mag
         if not _q:
             raise ZeroDivisionError(repr(a*c+b*d) + " / " + repr(mag))
-        _tp = type(_p)
-        #IF_CHECK_INT(T=_tp)
-        if _tp is int or _tp is long:
-            _tq = type(_q)
-            #IF_CHECK_INT(T=_tq)
-            if _tq is int or _tq is long:
+        #IF_CHECK_INT(T=type(_p))
+        if type(_p) in inttypes_set:
+            #IF_CHECK_INT(T=type(_q))
+            if type(_q) in inttypes_set:
                 #FRACTION_NORMALIZE(NUMER=_p; DENOM=_q; RNUMER=_rp; RDENOM=_rq; MOD=%)
                 _rp = _x = _p
                 _rq = _y = _q
@@ -390,10 +378,7 @@ def complex_div(self, other, new=object.__new__, cls=mpqc):
                 if _x != 1:
                     _rp //= _x
                     _rq //= _x
-                if _rq == 1:
-                    re = _rp
-                else:
-                    re = mpq((_rp, _rq))
+                re = _rp if _rq == 1 else mpq((_rp, _rq))
             else:
                 re = _p / _q
         else:
@@ -404,12 +389,10 @@ def complex_div(self, other, new=object.__new__, cls=mpqc):
         _p, _q = _tmp611, mag
         if not _q:
             raise ZeroDivisionError(repr(_tmp611) + " / " + repr(mag))
-        _tp = type(_p)
-        #IF_CHECK_INT(T=_tp)
-        if _tp is int or _tp is long:
-            _tq = type(_q)
-            #IF_CHECK_INT(T=_tq)
-            if _tq is int or _tq is long:
+        #IF_CHECK_INT(T=type(_p))
+        if type(_p) in inttypes_set:
+            #IF_CHECK_INT(T=type(_q))
+            if type(_q) in inttypes_set:
                 #FRACTION_NORMALIZE(NUMER=_p; DENOM=_q; RNUMER=_rp; RDENOM=_rq; MOD=%)
                 _rp = _x = _p
                 _rq = _y = _q
@@ -418,10 +401,7 @@ def complex_div(self, other, new=object.__new__, cls=mpqc):
                 if _x != 1:
                     _rp //= _x
                     _rq //= _x
-                if _rq == 1:
-                    im = _rp
-                else:
-                    im = mpq((_rp, _rq))
+                im = _rp if _rq == 1 else mpq((_rp, _rq))
             else:
                 im = _p / _q
         else:
@@ -436,7 +416,7 @@ def complex_div(self, other, new=object.__new__, cls=mpqc):
 def complex_rdiv(self, other, new=object.__new__, cls=mpqc):
     t = type(other)
     #IF_CHECK_REAL(T=t)
-    if t is int or t is long or t is mpq or t is float or t is mpf:
+    if t in realtypes_set:
         #DIV_REAL_COMPLEX(LHS=other; RHS=self; MOD=%)
         _tmp688 = other
         c, d = self.real, self.imag
@@ -445,12 +425,10 @@ def complex_rdiv(self, other, new=object.__new__, cls=mpqc):
         _p, _q = -_tmp688*d, mag
         if not _q:
             raise ZeroDivisionError(repr(-_tmp688*d) + " / " + repr(mag))
-        _tp = type(_p)
-        #IF_CHECK_INT(T=_tp)
-        if _tp is int or _tp is long:
-            _tq = type(_q)
-            #IF_CHECK_INT(T=_tq)
-            if _tq is int or _tq is long:
+        #IF_CHECK_INT(T=type(_p))
+        if type(_p) in inttypes_set:
+            #IF_CHECK_INT(T=type(_q))
+            if type(_q) in inttypes_set:
                 #FRACTION_NORMALIZE(NUMER=_p; DENOM=_q; RNUMER=_rp; RDENOM=_rq; MOD=%)
                 _rp = _x = _p
                 _rq = _y = _q
@@ -459,10 +437,7 @@ def complex_rdiv(self, other, new=object.__new__, cls=mpqc):
                 if _x != 1:
                     _rp //= _x
                     _rq //= _x
-                if _rq == 1:
-                    im = _rp
-                else:
-                    im = mpq((_rp, _rq))
+                im = _rp if _rq == 1 else mpq((_rp, _rq))
             else:
                 im = _p / _q
         else:
@@ -471,12 +446,10 @@ def complex_rdiv(self, other, new=object.__new__, cls=mpqc):
         _p, _q = _tmp688*c, mag
         if not _q:
             raise ZeroDivisionError(repr(_tmp688*c) + " / " + repr(mag))
-        _tp = type(_p)
-        #IF_CHECK_INT(T=_tp)
-        if _tp is int or _tp is long:
-            _tq = type(_q)
-            #IF_CHECK_INT(T=_tq)
-            if _tq is int or _tq is long:
+        #IF_CHECK_INT(T=type(_p))
+        if type(_p) in inttypes_set:
+            #IF_CHECK_INT(T=type(_q))
+            if type(_q) in inttypes_set:
                 #FRACTION_NORMALIZE(NUMER=_p; DENOM=_q; RNUMER=_rp; RDENOM=_rq; MOD=%)
                 _rp = _x = _p
                 _rq = _y = _q
@@ -485,10 +458,7 @@ def complex_rdiv(self, other, new=object.__new__, cls=mpqc):
                 if _x != 1:
                     _rp //= _x
                     _rq //= _x
-                if _rq == 1:
-                    re = _rp
-                else:
-                    re = mpq((_rp, _rq))
+                re = _rp if _rq == 1 else mpq((_rp, _rq))
             else:
                 re = _p / _q
         else:
@@ -508,12 +478,10 @@ def complex_rdiv(self, other, new=object.__new__, cls=mpqc):
         _p, _q = a*c+b*d, mag
         if not _q:
             raise ZeroDivisionError(repr(a*c+b*d) + " / " + repr(mag))
-        _tp = type(_p)
-        #IF_CHECK_INT(T=_tp)
-        if _tp is int or _tp is long:
-            _tq = type(_q)
-            #IF_CHECK_INT(T=_tq)
-            if _tq is int or _tq is long:
+        #IF_CHECK_INT(T=type(_p))
+        if type(_p) in inttypes_set:
+            #IF_CHECK_INT(T=type(_q))
+            if type(_q) in inttypes_set:
                 #FRACTION_NORMALIZE(NUMER=_p; DENOM=_q; RNUMER=_rp; RDENOM=_rq; MOD=%)
                 _rp = _x = _p
                 _rq = _y = _q
@@ -522,10 +490,7 @@ def complex_rdiv(self, other, new=object.__new__, cls=mpqc):
                 if _x != 1:
                     _rp //= _x
                     _rq //= _x
-                if _rq == 1:
-                    re = _rp
-                else:
-                    re = mpq((_rp, _rq))
+                re = _rp if _rq == 1 else mpq((_rp, _rq))
             else:
                 re = _p / _q
         else:
@@ -536,12 +501,10 @@ def complex_rdiv(self, other, new=object.__new__, cls=mpqc):
         _p, _q = _tmp758, mag
         if not _q:
             raise ZeroDivisionError(repr(_tmp758) + " / " + repr(mag))
-        _tp = type(_p)
-        #IF_CHECK_INT(T=_tp)
-        if _tp is int or _tp is long:
-            _tq = type(_q)
-            #IF_CHECK_INT(T=_tq)
-            if _tq is int or _tq is long:
+        #IF_CHECK_INT(T=type(_p))
+        if type(_p) in inttypes_set:
+            #IF_CHECK_INT(T=type(_q))
+            if type(_q) in inttypes_set:
                 #FRACTION_NORMALIZE(NUMER=_p; DENOM=_q; RNUMER=_rp; RDENOM=_rq; MOD=%)
                 _rp = _x = _p
                 _rq = _y = _q
@@ -550,10 +513,7 @@ def complex_rdiv(self, other, new=object.__new__, cls=mpqc):
                 if _x != 1:
                     _rp //= _x
                     _rq //= _x
-                if _rq == 1:
-                    im = _rp
-                else:
-                    im = mpq((_rp, _rq))
+                im = _rp if _rq == 1 else mpq((_rp, _rq))
             else:
                 im = _p / _q
         else:
@@ -568,7 +528,7 @@ def complex_rdiv(self, other, new=object.__new__, cls=mpqc):
 def complex_pow(self, other, m=None, new=object.__new__, cls=mpqc):
     t = type(other)
     #IF_CHECK_INT(T=t)
-    if t is int or t is long:
+    if t in inttypes_set:
         if not other:
             return 1
         if other==1:
@@ -607,12 +567,12 @@ def complex_pow(self, other, m=None, new=object.__new__, cls=mpqc):
                 m = (a[1] * b[1]) ** n
                 a, b = a[0]*b[1], a[1]*b[0]
             #ELIF_CHECK_INT(T=tb)
-            elif tb is int or tb is long:
+            elif tb in inttypes_set:
                 m = a[1] ** n
                 a, b = a[0], a[1]*b
         elif tb is mpq:
             #IF_CHECK_INT(T=ta)
-            if ta is int or ta is long:
+            if ta in inttypes_set:
                 m = b[1] ** n
                 a, b = a*b[1], b[0]
         c, d = 1, 0
@@ -643,10 +603,7 @@ def complex_pow(self, other, m=None, new=object.__new__, cls=mpqc):
         if _x != 1:
             re_p //= _x
             re_q //= _x
-        if re_q==1:
-            re = re_p
-        else:
-            re = mpq((re_p, re_q))
+        re = re_p if re_q==1 else mpq((re_p, re_q))
         if not d:
             return re
         #FRACTION_NORMALIZE(NUMER=d; DENOM=m; RNUMER=im_p; RDENOM=im_q; MOD=%)
@@ -672,7 +629,7 @@ def fraction_lt(self, other, cls=mpq):
     p, q = self
     t = type(other)
     #IF_CHECK_INT(T=t)
-    if t is int or t is long:
+    if t in inttypes_set:
         return (p < q*other)
     elif t is cls:
         r, s = other
@@ -683,7 +640,7 @@ def fraction_le(self, other, cls=mpq):
     p, q = self
     t = type(other)
     #IF_CHECK_INT(T=t)
-    if t is int or t is long:
+    if t in inttypes_set:
         return (p <= q*other)
     elif t is cls:
         r, s = other
@@ -694,7 +651,7 @@ def fraction_gt(self, other, cls=mpq):
     p, q = self
     t = type(other)
     #IF_CHECK_INT(T=t)
-    if t is int or t is long:
+    if t in inttypes_set:
         return (p > q*other)
     elif t is cls:
         r, s = other
@@ -705,7 +662,7 @@ def fraction_ge(self, other, cls=mpq):
     p, q = self
     t = type(other)
     #IF_CHECK_INT(T=t)
-    if t is int or t is long:
+    if t in inttypes_set:
         return (p >= q*other)
     elif t is cls:
         r, s = other
