@@ -675,6 +675,26 @@ class MatrixDict(MatrixBase):
         return b[:,m:]
 
     __floordiv__ = solve
+
+    def normal(self):
+        d = {}
+        head, data = self.pair
+        for ij, x in data.iteritems():
+            if hasattr(x, 'normal'):
+                d[ij] = x.normal()
+            else:
+                d[ij] = x
+        return type(self)(head, d)
+
+    def expand(self):
+        d = {}
+        head, data = self.pair
+        for ij, x in data.iteritems():
+            if hasattr(x, 'expand'):
+                d[ij] = x.expand()
+            else:
+                d[ij] = x
+        return type(self)(head, d)
     
 from .matrix_operations import MATRIX_DICT_iadd, MATRIX_DICT_imul
 from .linalg import (MATRIX_DICT_swap_rows, MATRIX_DICT_swap_cols,

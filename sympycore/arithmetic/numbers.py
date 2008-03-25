@@ -264,6 +264,22 @@ class mpqc(object):
         else:
             return r + i * I
 
+    def as_numer_denom(self):
+        re, im = self.real, self.imag
+        if type(re) is mpq:
+            r1, r2 = re
+        else:
+            r1, r2 = re, 1
+        if type(im) is mpq:
+            i1, i2 = im
+        else:
+            i1, i2 = im, 1
+        r = r1*i2
+        i = i1*r2
+        d = r2*i2
+        c = gcd(r,i,d)
+        return mpqc(r//c,i//c), d//c
+            
     def __eq__(self, other):
         if hasattr(other, "imag"):
             return self.real == other.real and self.imag == other.imag
@@ -412,6 +428,7 @@ def try_power(x, y):
         return x ** y, []
     return 1, [(x, y)]
 
+from .number_theory import gcd
 from .evalf import evalf
 from .infinity import Infinity
 

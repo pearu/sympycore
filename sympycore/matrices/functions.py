@@ -12,6 +12,9 @@ from ..utils import MATRIX, MATRIX_DICT
 from .algebra import MatrixDict, Matrix, MatrixBase
 
 def jacobian(expr_list, var_list):
+    """ Return a jacobian matrix of functions in expr_list with
+    respect to variables in var_list.
+    """
     m, n = len(expr_list), len(var_list)
     jac = Matrix(m, n)
     for i, e in enumerate(expr_list):

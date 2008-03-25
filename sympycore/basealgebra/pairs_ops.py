@@ -8,7 +8,8 @@ DO NOT CHANGE THIS FILE DIRECTLY!!!
 
 from ..core import Expr
 from ..utils import NUMBER, SYMBOL, TERMS, FACTORS
-from ..arithmetic.numbers import (normalized_fraction, mpq, try_power, numbertypes, inttypes_set)
+from ..arithmetic.numbers import (normalized_fraction, mpq, try_power,
+  numbertypes, inttypes_set, numbertypes_set)
 from ..arithmetic.infinity import Infinity
 
 def div(a, b, cls):
@@ -464,7 +465,10 @@ def pow_method(self, other, z = None, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTOR
             _tmp765 = cls(FACTORS, {self: other})
             return _tmp765
     if type_other is cls or isinstance(other, cls.exptypes):
-        if lhead is FACTORS:
+        if lhead is NUMBER:
+            if ldata==1:
+                return self
+        elif lhead is FACTORS:
             #POW_FACTORS_SYMBOL(LHS=self; LHSDATA=ldata; RHS=other)
             pairs = ldata
             if len(pairs)==1:
@@ -1707,12 +1711,11 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
                     #NEWINSTANCE(OBJ=_tmp3019; HEAD=FACTORS; DATA={t1:1, t2:-1})
                     _tmp3019 = cls(FACTORS, {t1:1, t2:-1})
                 else:
-                    #NEWINSTANCE(OBJ=_tmp3019; HEAD=FACTORS; DATA={t1:1, other:-1})
-                    _tmp3019 = cls(FACTORS, {t1:1, other:-1})
+                    _tmp3019 = t1 / other
                 #RETURN_NEW(HEAD=TERMS; DATA={_tmp3019:c1})
-                #NEWINSTANCE(OBJ=_tmp3054; HEAD=TERMS; DATA={_tmp3019:c1})
-                _tmp3054 = cls(TERMS, {_tmp3019:c1})
-                return _tmp3054
+                #NEWINSTANCE(OBJ=_tmp3047; HEAD=TERMS; DATA={_tmp3019:c1})
+                _tmp3047 = cls(TERMS, {_tmp3019:c1})
+                return _tmp3047
             elif len(rpairs)==1:
                 t2, c2 = rpairs.items()[0]
                 c = div(1, c2, cls)
@@ -1720,13 +1723,13 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
                     return cls(NUMBER, c)
                 _tmp3019 = self / t2
                 #RETURN_NEW(HEAD=TERMS; DATA={_tmp3019:c})
-                #NEWINSTANCE(OBJ=_tmp3068; HEAD=TERMS; DATA={_tmp3019:c})
-                _tmp3068 = cls(TERMS, {_tmp3019:c})
-                return _tmp3068
+                #NEWINSTANCE(OBJ=_tmp3061; HEAD=TERMS; DATA={_tmp3019:c})
+                _tmp3061 = cls(TERMS, {_tmp3019:c})
+                return _tmp3061
             #RETURN_NEW(HEAD=FACTORS; DATA={self:1, other:-1})
-            #NEWINSTANCE(OBJ=_tmp3082; HEAD=FACTORS; DATA={self:1, other:-1})
-            _tmp3082 = cls(FACTORS, {self:1, other:-1})
-            return _tmp3082
+            #NEWINSTANCE(OBJ=_tmp3075; HEAD=FACTORS; DATA={self:1, other:-1})
+            _tmp3075 = cls(FACTORS, {self:1, other:-1})
+            return _tmp3075
         elif rhead is FACTORS:
             #DIV_TERMS_FACTORS(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
             lpairs = ldata
@@ -1738,52 +1741,52 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
                 head, data = t.pair
                 if head is NUMBER:
                     #RETURN_NEW(HEAD=NUMBER; DATA=data * c)
-                    #NEWINSTANCE(OBJ=_tmp3103; HEAD=NUMBER; DATA=data * c)
-                    _tmp3103 = cls(NUMBER, data * c)
-                    return _tmp3103
+                    #NEWINSTANCE(OBJ=_tmp3096; HEAD=NUMBER; DATA=data * c)
+                    _tmp3096 = cls(NUMBER, data * c)
+                    return _tmp3096
                 elif head is TERMS:
                     #MUL_TERMS_VALUE(LHS=t; LHSDATA=data; VALUE=c)
                     #MUL_VALUE_TERMS(VALUE=c; RHS=t; RHSDATA=data)
-                    _tmp3124 = c
-                    if not _tmp3124:
+                    _tmp3117 = c
+                    if not _tmp3117:
                         return cls.zero
                     pairs = data
                     if len(pairs)==1:
                         t, c = pairs.items()[0]
-                        c = _tmp3124 * c
+                        c = _tmp3117 * c
                         if c==1:
                             return t
                         #RETURN_NEW(HEAD=TERMS; DATA={t: c})
-                        #NEWINSTANCE(OBJ=_tmp3131; HEAD=TERMS; DATA={t: c})
-                        _tmp3131 = cls(TERMS, {t: c})
-                        return _tmp3131
-                    if _tmp3124==1:
+                        #NEWINSTANCE(OBJ=_tmp3124; HEAD=TERMS; DATA={t: c})
+                        _tmp3124 = cls(TERMS, {t: c})
+                        return _tmp3124
+                    if _tmp3117==1:
                         return t
                     pairs = {}
                     for t,c in data.iteritems():
-                        pairs[t] = _tmp3124 * c
+                        pairs[t] = _tmp3117 * c
                     #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA=pairs)
                     obj = cls(TERMS, pairs)
                     coeff, terms = t._coeff_terms
                     if terms is not None:
-                        c = coeff * _tmp3124
+                        c = coeff * _tmp3117
                         if not c==1:
                             obj._coeff_terms = (c, terms)
                     else:
-                        obj._coeff_terms = (_tmp3124, t)
+                        obj._coeff_terms = (_tmp3117, t)
                     return obj
                 else:
                     #MUL_SYMBOL_VALUE(LHS=t; LHSDATA=data; VALUE=c)
                     #MUL_VALUE_SYMBOL(VALUE=c; RHS=t; RHSDATA=data)
-                    _tmp3159 = c
-                    if not _tmp3159:
+                    _tmp3152 = c
+                    if not _tmp3152:
                         return cls.zero
-                    if _tmp3159==1:
+                    if _tmp3152==1:
                         return t
-                    #RETURN_NEW(HEAD=TERMS; DATA={t: _tmp3159})
-                    #NEWINSTANCE(OBJ=_tmp3166; HEAD=TERMS; DATA={t: _tmp3159})
-                    _tmp3166 = cls(TERMS, {t: _tmp3159})
-                    return _tmp3166
+                    #RETURN_NEW(HEAD=TERMS; DATA={t: _tmp3152})
+                    #NEWINSTANCE(OBJ=_tmp3159; HEAD=TERMS; DATA={t: _tmp3152})
+                    _tmp3159 = cls(TERMS, {t: _tmp3152})
+                    return _tmp3159
             #DIV_SYMBOL_FACTORS(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
             pairs = rdata
             if len(pairs)==1:
@@ -1796,24 +1799,24 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
                         return t
                     else:
                         #RETURN_NEW(HEAD=FACTORS; DATA={t: c})
-                        #NEWINSTANCE(OBJ=_tmp3187; HEAD=FACTORS; DATA={t: c})
-                        _tmp3187 = cls(FACTORS, {t: c})
-                        return _tmp3187
+                        #NEWINSTANCE(OBJ=_tmp3180; HEAD=FACTORS; DATA={t: c})
+                        _tmp3180 = cls(FACTORS, {t: c})
+                        return _tmp3180
                 #RETURN_NEW(HEAD=FACTORS; DATA={t: -c, self: 1})
-                #NEWINSTANCE(OBJ=_tmp3201; HEAD=FACTORS; DATA={t: -c, self: 1})
-                _tmp3201 = cls(FACTORS, {t: -c, self: 1})
-                return _tmp3201
+                #NEWINSTANCE(OBJ=_tmp3194; HEAD=FACTORS; DATA={t: -c, self: 1})
+                _tmp3194 = cls(FACTORS, {t: -c, self: 1})
+                return _tmp3194
             #NEG_DICT_VALUES(DICT_IN=rdata; DICT_OUT=pairs)
             pairs = dict([(t, -c) for t,c in rdata.iteritems()])
             #MUL_DICT_SYMBOL(DICT=pairs; RHS=self; RHSDATA=ldata)
             #ADD_TERM_VALUE_DICT(TERM=self; VALUE=1; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
-            _tmp3229 = pairs.get(self)
-            if _tmp3229 is None:
+            _tmp3222 = pairs.get(self)
+            if _tmp3222 is None:
                 pairs[self] =  1
             else:
-                _tmp3229 = _tmp3229 + 1
-                if _tmp3229:
-                    pairs[self] = _tmp3229
+                _tmp3222 = _tmp3222 + 1
+                if _tmp3222:
+                    pairs[self] = _tmp3222
                 else:
                     del pairs[self]
             #CANONIZE_FACTORS_DICT1(DICT=pairs)
@@ -1826,9 +1829,9 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
                if t==cls.one:
                    return t
             #RETURN_NEW(HEAD=FACTORS; DATA=pairs)
-            #NEWINSTANCE(OBJ=_tmp3243; HEAD=FACTORS; DATA=pairs)
-            _tmp3243 = cls(FACTORS, pairs)
-            return _tmp3243
+            #NEWINSTANCE(OBJ=_tmp3236; HEAD=FACTORS; DATA=pairs)
+            _tmp3236 = cls(FACTORS, pairs)
+            return _tmp3236
         else:
             #DIV_TERMS_SYMBOL(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
             
@@ -1838,21 +1841,21 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
                 if t==other:
                     return cls(NUMBER, c)
                 if t.head is FACTORS:
-                    _tmp3257 = t / other
-                    #RETURN_NEW(HEAD=TERMS; DATA={_tmp3257: c})
-                    #NEWINSTANCE(OBJ=_tmp3264; HEAD=TERMS; DATA={_tmp3257: c})
-                    _tmp3264 = cls(TERMS, {_tmp3257: c})
-                    return _tmp3264
-                #NEWINSTANCE(OBJ=_tmp3257; HEAD=FACTORS; DATA={t:1, other: -1})
-                _tmp3257 = cls(FACTORS, {t:1, other: -1})
-                #RETURN_NEW(HEAD=TERMS; DATA={_tmp3257: c})
-                #NEWINSTANCE(OBJ=_tmp3285; HEAD=TERMS; DATA={_tmp3257: c})
-                _tmp3285 = cls(TERMS, {_tmp3257: c})
-                return _tmp3285
+                    _tmp3250 = t / other
+                    #RETURN_NEW(HEAD=TERMS; DATA={_tmp3250: c})
+                    #NEWINSTANCE(OBJ=_tmp3257; HEAD=TERMS; DATA={_tmp3250: c})
+                    _tmp3257 = cls(TERMS, {_tmp3250: c})
+                    return _tmp3257
+                #NEWINSTANCE(OBJ=_tmp3250; HEAD=FACTORS; DATA={t:1, other: -1})
+                _tmp3250 = cls(FACTORS, {t:1, other: -1})
+                #RETURN_NEW(HEAD=TERMS; DATA={_tmp3250: c})
+                #NEWINSTANCE(OBJ=_tmp3278; HEAD=TERMS; DATA={_tmp3250: c})
+                _tmp3278 = cls(TERMS, {_tmp3250: c})
+                return _tmp3278
             #RETURN_NEW(HEAD=FACTORS; DATA={self: 1, other: -1})
-            #NEWINSTANCE(OBJ=_tmp3299; HEAD=FACTORS; DATA={self: 1, other: -1})
-            _tmp3299 = cls(FACTORS, {self: 1, other: -1})
-            return _tmp3299
+            #NEWINSTANCE(OBJ=_tmp3292; HEAD=FACTORS; DATA={self: 1, other: -1})
+            _tmp3292 = cls(FACTORS, {self: 1, other: -1})
+            return _tmp3292
     elif lhead is FACTORS:
         if rhead is NUMBER:
             #DIV_FACTORS_NUMBER(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
@@ -1860,15 +1863,15 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
             #MUL_FACTORS_VALUE(LHS=self; LHSDATA=ldata; VALUE=div(1,rdata,cls))
             #MUL_SYMBOL_VALUE(VALUE=div(1,rdata,cls); LHS=self; LHSDATA=ldata)
             #MUL_VALUE_SYMBOL(VALUE=div(1,rdata,cls); RHS=self; RHSDATA=ldata)
-            _tmp3341 = div(1,rdata,cls)
-            if not _tmp3341:
+            _tmp3334 = div(1,rdata,cls)
+            if not _tmp3334:
                 return cls.zero
-            if _tmp3341==1:
+            if _tmp3334==1:
                 return self
-            #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp3341})
-            #NEWINSTANCE(OBJ=_tmp3348; HEAD=TERMS; DATA={self: _tmp3341})
-            _tmp3348 = cls(TERMS, {self: _tmp3341})
-            return _tmp3348
+            #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp3334})
+            #NEWINSTANCE(OBJ=_tmp3341; HEAD=TERMS; DATA={self: _tmp3334})
+            _tmp3341 = cls(TERMS, {self: _tmp3334})
+            return _tmp3341
         elif rhead is TERMS:
             #DIV_FACTORS_TERMS(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
             rpairs = rdata
@@ -1881,63 +1884,63 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
                 head, data = t.pair
                 if head is NUMBER:
                     #RETURN_NEW(HEAD=NUMBER; DATA=data * c)
-                    #NEWINSTANCE(OBJ=_tmp3369; HEAD=NUMBER; DATA=data * c)
-                    _tmp3369 = cls(NUMBER, data * c)
-                    return _tmp3369
+                    #NEWINSTANCE(OBJ=_tmp3362; HEAD=NUMBER; DATA=data * c)
+                    _tmp3362 = cls(NUMBER, data * c)
+                    return _tmp3362
                 elif head is TERMS:
                     #MUL_TERMS_VALUE(LHS=t; LHSDATA=data; VALUE=c)
                     #MUL_VALUE_TERMS(VALUE=c; RHS=t; RHSDATA=data)
-                    _tmp3390 = c
-                    if not _tmp3390:
+                    _tmp3383 = c
+                    if not _tmp3383:
                         return cls.zero
                     pairs = data
                     if len(pairs)==1:
                         t, c = pairs.items()[0]
-                        c = _tmp3390 * c
+                        c = _tmp3383 * c
                         if c==1:
                             return t
                         #RETURN_NEW(HEAD=TERMS; DATA={t: c})
-                        #NEWINSTANCE(OBJ=_tmp3397; HEAD=TERMS; DATA={t: c})
-                        _tmp3397 = cls(TERMS, {t: c})
-                        return _tmp3397
-                    if _tmp3390==1:
+                        #NEWINSTANCE(OBJ=_tmp3390; HEAD=TERMS; DATA={t: c})
+                        _tmp3390 = cls(TERMS, {t: c})
+                        return _tmp3390
+                    if _tmp3383==1:
                         return t
                     pairs = {}
                     for t,c in data.iteritems():
-                        pairs[t] = _tmp3390 * c
+                        pairs[t] = _tmp3383 * c
                     #NEWINSTANCE(OBJ=obj; HEAD=TERMS; DATA=pairs)
                     obj = cls(TERMS, pairs)
                     coeff, terms = t._coeff_terms
                     if terms is not None:
-                        c = coeff * _tmp3390
+                        c = coeff * _tmp3383
                         if not c==1:
                             obj._coeff_terms = (c, terms)
                     else:
-                        obj._coeff_terms = (_tmp3390, t)
+                        obj._coeff_terms = (_tmp3383, t)
                     return obj
                 else:
                     #MUL_SYMBOL_VALUE(LHS=t; LHSDATA=data; VALUE=c)
                     #MUL_VALUE_SYMBOL(VALUE=c; RHS=t; RHSDATA=data)
-                    _tmp3425 = c
-                    if not _tmp3425:
+                    _tmp3418 = c
+                    if not _tmp3418:
                         return cls.zero
-                    if _tmp3425==1:
+                    if _tmp3418==1:
                         return t
-                    #RETURN_NEW(HEAD=TERMS; DATA={t: _tmp3425})
-                    #NEWINSTANCE(OBJ=_tmp3432; HEAD=TERMS; DATA={t: _tmp3425})
-                    _tmp3432 = cls(TERMS, {t: _tmp3425})
-                    return _tmp3432
+                    #RETURN_NEW(HEAD=TERMS; DATA={t: _tmp3418})
+                    #NEWINSTANCE(OBJ=_tmp3425; HEAD=TERMS; DATA={t: _tmp3418})
+                    _tmp3425 = cls(TERMS, {t: _tmp3418})
+                    return _tmp3425
             #DIV_FACTORS_SYMBOL(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
             pairs = ldata.copy()
             #DIV_DICT_SYMBOL(RHS=other; RHSDATA=rdata; DICT=pairs)
             #ADD_TERM_VALUE_DICT(TERM=other; VALUE=-1; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
-            _tmp3460 = pairs.get(other)
-            if _tmp3460 is None:
+            _tmp3453 = pairs.get(other)
+            if _tmp3453 is None:
                 pairs[other] =  -1
             else:
-                _tmp3460 = _tmp3460 + -1
-                if _tmp3460:
-                    pairs[other] = _tmp3460
+                _tmp3453 = _tmp3453 + -1
+                if _tmp3453:
+                    pairs[other] = _tmp3453
                 else:
                     del pairs[other]
             #CANONIZE_FACTORS_DICT1(DICT=pairs)
@@ -1950,9 +1953,9 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
                if t==cls.one:
                    return t
             #RETURN_NEW(HEAD=FACTORS; DATA=pairs)
-            #NEWINSTANCE(OBJ=_tmp3474; HEAD=FACTORS; DATA=pairs)
-            _tmp3474 = cls(FACTORS, pairs)
-            return _tmp3474
+            #NEWINSTANCE(OBJ=_tmp3467; HEAD=FACTORS; DATA=pairs)
+            _tmp3467 = cls(FACTORS, pairs)
+            return _tmp3467
         elif rhead is FACTORS:
             #DIV_FACTORS_FACTORS(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
             pairs = ldata.copy()
@@ -1960,34 +1963,34 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
             number = 1
             for t,c in rdata.iteritems():
                 #MUL_FACTOR_VALUE_DICT(FACTOR=t; SIGN=-; USIGN=-; VALUE=c; DICT=pairs; DICT_GET=pairs_get; NUMBER=number)
-                _tmp3495 = pairs_get(t)
-                if _tmp3495 is None:
+                _tmp3488 = pairs_get(t)
+                if _tmp3488 is None:
                     pairs[t] = - c
                 else:
-                    _tmp3495 = _tmp3495 - c
-                    if type(_tmp3495) is cls and _tmp3495.head is NUMBER:
-                        _tmp3495 = _tmp3495.data
-                    if _tmp3495:
+                    _tmp3488 = _tmp3488 - c
+                    if type(_tmp3488) is cls and _tmp3488.head is NUMBER:
+                        _tmp3488 = _tmp3488.data
+                    if _tmp3488:
                         if t.head is NUMBER:
                             del pairs[t]
-                            z, sym = try_power(t.data, _tmp3495)
+                            z, sym = try_power(t.data, _tmp3488)
                             if sym:
                                 for t1, c1 in sym:
                                     #NEWINSTANCE(OBJ=tt; HEAD=NUMBER; DATA=t1)
                                     tt = cls(NUMBER, t1)
                                     #ADD_TERM_VALUE_DICT(DICT=pairs; DICT_GET=pairs_get; TERM=tt; VALUE=c1; SIGN=+; USIGN=)
-                                    _tmp3509 = pairs_get(tt)
-                                    if _tmp3509 is None:
+                                    _tmp3502 = pairs_get(tt)
+                                    if _tmp3502 is None:
                                         pairs[tt] =  c1
                                     else:
-                                        _tmp3509 = _tmp3509 + c1
-                                        if _tmp3509:
-                                            pairs[tt] = _tmp3509
+                                        _tmp3502 = _tmp3502 + c1
+                                        if _tmp3502:
+                                            pairs[tt] = _tmp3502
                                         else:
                                             del pairs[tt]
                             number = number * z
                         else:
-                            pairs[t] = _tmp3495
+                            pairs[t] = _tmp3488
                     else:
                         del pairs[t]
             #CANONIZE_FACTORS_DICT(DICT=pairs; NUMBER=number)
@@ -2001,34 +2004,34 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
                    if number==1:
                        return t
                    #RETURN_NEW(HEAD=TERMS; DATA={t: number})
-                   #NEWINSTANCE(OBJ=_tmp3523; HEAD=TERMS; DATA={t: number})
-                   _tmp3523 = cls(TERMS, {t: number})
-                   return _tmp3523
+                   #NEWINSTANCE(OBJ=_tmp3516; HEAD=TERMS; DATA={t: number})
+                   _tmp3516 = cls(TERMS, {t: number})
+                   return _tmp3516
                if t==cls.one:
                    return number
             if number==1:
                 #RETURN_NEW(HEAD=FACTORS; DATA=pairs)
-                #NEWINSTANCE(OBJ=_tmp3537; HEAD=FACTORS; DATA=pairs)
-                _tmp3537 = cls(FACTORS, pairs)
-                return _tmp3537
-            #NEWINSTANCE(OBJ=_tmp3488; HEAD=FACTORS; DATA=pairs)
-            _tmp3488 = cls(FACTORS, pairs)
-            #RETURN_NEW(HEAD=TERMS; DATA={_tmp3488: number})
-            #NEWINSTANCE(OBJ=_tmp3558; HEAD=TERMS; DATA={_tmp3488: number})
-            _tmp3558 = cls(TERMS, {_tmp3488: number})
-            return _tmp3558
+                #NEWINSTANCE(OBJ=_tmp3530; HEAD=FACTORS; DATA=pairs)
+                _tmp3530 = cls(FACTORS, pairs)
+                return _tmp3530
+            #NEWINSTANCE(OBJ=_tmp3481; HEAD=FACTORS; DATA=pairs)
+            _tmp3481 = cls(FACTORS, pairs)
+            #RETURN_NEW(HEAD=TERMS; DATA={_tmp3481: number})
+            #NEWINSTANCE(OBJ=_tmp3551; HEAD=TERMS; DATA={_tmp3481: number})
+            _tmp3551 = cls(TERMS, {_tmp3481: number})
+            return _tmp3551
         else:
             #DIV_FACTORS_SYMBOL(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
             pairs = ldata.copy()
             #DIV_DICT_SYMBOL(RHS=other; RHSDATA=rdata; DICT=pairs)
             #ADD_TERM_VALUE_DICT(TERM=other; VALUE=-1; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
-            _tmp3586 = pairs.get(other)
-            if _tmp3586 is None:
+            _tmp3579 = pairs.get(other)
+            if _tmp3579 is None:
                 pairs[other] =  -1
             else:
-                _tmp3586 = _tmp3586 + -1
-                if _tmp3586:
-                    pairs[other] = _tmp3586
+                _tmp3579 = _tmp3579 + -1
+                if _tmp3579:
+                    pairs[other] = _tmp3579
                 else:
                     del pairs[other]
             #CANONIZE_FACTORS_DICT1(DICT=pairs)
@@ -2041,23 +2044,23 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
                if t==cls.one:
                    return t
             #RETURN_NEW(HEAD=FACTORS; DATA=pairs)
-            #NEWINSTANCE(OBJ=_tmp3600; HEAD=FACTORS; DATA=pairs)
-            _tmp3600 = cls(FACTORS, pairs)
-            return _tmp3600
+            #NEWINSTANCE(OBJ=_tmp3593; HEAD=FACTORS; DATA=pairs)
+            _tmp3593 = cls(FACTORS, pairs)
+            return _tmp3593
     else:
         if rhead is NUMBER:
             #DIV_SYMBOL_NUMBER(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
             #DIV_SYMBOL_VALUE(VALUE=rdata; LHS=self; LHSDATA=ldata)
             #MUL_VALUE_SYMBOL(VALUE=div(1, rdata, cls); RHS=self; RHSDATA=ldata)
-            _tmp3628 = div(1, rdata, cls)
-            if not _tmp3628:
+            _tmp3621 = div(1, rdata, cls)
+            if not _tmp3621:
                 return cls.zero
-            if _tmp3628==1:
+            if _tmp3621==1:
                 return self
-            #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp3628})
-            #NEWINSTANCE(OBJ=_tmp3635; HEAD=TERMS; DATA={self: _tmp3628})
-            _tmp3635 = cls(TERMS, {self: _tmp3628})
-            return _tmp3635
+            #RETURN_NEW(HEAD=TERMS; DATA={self: _tmp3621})
+            #NEWINSTANCE(OBJ=_tmp3628; HEAD=TERMS; DATA={self: _tmp3621})
+            _tmp3628 = cls(TERMS, {self: _tmp3621})
+            return _tmp3628
         elif rhead is TERMS:
             #DIV_SYMBOL_TERMS(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
             pairs = rdata
@@ -2065,16 +2068,16 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
                 t,c = pairs.items()[0]
                 if self==t:
                     return cls(NUMBER, div(1, c, cls))
-                #NEWINSTANCE(OBJ=_tmp3649; HEAD=FACTORS; DATA={self:1, t:-1})
-                _tmp3649 = cls(FACTORS, {self:1, t:-1})
-                #RETURN_NEW(HEAD=TERMS; DATA={_tmp3649: div(1, c, cls)})
-                #NEWINSTANCE(OBJ=_tmp3663; HEAD=TERMS; DATA={_tmp3649: div(1, c, cls)})
-                _tmp3663 = cls(TERMS, {_tmp3649: div(1, c, cls)})
-                return _tmp3663
+                #NEWINSTANCE(OBJ=_tmp3642; HEAD=FACTORS; DATA={self:1, t:-1})
+                _tmp3642 = cls(FACTORS, {self:1, t:-1})
+                #RETURN_NEW(HEAD=TERMS; DATA={_tmp3642: div(1, c, cls)})
+                #NEWINSTANCE(OBJ=_tmp3656; HEAD=TERMS; DATA={_tmp3642: div(1, c, cls)})
+                _tmp3656 = cls(TERMS, {_tmp3642: div(1, c, cls)})
+                return _tmp3656
             #RETURN_NEW(HEAD=FACTORS; DATA={self:1, other:-1})
-            #NEWINSTANCE(OBJ=_tmp3677; HEAD=FACTORS; DATA={self:1, other:-1})
-            _tmp3677 = cls(FACTORS, {self:1, other:-1})
-            return _tmp3677
+            #NEWINSTANCE(OBJ=_tmp3670; HEAD=FACTORS; DATA={self:1, other:-1})
+            _tmp3670 = cls(FACTORS, {self:1, other:-1})
+            return _tmp3670
         elif rhead is FACTORS:
             #DIV_SYMBOL_FACTORS(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
             pairs = rdata
@@ -2088,24 +2091,24 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
                         return t
                     else:
                         #RETURN_NEW(HEAD=FACTORS; DATA={t: c})
-                        #NEWINSTANCE(OBJ=_tmp3698; HEAD=FACTORS; DATA={t: c})
-                        _tmp3698 = cls(FACTORS, {t: c})
-                        return _tmp3698
+                        #NEWINSTANCE(OBJ=_tmp3691; HEAD=FACTORS; DATA={t: c})
+                        _tmp3691 = cls(FACTORS, {t: c})
+                        return _tmp3691
                 #RETURN_NEW(HEAD=FACTORS; DATA={t: -c, self: 1})
-                #NEWINSTANCE(OBJ=_tmp3712; HEAD=FACTORS; DATA={t: -c, self: 1})
-                _tmp3712 = cls(FACTORS, {t: -c, self: 1})
-                return _tmp3712
+                #NEWINSTANCE(OBJ=_tmp3705; HEAD=FACTORS; DATA={t: -c, self: 1})
+                _tmp3705 = cls(FACTORS, {t: -c, self: 1})
+                return _tmp3705
             #NEG_DICT_VALUES(DICT_IN=rdata; DICT_OUT=pairs)
             pairs = dict([(t, -c) for t,c in rdata.iteritems()])
             #MUL_DICT_SYMBOL(DICT=pairs; RHS=self; RHSDATA=ldata)
             #ADD_TERM_VALUE_DICT(TERM=self; VALUE=1; DICT=pairs; DICT_GET=pairs.get; SIGN=+; USIGN=)
-            _tmp3740 = pairs.get(self)
-            if _tmp3740 is None:
+            _tmp3733 = pairs.get(self)
+            if _tmp3733 is None:
                 pairs[self] =  1
             else:
-                _tmp3740 = _tmp3740 + 1
-                if _tmp3740:
-                    pairs[self] = _tmp3740
+                _tmp3733 = _tmp3733 + 1
+                if _tmp3733:
+                    pairs[self] = _tmp3733
                 else:
                     del pairs[self]
             #CANONIZE_FACTORS_DICT1(DICT=pairs)
@@ -2118,14 +2121,14 @@ def div_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
                if t==cls.one:
                    return t
             #RETURN_NEW(HEAD=FACTORS; DATA=pairs)
-            #NEWINSTANCE(OBJ=_tmp3754; HEAD=FACTORS; DATA=pairs)
-            _tmp3754 = cls(FACTORS, pairs)
-            return _tmp3754
+            #NEWINSTANCE(OBJ=_tmp3747; HEAD=FACTORS; DATA=pairs)
+            _tmp3747 = cls(FACTORS, pairs)
+            return _tmp3747
         else:
             #DIV_SYMBOL_SYMBOL(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
             if self == other:
                 return cls.one
             #RETURN_NEW(HEAD=FACTORS; DATA={self: 1, other: -1})
-            #NEWINSTANCE(OBJ=_tmp3775; HEAD=FACTORS; DATA={self: 1, other: -1})
-            _tmp3775 = cls(FACTORS, {self: 1, other: -1})
-            return _tmp3775
+            #NEWINSTANCE(OBJ=_tmp3768; HEAD=FACTORS; DATA={self: 1, other: -1})
+            _tmp3768 = cls(FACTORS, {self: 1, other: -1})
+            return _tmp3768

@@ -20,7 +20,8 @@ DO NOT CHANGE THIS FILE DIRECTLY!!!
 
 from ..core import Expr
 from ..utils import NUMBER, SYMBOL, TERMS, FACTORS
-from ..arithmetic.numbers import (normalized_fraction, mpq, try_power, numbertypes, inttypes_set)
+from ..arithmetic.numbers import (normalized_fraction, mpq, try_power,
+  numbertypes, inttypes_set, numbertypes_set)
 from ..arithmetic.infinity import Infinity
 
 def div(a, b, cls):
@@ -473,7 +474,7 @@ if len(lpairs)==1:
             @RETURN_NEW(HEAD=FACTORS; DATA={t1:1, t2:-1})
         @NEWINSTANCE(OBJ=%(TMP)s; HEAD=FACTORS; DATA={t1:1, t2:-1})
     else:
-        @NEWINSTANCE(OBJ=%(TMP)s; HEAD=FACTORS; DATA={t1:1, %(RHS)s:-1})
+        %(TMP)s = t1 / %(RHS)s
     @RETURN_NEW(HEAD=TERMS; DATA={%(TMP)s:c1})
 elif len(rpairs)==1:
     t2, c2 = rpairs.items()[0]
@@ -801,7 +802,10 @@ def pow_method(self, other, z = None, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTOR
         else:
             @POW_SYMBOL_FRAC(VALUE=other; LHS=self; LHSDATA=ldata)
     if type_other is cls or isinstance(other, cls.exptypes):
-        if lhead is FACTORS:
+        if lhead is NUMBER:
+            if ldata==1:
+                return self
+        elif lhead is FACTORS:
             @POW_FACTORS_SYMBOL(LHS=self; LHSDATA=ldata; RHS=other)
         @RETURN_NEW(HEAD=FACTORS; DATA={self: other})
     return NotImplemented

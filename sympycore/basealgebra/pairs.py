@@ -16,7 +16,9 @@ from ..utils import TERMS, FACTORS, SYMBOL, NUMBER, APPLY, POW, TUPLE, head_to_s
 from .algebra import Algebra
 from .ring import CommutativeRing
 from .verbatim import Verbatim
-from ..arithmetic.numbers import mpq, realtypes, try_power, numbertypes_set
+from ..arithmetic.numbers import mpq, realtypes, try_power, numbertypes_set,\
+     mpqc, normalized_fraction, inttypes_set
+from ..arithmetic.number_theory import gcd
 
 from .pairs_ops import (add_method, sub_method, rsub_method,
                         div_method, rdiv_method, pow_method)
@@ -681,18 +683,60 @@ class CollectingField(CommutativeRing):
             td = type(data)
             if td is int or td is long:
                 return self.one, data
-            if td is FractionTyple:
+            if td is mpq:
                 n,p = data
                 return self.Number(mpq((1, p))), n
+            if td is mpqc:
+                raise NotImplementedError(`self`)
         elif head is TERMS:
-            if len(data)==1:
-                t, c = data.items()[0]
-                td = type(c)
-                if td is int or td is long:
-                    return t, c
-                if td is mpq:
-                    n,p = c
-                    return t * FractionTyple((1,p)), n
+            l = []
+            for t, c in data.iteritems():
+                tc = type(c)
+                if tc is int or tc is long:
+                    n = c
+                elif tc is mpq:
+                    n = c[0]
+                elif tc is mpqc:
+                    re, im = c.real, c.imag
+                    t1 = type(re)
+                    if t1 is mpq:
+                        r = re[0]
+                    elif t1 is int or t1 is long:
+                        r = re
+                    else:
+                        r = 1
+                    t1 = type(im)
+                    if t1 is mpq:
+                        i = im[0]
+                    elif t1 is int or t1 is long:
+                        i = im
+                    else:
+                        i = 1
+                    n = gcd(r, i)
+                else:
+                    n = 1
+                n = t.as_term_intcoeff()[1] * n
+                if n==1:
+                    return self, 1
+                l.append(n)
+            n = gcd(*l)
+            if n==1:
+                return self, 1
+            return self/n, n
+        elif head is FACTORS:
+            factors = []
+            num = 1
+            for t,c in data.iteritems():
+                tc = type(c)
+                if (tc is int or tc is long) and c>0:
+                    t1, c1 = t.as_term_intcoeff()
+                    num = num * c1 ** c
+                    factors.append((t1, c))
+                else:
+                    factors.append((t, c))
+            if num==1:
+                return self, 1
+            return self.Factors(*factors), num
         return self, 1
 
     def to_polynomial_data(self, variables=None, fixed=False):
@@ -846,6 +890,75 @@ class CollectingField(CommutativeRing):
             if l==1:
                 return {exps[0]: coeff}, variables
             return {tuple(exps): coeff}, variables
+
+    def as_numer_denom(self):
+        head, data = self.pair
+        cls = type(self)
+        if head is NUMBER:
+            if type(data) is mpq:
+                return cls.Number(data[0]), cls.Number(data[1])
+            if type(data) is mpqc:
+                n, d = data.as_numer_denom()
+                return cls.Number(n), cls.Number(d)
+            return self, cls.one
+        if head is FACTORS:
+            n, d = cls.one, cls.one
+            num = 1
+            for t, c in data.iteritems():
+                t1, c1 = t.as_term_intcoeff()
+                n1, d1 = t1.as_numer_denom()
+                if type(c) is cls:
+                    if c.as_term_intcoeff()[1] < 0:
+                        n *= d1**-c
+                        d *= (n1*c1)**-c
+                    else:
+                        n *= (n1*c1)**c
+                        d *= d1**c
+                elif type(c) in inttypes_set:
+                    if c < 0:
+                        n *= d1**-c
+                        d *= n1**-c * c1**-c
+                    else:
+                        num *= c1**c
+                        n *= n1**c
+                        d *= d1**c
+                else:
+                    n *= t**c
+            dt, i = d.as_term_intcoeff()
+            c = gcd(num, i)
+            if c==1:
+                return n * num, d
+            return n * (num//c), dt * (i//c)
+        if head is TERMS:
+            n, d = cls.zero, cls.one
+            for t, c in data.iteritems():
+                n1, d1 = t.as_numer_denom()
+                tc = type(c)
+                if tc is mpq:
+                    n1 = n1 * c[0]
+                    d1 = d1 * c[1]
+                elif tc is mpqc:
+                    cn, cd = c.as_numer_denom()
+                    n1 = n1 * cn
+                    d1 = d1 * cd
+                else:
+                    n1 = n1 * c
+                n, d = n * d1 + n1 * d, d * d1
+            nt, ni = n.as_term_intcoeff()
+            dt, di = d.as_term_intcoeff()
+            c = gcd(ni, di)
+            if c==1:
+                return n, d
+            return n/c, d/c
+        return self, cls.one
+
+    def normal(self):
+        n, d = self.as_numer_denom()
+        if d.head is TERMS:
+            t, c = d.as_term_intcoeff()
+            if c!=1:
+                return (n/t)/c
+        return n/d
 
 classes.CollectingField = CollectingField
 
