@@ -6,10 +6,18 @@
 #
 
 __docformat__ = "restructuredtext"
-__all__ = ['eye', 'concatenate']
+__all__ = ['eye', 'concatenate', 'jacobian']
 
 from ..utils import MATRIX, MATRIX_DICT
 from .algebra import MatrixDict, Matrix, MatrixBase
+
+def jacobian(expr_list, var_list):
+    m, n = len(expr_list), len(var_list)
+    jac = Matrix(m, n)
+    for i, e in enumerate(expr_list):
+        for j, v in enumerate(var_list):
+            jac[i,j] = e.diff(v)
+    return jac
 
 def eye(m, n=None, k=0):
     """ Return n x m matrix where the k-th diagonal is all ones,
