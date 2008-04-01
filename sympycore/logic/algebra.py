@@ -1,6 +1,6 @@
 
 from ..core import classes
-from ..utils import EQ, NE, LT, LE, GT, GE, SYMBOL
+from ..utils import EQ, NE, LT, LE, GT, GE, SYMBOL, AND, NOT, OR, NUMBER
 from ..basealgebra import Algebra, Verbatim
 
 head_mth_map = {
@@ -37,9 +37,17 @@ class Logic(Algebra):
         if mth is None:
             return True
         return mth(lhs, rhs)
-        
+
     def as_verbatim(self):
         return Verbatim(self.head, self.data)
+
+    def convert_operand(self, obj, typeerror=True):
+        head = self.head
+        if head in [LT, GT, LE, GE, EQ, NE]:
+            return classes.Calculus.convert(obj, typeerror)
+        if isinstance(obj, bool):
+            return type(self)(NUMBER, obj)
+        return self.convert(obj, typeerror)
 
     is_Lt = property(lambda self: self.head is LT)
     is_Le = property(lambda self: self.head is LE)
@@ -52,6 +60,59 @@ class Logic(Algebra):
     def Symbol(cls, obj):
         return cls(SYMBOL, obj)
 
-    
+    @classmethod
+    def Number(cls, obj):
+        assert isinstance(obj, bool),`obj`
+        return cls(NUMBER, obj)
+
+    @classmethod
+    def Lt(cls, *seq):
+        # XXX: implement canonization
+        return cls(LT, seq)
+
+    @classmethod
+    def Le(cls, *seq):
+        # XXX: implement canonization
+        return cls(LE, seq)
+
+    @classmethod
+    def Gt(cls, *seq):
+        # XXX: implement canonization
+        return cls(GT, seq)
+
+    @classmethod
+    def Ge(cls, *seq):
+        # XXX: implement canonization
+        return cls(GE, seq)
+
+    @classmethod
+    def Eq(cls, *seq):
+        # XXX: implement canonization
+        return cls(EQ, seq)
+
+    @classmethod
+    def Ne(cls, *seq):
+        # XXX: implement canonization
+        return cls(NE, seq)
+
+    @classmethod
+    def Or(cls, *seq):
+        # XXX: implement canonization
+        if not seq:
+            return False
+        return cls(OR, seq)
+
+    @classmethod
+    def And(cls, *seq):
+        # XXX: implement canonization
+        if not seq:
+            return True
+        return cls(AND, seq)
+
+    @classmethod
+    def Not(cls, obj):
+        if isinstance(obj, bool):
+            return not obj
+        return cls(NOT, obj)
 
 classes.Logic = Logic

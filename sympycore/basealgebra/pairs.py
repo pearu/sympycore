@@ -623,12 +623,19 @@ class CollectingField(CommutativeRing):
 
     def _subs(self, subexpr, newexpr):
         head, data = self.pair
+        cls = type(self)
 
-        if head is subexpr.head:
-            if data == subexpr.data:
-                return newexpr
+        if type(subexpr) is not cls:
+            if head is SYMBOL or head is NUMBER:
+                if subexpr==data:
+                    return self.convert_operand(newexpr)
+                return self
+        else:
+            h, d = subexpr.pair
+            if h is head and d==data:
+                return self.convert_operand(newexpr)
 
-        if head is SYMBOL or head is NUMBER:
+        if head is SYMBOL or head is NUMBER:            
             return self
             
         cls = type(self)

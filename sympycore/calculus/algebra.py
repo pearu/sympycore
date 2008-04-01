@@ -118,6 +118,10 @@ class Calculus(CollectingField):
     def Exp(cls, arg):
         return cls.defined_functions['exp'](arg)
 
+    @classmethod
+    def Mod(cls, x, y):
+        return cls.defined_functions['mod'](x, y)
+
     def evalf(self, n=None):
         if n:
             setdps(n)

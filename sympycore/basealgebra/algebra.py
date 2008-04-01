@@ -5,7 +5,7 @@ __docformat__ = "restructuredtext"
 __all__ = ['Algebra', 'SymbolicEquality']
 
 from ..core import classes, Expr
-from ..utils import LT, GT, LE, GE, NE, EQ
+from ..utils import LT, GT, LE, GE, NE, EQ, SYMBOL, NUMBER
 
 symbolic_comparison_map = dict(
     equality = dict(__eq__=EQ, __ne__=NE),
@@ -65,6 +65,7 @@ class Algebra(Expr):
       convert(cls, obj, typeerror=True)
       convert_coefficient(cls, obj, typeerror=True)
       convert_exponent(cls, obj, typeerror=True)
+      convert_operand(self, obj, typeerror=True)
       as_verbatim(self)
       as_algebra(self, cls)
 
@@ -154,7 +155,10 @@ class Algebra(Expr):
         # check if obj belongs to coefficient algebra
         r = cls.convert_coefficient(obj, typeerror=False)
         if r is not NotImplemented:
-            return cls.Number(r)
+            try:
+                return cls.Number(r)
+            except NotImplementedError:
+                pass
 
         # as a last resort, convert from another algebra:
         if isinstance(obj, Algebra):
@@ -192,6 +196,11 @@ class Algebra(Expr):
                             % (cls.__name__, obj.__class__.__name__))
         else:
             return NotImplemented
+
+    def convert_operand(self, obj, typeerror=True):
+        """ Convert obj to operand.
+        """
+        return self.convert(obj, typeerror=typeerror)
 
     def as_verbatim(self):
         raise NotImplementedError('%s must define as_verbatim method' #pragma NO COVER
@@ -386,7 +395,7 @@ class Algebra(Expr):
           obj.subs([(subexpr1, newexpr1), (subexpr2, newexpr2), ..])
           obj.subs(<dict of subexpr:newexpr>)
         """
-        convert = self.convert
+        convert = lambda x:x
         if newexpr is None:
             if type(subexpr) is dict:
                 subexpr = subexpr.iteritems()
@@ -397,8 +406,40 @@ class Algebra(Expr):
         return self._subs(convert(subexpr), convert(newexpr))
 
     def _subs(self, subexpr, newexpr):
-        raise NotImplementedError('%s must define _subs method'     #pragma NO COVER
-                                  % (self.__class__.__name__))      #pragma NO COVER
+        head, data = self.pair
+        t = type(data)
+        cls = type(self)
 
+        if type(subexpr) is not cls:
+            if head is SYMBOL:
+                if subexpr==data:
+                    return self.convert_operand(newexpr)
+                return self
+        else:
+            h, d = subexpr.pair
+            if h is head and data==d:
+                return self.convert_operand(newexpr)
+
+        if head is SYMBOL:
+            return self
+        
+        if isinstance(data, (tuple, list)):
+            r = []
+            for a in data:
+                if hasattr(a, '_subs'):
+                    r.append(a._subs(subexpr, newexpr))
+                else:
+                    r.append(a)
+            return cls(head, t(r))
+
+        if isinstance(data, dict):
+            d = dict.__new__(t)
+            for t,c in data.iteritems():
+                t1 = t._subs(subexpr, newexpr) if hasattr(t,'_subs') else t
+                c1 = c._subs(subexpr, newexpr) if hasattr(c,'_subs') else c
+                d[t1] = c1
+            return cls(head, d)
+
+        return cls(head, data._subs(subexpr, newexpr) if hasattr(data, '_subs') else data)
 
 from .verbatim import Verbatim

@@ -157,7 +157,22 @@ class Verbatim(Algebra):
             if callable(func):
                 return func(*args)
             print `func, args`
-        raise NotImplementedError('as_algebra(%s): %s, head=%s' % (cls, self, head_to_string[head]))
+        if head is LT: return cls.Lt(*[r.as_algebra(classes.Calculus) for r in rest])
+        if head is LE: return cls.Le(*[r.as_algebra(classes.Calculus) for r in rest])
+        if head is GT: return cls.Gt(*[r.as_algebra(classes.Calculus) for r in rest])
+        if head is GE: return cls.Ge(*[r.as_algebra(classes.Calculus) for r in rest])
+        if head is EQ: return cls.Eq(*[r.as_algebra(classes.Calculus) for r in rest])
+        if head is NE: return cls.Ne(*[r.as_algebra(classes.Calculus) for r in rest])
+        if head is AND:
+            return cls.And(*[r.as_algebra(cls) for r in rest])
+        if head is OR:
+            return cls.Or(*[r.as_algebra(cls) for r in rest])
+        if head is NOT:
+            return cls.Not(rest[0].as_algebra(cls))
+        if head is MOD:
+            return cls.Mod(*[r.as_algebra(cls) for r in rest])
+        raise TypeError('%r cannot be converted to %s algebra' % (self, cls.__name__))
+        #raise NotImplementedError('as_algebra(%s): %s, head=%s' % (cls, self, head_to_string[head]))
 
     def __str__(self):
         s = self._str
@@ -188,7 +203,7 @@ class Verbatim(Algebra):
             return 'lambda %s: %s' % (str(args)[1:-1], body)
         if head is TUPLE:
             return '(%s)' % (', '.join(map(str,rest)))
-        if head is NEG or head is POS:
+        if head is NEG or head is POS or head is NOT:
             return '%s%s' % (head, rest)
         if head is ADD:
             if len(rest)>100:
@@ -221,6 +236,10 @@ class Verbatim(Algebra):
                 self.disable_sorting = True
             if not self.disable_sorting:
                 rest = sorted(rest, cmp=tree_sort)
+        try:
+            len(rest)
+        except TypeError:
+            return '((%s%s))' (head, rest)
         l = []
         for t in rest:
             h = t.head if isinstance(t, Algebra) else None

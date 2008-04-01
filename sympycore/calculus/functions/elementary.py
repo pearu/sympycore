@@ -4,7 +4,8 @@
 """ Provides elementary calculus functions sqrt, exp, log, sin, etc and constants pi, E.
 """
 
-__all__ = ['sqrt', 'exp', 'log', 'sin', 'cos', 'tan', 'cot', 'sign', 'E', 'pi', 'gamma']
+__all__ = ['sqrt', 'exp', 'log', 'sin', 'cos', 'tan', 'cot', 'sign', 'mod',
+           'E', 'pi', 'gamma']
 __docformat__ = "restructuredtext"
 
 from ..algebra import Calculus, I,  NUMBER, TERMS, FACTORS, SYMBOL, TERMS
@@ -40,6 +41,18 @@ class sign(Function):
         if not isinstance(arg, Calculus):
             arg = Calculus.convert(arg)
         return Calculus(cls, arg)
+
+class mod(Function):
+    def __new__(cls, x, y):
+        if not isinstance(x, Calculus):
+            x = Calculus.convert(x)
+        if not isinstance(y, Calculus):
+            y = Calculus.convert(y)
+        xh,xd = x.pair
+        yh,yd = y.pair
+        if xh is NUMBER and yh is NUMBER:
+            return Calculus.convert(xd % yd)
+        return Calculus(cls, (x, y))
 
 class sqrt(Function):
     def __new__(cls, arg):

@@ -2,4 +2,4 @@
 """
 __docformat__ = "restructuredtext"
 
-from .elementary import exp, log, sqrt, sin, cos, tan, cot, pi, E, gamma, sign
+from .elementary import exp, log, sqrt, sin, cos, tan, cot, pi, E, gamma, sign, mod
