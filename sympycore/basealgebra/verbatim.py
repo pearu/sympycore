@@ -337,7 +337,7 @@ node_map = dict(Add='ADD', Mul='MUL', Sub='SUB', Div='DIV', FloorDiv='DIV',
                 Bitand='BAND',Bitor='BOR',Bitxor='BXOR',CallFunc='APPLY',
                 Tuple='TUPLE',
                 )
-compare_map = {'<':LT, '>':GT, '<=':LT, '>=':GE,
+compare_map = {'<':LT, '>':GT, '<=':LE, '>=':GE,
                '==':EQ, '!=':NE}
 
 class VerbatimWalker:

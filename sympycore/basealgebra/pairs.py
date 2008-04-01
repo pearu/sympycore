@@ -638,8 +638,6 @@ class CollectingField(CommutativeRing):
         if head is SYMBOL or head is NUMBER:            
             return self
             
-        cls = type(self)
-
         if head is TERMS:
             d = {}
             d_get = d.get
