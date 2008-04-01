@@ -19,27 +19,43 @@ class Logic(Algebra):
 
       (<predicate constant or function>, args)
 
-    The following constants are defined to represent predicate
-    functions:
+    Examples of predicates::
 
-      EQ - equality predicate
-      LT - less-than predicate
-
-
-    ``Logic.__nonzero__`` returns lexicographic value of relational
-    predicates, otherwise ``True``.
+      Logic(NUMBER, True)  - 0-ary predicate, represents truth value True
+      Logic(NUMBER, False) - 0-ary predicate, represents truth value False
+      Logic(SYMBOL, 'x')   - 0-ary predicate, represents a boolean symbol x
+      Logic(NOT, x)        - 1-ary predicate, represents ``not x`` boolean expression
+      Logic(AND, frozenset([x,y,z])) - represents ``x and y and z`` boolean expression
+      Logic(OR, frozenset([x,y])) - represnts boolean expression ``x or y``
+      Logic(LT, (x, y))    - represents relation ``x < y``
+      Logic(LE, (x, y))    - represents relation ``x <= y``
+      Logic(GT, (x, y))    - represents relation ``x > y``
+      Logic(GT, (x, y))    - represents relation ``x >= y``
+      Logic(EQ, (x, y))    - represents relation ``x == y``
+      Logic(NE, (x, y))    - represents relation ``x != y``
 
     """
 
     def __nonzero__(self, head_mth_get=head_mth_map.get):
-        head, (lhs, rhs) = self.pair
+        """ Return lexicographic truth value for relational predicates
+        and True for non-numeric predicates.
+        """
+        head, data = self.pair
         mth = head_mth_get(head)
         if mth is None:
+            if head is NUMBER:
+                return data
             return True
-        return mth(lhs, rhs)
+        return mth(*data)
 
     def as_verbatim(self):
         return Verbatim(self.head, self.data)
+
+    @classmethod
+    def get_predefined_symbols(cls, name):
+        if name=='True': return cls.true
+        if name=='False': return cls.false
+        return
 
     def convert_operand(self, obj, typeerror=True):
         head = self.head
@@ -55,6 +71,9 @@ class Logic(Algebra):
     is_Ge = property(lambda self: self.head is GE)
     is_Eq = property(lambda self: self.head is EQ)
     is_Ne = property(lambda self: self.head is NE)
+    is_And = property(lambda self: self.head is AND)
+    is_Or = property(lambda self: self.head is OR)
+    is_Not = property(lambda self: self.head is NOT)
 
     @classmethod
     def Symbol(cls, obj):
@@ -81,7 +100,6 @@ class Logic(Algebra):
 
         if head is SYMBOL or head is NUMBER:            
             return self
-
         if head is AND:
             return cls.And(*[a._subs(subexpr, newexpr) for a in data])        
         if head is OR:
@@ -178,7 +196,7 @@ class Logic(Algebra):
                     return cls.true
                 s.add(a)
             else:
-                if cls.Not(a) in s:
+                if cls(NOT, a) in s:
                     return cls.true
                 s.add(a)
         if not s:
@@ -204,7 +222,7 @@ class Logic(Algebra):
                 else:
                     s.add(a)
             else:
-                if cls.Not(a) in s:
+                if cls(NOT,a) in s:
                     return cls.false
                 s.add(a)
         if not s:

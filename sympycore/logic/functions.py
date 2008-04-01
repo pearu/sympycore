@@ -1,17 +1,56 @@
 
-from ..utils import LE, LT, GT, GE, EQ, NE
+from ..core import classes
 from .algebra import Logic
 
 def Eq(a, b):
-    return Logic(EQ, (a,b))
-def Ne(a, b):
-    return Logic(NE, (a,b))
-def Lt(a, b):
-    return Logic(LT, (a,b))
-def Le(a, b):
-    return Logic(LE, (a,b))
-def Gt(a, b):
-    return Logic(GT, (a,b))
-def Ge(a, b):
-    return Logic(GE, (a,b))
+    """ Return relational expression ``a==b``.
+    """
+    c = classes.Calculus.convert
+    return Logic.Eq(c(a), c(b))
 
+def Ne(a, b):
+    """ Return relational expression ``a!=b``.
+    """
+    c = classes.Calculus.convert
+    return Logic.Ne(c(a), c(b))
+
+def Lt(a, b):
+    """ Return relational expression ``a<b``.
+    """
+    c = classes.Calculus.convert
+    return Logic.Lt(c(a), c(b))
+
+def Le(a, b):
+    """ Return relational expression ``a<=b``.
+    """
+    c = classes.Calculus.convert
+    return Logic.Le(c(a), c(b))
+
+def Gt(a, b):
+    """ Return relational expression ``a>b``.
+    """
+    c = classes.Calculus.convert
+    return Logic.Gt(c(a), c(b))
+
+def Ge(a, b):
+    """ Return relational expression ``a>=b``.
+    """
+    c = classes.Calculus.convert
+    return Logic.Ge(c(a), c(b))
+
+def Not(a):
+    """ Return boolean expression ``not a``.
+    """
+    return Logic.Not(Logic.convert(a))
+
+def And(*seq):
+    """ Return boolean expression ``x1 and x2 and ...``.
+    """
+    c = Logic.convert
+    return Logic.And(*map(c, seq))
+
+def Or(*seq):
+    """ Return boolean expression ``x1 or x2 or ...``.
+    """
+    c = Logic.convert
+    return Logic.Or(*map(c, seq))
