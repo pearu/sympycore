@@ -166,8 +166,7 @@ applications.
 Classes in SympyCore
 ====================
 
-The following diagram summarizes what classes ``sympycore`` uses and
-defines::
+The following diagram summarizes what classes ``sympycore`` defines::
 
   object
     Expr
@@ -179,14 +178,15 @@ defines::
             Calculus
             Unit
         PolynomialRing[<variables>, <coefficient ring>]
-        MatrixRing[<shape>, <element ring>]
+        MatrixBase
+          MatrixDict
         UnivariatePolynomial
 
     Infinity
       CalculusInfinity
 
     Function
-      sign, exp, log
+      sign, exp, log, mod, sqrt
       TrigonometricFunction
         sin, cos, tan, cot
 
@@ -235,6 +235,57 @@ instance. Similarly, the real valued result of an operation between
 complex numbers ``mpqc`` (or ``mpc``) will be an instance of ``int``
 or ``long`` or ``mpq`` (or ``mpf``) type.
 
+Constructing instances
+----------------------
+
+There are two types of symbolic expressions: atomic and composites.
+Atomic expressions are symbols and numbers. Symbols can be considered
+as unspecified numbers. Composite expressions are unevaluated forms of
+operators or operations defined between symbolic expressions.
+
+In SympyCore, each algebra class defines classmethods
+``Symbol(<obj>)`` and ``Number(<obj>)`` that can be used to construct
+atomic expressions. In fact, they will usually return ``<Algebra
+class>(SYMBOL, <obj>)`` and ``<Algebra class>(NUMBER, <obj>)``,
+respectively. Regarding nubers, it is callers responsibility to ensure
+that ``<obj>`` is usable as a number.  Some algebra classes also
+define class attributes ``zero`` and ``one`` holding identity numbers
+with respect to addition and multiplication operations. In ``Logic``
+algebra, these numbers are aliases to ``false`` and ``true`` values,
+respecitvely.
+
+Depending on the callers need, there are at least three possibilities
+in SympyCore to construct composite expressions:
+
+#. Use ``<Algebra class>(<head>, <data>)`` that will return an algebra
+   class instance with given head and data. No evaluation or
+   canonization is performed. This construction is usually used by
+   low-level methods that must ensure that the data part contains
+   proper data, that is, data in a form that the rest of sympycore
+   can assume.
+
+#. Use ``<Algebra class>.<Operation>(<operands>)`` class method call
+   that will perform basic canonization of the operation applied to
+   operands and returns canonized result as an instance of the algebra
+   class. This construction is usually used by high-level methods that
+   must ensure that operands are instances of operands algebra.
+
+#. Use ``<Operation>(<operands>)`` function call that will convert
+   operands to operands algebra instances and then returns the result
+   of ``<Algebra class>.<Operation>`` classmethod. This construction
+   should be used by end-users.
+
+There exist also some convenience and implementation specific
+possibilities to construct expressions:
+
+4. Use ``<Algebra class>.convert(<obj>, typeerror=True)`` to convert
+   Python object ``<obj>`` to algebra instance. If conversation is not
+   defined then ``TypeError`` is raised by default. When
+   ``typeerror=False`` then ``NotImplemented`` is returned instead of
+   raising the exception.
+
+#. Use ``<Algebra class>(<obj>)`` that is an alias to ``<Algebra
+   class>.convert(<obj>)`` call.
 
 Verbatim algebra
 ----------------
@@ -249,7 +300,35 @@ Logic algebra
 -------------
 
 SympyCore defines ``Logic`` class that represents n-ary predicate
-expressions.
+expressions. The following operations are defined by the ``Logic``
+class:
+
+#. ``Not(x)`` represents boolean expression ``not x``. Operand algebra
+   class is ``Logic``.
+
+#. ``And(x,y,..)`` represents boolean expression ``x and y and ..``.
+   Operand algebra class is ``Logic``.
+
+#. ``Or(x,y,..)`` represents boolean expression ``x or y or ..``.
+   Operand algebra class is ``Logic``.
+
+#. ``Lt(x, y)`` represents relational expression ``x < y``.
+   Operand algebra class is ``Calculus``.
+
+#. ``Le(x, y)`` represents relational expression ``x <= y``.
+   Operand algebra class is ``Calculus``.
+
+#. ``Gt(x, y)`` represents relational expression ``x > y``.
+   Operand algebra class is ``Calculus``.
+
+#. ``Ge(x, y)`` represents relational expression ``x >= y``.
+   Operand algebra class is ``Calculus``.
+
+#. ``Eq(x, y)`` represents relational expression ``x == y``.
+   Operand algebra class is ``Calculus``.
+
+#. ``Ne(x, y)`` represents relational expression ``x != y``.
+   Operand algebra class is ``Calculus``.
 
 Collecting field
 ----------------
@@ -260,3 +339,34 @@ forms, respectively. The class name contains prefix "Collecting"
 because in operations with ``CollectingField`` instances, equal terms
 and equal bases are automatically collected by upgrading the
 coefficient and exponent values, respectively.
+
+The following operations are defined by the ``CollectingField`` and
+its subclasses ``Calculus``, ``Unit``:
+
+#. ``Add(x, y, ..)`` represents addition ``x + y + ..``.
+   Operand algebra class is the same as algebra class.
+
+#. ``Mul(x, y, ..)`` represents multiplication ``x * y * ..``.
+   Operand algebra class is the same as algebra class.
+
+#. ``Terms((x,a), (y,b), ..)`` represents a sum ``a*x + b*y + ..``
+   where ``x, y, ..`` must be non-numeric instances of the algebra
+   class and ``a, b, ..`` are low-level numbers.
+ 
+#. ``Factors((x,a), (y,b), ..)`` represents a product ``x**a * y**b * ..``
+   where ``x, y, ..`` must be instances of the algebra
+   class and ``a, b, ..`` are either low-level numbers or instances of
+   exponent algebra.
+
+#. ``Pow(x, y)`` represents exponentiation ``x ** y`` where ``x`` must
+   be instance of the algebra class and ``y`` must be either low-level
+   number or an instance of exponent algebra.
+
+#. ``Sub(x, y, ..)`` represents operation ``x - y - ..`` where operands
+   must be instances of the algebra class.
+
+#. ``Div(x, y, ..)`` represents operation ``x / y / ..`` where operands
+   must be instances of the algebra class.
+
+#. ``Apply(f, (x, y, ..))`` represents unevaluated function call
+   ``f(x, y, ..)``.

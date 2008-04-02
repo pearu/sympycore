@@ -114,25 +114,26 @@ div.warning p.admonition-title {
 <p class="first sidebar-title">Table of contents</p>
 <div class="contents local last topic">
 <ul class="auto-toc simple">
-<li><a class="reference" href="#introduction" id="id1" name="id1">1&nbsp;&nbsp;&nbsp;Introduction</a></li>
-<li><a class="reference" href="#fundamental-idea" id="id2" name="id2">2&nbsp;&nbsp;&nbsp;Fundamental idea</a><ul class="auto-toc">
-<li><a class="reference" href="#implementation-of-principles" id="id3" name="id3">2.1&nbsp;&nbsp;&nbsp;Implementation of principles</a></li>
-<li><a class="reference" href="#constructing-instances" id="id4" name="id4">2.2&nbsp;&nbsp;&nbsp;Constructing instances</a></li>
-<li><a class="reference" href="#various-representations" id="id5" name="id5">2.3&nbsp;&nbsp;&nbsp;Various representations</a></li>
+<li><a class="reference" href="#introduction" id="id2" name="id2">1&nbsp;&nbsp;&nbsp;Introduction</a></li>
+<li><a class="reference" href="#fundamental-idea" id="id3" name="id3">2&nbsp;&nbsp;&nbsp;Fundamental idea</a><ul class="auto-toc">
+<li><a class="reference" href="#implementation-of-principles" id="id4" name="id4">2.1&nbsp;&nbsp;&nbsp;Implementation of principles</a></li>
+<li><a class="reference" href="#constructing-instances" id="id5" name="id5">2.2&nbsp;&nbsp;&nbsp;Constructing instances</a></li>
+<li><a class="reference" href="#various-representations" id="id6" name="id6">2.3&nbsp;&nbsp;&nbsp;Various representations</a></li>
 </ul>
 </li>
-<li><a class="reference" href="#classes-in-sympycore" id="id6" name="id6">3&nbsp;&nbsp;&nbsp;Classes in SympyCore</a><ul class="auto-toc">
-<li><a class="reference" href="#low-level-numbers" id="id7" name="id7">3.1&nbsp;&nbsp;&nbsp;Low-level numbers</a></li>
-<li><a class="reference" href="#verbatim-algebra" id="id8" name="id8">3.2&nbsp;&nbsp;&nbsp;Verbatim algebra</a></li>
-<li><a class="reference" href="#logic-algebra" id="id9" name="id9">3.3&nbsp;&nbsp;&nbsp;Logic algebra</a></li>
-<li><a class="reference" href="#collecting-field" id="id10" name="id10">3.4&nbsp;&nbsp;&nbsp;Collecting field</a></li>
+<li><a class="reference" href="#classes-in-sympycore" id="id7" name="id7">3&nbsp;&nbsp;&nbsp;Classes in SympyCore</a><ul class="auto-toc">
+<li><a class="reference" href="#low-level-numbers" id="id8" name="id8">3.1&nbsp;&nbsp;&nbsp;Low-level numbers</a></li>
+<li><a class="reference" href="#id1" id="id9" name="id9">3.2&nbsp;&nbsp;&nbsp;Constructing instances</a></li>
+<li><a class="reference" href="#verbatim-algebra" id="id10" name="id10">3.3&nbsp;&nbsp;&nbsp;Verbatim algebra</a></li>
+<li><a class="reference" href="#logic-algebra" id="id11" name="id11">3.4&nbsp;&nbsp;&nbsp;Logic algebra</a></li>
+<li><a class="reference" href="#collecting-field" id="id12" name="id12">3.5&nbsp;&nbsp;&nbsp;Collecting field</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id1" id="introduction" name="introduction">1&nbsp;&nbsp;&nbsp;Introduction</a></h1>
+<h1><a class="toc-backref" href="#id2" id="introduction" name="introduction">1&nbsp;&nbsp;&nbsp;Introduction</a></h1>
 <p>This document gives an overview of data types that are used in
 <tt class="docutils literal"><span class="pre">sympycore</span></tt> to represent symbolic expressions. First, the fundametal
 idea of defining a Python type <tt class="docutils literal"><span class="pre">Expr</span></tt>, that holds a pair of Python
@@ -142,7 +143,7 @@ structure of <tt class="docutils literal"><span class="pre">sympycore</span></tt
 the features of <tt class="docutils literal"><span class="pre">sympycore</span></tt> classes in detail.</p>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id2" id="fundamental-idea" name="fundamental-idea">2&nbsp;&nbsp;&nbsp;Fundamental idea</a></h1>
+<h1><a class="toc-backref" href="#id3" id="fundamental-idea" name="fundamental-idea">2&nbsp;&nbsp;&nbsp;Fundamental idea</a></h1>
 <p>The fundamental idea behind the implementation of <tt class="docutils literal"><span class="pre">sympycore</span></tt>
 classes is based on the following assertions:</p>
 <ul class="simple">
@@ -158,7 +159,7 @@ in algebraic operations.</li>
 <p>In the following we call a algebraic structure as an algebra for
 brevity.</p>
 <div class="section">
-<h2><a class="toc-backref" href="#id3" id="implementation-of-principles" name="implementation-of-principles">2.1&nbsp;&nbsp;&nbsp;Implementation of principles</a></h2>
+<h2><a class="toc-backref" href="#id4" id="implementation-of-principles" name="implementation-of-principles">2.1&nbsp;&nbsp;&nbsp;Implementation of principles</a></h2>
 <p>The assertions of the fundamental idea is implemented as follows:</p>
 <ul class="simple">
 <li>To hold the head and data parts of symbolic expressions, a class
@@ -214,7 +215,7 @@ class CommutativeRing(Expr):
 </pre>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id4" id="constructing-instances" name="constructing-instances">2.2&nbsp;&nbsp;&nbsp;Constructing instances</a></h2>
+<h2><a class="toc-backref" href="#id5" id="constructing-instances" name="constructing-instances">2.2&nbsp;&nbsp;&nbsp;Constructing instances</a></h2>
 <p>For convenience, one can provide additional methods or functions that
 will simplify creating instances of the <tt class="docutils literal"><span class="pre">Expr</span></tt> based classes. For
 example, to construct a symbol of a commutative ring, one can define
@@ -244,7 +245,7 @@ algebras, the functions above are usually implemented as Python
 <tt class="docutils literal"><span class="pre">head</span></tt> parts may be changed to anything more appropiate.</p>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id5" id="various-representations" name="various-representations">2.3&nbsp;&nbsp;&nbsp;Various representations</a></h2>
+<h2><a class="toc-backref" href="#id6" id="various-representations" name="various-representations">2.3&nbsp;&nbsp;&nbsp;Various representations</a></h2>
 <p>Note that a fixed symbolic expression may have different but
 mathematically equivalent representations. For example, consider the
 following symbolic expression:</p>
@@ -270,9 +271,8 @@ applications.</p>
 </div>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id6" id="classes-in-sympycore" name="classes-in-sympycore">3&nbsp;&nbsp;&nbsp;Classes in SympyCore</a></h1>
-<p>The following diagram summarizes what classes <tt class="docutils literal"><span class="pre">sympycore</span></tt> uses and
-defines:</p>
+<h1><a class="toc-backref" href="#id7" id="classes-in-sympycore" name="classes-in-sympycore">3&nbsp;&nbsp;&nbsp;Classes in SympyCore</a></h1>
+<p>The following diagram summarizes what classes <tt class="docutils literal"><span class="pre">sympycore</span></tt> defines:</p>
 <pre class="literal-block">
 object
   Expr
@@ -284,14 +284,15 @@ object
           Calculus
           Unit
       PolynomialRing[&lt;variables&gt;, &lt;coefficient ring&gt;]
-      MatrixRing[&lt;shape&gt;, &lt;element ring&gt;]
+      MatrixBase
+        MatrixDict
       UnivariatePolynomial
 
   Infinity
     CalculusInfinity
 
   Function
-    sign, exp, log
+    sign, exp, log, mod, sqrt
     TrigonometricFunction
       sin, cos, tan, cot
 
@@ -305,7 +306,7 @@ object
   int, long, float, complex
 </pre>
 <div class="section">
-<h2><a class="toc-backref" href="#id7" id="low-level-numbers" name="low-level-numbers">3.1&nbsp;&nbsp;&nbsp;Low-level numbers</a></h2>
+<h2><a class="toc-backref" href="#id8" id="low-level-numbers" name="low-level-numbers">3.1&nbsp;&nbsp;&nbsp;Low-level numbers</a></h2>
 <p>Many algebras define numbers as generalized repetitions of the algebra
 unit element. Sympycore uses and defines the following number types
 for purely numerical task, i.e. both operands and operation results
@@ -348,7 +349,54 @@ complex numbers <tt class="docutils literal"><span class="pre">mpqc</span></tt> 
 or <tt class="docutils literal"><span class="pre">long</span></tt> or <tt class="docutils literal"><span class="pre">mpq</span></tt> (or <tt class="docutils literal"><span class="pre">mpf</span></tt>) type.</p>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id8" id="verbatim-algebra" name="verbatim-algebra">3.2&nbsp;&nbsp;&nbsp;Verbatim algebra</a></h2>
+<h2><a class="toc-backref" href="#id9" id="id1" name="id1">3.2&nbsp;&nbsp;&nbsp;Constructing instances</a></h2>
+<p>There are two types of symbolic expressions: atomic and composites.
+Atomic expressions are symbols and numbers. Symbols can be considered
+as unspecified numbers. Composite expressions are unevaluated forms of
+operators or operations defined between symbolic expressions.</p>
+<p>In SympyCore, each algebra class defines classmethods
+<tt class="docutils literal"><span class="pre">Symbol(&lt;obj&gt;)</span></tt> and <tt class="docutils literal"><span class="pre">Number(&lt;obj&gt;)</span></tt> that can be used to construct
+atomic expressions. In fact, they will usually return <tt class="docutils literal"><span class="pre">&lt;Algebra</span>
+<span class="pre">class&gt;(SYMBOL,</span> <span class="pre">&lt;obj&gt;)</span></tt> and <tt class="docutils literal"><span class="pre">&lt;Algebra</span> <span class="pre">class&gt;(NUMBER,</span> <span class="pre">&lt;obj&gt;)</span></tt>,
+respectively. Regarding nubers, it is callers responsibility to ensure
+that <tt class="docutils literal"><span class="pre">&lt;obj&gt;</span></tt> is usable as a number.  Some algebra classes also
+define class attributes <tt class="docutils literal"><span class="pre">zero</span></tt> and <tt class="docutils literal"><span class="pre">one</span></tt> holding identity numbers
+with respect to addition and multiplication operations. In <tt class="docutils literal"><span class="pre">Logic</span></tt>
+algebra, these numbers are aliases to <tt class="docutils literal"><span class="pre">false</span></tt> and <tt class="docutils literal"><span class="pre">true</span></tt> values,
+respecitvely.</p>
+<p>Depending on the callers need, there are at least three possibilities
+in SympyCore to construct composite expressions:</p>
+<ol class="arabic simple">
+<li>Use <tt class="docutils literal"><span class="pre">&lt;Algebra</span> <span class="pre">class&gt;(&lt;head&gt;,</span> <span class="pre">&lt;data&gt;)</span></tt> that will return an algebra
+class instance with given head and data. No evaluation or
+canonization is performed. This construction is usually used by
+low-level methods that must ensure that the data part contains
+proper data, that is, data in a form that the rest of sympycore
+can assume.</li>
+<li>Use <tt class="docutils literal"><span class="pre">&lt;Algebra</span> <span class="pre">class&gt;.&lt;Operation&gt;(&lt;operands&gt;)</span></tt> class method call
+that will perform basic canonization of the operation applied to
+operands and returns canonized result as an instance of the algebra
+class. This construction is usually used by high-level methods that
+must ensure that operands are instances of operands algebra.</li>
+<li>Use <tt class="docutils literal"><span class="pre">&lt;Operation&gt;(&lt;operands&gt;)</span></tt> function call that will convert
+operands to operands algebra instances and then returns the result
+of <tt class="docutils literal"><span class="pre">&lt;Algebra</span> <span class="pre">class&gt;.&lt;Operation&gt;</span></tt> classmethod. This construction
+should be used by end-users.</li>
+</ol>
+<p>There exist also some convenience and implementation specific
+possibilities to construct expressions:</p>
+<ol class="arabic simple" start="4">
+<li>Use <tt class="docutils literal"><span class="pre">&lt;Algebra</span> <span class="pre">class&gt;.convert(&lt;obj&gt;,</span> <span class="pre">typeerror=True)</span></tt> to convert
+Python object <tt class="docutils literal"><span class="pre">&lt;obj&gt;</span></tt> to algebra instance. If conversation is not
+defined then <tt class="docutils literal"><span class="pre">TypeError</span></tt> is raised by default. When
+<tt class="docutils literal"><span class="pre">typeerror=False</span></tt> then <tt class="docutils literal"><span class="pre">NotImplemented</span></tt> is returned instead of
+raising the exception.</li>
+<li>Use <tt class="docutils literal"><span class="pre">&lt;Algebra</span> <span class="pre">class&gt;(&lt;obj&gt;)</span></tt> that is an alias to <tt class="docutils literal"><span class="pre">&lt;Algebra</span>
+<span class="pre">class&gt;.convert(&lt;obj&gt;)</span></tt> call.</li>
+</ol>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id10" id="verbatim-algebra" name="verbatim-algebra">3.3&nbsp;&nbsp;&nbsp;Verbatim algebra</a></h2>
 <p>SympyCore defines <tt class="docutils literal"><span class="pre">Verbatim</span></tt> class that represents verbatim algebra.
 Verbatim algebra contains expressions in unevaluated form. The
 verbatim algebra can be used to implement generic methods for
@@ -356,18 +404,63 @@ transforming symbolic expressions to strings, or to instances of other
 algebras.</p>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id9" id="logic-algebra" name="logic-algebra">3.3&nbsp;&nbsp;&nbsp;Logic algebra</a></h2>
+<h2><a class="toc-backref" href="#id11" id="logic-algebra" name="logic-algebra">3.4&nbsp;&nbsp;&nbsp;Logic algebra</a></h2>
 <p>SympyCore defines <tt class="docutils literal"><span class="pre">Logic</span></tt> class that represents n-ary predicate
-expressions.</p>
+expressions. The following operations are defined by the <tt class="docutils literal"><span class="pre">Logic</span></tt>
+class:</p>
+<ol class="arabic simple">
+<li><tt class="docutils literal"><span class="pre">Not(x)</span></tt> represents boolean expression <tt class="docutils literal"><span class="pre">not</span> <span class="pre">x</span></tt>. Operand algebra
+class is <tt class="docutils literal"><span class="pre">Logic</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">And(x,y,..)</span></tt> represents boolean expression <tt class="docutils literal"><span class="pre">x</span> <span class="pre">and</span> <span class="pre">y</span> <span class="pre">and</span> <span class="pre">..</span></tt>.
+Operand algebra class is <tt class="docutils literal"><span class="pre">Logic</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">Or(x,y,..)</span></tt> represents boolean expression <tt class="docutils literal"><span class="pre">x</span> <span class="pre">or</span> <span class="pre">y</span> <span class="pre">or</span> <span class="pre">..</span></tt>.
+Operand algebra class is <tt class="docutils literal"><span class="pre">Logic</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">Lt(x,</span> <span class="pre">y)</span></tt> represents relational expression <tt class="docutils literal"><span class="pre">x</span> <span class="pre">&lt;</span> <span class="pre">y</span></tt>.
+Operand algebra class is <tt class="docutils literal"><span class="pre">Calculus</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">Le(x,</span> <span class="pre">y)</span></tt> represents relational expression <tt class="docutils literal"><span class="pre">x</span> <span class="pre">&lt;=</span> <span class="pre">y</span></tt>.
+Operand algebra class is <tt class="docutils literal"><span class="pre">Calculus</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">Gt(x,</span> <span class="pre">y)</span></tt> represents relational expression <tt class="docutils literal"><span class="pre">x</span> <span class="pre">&gt;</span> <span class="pre">y</span></tt>.
+Operand algebra class is <tt class="docutils literal"><span class="pre">Calculus</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">Ge(x,</span> <span class="pre">y)</span></tt> represents relational expression <tt class="docutils literal"><span class="pre">x</span> <span class="pre">&gt;=</span> <span class="pre">y</span></tt>.
+Operand algebra class is <tt class="docutils literal"><span class="pre">Calculus</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">Eq(x,</span> <span class="pre">y)</span></tt> represents relational expression <tt class="docutils literal"><span class="pre">x</span> <span class="pre">==</span> <span class="pre">y</span></tt>.
+Operand algebra class is <tt class="docutils literal"><span class="pre">Calculus</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">Ne(x,</span> <span class="pre">y)</span></tt> represents relational expression <tt class="docutils literal"><span class="pre">x</span> <span class="pre">!=</span> <span class="pre">y</span></tt>.
+Operand algebra class is <tt class="docutils literal"><span class="pre">Calculus</span></tt>.</li>
+</ol>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id10" id="collecting-field" name="collecting-field">3.4&nbsp;&nbsp;&nbsp;Collecting field</a></h2>
+<h2><a class="toc-backref" href="#id12" id="collecting-field" name="collecting-field">3.5&nbsp;&nbsp;&nbsp;Collecting field</a></h2>
 <p>SympyCore defines <tt class="docutils literal"><span class="pre">CollectingField</span></tt> class to represent sums and
 products in <tt class="docutils literal"><span class="pre">{&lt;term&gt;:&lt;coefficent&gt;}</span></tt> and <tt class="docutils literal"><span class="pre">{&lt;base&gt;:&lt;exponent&gt;}</span></tt>
 forms, respectively. The class name contains prefix &quot;Collecting&quot;
 because in operations with <tt class="docutils literal"><span class="pre">CollectingField</span></tt> instances, equal terms
 and equal bases are automatically collected by upgrading the
 coefficient and exponent values, respectively.</p>
+<p>The following operations are defined by the <tt class="docutils literal"><span class="pre">CollectingField</span></tt> and
+its subclasses <tt class="docutils literal"><span class="pre">Calculus</span></tt>, <tt class="docutils literal"><span class="pre">Unit</span></tt>:</p>
+<ol class="arabic simple">
+<li><tt class="docutils literal"><span class="pre">Add(x,</span> <span class="pre">y,</span> <span class="pre">..)</span></tt> represents addition <tt class="docutils literal"><span class="pre">x</span> <span class="pre">+</span> <span class="pre">y</span> <span class="pre">+</span> <span class="pre">..</span></tt>.
+Operand algebra class is the same as algebra class.</li>
+<li><tt class="docutils literal"><span class="pre">Mul(x,</span> <span class="pre">y,</span> <span class="pre">..)</span></tt> represents multiplication <tt class="docutils literal"><span class="pre">x</span> <span class="pre">*</span> <span class="pre">y</span> <span class="pre">*</span> <span class="pre">..</span></tt>.
+Operand algebra class is the same as algebra class.</li>
+<li><tt class="docutils literal"><span class="pre">Terms((x,a),</span> <span class="pre">(y,b),</span> <span class="pre">..)</span></tt> represents a sum <tt class="docutils literal"><span class="pre">a*x</span> <span class="pre">+</span> <span class="pre">b*y</span> <span class="pre">+</span> <span class="pre">..</span></tt>
+where <tt class="docutils literal"><span class="pre">x,</span> <span class="pre">y,</span> <span class="pre">..</span></tt> must be non-numeric instances of the algebra
+class and <tt class="docutils literal"><span class="pre">a,</span> <span class="pre">b,</span> <span class="pre">..</span></tt> are low-level numbers.</li>
+<li><tt class="docutils literal"><span class="pre">Factors((x,a),</span> <span class="pre">(y,b),</span> <span class="pre">..)</span></tt> represents a product <tt class="docutils literal"><span class="pre">x**a</span> <span class="pre">*</span> <span class="pre">y**b</span> <span class="pre">*</span> <span class="pre">..</span></tt>
+where <tt class="docutils literal"><span class="pre">x,</span> <span class="pre">y,</span> <span class="pre">..</span></tt> must be instances of the algebra
+class and <tt class="docutils literal"><span class="pre">a,</span> <span class="pre">b,</span> <span class="pre">..</span></tt> are either low-level numbers or instances of
+exponent algebra.</li>
+<li><tt class="docutils literal"><span class="pre">Pow(x,</span> <span class="pre">y)</span></tt> represents exponentiation <tt class="docutils literal"><span class="pre">x</span> <span class="pre">**</span> <span class="pre">y</span></tt> where <tt class="docutils literal"><span class="pre">x</span></tt> must
+be instance of the algebra class and <tt class="docutils literal"><span class="pre">y</span></tt> must be either low-level
+number or an instance of exponent algebra.</li>
+<li><tt class="docutils literal"><span class="pre">Sub(x,</span> <span class="pre">y,</span> <span class="pre">..)</span></tt> represents operation <tt class="docutils literal"><span class="pre">x</span> <span class="pre">-</span> <span class="pre">y</span> <span class="pre">-</span> <span class="pre">..</span></tt> where operands
+must be instances of the algebra class.</li>
+<li><tt class="docutils literal"><span class="pre">Div(x,</span> <span class="pre">y,</span> <span class="pre">..)</span></tt> represents operation <tt class="docutils literal"><span class="pre">x</span> <span class="pre">/</span> <span class="pre">y</span> <span class="pre">/</span> <span class="pre">..</span></tt> where operands
+must be instances of the algebra class.</li>
+<li><tt class="docutils literal"><span class="pre">Apply(f,</span> <span class="pre">(x,</span> <span class="pre">y,</span> <span class="pre">..))</span></tt> represents unevaluated function call
+<tt class="docutils literal"><span class="pre">f(x,</span> <span class="pre">y,</span> <span class="pre">..)</span></tt>.</li>
+</ol>
 </div>
 </div>
 </div>
