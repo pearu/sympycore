@@ -72,7 +72,7 @@ DENSE_POLY = intern('DP')
 
 head_to_string = {\
     OR:'OR', AND:'AND', NOT:'NOT',
-    LT:'LT', LE:'LE', GT:'GT', GE:'GE', NE:'NE',
+    LT:'LT', LE:'LE', GT:'GT', GE:'GE', NE:'NE', EQ:'EQ',
     BAND:'BAND', BOR:'BOR', BXOR:'BXOR', INVERT:'INVERT',
     POS:'POS', NEG:'NEG', ADD:'ADD', SUB:'SUB', MOD:'MOD', MUL:'MUL', DIV:'DIV', POW:'POW',
     NUMBER:'NUMBER', SYMBOL:'SYMBOL', APPLY:'APPLY', TUPLE:'TUPLE', LAMBDA:'LAMBDA',
