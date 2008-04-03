@@ -64,6 +64,7 @@ static PyObject* Expr_as_lowlevel(Expr *self);
 static PyObject* str_as_lowlevel;
 static PyObject* str_convert;
 static PyObject* str_handle_numeric_item;
+static PyObject* str_getinitargs;
 
 #define Expr_Check(op) PyObject_TypeCheck(op, &ExprType)
 #define Expr_CheckExact(op) ((op)->ob_type == &ExprType)
@@ -263,17 +264,26 @@ Expr_reduce(Expr *self)
   /* version number of this pickle type. Increment if we need to
      change the format. Be sure to handle the old versions in
      sympycore.core._reconstruct. */
-  const int version = 1;
+  const int version = 2;
   PyObject *mod = NULL;
   PyObject *ret = NULL;
   PyObject *obj = NULL;
+  PyObject *cls = (PyObject *)self->ob_type;
+  PyObject *typ = (PyObject *)cls->ob_type;
+  PyObject *args = NULL;
 
   /* __reduce__ will return a tuple consisting of the following items:
      1) A callable object that will be called to create the initial
         version of the object:  sympycore.core._reconstruct.
      2) A tuple of arguments for the callable object:
            (version, state)
-        where state = (cls, pair, hash) for version=1.
+	If version==1 then
+	  state = (cls, pair, hash)
+	If version==2 then
+	  If args=type(cls).__getinitargs__(cls) succeeds then
+  	    state = ((type(cls), args), pair, hash)
+	  else
+  	    state = (cls, pair, hash)
    */
 
   ret = PyTuple_New(2);
@@ -286,13 +296,39 @@ Expr_reduce(Expr *self)
   if (obj == NULL) return NULL;
 
   PyTuple_SET_ITEM(ret, 0, obj);
-  /* version=1 state: */
-  PyTuple_SET_ITEM(ret, 1,
-		   Py_BuildValue("l(OOl)",
-				 version,
-				 (PyObject *)self->ob_type,
-				 self->pair,
-				 self->hash));
+  switch (version) {
+  case 1:
+    PyTuple_SET_ITEM(ret, 1,
+		     Py_BuildValue("l(OOl)",
+				   version,
+				   cls,
+				   self->pair,
+				   self->hash));
+    break;
+  case 2:
+    args = PyObject_CallMethodObjArgs(typ, str_getinitargs, cls, NULL);
+    if (args==NULL) {
+      PyErr_Clear();
+      PyTuple_SET_ITEM(ret, 1,
+		       Py_BuildValue("l(OOl)",
+				     version,
+				     cls,
+				     self->pair,
+				     self->hash));
+    } else {
+      PyTuple_SET_ITEM(ret, 1,
+		       Py_BuildValue("l((ON)Ol)",
+				     version,
+				     typ, args,
+				     self->pair,
+				     self->hash));
+    }
+    break;
+  default:
+    printf("Expr.__reduce__: not implemented version = %d\n", version);
+    PyErr_SetString(PyExc_NotImplementedError, "pickle state version");
+    return NULL;
+  }
   return ret;
 }
 
@@ -834,6 +870,9 @@ initexpr_ext(void)
     return;
   str_handle_numeric_item = PyString_FromString("handle_numeric_item");
   if (str_handle_numeric_item==NULL)
+    return;
+  str_getinitargs = PyString_FromString("__getinitargs__");
+  if (str_getinitargs==NULL)
     return;
   m = Py_InitModule3("expr_ext", module_methods,
 		     "Provides extension type Expr.");

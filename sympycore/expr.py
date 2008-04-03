@@ -137,13 +137,29 @@ This is Python version of Expr type.
             self._hash = hashvalue
 
     def __reduce__(self):
-        version = 1
+        version = 2
         from sympycore.core import _reconstruct
         if version==1:
             hashvalue = self._hash
             if hashvalue is None:
                 hashvalue = -1
             state = (type(self), self.pair, hashvalue)
+        elif version==2:
+            hashvalue = self._hash
+            if hashvalue is None:
+                hashvalue = -1
+            cls = type(self)
+            typ = type(cls)
+            try:
+                args = typ.__getinitargs__(cls)
+            except TypeError:
+                args = None
+            if args is None:
+                # either metaclass does not define __getinitargs__ method
+                # or cls has no metaclass
+                state = (cls, self.pair, hashvalue)
+            else:
+                state = ((typ, args), self.pair, hashvalue)
         else:
             raise NotImplementedError('pickle state version %s' % (version))
         return  _reconstruct, (version, state)

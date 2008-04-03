@@ -69,6 +69,13 @@ class FunctionRingFactory(type):
             typ._type_cache[name] = cls
         return cls
 
+    def __getinitargs__(cls):
+        attrdict = dict(argument_algebras=cls.argument_algebras,
+                        value_algebra = cls.value_algebra,
+                        nargs = cls.nargs,
+                        )
+        return (cls.__name__, cls.__bases__, attrdict)
+
 class FunctionRing(CollectingField):
     """ Base class to Map classes.
 
@@ -76,6 +83,10 @@ class FunctionRing(CollectingField):
     """
 
     __metaclass__ = FunctionRingFactory
+
+    argument_algebras = None
+    value_algebra = None
+    nargs = None
 
     def as_algebra(self, cls):
         if cls is classes.Verbatim:
