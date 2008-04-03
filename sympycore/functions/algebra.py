@@ -7,9 +7,21 @@
 
 __all__ = ['Function', 'FunctionRing']
 
+import inspect
+
 from ..core import classes
 from ..basealgebra import CollectingField, Verbatim
 from ..utils import SYMBOL, NUMBER, APPLY
+
+def get_nargs(obj):
+    assert callable(obj),`obj`
+    if inspect.isclass(obj):
+        return len(inspect.getargspec(obj.__new__)[0])-1
+    if inspect.isfunction(obj):
+        return len(inspect.getargspec(obj)[0])
+    if inspect.ismethod(obj):
+        return len(inspect.getargspec(obj)[0]) - 1
+    raise NotImplementedError(`obj`)        
 
 def Function(obj, *args):
     """ Construct a FunctionRing instance.
@@ -22,35 +34,43 @@ def Function(obj, *args):
       Function(call)             - undefined function aseq->Calculus with callable
       Function(call, aseq)       - undefined function aseq->Calculus with callable
       Function(call, aseq, valg) - undefined function aseq->valg with callable
+      Function(call, aalg)       - same as Function(call, aseq) where aseq=(aalg,)*nargs
+      Function(call, aalg, valg) - same as Function(call, aseq, valg) where aseq=(aalg,)*nargs
 
-    ``aseq`` is a tuple of algebra classes or a algebra class defining the
-    arguments domains of the function.
+    ``aseq`` is a tuple of algebra classes defining the arguments domains of the function.
+
+    ``aalg`` is a algebra class defining the domain of all function arguments.
     
     ``valg`` is a algebra class defining the domain of function values.
     """
+    if callable(obj):
+        nargs = get_nargs(obj)
+    else:
+        nargs = 1
     if len(args)==0:
         if isinstance(obj, FunctionRing):
             return obj
-        if callable(obj):
-            raise NotImplementedError('get nofargs from callable')
-        aseq = (classes.Calculus,)
+        aseq = (classes.Calculus,) * nargs
         valg = classes.Calculus
     elif len(args)==1:
-        if callable(obj):
-            raise NotImplementedError('check nofargs of callable')
         aseq = args[0]
+        if isinstance(aseq, type):
+            aseq = (aseq, )*nargs
         valg = classes.Calculus
     elif len(args)==2:
-        if callable(obj):
-            raise NotImplementedError('check nofargs of callable')
         aseq = args[0]
+        if isinstance(aseq, type):
+            aseq = (aseq, )*nargs
         valg = args[1]
     else:
         raise TypeError('Function takes 1, 2, or 3 arguments, got %r' % (len(args)+1))
-
+    if not callable(obj):
+        nargs = len(aseq)
+    else:
+        assert nargs==len(aseq)
     name = 'FunctionRing_%s_to_%s' % ('_'.join([t.__name__ for t in aseq]), valg.__name__)
     cls = FunctionRingFactory(name, (FunctionRing, ),
-                              dict(nargs = len(aseq),
+                              dict(nargs = nargs,
                                    argument_algebras = aseq,
                                    value_algebra = valg
                                    ))
@@ -59,6 +79,11 @@ def Function(obj, *args):
     return cls(SYMBOL, obj)   # defined and undefined functions
 
 class FunctionRingFactory(type):
+    """ Metaclass for FunctionRing.
+
+    Caches dunamically created classes and implements __getinitargs__
+    for pickle support.
+    """
 
     _type_cache = {}
 
@@ -70,14 +95,15 @@ class FunctionRingFactory(type):
         return cls
 
     def __getinitargs__(cls):
-        attrdict = dict(argument_algebras=cls.argument_algebras,
+        # used by pickle support
+        attrdict = dict(argument_algebras = cls.argument_algebras,
                         value_algebra = cls.value_algebra,
                         nargs = cls.nargs,
                         )
         return (cls.__name__, cls.__bases__, attrdict)
 
 class FunctionRing(CollectingField):
-    """ Base class to Map classes.
+    """ Base class to functions ring classes.
 
     Use ``Function`` function to construct instances.
     """

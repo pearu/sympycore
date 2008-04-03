@@ -254,7 +254,9 @@ class CollectingField(CommutativeRing):
                 s1 = '(%s)' % (s1)
             s2 = ', '.join([a.to_str_data(sort)[1] for a in args])
             return str_APPLY, '%s(%s)' % (s1, s2)
-        return str_SYMBOL, str(self.data)
+        if callable(data):
+            return str_SYMBOL, data.__name__
+        return str_SYMBOL, str(data)
 
     @property
     def func(self):

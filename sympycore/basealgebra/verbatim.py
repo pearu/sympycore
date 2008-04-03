@@ -182,7 +182,10 @@ class Verbatim(Algebra):
     def _compute_str(self):
         head, rest = self.pair
         if head is SYMBOL or head is NUMBER:
-            s = str(rest)
+            if callable(rest):
+                s = rest.__name__
+            else:
+                s = str(rest)
             if not (_is_name(s) or _is_number(s)) and not s.startswith('('):
                 s = '((%s))' % (s)
             return s
