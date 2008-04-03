@@ -153,9 +153,9 @@ class Verbatim(Algebra):
             return +(rest.as_algebra(cls))
         if head is APPLY:
             func = rest[0].as_algebra(cls)
-            args = [a.as_algebra(cls) for a in rest[1:]]
-            if callable(func):
-                return func(*args)
+            args = [cls(a) for a in rest[1:]]
+            #if callable(func):
+            #    return func(*args)
             return cls(APPLY, (func,)+ tuple(args))
         if head is LT: return cls.Lt(*[r.as_algebra(classes.Calculus) for r in rest])
         if head is LE: return cls.Le(*[r.as_algebra(classes.Calculus) for r in rest])
