@@ -478,15 +478,15 @@ of function arguments or for single argument functions, the argument
 itself.</p>
 <p>To simplify the infrastructure for handling defined functions, the
 defined functions in <tt class="docutils literal"><span class="pre">sympycore</span></tt> should be defined as classes
-derived from <tt class="docutils literal"><span class="pre">Function</span></tt> class (defined in <tt class="docutils literal"><span class="pre">sympycore.core</span></tt>). Such
-defined functions will be available as attributes of the
-<tt class="docutils literal"><span class="pre">defined_functions</span></tt> holder object, and most importantly, the
-expression string parser will recognize symbols with defined function
-names as defined functions.</p>
+derived from <tt class="docutils literal"><span class="pre">DefinedFunction</span></tt> class (defined in
+<tt class="docutils literal"><span class="pre">sympycore.core</span></tt>). Such defined functions will be available as
+attributes of the <tt class="docutils literal"><span class="pre">defined_functions</span></tt> holder object, and most
+importantly, the expression string parser will recognize symbols with
+defined function names as defined functions.</p>
 <p>Here follows a typical definition of a defined function <tt class="docutils literal"><span class="pre">myfunc</span></tt> for
 a given <tt class="docutils literal"><span class="pre">Algebra</span></tt> class:</p>
 <pre class="literal-block">
-class myfunc(Function):
+class myfunc(DefinedFunction):
 
     def __new__(cls, *args):
         # perform any canonization of arguments (including

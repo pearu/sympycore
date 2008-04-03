@@ -2,7 +2,7 @@
 """
 
 __docformat__ = 'restructuredtext'
-__all__ = ['classes', 'Expr', 'defined_functions', 'Function']
+__all__ = ['classes', 'Expr', 'defined_functions', 'DefinedFunction']
 
 using_C_Expr = False
 try:
@@ -100,7 +100,7 @@ class FunctionType(type):
             setattr(defined_functions, name, cls)
         return cls
 
-class Function(object):
+class DefinedFunction(object):
     """ Base class to symbolic functions.
     """
     __metaclass__ = FunctionType

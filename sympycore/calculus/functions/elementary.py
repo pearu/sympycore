@@ -11,7 +11,7 @@ __docformat__ = "restructuredtext"
 from ..algebra import Calculus, I,  NUMBER, TERMS, FACTORS, SYMBOL, TERMS
 from ..infinity import oo, undefined, CalculusInfinity
 from ..constants import const_pi, const_E, const_gamma
-from ...core import Function
+from ...core import DefinedFunction
 from ...arithmetic.evalf import evalf
 from ...arithmetic.numbers import complextypes, realtypes, inttypes
 from ...arithmetic.number_theory import factorial
@@ -36,13 +36,13 @@ gamma = const_gamma.as_algebra(Calculus)
 Ipi = I*pi
 Ipi2 = Ipi/2
 
-class sign(Function):
+class sign(DefinedFunction):
     def __new__(cls, arg):
         if not isinstance(arg, Calculus):
             arg = Calculus.convert(arg)
         return Calculus(cls, arg)
 
-class mod(Function):
+class mod(DefinedFunction):
     def __new__(cls, x, y):
         if not isinstance(x, Calculus):
             x = Calculus.convert(x)
@@ -54,11 +54,11 @@ class mod(Function):
             return Calculus.convert(xd % yd)
         return Calculus(cls, (x, y))
 
-class sqrt(Function):
+class sqrt(DefinedFunction):
     def __new__(cls, arg):
         return arg ** half
 
-class exp(Function):
+class exp(DefinedFunction):
     def __new__(cls, arg):
         return E ** arg
 
@@ -73,7 +73,7 @@ log_number_table = {
     (-I).data : -Ipi2
 }
 
-class log(Function):
+class log(DefinedFunction):
     def __new__(cls, arg, base=E):
         if type(arg) is not Calculus:
             if isinstance(arg, CalculusInfinity):
@@ -178,7 +178,7 @@ def has_leading_sign(arg):
             return True
     return None
 
-class TrigonometricFunction(Function):
+class TrigonometricFunction(DefinedFunction):
 
     parity = None   # 'even' or 'odd'
     period = None   # multiple of pi

@@ -8,7 +8,7 @@ __date__ = '2008'
 __author__ = 'Pearu Peterson, Fredrik Johansson'
 __license__ = 'New BSD License'
 
-from .core import classes, defined_functions, Function, Expr
+from .core import classes, defined_functions, DefinedFunction, Expr
 from basealgebra import *
 from arithmetic import *
 from logic import *

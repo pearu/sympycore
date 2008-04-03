@@ -387,16 +387,16 @@ itself.
 
 To simplify the infrastructure for handling defined functions, the
 defined functions in ``sympycore`` should be defined as classes
-derived from ``Function`` class (defined in ``sympycore.core``). Such
-defined functions will be available as attributes of the
-``defined_functions`` holder object, and most importantly, the
-expression string parser will recognize symbols with defined function
-names as defined functions.
+derived from ``DefinedFunction`` class (defined in
+``sympycore.core``). Such defined functions will be available as
+attributes of the ``defined_functions`` holder object, and most
+importantly, the expression string parser will recognize symbols with
+defined function names as defined functions.
 
 Here follows a typical definition of a defined function ``myfunc`` for
 a given ``Algebra`` class::
 
-  class myfunc(Function):
+  class myfunc(DefinedFunction):
 
       def __new__(cls, *args):
           # perform any canonization of arguments (including
