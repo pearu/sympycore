@@ -16,7 +16,8 @@ from compiler import ast
 from .algebra import Algebra
 from ..utils import (OR, AND, NOT, LT, LE, GT, GE, EQ, NE, BAND, BOR, BXOR,
                      INVERT, POS, NEG, ADD, SUB, MOD, MUL, DIV, POW,
-                     NUMBER, SYMBOL, APPLY, TUPLE, LAMBDA, head_to_string)
+                     NUMBER, SYMBOL, APPLY, TUPLE, LAMBDA, head_to_string,
+                     IN, NOTIN)
 from ..core import classes, Expr
 
 # XXX: Unimplemented expression parts:
@@ -24,7 +25,7 @@ from ..core import classes, Expr
 # XXX: function calls assume no optional nor *args nor *kwargs, same applies to lambda
 
 boolean_lst = [AND, OR, NOT]
-compare_lst = [LT, LE, GT, GE, EQ, NE]
+compare_lst = [LT, LE, GT, GE, EQ, NE, IN, NOTIN]
 bit_lst = [BAND, BOR, BXOR, INVERT]
 arith_lst = [POS, NEG, ADD, SUB, MOD, MUL, DIV, POW]
 parentheses_map = {
@@ -37,6 +38,8 @@ parentheses_map = {
     GE: [LAMBDA] + boolean_lst,
     EQ: [LAMBDA] + boolean_lst,
     NE: [LAMBDA] + boolean_lst,
+    IN: [LAMBDA] + boolean_lst,
+    NOTIN: [LAMBDA] + boolean_lst,
     BOR: [LAMBDA] + compare_lst + boolean_lst,
     BXOR: [LAMBDA, BOR] + compare_lst + boolean_lst,
     BAND: [LAMBDA, BOR, BXOR] + compare_lst + boolean_lst,
@@ -171,6 +174,18 @@ class Verbatim(Algebra):
             return cls.Not(rest[0].as_algebra(cls))
         if head is MOD:
             return cls.Mod(*[r.as_algebra(cls) for r in rest])
+        if head is IN:
+            element, container = rest
+            #XXX: need Set algebra
+            #container = container.as_algebra(classes.Set)
+            element = element.as_algebra(classes.Calculus)
+            return cls.IsElement(element, container)
+        if head is NOTIN:
+            element, container = rest
+            #XXX: need Set algebra
+            #container = container.as_algebra(classes.Set)
+            element = element.as_algebra(classes.Calculus)
+            return cls.Not(cls.IsElement(element, container))
         raise TypeError('%r cannot be converted to %s algebra' % (self, cls.__name__))
 
     def __str__(self):
@@ -343,7 +358,7 @@ node_map = dict(Add='ADD', Mul='MUL', Sub='SUB', Div='DIV', FloorDiv='DIV',
                 Tuple='TUPLE',
                 )
 compare_map = {'<':LT, '>':GT, '<=':LE, '>=':GE,
-               '==':EQ, '!=':NE}
+               '==':EQ, '!=':NE, 'in':IN, 'not in': NOTIN}
 
 class VerbatimWalker:
     """ Helper class for expression parser.

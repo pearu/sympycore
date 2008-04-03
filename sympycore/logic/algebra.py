@@ -1,6 +1,6 @@
 
 from ..core import classes
-from ..utils import EQ, NE, LT, LE, GT, GE, SYMBOL, AND, NOT, OR, NUMBER
+from ..utils import EQ, NE, LT, LE, GT, GE, SYMBOL, AND, NOT, OR, NUMBER, IN
 from ..basealgebra import Algebra, Verbatim
 
 head_mth_map = {
@@ -179,6 +179,16 @@ class Logic(Algebra):
             if lhs.head is NUMBER and rhs.head is NUMBER:
                 return cls.true
         return cls(NE, seq)
+
+    @classmethod
+    def IsElement(cls, element, container):
+        return cls(IN, (element, container))
+
+    @classmethod
+    def Contains(cls, container, element):
+        return cls.IsElement(element, container)
+
+    #XXX: IsSubset
 
     @classmethod
     def Or(cls, *seq):

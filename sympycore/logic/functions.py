@@ -38,6 +38,13 @@ def Ge(a, b):
     c = classes.Calculus.convert
     return Logic.Ge(c(a), c(b))
 
+def IsElement(a, b):
+    """ Return relational expression ``a in b``.
+    """
+    c = classes.Calculus.convert
+    #XXX: b = classes.Set.convert(b)
+    return Logic.IsElement(c(a), b)
+
 def Not(a):
     """ Return boolean expression ``not a``.
     """
