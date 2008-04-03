@@ -8,6 +8,7 @@ Mul = Algebra.Mul
 Pow = Algebra.Pow
 Terms = Algebra.Terms
 Factors = Algebra.Factors
+Apply = Algebra.Apply
 
 def test_symbol():
     a = Symbol('a')
@@ -71,6 +72,14 @@ def test_func_args():
     assert s1.func(*s1.args)==s1
     assert m.func(*m.args)==m
     assert m2.func(*m2.args)==m2
+
+def test_apply_args():
+    a = Symbol('a')
+    b = Symbol('b')
+    f = Symbol('f')
+    fab = Apply(f, (a,b))
+    assert fab.args==(a,b)
+    assert fab.func(*fab.args)==fab
     
 def test_Add_args():
     a = Symbol('a')

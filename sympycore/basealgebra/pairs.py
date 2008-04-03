@@ -39,6 +39,12 @@ class ConstantFunc(Expr):
     def __call__(self):
         return self.data
 
+class ApplyFunc(Expr):
+    def __call__(self, *args):
+        data = self.data
+        cls = type(data)
+        return cls(APPLY, data.data[:1] + args)
+
 class CollectingField(CommutativeRing):
     """ Implementation of a commutative ring where sums and products
     are represented as dictionaries of pairs.
@@ -152,15 +158,15 @@ class CollectingField(CommutativeRing):
         return self.to_str_data()[1]
 
     def to_str_data(self, sort=True):
-        head = self.head
+        head, data = self.pair
         one = self.one
         cls = type(self)
         if head is NUMBER:
-            return cls.coefficient_to_str_data(self.data, sort)
+            return cls.coefficient_to_str_data(data, sort)
         if head is TERMS:
             pos_dict = {}
             neg_dict = {}
-            for t, c in self.data.iteritems():
+            for t, c in data.iteritems():
                 if isinstance(c, realtypes) and c<0:
                     d = neg_dict
                     c = -c
@@ -203,7 +209,7 @@ class CollectingField(CommutativeRing):
             return str_SUM, '-' + (' - '.join(r2))
         if head is FACTORS:
             d = {}
-            for t, c in self.data.iteritems():
+            for t, c in data.iteritems():
                 h1, s1 = t.to_str_data(sort)
                 h2, s2 = cls.exponent_to_str_data(c, sort)
                 if c==1:
@@ -235,9 +241,17 @@ class CollectingField(CommutativeRing):
             h1, s1 = cls.callable_to_str_data(head, sort)
             if h1 > str_APPLY:
                 s1 = '(%s)' % (s1)
-            args = self.data
+            args = data
             if type(args) is not tuple:
                 args = args,
+            s2 = ', '.join([a.to_str_data(sort)[1] for a in args])
+            return str_APPLY, '%s(%s)' % (s1, s2)
+        if head is APPLY:
+            func = data[0]
+            args = data[1:]
+            h1, s1 = func.to_str_data(sort)
+            if h1 > str_APPLY:
+                s1 = '(%s)' % (s1)
             s2 = ', '.join([a.to_str_data(sort)[1] for a in args])
             return str_APPLY, '%s(%s)' % (s1, s2)
         return str_SYMBOL, str(self.data)
@@ -246,12 +260,11 @@ class CollectingField(CommutativeRing):
     def func(self):
         """ Return callable func such that ``self.func(**self.args) == self``
         """
-        head = self.head
-        data = self.data
+        head, data = self.pair
         if head is SYMBOL or head is NUMBER:
             return ConstantFunc(None, self)
         elif head is TERMS:
-            if len(self.data)==1:
+            if len(data)==1:
                 return self.Mul
             return self.Add
         elif head is FACTORS:
@@ -260,30 +273,33 @@ class CollectingField(CommutativeRing):
             return self.Pow
         elif callable(head):
             return head
+        elif head is APPLY:
+            return ApplyFunc(None, self)
         raise NotImplementedError(`self, head`)
 
     @property
     def args(self):
         """ Return a sequence args such that ``self.func(**self.args) == self``
         """
-        head = self.head
+        head, data = self.pair
         if head is SYMBOL or head is NUMBER:
             return []
         elif head is TERMS:
-            if len(self.data)==1:
-                t, c = self.data.items()[0]
+            if len(data)==1:
+                t, c = data.items()[0]
                 return [self.convert(c)] + t.as_Mul_args()
             return self.as_Add_args()
         elif head is FACTORS:
-            if len(self.data)>1:
+            if len(data)>1:
                 return self.as_Mul_args()
             return self.as_Pow_args()
         elif callable(head):
-            data = self.data
             if type(data) is tuple:
                 return data
             return data,
-        raise NotImplementedError(`self, head`)
+        elif head is APPLY:
+            return data[1:]
+        raise NotImplementedError(`self, head, data`)
 
     @property
     def is_Add(self):
@@ -425,8 +441,10 @@ class CollectingField(CommutativeRing):
 
     @classmethod
     def Apply(cls, func, args):
-        return cls(func, args)
-    
+        if callable(func):
+            return cls(func, args)
+        return cls(APPLY, (func,)+args)
+
     @classmethod
     def Add(cls, *seq):
         """ Return canonized sum as an algebra element.

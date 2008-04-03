@@ -172,7 +172,6 @@ class Verbatim(Algebra):
         if head is MOD:
             return cls.Mod(*[r.as_algebra(cls) for r in rest])
         raise TypeError('%r cannot be converted to %s algebra' % (self, cls.__name__))
-        #raise NotImplementedError('as_algebra(%s): %s, head=%s' % (cls, self, head_to_string[head]))
 
     def __str__(self):
         s = self._str
