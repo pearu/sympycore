@@ -2,7 +2,7 @@
 """
 
 __docformat__ = 'restructuredtext'
-__all__ = ['classes', 'Expr']
+__all__ = ['classes', 'Expr', 'defined_functions', 'Function']
 
 using_C_Expr = False
 try:
@@ -66,8 +66,41 @@ class Holder:
                 continue
             yield k,v
 
+classes = Holder('SympyCore classes holder (%(_counter)s classes)')
+defined_functions = Holder('SympyCore defined functions holder (%(_counter)s classes)')
 
-classes = Holder('Sympy Basic subclass holder (%(_counter)s classes)')
+class FunctionType(type):
+    """ Metaclass to Function class.
+
+    FunctionType implements the following features:
+
+    1. If a class derived from ``Function`` has a name containing
+       substring ``Function`` then the class will be saved as an
+       attribute to ``classes`` holder. Such classes are assumed to
+       be base classes to defined functions.
+
+    2. Otherwise, ``Function`` subclasses are saved as attributes to
+       ``defined_functions`` holder.
+
+    """
+
+    def __new__(typ, name, bases, attrdict):
+        cls = type.__new__(typ, name, bases, attrdict)
+        if 'Function' in name:
+            setattr(classes, name, cls)
+        else:
+            setattr(defined_functions, name, cls)
+        return cls
+
+class Function(object):
+    """ Base class to symbolic functions.
+    """
+    __metaclass__ = FunctionType
+
+    @classmethod
+    def derivative(cls, arg):
+        """ Return derivative function of cls at arg.
+        """
+        raise NotImplementedError(`cls, arg`)
+
 classes.Expr = Expr
-#objects = Holder('Sympy predefined objects holder (%(_counter)s objects)')
-

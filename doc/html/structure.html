@@ -129,6 +129,7 @@ div.warning p.admonition-title {
 <li><a class="reference" href="#collecting-field" id="id12" name="id12">3.5&nbsp;&nbsp;&nbsp;Collecting field</a></li>
 </ul>
 </li>
+<li><a class="reference" href="#defining-functions-in-sympycore" id="id13" name="id13">4&nbsp;&nbsp;&nbsp;Defining functions in SympyCore</a></li>
 </ul>
 </div>
 </div>
@@ -462,6 +463,37 @@ must be instances of the algebra class.</li>
 <tt class="docutils literal"><span class="pre">f(x,</span> <span class="pre">y,</span> <span class="pre">..)</span></tt>.</li>
 </ol>
 </div>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id13" id="defining-functions-in-sympycore" name="defining-functions-in-sympycore">4&nbsp;&nbsp;&nbsp;Defining functions in SympyCore</a></h1>
+<p>In general, unevaluated applied functions in <tt class="docutils literal"><span class="pre">sympycore</span></tt> are
+represented as a pair:</p>
+<pre class="literal-block">
+&lt;Algebra class&gt;(&lt;callable&gt;, &lt;arguments&gt;)
+</pre>
+<p>where <tt class="docutils literal"><span class="pre">&lt;Algebra</span> <span class="pre">class&gt;</span></tt> defines an algebra where the function values
+belong to, <tt class="docutils literal"><span class="pre">&lt;callable&gt;</span></tt> is a Python callable object that may define
+some basic canonization rules, and <tt class="docutils literal"><span class="pre">&lt;arguments&gt;</span></tt> is either a tuple
+of function arguments or for single argument functions, the argument
+itself.</p>
+<p>To simplify the infrastructure for handling defined functions, the
+defined functions in <tt class="docutils literal"><span class="pre">sympycore</span></tt> should be defined as classes
+derived from <tt class="docutils literal"><span class="pre">Function</span></tt> class (defined in <tt class="docutils literal"><span class="pre">sympycore.core</span></tt>). Such
+defined functions will be available as attributes of the
+<tt class="docutils literal"><span class="pre">defined_functions</span></tt> holder object, and most importantly, the
+expression string parser will recognize symbols with defined function
+names as defined functions.</p>
+<p>Here follows a typical definition of a defined function <tt class="docutils literal"><span class="pre">myfunc</span></tt> for
+a given <tt class="docutils literal"><span class="pre">Algebra</span></tt> class:</p>
+<pre class="literal-block">
+class myfunc(Function):
+
+    def __new__(cls, *args):
+        # perform any canonization of arguments (including
+        # converting arguments to operands algebra) and return
+        # simplified result. Otherwise,
+        return Algebra(cls, args)
+</pre>
 </div>
 </div>
 </body>

@@ -156,7 +156,7 @@ class Verbatim(Algebra):
             args = [a.as_algebra(cls) for a in rest[1:]]
             if callable(func):
                 return func(*args)
-            print `func, args`
+            return cls(APPLY, (func,)+ tuple(args))
         if head is LT: return cls.Lt(*[r.as_algebra(classes.Calculus) for r in rest])
         if head is LE: return cls.Le(*[r.as_algebra(classes.Calculus) for r in rest])
         if head is GT: return cls.Gt(*[r.as_algebra(classes.Calculus) for r in rest])
@@ -254,6 +254,9 @@ class Verbatim(Algebra):
                 l.append('(%s)' % s)
             else:
                 l.append(s)
+
+        if callable(head):
+            return '%s(%s)' % (head.__name__, ', '.join(l))
 
         if len(l)==1: # unary operation
             return head + l[0]

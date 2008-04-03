@@ -4,7 +4,7 @@
 __docformat__ = "restructuredtext"
 __all__ = ['Algebra', 'SymbolicEquality']
 
-from ..core import classes, Expr
+from ..core import classes, Expr, defined_functions
 from ..utils import LT, GT, LE, GE, NE, EQ, SYMBOL, NUMBER
 
 symbolic_comparison_map = dict(
@@ -203,8 +203,7 @@ class Algebra(Expr):
         return self.convert(obj, typeerror=typeerror)
 
     def as_verbatim(self):
-        raise NotImplementedError('%s must define as_verbatim method' #pragma NO COVER
-                                  % (self.__class__.__name__))         #pragma NO COVER
+        return Verbatim(*self.pair)
 
     def as_algebra(self, cls):
         """ Convert algebra to another algebra.
@@ -220,7 +219,7 @@ class Algebra(Expr):
 
     @classmethod
     def get_predefined_symbols(cls, name):
-        return
+        return getattr(defined_functions, name, None)
 
     @property
     def func(self):
@@ -238,10 +237,7 @@ class Algebra(Expr):
 
     @classmethod
     def Symbol(cls, obj):
-        """ Construct algebra symbol directly from obj.
-        """
-        raise NotImplementedError('%s must define classmethod Symbol' #pragma NO COVER
-                                  % (cls.__name__))                   #pragma NO COVER
+        return cls(SYMBOL, obj)
 
     @classmethod
     def Number(cls, num, denom=None):

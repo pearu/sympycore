@@ -1,4 +1,4 @@
-"""Provides various implementation specific constants.
+"""Provides various implementation specific constants (expression heads, etc).
 """
 
 __docformat__ = 'restructuredtext'
@@ -148,8 +148,8 @@ class MATRIX(HEAD):
 def get_head(head):
     """ Return head from head copy.
 
-    Used by unpickler to ensure that objects head's can be compared
-    using ``is``.
+    Used by unpickler to ensure that objects head's can always be
+    compared with ``is``.
     """
     n = head_to_string.get(head, None)
     if n is not None:

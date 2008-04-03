@@ -370,3 +370,36 @@ its subclasses ``Calculus``, ``Unit``:
 
 #. ``Apply(f, (x, y, ..))`` represents unevaluated function call
    ``f(x, y, ..)``.
+
+Defining functions in SympyCore
+===============================
+
+In general, unevaluated applied functions in ``sympycore`` are
+represented as a pair::
+
+  <Algebra class>(<callable>, <arguments>)
+
+where ``<Algebra class>`` defines an algebra where the function values
+belong to, ``<callable>`` is a Python callable object that may define
+some basic canonization rules, and ``<arguments>`` is either a tuple
+of function arguments or for single argument functions, the argument
+itself.
+
+To simplify the infrastructure for handling defined functions, the
+defined functions in ``sympycore`` should be defined as classes
+derived from ``Function`` class (defined in ``sympycore.core``). Such
+defined functions will be available as attributes of the
+``defined_functions`` holder object, and most importantly, the
+expression string parser will recognize symbols with defined function
+names as defined functions.
+
+Here follows a typical definition of a defined function ``myfunc`` for
+a given ``Algebra`` class::
+
+  class myfunc(Function):
+
+      def __new__(cls, *args):
+          # perform any canonization of arguments (including
+          # converting arguments to operands algebra) and return
+          # simplified result. Otherwise,
+          return Algebra(cls, args)

@@ -11,7 +11,7 @@ __docformat__ = "restructuredtext"
 from ..algebra import Calculus, I,  NUMBER, TERMS, FACTORS, SYMBOL, TERMS
 from ..infinity import oo, undefined, CalculusInfinity
 from ..constants import const_pi, const_E, const_gamma
-from ..function import Function
+from ...core import Function
 from ...arithmetic.evalf import evalf
 from ...arithmetic.numbers import complextypes, realtypes, inttypes
 from ...arithmetic.number_theory import factorial

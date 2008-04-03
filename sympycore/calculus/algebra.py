@@ -6,7 +6,7 @@
 __docformat__ = "restructuredtext"
 __all__ = ['Calculus', 'I']
 
-from ..core import classes
+from ..core import classes, defined_functions
 from ..utils import TERMS, str_PRODUCT, FACTORS, SYMBOL, NUMBER
 from ..basealgebra import Algebra, Verbatim
 from ..basealgebra.pairs import CollectingField
@@ -44,13 +44,11 @@ class Calculus(CollectingField):
             return self.as_polynom(cls)
         return self.as_verbatim().as_algebra(cls)
 
-    defined_functions = {}
-
     @classmethod
     def get_predefined_symbols(cls, name):
         if name=='I':
             return I
-        return cls.defined_functions.get(name)
+        return getattr(defined_functions, name, None)
     
     @classmethod
     def convert_coefficient(cls, obj, typeerror=True):
@@ -109,18 +107,18 @@ class Calculus(CollectingField):
 
     @classmethod
     def Log(cls, arg, base=None):
-        log = cls.defined_functions['log']
+        log = defined_functions.log
         if base is None:
             return log(arg)
         return log(arg)/log(base)
 
     @classmethod
     def Exp(cls, arg):
-        return cls.defined_functions['exp'](arg)
+        return defined_functions.exp(arg)
 
     @classmethod
     def Mod(cls, x, y):
-        return cls.defined_functions['mod'](x, y)
+        return defined_functions.mod(x, y)
 
     def evalf(self, n=None):
         if n:
