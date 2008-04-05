@@ -382,6 +382,10 @@ check_comparable_types(PyObject *v, PyObject *w) {
     return (PyLong_CheckExact(w) || PyInt_CheckExact(w) || PyComplex_CheckExact(w));
   else if (PyComplex_CheckExact(v))
     return (PyLong_CheckExact(w) || PyFloat_CheckExact(w) || PyInt_CheckExact(w));
+  /* XXX: enable when adding support to unicode strings.
+  else if (PyString_CheckExact(v))
+    return (PyString_CheckExact(w));
+  */
   return 0;
 }
 
@@ -440,7 +444,16 @@ Expr_richcompare(PyObject *v, PyObject *w, int op)
       int r;
       if (obj==NULL)
 	return NULL;
-      r = PyObject_RichCompareBool(v, obj, op);
+      switch(op) {
+      case Py_EQ:
+	r = (check_comparable_types(v, obj)) ? PyObject_RichCompareBool(v, obj, op) : 0;
+	break;
+      case Py_NE:
+	r = (check_comparable_types(v, obj)) ? PyObject_RichCompareBool(v, obj, op) : 1;
+	break;
+      default:
+	r = PyObject_RichCompareBool(v, obj, op);
+      }
       Py_DECREF(obj);
       if (r==-1) return NULL;
       if (r) Py_RETURN_TRUE;
@@ -454,7 +467,16 @@ Expr_richcompare(PyObject *v, PyObject *w, int op)
     int r;
     if (obj==NULL)
       return NULL;
-    r = PyObject_RichCompareBool(obj, w, op);
+      switch(op) {
+      case Py_EQ:
+	r = (check_comparable_types(obj, w)) ? PyObject_RichCompareBool(obj, w, op) : 0;
+	break;
+      case Py_NE:
+	r = (check_comparable_types(obj, w)) ? PyObject_RichCompareBool(obj, w, op) : 1;
+	break;  
+      default:
+	r = PyObject_RichCompareBool(obj, w, op);
+      }
     Py_DECREF(obj);
     if (r==-1) return NULL;
     if (r) Py_RETURN_TRUE;
