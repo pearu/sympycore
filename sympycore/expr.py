@@ -152,7 +152,7 @@ This is Python version of Expr type.
             typ = type(cls)
             try:
                 args = typ.__getinitargs__(cls)
-            except TypeError:
+            except AttributeError:
                 args = None
             if args is None:
                 # either metaclass does not define __getinitargs__ method
