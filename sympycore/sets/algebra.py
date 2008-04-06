@@ -28,11 +28,11 @@ class Set(Algebra):
     """
 
     @classmethod
-    def convert(cls, obj, typeerror=True):
+    def convert_number(cls, obj, typeerror=True):
         t = type(obj)
         if t in [set, frozenset, list, tuple]:
-            return cls(NUMBER, frozenset(obj))
-        return super(Algebra, cls).convert(obj, typeerror=typeerror)
+            return frozenset(obj)
+        return cls.handle_convert_failure('number', obj, typeerror)
 
     def contains(self, obj):
         head, data = self.pair

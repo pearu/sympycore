@@ -148,28 +148,20 @@ class Algebra(Expr):
         if isinstance(obj, cls):
             return obj
 
+        # check if obj belongs to coefficient algebra
+        r = cls.convert_number(obj, typeerror=False)
+        if r is not NotImplemented:
+            return cls.Number(r)
+
         # parse algebra expression from string:
         if isinstance(obj, (str, unicode, Verbatim)):
             return Verbatim.convert(obj).as_algebra(cls)
-
-        # check if obj belongs to coefficient algebra
-        r = cls.convert_coefficient(obj, typeerror=False)
-        if r is not NotImplemented:
-            try:
-                return cls.Number(r)
-            except NotImplementedError:
-                pass
 
         # as a last resort, convert from another algebra:
         if isinstance(obj, Algebra):
             return obj.as_algebra(cls)
 
-        if typeerror:
-            raise TypeError('%s.convert: failed to convert %s instance'\
-                            ' to algebra'\
-                            % (cls.__name__, obj.__class__.__name__))
-        else:
-            return NotImplemented
+        return cls.handle_convert_failure('algebra', obj, typeerror)
 
     @classmethod
     def convert_exponent(cls, obj, typeerror=True):
@@ -177,12 +169,7 @@ class Algebra(Expr):
         """
         if isinstance(obj, cls.exptypes) or isinstance(obj, cls):
             return obj
-        if typeerror:
-            raise TypeError('%s.convert_exponent: failed to convert %s instance'\
-                            ' to exponent algebra, expected int|long object'\
-                            % (cls.__name__, obj.__class__.__name__))
-        else:
-            return NotImplemented
+        return cls.handle_convert_failure('coefficient algebra', obj, typeerror, 'expected int|long|'+cls.__name__)
 
     @classmethod
     def convert_coefficient(cls, obj, typeerror=True):
@@ -190,15 +177,34 @@ class Algebra(Expr):
         """
         if isinstance(obj, cls.coefftypes):
             return obj
+        return cls.handle_convert_failure('coefficient algebra', obj, typeerror, 'expected int|long')
+
+    @classmethod
+    def handle_convert_failure(cls, name, obj, typeerror, hint=''):
         if typeerror:
-            raise TypeError('%s.convert_coefficient: failed to convert %s instance'\
-                            ' to coefficient algebra, expected int|long object'\
-                            % (cls.__name__, obj.__class__.__name__))
+            if hint:
+                hint = ' (%s)' % (hint)
+            errmsg = 'failed to convert %r to %r %s%s'\
+                     % (obj.__class__.__name__, cls.__name__, name, hint)
+            raise TypeError(errmsg)
         else:
             return NotImplemented
 
+    @classmethod
+    def convert_number(cls, obj, typeerror=True):
+        """ Convert obj to algebra number.
+
+        On success, the result is assumed to be used in ``Algebra.Number(<result>)``.
+
+        On failure, the TypeError is raised if typeerror is True (default).
+        Otherwise, NotImplemented is returned.
+        """
+        return cls.convert_coefficient(obj, typeerror)
+
     def convert_operand(self, obj, typeerror=True):
         """ Convert obj to operand.
+
+        Used when operand algebra depends on expression head.
         """
         return self.convert(obj, typeerror=typeerror)
 
@@ -237,14 +243,15 @@ class Algebra(Expr):
 
     @classmethod
     def Symbol(cls, obj):
+        """ Construct algebra symbol directly from obj.
+        """
         return cls(SYMBOL, obj)
 
     @classmethod
-    def Number(cls, num, denom=None):
+    def Number(cls, num):
         """ Construct algebra number directly from obj.
         """
-        raise NotImplementedError('%s must define classmethod Number' #pragma NO COVER
-                                  % (cls.__name__))                   #pragma NO COVER
+        return cls(NUMBER, num)
 
     @property
     def symbols(self):
