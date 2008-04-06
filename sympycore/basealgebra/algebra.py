@@ -268,7 +268,7 @@ class Algebra(Expr):
         convert = self.convert
         return convert(obj) in self.symbols
 
-    def match(self, pattern, *wildcards):
+    def match(self, pattern, *wildcards, **options):
         """
         Pattern matching.
 
@@ -284,6 +284,7 @@ class Algebra(Expr):
         :See:
           http://wiki.sympy.org/wiki/Generic_interface#Pattern_matching
         """
+        exclude = options.get('exclude',[])
         pattern = self.convert(pattern)
         wild_expressions = []
         wild_predicates = []
@@ -292,7 +293,10 @@ class Algebra(Expr):
                 assert len(w)==2,`w`
                 s, func = w
             else:
-                s, func = w, True
+                if exclude:
+                    s, func = w, lambda x: x not in exclude
+                else:
+                    s, func = w, True
             s = self.convert(s)
             wild_expressions.append(s)
             wild_predicates.append(func)
