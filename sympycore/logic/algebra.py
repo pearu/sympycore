@@ -26,13 +26,15 @@ class Logic(Algebra):
       Logic(SYMBOL, 'x')   - 0-ary predicate, represents a boolean symbol x
       Logic(NOT, x)        - 1-ary predicate, represents ``not x`` boolean expression
       Logic(AND, frozenset([x,y,z])) - represents ``x and y and z`` boolean expression
-      Logic(OR, frozenset([x,y])) - represnts boolean expression ``x or y``
+      Logic(OR, frozenset([x,y])) - represents boolean expression ``x or y``
       Logic(LT, (x, y))    - represents relation ``x < y``
       Logic(LE, (x, y))    - represents relation ``x <= y``
       Logic(GT, (x, y))    - represents relation ``x > y``
       Logic(GT, (x, y))    - represents relation ``x >= y``
       Logic(EQ, (x, y))    - represents relation ``x == y``
       Logic(NE, (x, y))    - represents relation ``x != y``
+      Logic(IN, (x, y))    - represents relation ``x in y``
+      Logic(NOTIN, (x, y)) - represents relation ``x not in y``
 
     """
 
