@@ -5,16 +5,19 @@
 # Created: April, 2008
 #
 
-__all__ = ['Function', 'FunctionRing']
+__all__ = ['Function', 'FunctionRing', 'D', 'Differential']
 
 import inspect
 
-from ..core import classes
-from ..basealgebra import CollectingField, Verbatim
-from ..utils import SYMBOL, NUMBER, APPLY
+from ..core import classes, DefinedFunction
+from ..basealgebra import CollectingField, Verbatim, Algebra
+from ..utils import SYMBOL, NUMBER, APPLY, DIFF, str_SYMBOL
+from ..calculus import Calculus
 
 def get_nargs(obj):
     assert callable(obj),`obj`
+    if isinstance(obj, FunctionRing):
+        return obj.nargs
     if inspect.isclass(obj):
         return len(inspect.getargspec(obj.__new__)[0])-1
     if inspect.isfunction(obj):
@@ -23,6 +26,28 @@ def get_nargs(obj):
         return len(inspect.getargspec(obj)[0]) - 1
     raise NotImplementedError(`obj`)        
 
+def aseqvalg2str(seq, alg):
+    shortname_map = {'Calculus':'Calc'}
+    l1 = []
+    l2 = []
+    for t in seq:
+        name = t.__name__
+        shortname = shortname_map.get(name, name)
+        if l1 and l1[-1]==shortname:
+            l2[-1] += 1
+        else:
+            l1.append(shortname)
+            l2.append(1)
+    l = []
+    for n,e in zip(l1, l2):
+        if e==1:
+            l.append(n)
+        else:
+            l.append('%s%s'%(n,e))
+    name = alg.__name__
+    shortname = shortname_map.get(name, name)
+    return '_'.join(l) + '_to_' + shortname
+            
 def Function(obj, *args):
     """ Construct a FunctionRing instance.
 
@@ -68,7 +93,7 @@ def Function(obj, *args):
         nargs = len(aseq)
     else:
         assert nargs==len(aseq)
-    name = 'FunctionRing_%s_to_%s' % ('_'.join([t.__name__ for t in aseq]), valg.__name__)
+    name = 'FunctionRing_%s' % (aseqvalg2str(aseq, valg))
     cls = FunctionRingFactory(name, (FunctionRing, ),
                               dict(nargs = nargs,
                                    argument_algebras = aseq,
@@ -114,6 +139,11 @@ class FunctionRing(CollectingField):
     value_algebra = None
     nargs = None
 
+    @classmethod
+    def get_predefined_symbols(cls, name):
+        if name=='D': return D
+        return
+
     def as_algebra(self, cls):
         if cls is classes.Verbatim:
             return self.as_verbatim()
@@ -125,3 +155,61 @@ class FunctionRing(CollectingField):
         assert len(args)==self.nargs,`args, self.nargs`
         args = tuple([t(a) for t, a in zip(self.argument_algebras, args)])
         return self.value_algebra(self, args)
+
+    def fdiff(self, index=0):
+        return FDiff(self, index)
+
+class Differential(CollectingField):
+    """ Represents differential algebra.
+    """
+
+    @classmethod
+    def get_predefined_symbols(cls, name):
+        if name=='D': return D
+        return
+
+    @classmethod
+    def convert(cls, obj, typeerror=True):
+        t = type(obj)
+        if t is cls:
+            return obj
+        if t is str:
+            obj = Calculus.convert(obj, typeerror)
+            if type(obj) is cls:
+                return obj
+            return cls(NUMBER, obj)
+            #return super(CollectingField, cls).convert(obj, typeerror=typeerror)
+        return cls(NUMBER, Calculus.convert(obj))
+
+    def __str__(self):
+        return self.to_str_data()[1]
+
+    def to_str_data(self, sort=True):
+        head, data = self.pair
+        if head is SYMBOL:
+            return str_SYMBOL, 'D[%s]' % (data)
+        return super(type(self), self).to_str_data(sort)
+    
+    def __call__(self, func):
+        func = Function(func)
+        cls = type(func)
+        return cls(self, func)
+
+class DFactory(object):
+
+    def __new__(cls, _cache=[]):
+        if _cache:
+            return _cache[0]
+        obj = object.__new__(cls)
+        _cache.append(obj)
+        return obj
+
+    def __str__(self): return 'D'
+    def __repr__(self): return 'DFactory()'
+
+    def __getitem__(self, index):
+        return Differential(SYMBOL, Calculus.convert(index))
+
+classes.DFactory = DFactory
+
+D = DFactory()

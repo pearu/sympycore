@@ -48,6 +48,8 @@ class Calculus(CollectingField):
     def get_predefined_symbols(cls, name):
         if name=='I':
             return I
+        if name=='D':
+            return classes.DFactory()
         return getattr(defined_functions, name, None)
     
     @classmethod
