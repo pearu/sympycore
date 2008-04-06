@@ -184,6 +184,8 @@ class Logic(Algebra):
 
     @classmethod
     def IsElement(cls, element, container):
+        if hasattr(container, 'contains'):
+            return container.contains(element)
         return cls(IN, (element, container))
 
     @classmethod

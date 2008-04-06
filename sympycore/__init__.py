@@ -12,11 +12,14 @@ from .core import classes, defined_functions, DefinedFunction, Expr
 from basealgebra import *
 from arithmetic import *
 from logic import *
+from sets import *
 from calculus import *
 from polynomials import *
 from matrices import *
 from physics import *
 from functions import *
+
+
 
 import utils
 

@@ -176,14 +176,12 @@ class Verbatim(Algebra):
             return cls.Mod(*[r.as_algebra(cls) for r in rest])
         if head is IN:
             element, container = rest
-            #XXX: need Set algebra
-            #container = container.as_algebra(classes.Set)
+            container = container.as_algebra(classes.Set)
             element = element.as_algebra(classes.Calculus)
             return cls.IsElement(element, container)
         if head is NOTIN:
             element, container = rest
-            #XXX: need Set algebra
-            #container = container.as_algebra(classes.Set)
+            container = container.as_algebra(classes.Set)
             element = element.as_algebra(classes.Calculus)
             return cls.Not(cls.IsElement(element, container))
         if head is SUBSCRIPT:
