@@ -17,7 +17,7 @@ from .algebra import Algebra
 from ..utils import (OR, AND, NOT, LT, LE, GT, GE, EQ, NE, BAND, BOR, BXOR,
                      INVERT, POS, NEG, ADD, SUB, MOD, MUL, DIV, POW,
                      NUMBER, SYMBOL, APPLY, TUPLE, LAMBDA, head_to_string,
-                     IN, NOTIN)
+                     IN, NOTIN, SUBSCRIPT)
 from ..core import classes, Expr
 
 # XXX: Unimplemented expression parts:
@@ -186,6 +186,11 @@ class Verbatim(Algebra):
             #container = container.as_algebra(classes.Set)
             element = element.as_algebra(classes.Calculus)
             return cls.Not(cls.IsElement(element, container))
+        if head is SUBSCRIPT:
+            obj, index = rest
+            obj = obj.as_algebra(cls)
+            return obj[index]
+        print `head, rest`
         raise TypeError('%r cannot be converted to %s algebra' % (self, cls.__name__))
 
     def __str__(self):
@@ -355,7 +360,7 @@ node_map = dict(Add='ADD', Mul='MUL', Sub='SUB', Div='DIV', FloorDiv='DIV',
                 UnaryAdd='POS', UnarySub='NEG', Mod='MOD', Not='NOT',
                 Or='OR', And='AND', Power='POW',
                 Bitand='BAND',Bitor='BOR',Bitxor='BXOR',CallFunc='APPLY',
-                Tuple='TUPLE',
+                Tuple='TUPLE', Subscript='SUBSCRIPT',
                 )
 compare_map = {'<':LT, '>':GT, '<=':LE, '>=':GE,
                '==':EQ, '!=':NE, 'in':IN, 'not in': NOTIN}

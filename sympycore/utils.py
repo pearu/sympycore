@@ -70,8 +70,13 @@ SYMBOL = intern('S')
 APPLY = intern('A')
 TUPLE = intern('T')
 LAMBDA = intern('L')
+
+SUBSCRIPT = intern('[]')
+
 POLY = intern('P')
 DENSE_POLY = intern('DP')
+
+DIFF = intern('D')
 
 head_to_string = {\
     OR:'OR', AND:'AND', NOT:'NOT',
@@ -81,6 +86,7 @@ head_to_string = {\
     POS:'POS', NEG:'NEG', ADD:'ADD', SUB:'SUB', MOD:'MOD', MUL:'MUL', DIV:'DIV', POW:'POW',
     NUMBER:'NUMBER', SYMBOL:'SYMBOL', APPLY:'APPLY', TUPLE:'TUPLE', LAMBDA:'LAMBDA',
     POLY:'POLY', DENSE_POLY:'DENSE_POLY',
+    DIFF:'DIFF',
     }
 
 MATRIX_DICT = intern('MATRIX_DICT')
