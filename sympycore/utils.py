@@ -3,6 +3,8 @@
 
 __docformat__ = 'restructuredtext'
 
+import inspect
+
 class HEAD(str):
     """ Base class to head constants.
 
@@ -167,3 +169,5 @@ def get_head(head):
     if isinstance(head, str):
         return eval(head, globals())
     return head
+
+

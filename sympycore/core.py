@@ -2,7 +2,10 @@
 """
 
 __docformat__ = 'restructuredtext'
-__all__ = ['classes', 'Expr', 'defined_functions', 'DefinedFunction']
+__all__ = ['classes', 'Expr', 'defined_functions', 'DefinedFunction',
+           'objects']
+
+import inspect
 
 using_C_Expr = False
 try:
@@ -75,6 +78,7 @@ class Holder:
             yield k,v
 
 classes = Holder('SympyCore classes holder (%(_counter)s classes)')
+objects = Holder('SympyCore objects holder (%(_counter)s classes)')
 defined_functions = Holder('SympyCore defined functions holder (%(_counter)s classes)')
 
 class FunctionType(type):
@@ -110,5 +114,21 @@ class DefinedFunction(object):
         """ Return derivative function of cls at arg.
         """
         raise NotImplementedError(`cls, arg`)
+
+    @classmethod
+    def get_argument_algebras(cls):
+        raise NotImplementedError(`cls`)
+
+def get_nargs(obj):
+    assert callable(obj),`obj`
+    if isinstance(obj, classes.FunctionRing):
+        return obj.nargs
+    if inspect.isclass(obj):
+        return len(inspect.getargspec(obj.__new__)[0])-1
+    if inspect.isfunction(obj):
+        return len(inspect.getargspec(obj)[0])
+    if inspect.ismethod(obj):
+        return len(inspect.getargspec(obj)[0]) - 1
+    raise NotImplementedError(`obj`)        
 
 classes.Expr = Expr

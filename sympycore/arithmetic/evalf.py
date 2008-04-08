@@ -28,7 +28,8 @@ def f_header(symbols):
 def convert_mpmath(expr):
     s = str(expr)
     s = quote_numbers(s, "mpf(%s)")
-    s = replace_names(s, { 'I':'j', 'E':'e', 'oo':'inf','undefined':'nan'})
+    s = replace_names(s, { 'I':'j', 'E':'e', 'oo':'inf','undefined':'nan',
+                           'Sin':'sin','Cos':'cos', 'Exp':'exp'})
     return s
 
 def compile_mpmath(symbols, expr):

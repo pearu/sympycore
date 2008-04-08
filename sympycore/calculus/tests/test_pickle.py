@@ -31,9 +31,9 @@ def test_pickle():
     obj = x+0.5*y
     assert obj==pickler(obj)
 
-    obj = x+sin(y)
+    obj = x+Sin(y)
     assert obj==pickler(obj)
 
-    obj = x+log(y)
+    obj = x+Log(y)
     assert obj==pickler(obj)
 

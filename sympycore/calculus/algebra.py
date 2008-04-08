@@ -51,6 +51,13 @@ class Calculus(CollectingField):
         if name=='D':
             return classes.DFactory()
         return getattr(defined_functions, name, None)
+
+    @classmethod
+    def get_defined_function(cls, name):
+        func = getattr(defined_functions, name, None)
+        if func is None:
+            func = getattr(defined_functions, name.title(), None)
+        return func
     
     @classmethod
     def convert_coefficient(cls, obj, typeerror=True):
@@ -137,7 +144,7 @@ class Calculus(CollectingField):
             v = self.args[0].evalf(n)
             h, d = v.pair
             if h is NUMBER:
-                return self.Number(getattr(mpmath, self.func.__name__)(d))
+                return self.Number(getattr(mpmath, self.func.__name__.lower())(d))
             else:
                 return head(v)
         convert = self.convert

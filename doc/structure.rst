@@ -403,3 +403,164 @@ a given ``Algebra`` class::
           # converting arguments to operands algebra) and return
           # simplified result. Otherwise,
           return Algebra(cls, args)
+
+How does it work in SympyCore?
+==============================
+
+How strings are parsed to expressions?
+--------------------------------------
+
+Expressions represent elements of some algebra.  Therefore, to parse a
+string and to create an expression from it, one needs to specify to
+which algebra the expression should belong to. In sympycore, this is
+done by calling the corresponding algebra constructor with a single
+string argument::
+
+  Algebra('<expr>')
+
+that will return the result of ``Algebra.convert('<expr>')``. Continue
+reading the next section about the ``convert`` method.
+
+How arbitrary Python objects are converted to expressions?
+----------------------------------------------------------
+
+Each algebra class has classmethod ``convert(<obj>, typeerror=True)``
+that is used to convert arbitrary Python objects to Algebra instances.
+The following algorithm is used:
+
+#. If ``<obj>`` is already ``Algebra`` instance, then it is returned
+   immidiately.
+
+#. Next, the classmethod ``Algebra.convert_number(<obj>, typeerror) ->
+   r`` is called. On success, ``Algebra.Number(r)`` is returned. In
+   most cases, ``Algebra.Number`` class method just returns
+   ``cls(NUMBER, r)``. But there exist exceptions.
+
+#. Next, if ``<obj>`` is Python string or ``Verbatim`` instance, then
+   ``Verbatim.convert(<obj>).as_algebra(Algebra)`` is returned.
+
+#. Next, if ``<obj>`` is some algebra instance then
+   ``<obj>.as_algebra(Algebra)`` is returned.
+
+#. Finally, if none of the above did not return a result, then
+   ``TypeError`` will be raised when ``typeerror`` is
+   ``True``. Otherwise ``NotImplemented`` will be returned.
+
+Continue reading the next section about the ``as_algebra`` method.
+
+How algebra expressions are converted to other algebras?
+--------------------------------------------------------
+
+Each algebra class has instance method ``as_algebra(<other algebra
+class>)`` that is used to convert instances of one algebra class to
+instances of another algebra class. By default, the conversion is
+carried out using the intermediate ``Verbatim`` algebra. First, the
+instance of one algebra is converted to ``Verbatim`` algebra and then
+the instance of a ``Verbatim`` algebra is converted to another
+algebra. So, every algebra class must define ``as_verbatim()``
+instance method that should return a ``Verbatim`` instance containing
+verbatim representation of the algebra expression.
+
+Of course, if an expression in one algebra does not make sense as an
+expression of the other algebra, the ``TypeError`` will be raised.
+
+Continue reading the next section about the ``Verbatim.as_algebra``
+method.
+
+How verbatim expressions are converted to other algebras?
+---------------------------------------------------------
+
+Verbatim expressions are converted to another algebras in ``<Verbatim
+instance>.as_algebra(<Algebra class>)`` instance method. ``Verbatim``
+instance holds a pair ``(<expression head>, <expression data>)`` and
+the task of ``as_algebra`` method is to use information in triple
+``<expression head>, <expression data>, <Algebra class>`` and
+construct an ``<Algebra>`` instance representing expression in the
+given algebra.
+
+First, let us consider atomic expressions such as numbers and symbols.
+
+In general, numbers can be low-level numbers such as ``int``,
+``long``, ``mpq``, ``mpf``, ``mpc``, ``mpqc``, but numbers of one
+algebra can be expressions of some other algebra. So, in case of
+verbatim numbers, ``Algebra.convert(<Verbatim instance>.data)`` is
+returned.
+
+In general, symbols are Python string objects but certain string
+values may be names of mathematical constants or predefined functions
+for the given algebra. So, in the case of verbatim symbols,
+``Algebra.convert_symbol(<Verbatim instance>.data)`` is returned.  It
+also means that ``Algebra`` classes must define classmethod
+``convert_symbol`` that can either return a algebra symbol instance
+``Algebra(SYMBOL, data)`` or a predefined function or mathematical
+constant.
+
+Expressions are operations with operands. Therefore, to convert
+verbatim expression to an expression of a given algebra, the algebra
+must have a support for the given operation. The following table
+summarizes how algebras can support different operations.
+
++-----------------+-------------------------------------------------+
+| Expression head | Support hooks in ``Algebra`` class              |
++-----------------+-------------------------------------------------+
+| POS             | ``Algebra.__pos__(operand)``                    |
++-----------------+-------------------------------------------------+
+| NEG             | ``Algebra.__neg__(operand)``                    |
++-----------------+-------------------------------------------------+
+| ADD             | ``Algebra.Add(*operands)``                      |
++-----------------+-------------------------------------------------+
+| SUB             | ``Algebra.Sub(*operands)``                      |
++-----------------+-------------------------------------------------+
+| MUL             | ``Algebra.Mul(*operands)``                      |
++-----------------+-------------------------------------------------+
+| DIV             | ``Algebra.Div(*operands)``                      |
++-----------------+-------------------------------------------------+
+| POW             | ``Algebra.Pow(*operands)``                      |
++-----------------+-------------------------------------------------+
+| MOD             | ``Algebra.Mod(*operands)``                      |
++-----------------+-------------------------------------------------+
+| LT              | ``Algebra.Lt(*operands)``                       |
++-----------------+-------------------------------------------------+
+| GT              | ``Algebra.Gt(*operands)``                       |
++-----------------+-------------------------------------------------+
+| LE              | ``Algebra.Le(*operands)``                       |
++-----------------+-------------------------------------------------+
+| GE              | ``Algebra.Ge(*operands)``                       |
++-----------------+-------------------------------------------------+
+| EQ              | ``Algebra.Eq(*operands)``                       |
++-----------------+-------------------------------------------------+
+| NE              | ``Algebra.Ne(*operands)``                       |
++-----------------+-------------------------------------------------+
+| AND             | ``Algebra.And(*operands)``                      |
++-----------------+-------------------------------------------------+
+| OR              | ``Algebra.Or(*operands)``                       |
++-----------------+-------------------------------------------------+
+| NOT             | ``Algebra.Not(*operands)``                      |
++-----------------+-------------------------------------------------+
+| IN              | ``Algebra.Element(*operands)``                  |
++-----------------+-------------------------------------------------+
+| NOTIN           | ``Algebra.Not(Algebra.Element(*operands))``     |
++-----------------+-------------------------------------------------+
+| APPLY           | XXX                                             |
++-----------------+-------------------------------------------------+
+
+Note that the operands to operations of a given algebra do not always
+belong to the same algebra. For example, the operands of ``LT`` can be
+``Calculus`` instances but the operation result is ``Logic`` instance.
+The algebras can also vary within a list of operands. For example, the
+first operand to ``IN`` should be an instance of set element algebra
+while the second operand is a ``Set`` instance.
+To support all these cases, the algebra class may need to define the
+following additional methods:
+
+#. ``Algebra.get_operand_algebra(head, index=0)`` - return the algebra
+   class of ``index``-th operand in operation defined by ``head``.
+
+#. ``<Algebra instance>.get_element_algebra()`` - return the element
+   algebra class. The method must be defined by ``Set`` and
+   ``MatrixRing`` classes, for instance. This method is instance
+   method because the result may depend the instance content. For
+   example, ``Set('Reals').get_element_algebra()`` would return
+   ``Calculus`` while ``Set('Functions').get_element_algebra()``
+   should return ``FunctionRing``.
+

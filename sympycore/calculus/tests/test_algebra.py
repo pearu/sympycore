@@ -27,8 +27,8 @@ def test_powers():
     assert A('7/4') ** A('1/2') == A('7**(1/2)')/2
 
 def test_has_symbol():
-    assert (1 + cos(1+2**x)).has_symbol(x)
-    assert (y + cos(1+2**x)).symbols == set([x, y])
+    assert (1 + Cos(1+2**x)).has_symbol(x)
+    assert (y + Cos(1+2**x)).symbols == set([x, y])
 
 def test_subs():
     assert (oo*x + oo*y).subs(y,x) == oo*x

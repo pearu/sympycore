@@ -7,24 +7,10 @@
 
 __all__ = ['Function', 'FunctionRing', 'D', 'Differential']
 
-import inspect
-
-from ..core import classes, DefinedFunction
+from ..core import classes, DefinedFunction, objects, get_nargs
 from ..basealgebra import CollectingField, Verbatim, Algebra
-from ..utils import SYMBOL, NUMBER, APPLY, DIFF, str_SYMBOL
+from ..utils import SYMBOL, NUMBER, APPLY, DIFF, str_SYMBOL, TERMS, FACTORS
 from ..calculus import Calculus
-
-def get_nargs(obj):
-    assert callable(obj),`obj`
-    if isinstance(obj, FunctionRing):
-        return obj.nargs
-    if inspect.isclass(obj):
-        return len(inspect.getargspec(obj.__new__)[0])-1
-    if inspect.isfunction(obj):
-        return len(inspect.getargspec(obj)[0])
-    if inspect.ismethod(obj):
-        return len(inspect.getargspec(obj)[0]) - 1
-    raise NotImplementedError(`obj`)        
 
 def aseqvalg2str(seq, alg):
     shortname_map = {'Calculus':'Calc'}
@@ -47,7 +33,18 @@ def aseqvalg2str(seq, alg):
     name = alg.__name__
     shortname = shortname_map.get(name, name)
     return '_'.join(l) + '_to_' + shortname
-            
+
+def get_function_ring(aseq, valg):
+    name = 'FunctionRing_%s' % (aseqvalg2str(aseq, valg))
+    cls = FunctionRingFactory(name, (FunctionRing, ),
+                              dict(nargs = len(aseq),
+                                   argument_algebras = aseq,
+                                   value_algebra = valg
+                                   ))
+    return cls
+
+objects.get_function_ring = get_function_ring
+
 def Function(obj, *args):
     """ Construct a FunctionRing instance.
 
@@ -93,15 +90,12 @@ def Function(obj, *args):
         nargs = len(aseq)
     else:
         assert nargs==len(aseq)
-    name = 'FunctionRing_%s' % (aseqvalg2str(aseq, valg))
-    cls = FunctionRingFactory(name, (FunctionRing, ),
-                              dict(nargs = nargs,
-                                   argument_algebras = aseq,
-                                   value_algebra = valg
-                                   ))
+    cls = get_function_ring(aseq, valg)
     if isinstance(obj, valg): # constant function
         return cls(NUMBER, obj)
     return cls(SYMBOL, obj)   # defined and undefined functions
+
+objects.Function = Function
 
 class FunctionRingFactory(type):
     """ Metaclass for FunctionRing.
@@ -151,13 +145,31 @@ class FunctionRing(CollectingField):
             return self.as_verbatim().as_algebra(cls)
         raise TypeError('Cannot convert %s to %s instance' % (type(self).__name__, cls.__name__))
 
-    def __call__(self, *args):
+    def __call__(self, *args, **options):
         assert len(args)==self.nargs,`args, self.nargs`
+        evaluate = options.get('evaluate', True)
+        head, data = self.pair
+        if head is NUMBER:
+            return self.value_algebra(data)
         args = tuple([t(a) for t, a in zip(self.argument_algebras, args)])
+        if head is SYMBOL:
+            if callable(data):
+                return data(*args)
+            f = self.value_algebra.get_defined_function(data)
+            if f is not None:
+                return f(*args)
+        if not evaluate:
+            return self.value_algebra(self, args)
+        if head is TERMS:
+            return self.value_algebra.Terms(*[(t(*args),c) for t,c in data.iteritems()])
+        if head is FACTORS:
+            return self.value_algebra.Factors(*[(t(*args),c(*args) if callable(c) else c) for t,c in data.iteritems()])
         return self.value_algebra(self, args)
 
     def fdiff(self, index=0):
         return FDiff(self, index)
+
+classes.FunctionRing = FunctionRing
 
 class Differential(CollectingField):
     """ Represents differential algebra.

@@ -5,7 +5,7 @@ __docformat__ = "restructuredtext"
 __all__ = ['Algebra', 'SymbolicEquality']
 
 from ..core import classes, Expr, defined_functions
-from ..utils import LT, GT, LE, GE, NE, EQ, SYMBOL, NUMBER
+from ..utils import LT, GT, LE, GE, NE, EQ, SYMBOL, NUMBER, head_to_string
 
 symbolic_comparison_map = dict(
     equality = dict(__eq__=EQ, __ne__=NE),
@@ -138,6 +138,16 @@ class Algebra(Expr):
         return self.as_verbatim().as_tree(tab,level)
 
     @classmethod
+    def get_operand_algebra(cls, head, index=0):
+        """ Return algebra class for index-th operand of operation with head.
+        """
+        return cls
+
+    @classmethod
+    def handle_get_operand_algebra_failure(cls, head, index):
+        raise TypeError('Cannot convert %s-th %s operand to %s algebra' % (index, head_to_string.get(head, head), cls.__name__))
+
+    @classmethod
     def convert(cls, obj, typeerror=True):
         """ Convert obj to algebra element.
 
@@ -169,12 +179,13 @@ class Algebra(Expr):
         """
         if isinstance(obj, cls.exptypes) or isinstance(obj, cls):
             return obj
-        return cls.handle_convert_failure('coefficient algebra', obj, typeerror, 'expected int|long|'+cls.__name__)
+        return cls.handle_convert_failure('exponent algebra', obj, typeerror, 'expected int|long|'+cls.__name__)
 
     @classmethod
     def convert_coefficient(cls, obj, typeerror=True):
         """ Convert obj to coefficient algebra.
         """
+        # Use convert_number instead.
         if isinstance(obj, cls.coefftypes):
             return obj
         return cls.handle_convert_failure('coefficient algebra', obj, typeerror, 'expected int|long')
@@ -191,6 +202,16 @@ class Algebra(Expr):
             return NotImplemented
 
     @classmethod
+    def convert_symbol(cls, obj, typeerror=True):
+        """ Convert obj to algebra symbol or predefined function or
+        constant.
+        """
+        r = cls.get_predefined_symbols(obj)
+        if r is not None:
+            return r
+        return cls(SYMBOL, obj)
+
+    @classmethod
     def convert_number(cls, obj, typeerror=True):
         """ Convert obj to algebra number.
 
@@ -199,6 +220,7 @@ class Algebra(Expr):
         On failure, the TypeError is raised if typeerror is True (default).
         Otherwise, NotImplemented is returned.
         """
+        #XXX: return cls(NUMBER, obj)
         return cls.convert_coefficient(obj, typeerror)
 
     def convert_operand(self, obj, typeerror=True):
@@ -208,6 +230,14 @@ class Algebra(Expr):
         """
         return self.convert(obj, typeerror=typeerror)
 
+    @classmethod
+    def convert_function(cls, name, args):
+        """ Convert verbatim applied function call to algebra.
+        """
+        func = getattr(defined_functions, name.title(), None)
+        arg_algebras = func.get_argument_algebras()
+        return func(*[cls(a) for a,cls in zip(args, arg_algebras)])
+    
     def as_verbatim(self):
         return Verbatim(*self.pair)
 

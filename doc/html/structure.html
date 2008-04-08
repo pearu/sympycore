@@ -130,6 +130,13 @@ div.warning p.admonition-title {
 </ul>
 </li>
 <li><a class="reference" href="#defining-functions-in-sympycore" id="id13" name="id13">4&nbsp;&nbsp;&nbsp;Defining functions in SympyCore</a></li>
+<li><a class="reference" href="#how-does-it-work-in-sympycore" id="id14" name="id14">5&nbsp;&nbsp;&nbsp;How does it work in SympyCore?</a><ul class="auto-toc">
+<li><a class="reference" href="#how-strings-are-parsed-to-expressions" id="id15" name="id15">5.1&nbsp;&nbsp;&nbsp;How strings are parsed to expressions?</a></li>
+<li><a class="reference" href="#how-arbitrary-python-objects-are-converted-to-expressions" id="id16" name="id16">5.2&nbsp;&nbsp;&nbsp;How arbitrary Python objects are converted to expressions?</a></li>
+<li><a class="reference" href="#how-algebra-expressions-are-converted-to-other-algebras" id="id17" name="id17">5.3&nbsp;&nbsp;&nbsp;How algebra expressions are converted to other algebras?</a></li>
+<li><a class="reference" href="#how-verbatim-expressions-are-converted-to-other-algebras" id="id18" name="id18">5.4&nbsp;&nbsp;&nbsp;How verbatim expressions are converted to other algebras?</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </div>
@@ -494,6 +501,178 @@ class myfunc(DefinedFunction):
         # simplified result. Otherwise,
         return Algebra(cls, args)
 </pre>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id14" id="how-does-it-work-in-sympycore" name="how-does-it-work-in-sympycore">5&nbsp;&nbsp;&nbsp;How does it work in SympyCore?</a></h1>
+<div class="section">
+<h2><a class="toc-backref" href="#id15" id="how-strings-are-parsed-to-expressions" name="how-strings-are-parsed-to-expressions">5.1&nbsp;&nbsp;&nbsp;How strings are parsed to expressions?</a></h2>
+<p>Expressions represent elements of some algebra.  Therefore, to parse a
+string and to create an expression from it, one needs to specify to
+which algebra the expression should belong to. In sympycore, this is
+done by calling the corresponding algebra constructor with a single
+string argument:</p>
+<pre class="literal-block">
+Algebra('&lt;expr&gt;')
+</pre>
+<p>that will return the result of <tt class="docutils literal"><span class="pre">Algebra.convert('&lt;expr&gt;')</span></tt>. Continue
+reading the next section about the <tt class="docutils literal"><span class="pre">convert</span></tt> method.</p>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id16" id="how-arbitrary-python-objects-are-converted-to-expressions" name="how-arbitrary-python-objects-are-converted-to-expressions">5.2&nbsp;&nbsp;&nbsp;How arbitrary Python objects are converted to expressions?</a></h2>
+<p>Each algebra class has classmethod <tt class="docutils literal"><span class="pre">convert(&lt;obj&gt;,</span> <span class="pre">typeerror=True)</span></tt>
+that is used to convert arbitrary Python objects to Algebra instances.
+The following algorithm is used:</p>
+<ol class="arabic simple">
+<li>If <tt class="docutils literal"><span class="pre">&lt;obj&gt;</span></tt> is already <tt class="docutils literal"><span class="pre">Algebra</span></tt> instance, then it is returned
+immidiately.</li>
+<li>Next, the classmethod <tt class="docutils literal"><span class="pre">Algebra.convert_number(&lt;obj&gt;,</span> <span class="pre">typeerror)</span> <span class="pre">-&gt;</span>
+<span class="pre">r</span></tt> is called. On success, <tt class="docutils literal"><span class="pre">Algebra.Number(r)</span></tt> is returned. In
+most cases, <tt class="docutils literal"><span class="pre">Algebra.Number</span></tt> class method just returns
+<tt class="docutils literal"><span class="pre">cls(NUMBER,</span> <span class="pre">r)</span></tt>. But there exist exceptions.</li>
+<li>Next, if <tt class="docutils literal"><span class="pre">&lt;obj&gt;</span></tt> is Python string or <tt class="docutils literal"><span class="pre">Verbatim</span></tt> instance, then
+<tt class="docutils literal"><span class="pre">Verbatim.convert(&lt;obj&gt;).as_algebra(Algebra)</span></tt> is returned.</li>
+<li>Next, if <tt class="docutils literal"><span class="pre">&lt;obj&gt;</span></tt> is some algebra instance then
+<tt class="docutils literal"><span class="pre">&lt;obj&gt;.as_algebra(Algebra)</span></tt> is returned.</li>
+<li>Finally, if none of the above did not return a result, then
+<tt class="docutils literal"><span class="pre">TypeError</span></tt> will be raised when <tt class="docutils literal"><span class="pre">typeerror</span></tt> is
+<tt class="docutils literal"><span class="pre">True</span></tt>. Otherwise <tt class="docutils literal"><span class="pre">NotImplemented</span></tt> will be returned.</li>
+</ol>
+<p>Continue reading the next section about the <tt class="docutils literal"><span class="pre">as_algebra</span></tt> method.</p>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id17" id="how-algebra-expressions-are-converted-to-other-algebras" name="how-algebra-expressions-are-converted-to-other-algebras">5.3&nbsp;&nbsp;&nbsp;How algebra expressions are converted to other algebras?</a></h2>
+<p>Each algebra class has instance method <tt class="docutils literal"><span class="pre">as_algebra(&lt;other</span> <span class="pre">algebra</span>
+<span class="pre">class&gt;)</span></tt> that is used to convert instances of one algebra class to
+instances of another algebra class. By default, the conversion is
+carried out using the intermediate <tt class="docutils literal"><span class="pre">Verbatim</span></tt> algebra. First, the
+instance of one algebra is converted to <tt class="docutils literal"><span class="pre">Verbatim</span></tt> algebra and then
+the instance of a <tt class="docutils literal"><span class="pre">Verbatim</span></tt> algebra is converted to another
+algebra. So, every algebra class must define <tt class="docutils literal"><span class="pre">as_verbatim()</span></tt>
+instance method that should return a <tt class="docutils literal"><span class="pre">Verbatim</span></tt> instance containing
+verbatim representation of the algebra expression.</p>
+<p>Of course, if an expression in one algebra does not make sense as an
+expression of the other algebra, the <tt class="docutils literal"><span class="pre">TypeError</span></tt> will be raised.</p>
+<p>Continue reading the next section about the <tt class="docutils literal"><span class="pre">Verbatim.as_algebra</span></tt>
+method.</p>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id18" id="how-verbatim-expressions-are-converted-to-other-algebras" name="how-verbatim-expressions-are-converted-to-other-algebras">5.4&nbsp;&nbsp;&nbsp;How verbatim expressions are converted to other algebras?</a></h2>
+<p>Verbatim expressions are converted to another algebras in <tt class="docutils literal"><span class="pre">&lt;Verbatim</span>
+<span class="pre">instance&gt;.as_algebra(&lt;Algebra</span> <span class="pre">class&gt;)</span></tt> instance method. <tt class="docutils literal"><span class="pre">Verbatim</span></tt>
+instance holds a pair <tt class="docutils literal"><span class="pre">(&lt;expression</span> <span class="pre">head&gt;,</span> <span class="pre">&lt;expression</span> <span class="pre">data&gt;)</span></tt> and
+the task of <tt class="docutils literal"><span class="pre">as_algebra</span></tt> method is to use information in triple
+<tt class="docutils literal"><span class="pre">&lt;expression</span> <span class="pre">head&gt;,</span> <span class="pre">&lt;expression</span> <span class="pre">data&gt;,</span> <span class="pre">&lt;Algebra</span> <span class="pre">class&gt;</span></tt> and
+construct an <tt class="docutils literal"><span class="pre">&lt;Algebra&gt;</span></tt> instance representing expression in the
+given algebra.</p>
+<p>First, let us consider atomic expressions such as numbers and symbols.</p>
+<p>In general, numbers can be low-level numbers such as <tt class="docutils literal"><span class="pre">int</span></tt>,
+<tt class="docutils literal"><span class="pre">long</span></tt>, <tt class="docutils literal"><span class="pre">mpq</span></tt>, <tt class="docutils literal"><span class="pre">mpf</span></tt>, <tt class="docutils literal"><span class="pre">mpc</span></tt>, <tt class="docutils literal"><span class="pre">mpqc</span></tt>, but numbers of one
+algebra can be expressions of some other algebra. So, in case of
+verbatim numbers, <tt class="docutils literal"><span class="pre">Algebra.convert(&lt;Verbatim</span> <span class="pre">instance&gt;.data)</span></tt> is
+returned.</p>
+<p>In general, symbols are Python string objects but certain string
+values may be names of mathematical constants or predefined functions
+for the given algebra. So, in the case of verbatim symbols,
+<tt class="docutils literal"><span class="pre">Algebra.convert_symbol(&lt;Verbatim</span> <span class="pre">instance&gt;.data)</span></tt> is returned.  It
+also means that <tt class="docutils literal"><span class="pre">Algebra</span></tt> classes must define classmethod
+<tt class="docutils literal"><span class="pre">convert_symbol</span></tt> that can either return a algebra symbol instance
+<tt class="docutils literal"><span class="pre">Algebra(SYMBOL,</span> <span class="pre">data)</span></tt> or a predefined function or mathematical
+constant.</p>
+<p>Expressions are operations with operands. Therefore, to convert
+verbatim expression to an expression of a given algebra, the algebra
+must have a support for the given operation. The following table
+summarizes how algebras can support different operations.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="26%" />
+<col width="74%" />
+</colgroup>
+<tbody valign="top">
+<tr><td>Expression head</td>
+<td>Support hooks in <tt class="docutils literal"><span class="pre">Algebra</span></tt> class</td>
+</tr>
+<tr><td>POS</td>
+<td><tt class="docutils literal"><span class="pre">Algebra.__pos__(operand)</span></tt></td>
+</tr>
+<tr><td>NEG</td>
+<td><tt class="docutils literal"><span class="pre">Algebra.__neg__(operand)</span></tt></td>
+</tr>
+<tr><td>ADD</td>
+<td><tt class="docutils literal"><span class="pre">Algebra.Add(*operands)</span></tt></td>
+</tr>
+<tr><td>SUB</td>
+<td><tt class="docutils literal"><span class="pre">Algebra.Sub(*operands)</span></tt></td>
+</tr>
+<tr><td>MUL</td>
+<td><tt class="docutils literal"><span class="pre">Algebra.Mul(*operands)</span></tt></td>
+</tr>
+<tr><td>DIV</td>
+<td><tt class="docutils literal"><span class="pre">Algebra.Div(*operands)</span></tt></td>
+</tr>
+<tr><td>POW</td>
+<td><tt class="docutils literal"><span class="pre">Algebra.Pow(*operands)</span></tt></td>
+</tr>
+<tr><td>MOD</td>
+<td><tt class="docutils literal"><span class="pre">Algebra.Mod(*operands)</span></tt></td>
+</tr>
+<tr><td>LT</td>
+<td><tt class="docutils literal"><span class="pre">Algebra.Lt(*operands)</span></tt></td>
+</tr>
+<tr><td>GT</td>
+<td><tt class="docutils literal"><span class="pre">Algebra.Gt(*operands)</span></tt></td>
+</tr>
+<tr><td>LE</td>
+<td><tt class="docutils literal"><span class="pre">Algebra.Le(*operands)</span></tt></td>
+</tr>
+<tr><td>GE</td>
+<td><tt class="docutils literal"><span class="pre">Algebra.Ge(*operands)</span></tt></td>
+</tr>
+<tr><td>EQ</td>
+<td><tt class="docutils literal"><span class="pre">Algebra.Eq(*operands)</span></tt></td>
+</tr>
+<tr><td>NE</td>
+<td><tt class="docutils literal"><span class="pre">Algebra.Ne(*operands)</span></tt></td>
+</tr>
+<tr><td>AND</td>
+<td><tt class="docutils literal"><span class="pre">Algebra.And(*operands)</span></tt></td>
+</tr>
+<tr><td>OR</td>
+<td><tt class="docutils literal"><span class="pre">Algebra.Or(*operands)</span></tt></td>
+</tr>
+<tr><td>NOT</td>
+<td><tt class="docutils literal"><span class="pre">Algebra.Not(*operands)</span></tt></td>
+</tr>
+<tr><td>IN</td>
+<td><tt class="docutils literal"><span class="pre">Algebra.Element(*operands)</span></tt></td>
+</tr>
+<tr><td>NOTIN</td>
+<td><tt class="docutils literal"><span class="pre">Algebra.Not(Algebra.Element(*operands))</span></tt></td>
+</tr>
+<tr><td>APPLY</td>
+<td>XXX</td>
+</tr>
+</tbody>
+</table>
+<p>Note that the operands to operations of a given algebra do not always
+belong to the same algebra. For example, the operands of <tt class="docutils literal"><span class="pre">LT</span></tt> can be
+<tt class="docutils literal"><span class="pre">Calculus</span></tt> instances but the operation result is <tt class="docutils literal"><span class="pre">Logic</span></tt> instance.
+The algebras can also vary within a list of operands. For example, the
+first operand to <tt class="docutils literal"><span class="pre">IN</span></tt> should be an instance of set element algebra
+while the second operand is a <tt class="docutils literal"><span class="pre">Set</span></tt> instance.
+To support all these cases, the algebra class may need to define the
+following additional methods:</p>
+<ol class="arabic simple">
+<li><tt class="docutils literal"><span class="pre">Algebra.get_operand_algebra(head,</span> <span class="pre">index=0)</span></tt> - return the algebra
+class of <tt class="docutils literal"><span class="pre">index</span></tt>-th operand in operation defined by <tt class="docutils literal"><span class="pre">head</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">&lt;Algebra</span> <span class="pre">instance&gt;.get_element_algebra()</span></tt> - return the element
+algebra class. The method must be defined by <tt class="docutils literal"><span class="pre">Set</span></tt> and
+<tt class="docutils literal"><span class="pre">MatrixRing</span></tt> classes, for instance. This method is instance
+method because the result may depend the instance content. For
+example, <tt class="docutils literal"><span class="pre">Set('Reals').get_element_algebra()</span></tt> would return
+<tt class="docutils literal"><span class="pre">Calculus</span></tt> while <tt class="docutils literal"><span class="pre">Set('Functions').get_element_algebra()</span></tt>
+should return <tt class="docutils literal"><span class="pre">FunctionRing</span></tt>.</li>
+</ol>
+</div>
 </div>
 </div>
 </body>

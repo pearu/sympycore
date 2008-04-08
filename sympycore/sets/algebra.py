@@ -27,6 +27,13 @@ class Set(Algebra):
     
     """
 
+    def get_element_algebra(self):
+        head, data = self.pair
+        if head is SYMBOL:
+            if data in ['Integers', 'Reals']:
+                return classes.Calculus
+        return classes.Verbatim
+
     @classmethod
     def convert_number(cls, obj, typeerror=True):
         t = type(obj)

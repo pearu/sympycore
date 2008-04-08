@@ -74,3 +74,8 @@ def test_subs():
     assert Logic('x<=1 and x>=-2').subs('x', 0)==true
     assert Logic('x<=1 and x>=-2').subs('x', -2)==true
     assert Logic('x<=1 and x>=-2').subs('x', -3)==false
+
+def test_in():
+    assert Logic('x in y') == Logic.Element(classes.Verbatim('x'), classes.Set('y'))
+    assert Logic('x in Integers') == Logic.Element(classes.Calculus('x'), classes.Set('Integers'))
+    

@@ -13,14 +13,14 @@ def test_diff_poly():
     assert diff(x**M + 2*x + 3, x, M+1) == 0
 
 def test_diff_powers():
-    assert diff(exp(x), x) == exp(x)
-    assert diff(exp(x+1), x) == exp(x+1)
-    assert diff(exp(x), x, M) == exp(x)
-    assert diff(exp(x+1), x, M) == exp(x+1)
-    assert diff(exp(3*x+1), x) == 3*exp(3*x+1)
-    assert diff(2**(3*x+1), x) == 3*2**(3*x+1)*log(2)
-    assert diff(2**(3*x+1), x, 1000) == 3**1000 * 2**(3*x+1) * log(2)**1000
-    assert diff((2*x+1)**(3*x), x) == (2*x+1)**(3*x) * (6*x/(2*x+1)+3*log(2*x+1))
+    assert diff(Exp(x), x) == Exp(x)
+    assert diff(Exp(x+1), x) == Exp(x+1)
+    assert diff(Exp(x), x, M) == Exp(x)
+    assert diff(Exp(x+1), x, M) == Exp(x+1)
+    assert diff(Exp(3*x+1), x) == 3*Exp(3*x+1)
+    assert diff(2**(3*x+1), x) == 3*2**(3*x+1)*Log(2)
+    assert diff(2**(3*x+1), x, 1000) == 3**1000 * 2**(3*x+1) * Log(2)**1000
+    assert diff((2*x+1)**(3*x), x) == (2*x+1)**(3*x) * (6*x/(2*x+1)+3*Log(2*x+1))
 
 def test_diff_products():
     assert diff((1+x)*(2+x), x) == 3+2*x
@@ -28,23 +28,23 @@ def test_diff_products():
                                           (1 + x)**3*(4 + 2*x) + 3*(1 + x)**2*(2 + x)**2]
     assert diff(pi**2 * 2**Number(1,2) * x, x) == pi**2 * 2**Number(1,2)
 
-def test_diff_log():
-    assert diff(log(x), x) == 1/x
-    assert diff(log(3*x), x) == 1/x
-    assert diff(log(3*x+1), x) == 3/(3*x+1)
-    assert diff(log(3*x+1), x, 5) == 24 * 3**5 / (3*x+1)**5
+def test_diff_Log():
+    assert diff(Log(x), x) == 1/x
+    assert diff(Log(3*x), x) == 1/x
+    assert diff(Log(3*x+1), x) == 3/(3*x+1)
+    assert diff(Log(3*x+1), x, 5) == 24 * 3**5 / (3*x+1)**5
 
 def test_diff_trig():
-    assert diff(sin(x), x) == cos(x)
-    assert diff(cos(x), x) == -sin(x)
-    assert diff(sin(2*x), x) == 2*cos(2*x)
-    assert diff(tan(x), x) == 1 + tan(x)**2
-    assert diff(cot(x), x) == -1-cot(x)**2
-    assert diff(sin(x), x, M) == sin(x)
-    assert diff(sin(x), x, M+1) == cos(x)
-    assert diff(cos(x), x, M) == cos(x)
-    assert diff(cos(x), x, M+1) == -sin(x)
-    assert diff(sin(3*x+1), x, 5) == 3**5 * cos(3*x+1)
-    assert diff(cos(3*x+1), x, 5) == -3**5 * sin(3*x+1)
-    assert diff(x*sin(x), x) == x*cos(x) + sin(x)
-    assert diff(x*sin(x)*cos(x), x) == x*cos(x)**2 + cos(x)*sin(x) - x*sin(x)**2
+    assert diff(Sin(x), x) == Cos(x)
+    assert diff(Cos(x), x) == -Sin(x)
+    assert diff(Sin(2*x), x) == 2*Cos(2*x)
+    assert diff(Tan(x), x) == 1 + Tan(x)**2
+    assert diff(Cot(x), x) == -1-Cot(x)**2
+    assert diff(Sin(x), x, M) == Sin(x)
+    assert diff(Sin(x), x, M+1) == Cos(x)
+    assert diff(Cos(x), x, M) == Cos(x)
+    assert diff(Cos(x), x, M+1) == -Sin(x)
+    assert diff(Sin(3*x+1), x, 5) == 3**5 * Cos(3*x+1)
+    assert diff(Cos(3*x+1), x, 5) == -3**5 * Sin(3*x+1)
+    assert diff(x*Sin(x), x) == x*Cos(x) + Sin(x)
+    assert diff(x*Sin(x)*Cos(x), x) == x*Cos(x)**2 + Cos(x)*Sin(x) - x*Sin(x)**2

@@ -9,7 +9,7 @@ __docformat__ = "restructuredtext"
 __all__ = "PolynomialRing"
 
 from ..core import classes
-from ..utils import SYMBOL, NUMBER, ADD, MUL, POW, POLY
+from ..utils import SYMBOL, NUMBER, ADD, MUL, POW, POLY, SUB, DIV
 from ..basealgebra.algebra import Algebra
 from ..basealgebra.ring import CommutativeRing
 from ..basealgebra.verbatim import Verbatim
@@ -167,6 +167,17 @@ class PolynomialRing(CommutativeRing):
         elif isinstance(data, dict):
             return cls(POLY, data)
         return super(CommutativeRing, cls).convert(data, typeerror=True)
+
+    @classmethod
+    def get_operand_algebra(cls, head, index=0):
+        if head in [ADD, SUB, MUL]:
+            return cls
+        if head is POW:
+            if index==0:
+                return cls
+            if index==1:
+                return int
+        return cls.handle_get_operand_algebra_failure(head, index)
     
     def __eq__(self, other):
         return type(other)==type(self) and self.pair == other.pair
@@ -182,6 +193,19 @@ class PolynomialRing(CommutativeRing):
           r.Symbol('x') -> r({1:1})
           r.Symbol('y') -> PolynomialRing['x','y']({(0,1):1})
         """
+        try:
+            i = list(cls.variables).index(obj)
+        except ValueError:
+            i = None
+        if i is None:
+            cls = PolynomialRing[cls.variables+(obj,), cls.ring]
+            i = list(cls.variables).index(obj)
+        l = [0]*cls.nvars
+        l[i] = 1
+        return cls(POLY, {AdditiveTuple(l):1})
+
+    @classmethod
+    def convert_symbol(cls, obj):
         try:
             i = list(cls.variables).index(obj)
         except ValueError:

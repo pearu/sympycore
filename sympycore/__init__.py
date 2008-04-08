@@ -19,8 +19,6 @@ from matrices import *
 from physics import *
 from functions import *
 
-
-
 import utils
 
 def profile_expr(expr):
@@ -71,3 +69,11 @@ def var(s):
         # we should explicitly break cyclic dependencies as stated in inspect
         # doc
         del frame
+
+sin = Function(Sin, Calculus, Calculus)
+cos = Function(Cos, Calculus, Calculus)
+tan = Function(Tan, Calculus, Calculus)
+cot = Function(Cot, Calculus, Calculus)
+exp = Function(Exp, Calculus, Calculus)
+log = Function(Log, (Calculus, Calculus), Calculus)
+ln = Function(Ln, Calculus, Calculus)

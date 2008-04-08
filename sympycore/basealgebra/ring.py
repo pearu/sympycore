@@ -27,6 +27,13 @@ class CommutativeRing(Algebra):
     __slots__ = ['_symbols']
     _symbols = None
 
+
+    @classmethod
+    def Pos(cls, arg): return +arg
+
+    @classmethod
+    def Neg(cls, arg): return -arg
+
     @classmethod
     def Add(cls, *seq):
         """ Compute sum over seq containing algebra elements.

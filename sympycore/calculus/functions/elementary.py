@@ -4,14 +4,15 @@
 """ Provides elementary calculus functions sqrt, exp, log, sin, etc and constants pi, E.
 """
 
-__all__ = ['sqrt', 'exp', 'log', 'sin', 'cos', 'tan', 'cot', 'sign', 'mod',
-           'E', 'pi', 'gamma']
+__all__ = ['Sqrt', 'Exp', 'Log', 'Sin', 'Cos', 'Tan', 'Cot', 'Sign', 'Mod',
+           'E', 'pi', 'gamma', 'Ln']
 __docformat__ = "restructuredtext"
 
 from ..algebra import Calculus, I,  NUMBER, TERMS, FACTORS, SYMBOL, TERMS
 from ..infinity import oo, undefined, CalculusInfinity
 from ..constants import const_pi, const_E, const_gamma
-from ...core import DefinedFunction
+
+from ...core import DefinedFunction, get_nargs
 from ...arithmetic.evalf import evalf
 from ...arithmetic.numbers import complextypes, realtypes, inttypes
 from ...arithmetic.number_theory import factorial
@@ -36,13 +37,19 @@ gamma = const_gamma.as_algebra(Calculus)
 Ipi = I*pi
 Ipi2 = Ipi/2
 
-class sign(DefinedFunction):
+class CalculusDefinedFunction(DefinedFunction):
+
+    @classmethod
+    def get_argument_algebras(cls):
+        return (Calculus,)*(get_nargs(cls))
+
+class Sign(CalculusDefinedFunction):
     def __new__(cls, arg):
         if not isinstance(arg, Calculus):
             arg = Calculus.convert(arg)
         return Calculus(cls, arg)
 
-class mod(DefinedFunction):
+class Mod(CalculusDefinedFunction):
     def __new__(cls, x, y):
         if not isinstance(x, Calculus):
             x = Calculus.convert(x)
@@ -54,11 +61,11 @@ class mod(DefinedFunction):
             return Calculus.convert(xd % yd)
         return Calculus(cls, (x, y))
 
-class sqrt(DefinedFunction):
+class Sqrt(CalculusDefinedFunction):
     def __new__(cls, arg):
         return arg ** half
 
-class exp(DefinedFunction):
+class Exp(CalculusDefinedFunction):
     def __new__(cls, arg):
         return E ** arg
 
@@ -73,7 +80,7 @@ log_number_table = {
     (-I).data : -Ipi2
 }
 
-class log(DefinedFunction):
+class Log(CalculusDefinedFunction):
     def __new__(cls, arg, base=E):
         if type(arg) is not Calculus:
             if isinstance(arg, CalculusInfinity):
@@ -102,7 +109,7 @@ class log(DefinedFunction):
             if v is not None:
                 return v
             if isinstance(data, realtypes) and data < 0:
-                return Ipi + log(-arg)
+                return Ipi + Log(-arg)
             if isinstance(data, complextypes) and data.real == 0:
                 im = data.imag
                 if im > 0: return Calculus(cls, Calculus(NUMBER, im)) + Ipi2
@@ -118,7 +125,7 @@ class log(DefinedFunction):
         if head is TERMS and len(data) == 1:
             term, coeff = data.items()[0]
             if (isinstance(coeff, realtypes) and coeff < 0) and is_positive(base):
-                return Ipi + log(-arg)
+                return Ipi + Log(-arg)
         return Calculus(cls, arg)
 
     @classmethod
@@ -128,6 +135,10 @@ class log(DefinedFunction):
     @classmethod
     def nth_derivative(cls, arg, n=1):
         return (-1)**(n-1) * factorial(n-1) * arg**(-n)
+
+class Ln(Log):
+    def __new__(cls, arg):
+        return Log(arg)
 
 #---------------------------------------------------------------------------#
 #                          Trigonometric functions                          #
@@ -178,7 +189,7 @@ def has_leading_sign(arg):
             return True
     return None
 
-class TrigonometricFunction(DefinedFunction):
+class TrigonometricFunction(CalculusDefinedFunction):
 
     parity = None   # 'even' or 'odd'
     period = None   # multiple of pi
@@ -220,7 +231,7 @@ class TrigonometricFunction(DefinedFunction):
         else:
             return Calculus(cls, arg)
 
-class sin(TrigonometricFunction):
+class Sin(TrigonometricFunction):
     parity = 'odd'
     period = 2
     @classmethod
@@ -230,13 +241,13 @@ class sin(TrigonometricFunction):
     @classmethod
     def derivative(cls, arg, n=1):
         if n == 1:
-            return cos(arg)
+            return Cos(arg)
 
     @classmethod
     def nth_derivative(cls, arg, n):
-        return sin(arg + n*pi/2)
+        return Sin(arg + n*pi/2)
 
-class cos(TrigonometricFunction):
+class Cos(TrigonometricFunction):
     parity = 'even'
     period = 2
 
@@ -246,13 +257,13 @@ class cos(TrigonometricFunction):
 
     @classmethod
     def derivative(cls, arg, n=1):
-        return -sin(arg)
+        return -Sin(arg)
 
     @classmethod
     def nth_derivative(cls, arg, n=1):
-        return cos(arg + n*pi/2)
+        return Cos(arg + n*pi/2)
 
-class tan(TrigonometricFunction):
+class Tan(TrigonometricFunction):
     parity = 'odd'
     period = 1
 
@@ -266,9 +277,9 @@ class tan(TrigonometricFunction):
 
     @classmethod
     def derivative(cls, arg):
-        return 1+tan(arg)**2
+        return 1+Tan(arg)**2
 
-class cot(TrigonometricFunction):
+class Cot(TrigonometricFunction):
     parity = 'odd'
     period = 1
 
@@ -282,12 +293,13 @@ class cot(TrigonometricFunction):
 
     @classmethod
     def derivative(cls, arg, n=1):
-        return -(1+cot(arg)**2)
+        return -(1+Cot(arg)**2)
 
 # pi/2-x symmetry
 conjugates = {
-  sin : cos,
-  cos : sin,
-  tan : cot,
-  cot : tan
+  Sin : Cos,
+  Cos : Sin,
+  Tan : Cot,
+  Cot : Tan
 }
+

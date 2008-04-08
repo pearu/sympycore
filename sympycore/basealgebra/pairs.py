@@ -11,7 +11,7 @@ __all__ = ['CollectingField']
 
 from ..core import classes, Expr
 from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_NUMBER
-from ..utils import TERMS, FACTORS, SYMBOL, NUMBER, APPLY, POW, TUPLE, head_to_string
+from ..utils import ADD, SUB, MUL, DIV, TERMS, FACTORS, SYMBOL, NUMBER, APPLY, POW, TUPLE, head_to_string, NEG, POS
 
 from .algebra import Algebra
 from .ring import CommutativeRing
@@ -75,6 +75,20 @@ class CollectingField(CommutativeRing):
     __rdiv__ = rdiv_method
     __pow__ = pow_method
     expand = expand
+
+    @classmethod
+    def get_exponent_algebra(cls):
+        return cls
+
+    @classmethod
+    def get_operand_algebra(cls, head, index=0):
+        if head in [ADD, SUB, DIV, MUL, NEG, POS]:
+            return cls
+        if head is POW:
+            if index==0:
+                return cls
+            return cls.get_exponent_algebra()
+        return cls.handle_get_operand_algebra_failure(head, index)
 
     def handle_numeric_item(self, result, key, value):
         del self.data[key]
@@ -404,8 +418,8 @@ class CollectingField(CommutativeRing):
             value = data
             if hasattr(value, 'as_verbatim'):
                 r = value.as_verbatim()
-            elif isinstance(value, (int, long, float)) and value<0:
-                r = -Verbatim(NUMBER, -value)
+            #elif isinstance(value, (int, long, float)) and value<0:
+            #    r = -Verbatim(NUMBER, -value)
             else:
                 r = Verbatim(NUMBER, value)
         elif head is SYMBOL:

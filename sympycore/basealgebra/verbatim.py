@@ -18,7 +18,7 @@ from ..utils import (OR, AND, NOT, LT, LE, GT, GE, EQ, NE, BAND, BOR, BXOR,
                      INVERT, POS, NEG, ADD, SUB, MOD, MUL, DIV, POW,
                      NUMBER, SYMBOL, APPLY, TUPLE, LAMBDA, head_to_string,
                      IN, NOTIN, SUBSCRIPT)
-from ..core import classes, Expr
+from ..core import classes, Expr, objects
 
 # XXX: Unimplemented expression parts:
 # XXX: LeftShift, RightShift, List*, Subscript, Slice, KeyWord, GetAttr, Ellipsis
@@ -55,7 +55,7 @@ parentheses_map = {
     }
 
 _is_name = re.compile(r'\A[a-zA-z_]\w*\Z').match
-_is_number = re.compile(r'\A\d+\Z').match
+_is_number = re.compile(r'\A[-]?\d+\Z').match
 
 head_order = [NUMBER, SYMBOL, APPLY,
               POS, ADD,
@@ -95,6 +95,26 @@ def tree_sort(a, b):
         if c: return c
     return 0
 
+convert_head_Op_map = {
+    NEG : 'Neg',
+    POS : 'Pos',
+    ADD : 'Add',
+    SUB : 'Sub',
+    MUL : 'Mul',
+    DIV : 'Div',
+    POW : 'Pow',
+    MOD : 'Mod',
+    AND : 'And',
+    OR : 'Or',
+    NOT : 'Not',
+    LT : 'Lt',
+    GT : 'Gt',
+    LE : 'Le',
+    GE : 'Ge',
+    EQ : 'Eq',
+    NE : 'Ne',
+    }
+
 class Verbatim(Algebra):
     """ Represents an unevaluated expression.
     """
@@ -110,6 +130,7 @@ class Verbatim(Algebra):
         if isinstance(obj, (str, unicode)):
             obj = string2Verbatim(obj)
         if hasattr(obj, 'as_verbatim'):
+            # handle low-level numbers and constants
             return obj.as_verbatim()
         if isinstance(obj, cls):
             return obj
@@ -121,69 +142,27 @@ class Verbatim(Algebra):
     def as_algebra(self, cls, source=None):
         head, rest = self.pair
         if head is NUMBER:
-            if hasattr(rest,'coefftypes') and isinstance(rest, cls.coefftypes):
-                return cls.Number(rest)
-            return cls.convert(rest)
+            return cls(rest)
         if head is SYMBOL:
-            r = cls.get_predefined_symbols(rest)
-            if r is not None:
-                return r
-            return cls.Symbol(rest)
-        if head is ADD:
-            return cls.Add(*[r.as_algebra(cls) for r in rest])
-        if head is SUB:
-            return cls.Sub(*[r.as_algebra(cls) for r in rest])
-            return rest[0].as_algebra(cls) - cls.Add(*[r.as_algebra(cls) for r in rest[1:]])
-        if head is MUL:
-            return cls.Mul(*[r.as_algebra(cls) for r in rest])
-        if head is DIV:
-            return cls.Div(*[r.as_algebra(cls) for r in rest])
-        if head is POW:
-            base, exp = rest
-            h, r = exp.pair
-            if h is NUMBER:
-                return cls.Pow(base.as_algebra(cls), cls.convert_exponent(r))
-            return cls.Pow(base.as_algebra(cls), exp.as_algebra(cls))
-        if head is NEG:
-            if isinstance(rest, tuple):
-                assert len(rest)==1,`rest`
-                rest = rest[0]
-            return -(rest.as_algebra(cls))
-        if head is POS:
-            if isinstance(rest, tuple):
-                assert len(rest)==1,`rest`
-                rest = rest[0]
-            return +(rest.as_algebra(cls))
+            return cls.convert_symbol(rest)
+        n = convert_head_Op_map.get(head)
+        if n is not None:
+            return getattr(cls, n)(*[r.as_algebra(cls.get_operand_algebra(head, i)) for i,r in enumerate(rest)])
         if head is APPLY:
-            func = rest[0].as_algebra(cls)
-            args = [cls(a) for a in rest[1:]]
-            #if callable(func):
-            #    return func(*args)
-            return cls(APPLY, (func,)+ tuple(args))
-        if head is LT: return cls.Lt(*[r.as_algebra(classes.Calculus) for r in rest])
-        if head is LE: return cls.Le(*[r.as_algebra(classes.Calculus) for r in rest])
-        if head is GT: return cls.Gt(*[r.as_algebra(classes.Calculus) for r in rest])
-        if head is GE: return cls.Ge(*[r.as_algebra(classes.Calculus) for r in rest])
-        if head is EQ: return cls.Eq(*[r.as_algebra(classes.Calculus) for r in rest])
-        if head is NE: return cls.Ne(*[r.as_algebra(classes.Calculus) for r in rest])
-        if head is AND:
-            return cls.And(*[r.as_algebra(cls) for r in rest])
-        if head is OR:
-            return cls.Or(*[r.as_algebra(cls) for r in rest])
-        if head is NOT:
-            return cls.Not(rest[0].as_algebra(cls))
-        if head is MOD:
-            return cls.Mod(*[r.as_algebra(cls) for r in rest])
-        if head is IN:
+            func = rest[0]
+            args = rest[1:]
+            fcls = objects.get_function_ring((cls,)*len(args), cls)
+            f = func.as_algebra(fcls)
+            return f(*[a.as_algebra(cls) for a in args])
+        if head is IN or head is NOTIN:
             element, container = rest
-            container = container.as_algebra(classes.Set)
-            element = element.as_algebra(classes.Calculus)
-            return cls.IsElement(element, container)
-        if head is NOTIN:
-            element, container = rest
-            container = container.as_algebra(classes.Set)
-            element = element.as_algebra(classes.Calculus)
-            return cls.Not(cls.IsElement(element, container))
+            container = container.as_algebra(cls.get_operand_algebra(IN, 1))
+            element_algebra = container.get_element_algebra()
+            element = element.as_algebra(element_algebra)
+            r = cls.Element(element, container)
+            if head is NOTIN:
+                return cls.Not(r)
+            return r
         if head is SUBSCRIPT:
             obj, index = rest
             obj = obj.as_algebra(cls)
@@ -305,9 +284,9 @@ class Verbatim(Algebra):
         return False
 
     def __pos__(self):
-        return Verbatim(POS, self)
+        return Verbatim(POS, (self,))
     def __neg__(self):
-        return Verbatim(NEG, self)
+        return Verbatim(NEG, (self,))
     def __add__(self, other):
         other = self.convert(other)
         return Verbatim(ADD, (self, other))
@@ -340,7 +319,8 @@ class Verbatim(Algebra):
         return Verbatim(POW, (other, self))
     __truediv__ = __div__
     __rtruediv__ = __rdiv__
-
+    def __call__(self, *args):
+        return Verbatim(APPLY, (self,)+args)
 
 classes.Verbatim = Verbatim
 

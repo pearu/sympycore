@@ -5,9 +5,10 @@ __all__ = ['diff']
 
 from ..utils import SYMBOL, NUMBER, ADD, MUL, FACTORS
 from ..arithmetic.numbers import inttypes
+from ..basealgebra import Algebra
 from ..basealgebra.pairs import inplace_add2, inplace_add, return_terms
 from .algebra import Calculus, algebra_numbers, zero, one
-from .functions import log
+from .functions import Log
 
 cache_generic = {}
 cache_factors = {}
@@ -28,7 +29,10 @@ def diff_repeated(expr, xdata, order):
     return expr
 
 def partial_derivative(func, n):
-    dname = '%s_%s' % (func.__name__, n)
+    if isinstance(func, Algebra):
+        dname = '%s_%s' % (func, n)
+    else:
+        dname = '%s_%s' % (func.__name__, n)
     def dfunc(*args):
         raise NotImplementedError('%s%s' % (dname, str(args)))
     dfunc.__name__ = dname
@@ -100,24 +104,24 @@ def diff_factor(base, exp, xdata, order):
             if exp.data != xdata:
                 res = zero
             else:
-                res = base**exp * log(base)**order
+                res = base**exp * Log(base)**order
         # a**f(x)
         else:
             de = diff_generic(exp, xdata, 1)
             # Special case:
             # D^n a**(b*x+c) = a**(b*x+c) * b**n * log(a)**10
             if is_constant(de, xdata):
-                res = base**exp * de**order * log(base)**order
+                res = base**exp * de**order * Log(base)**order
             else:
                 # TODO: maybe use the formula http://functions.wolfram.com/..
                 # ..ElementaryFunctions/Power/20/02/01/0003/ for high order
-                d = base**exp * log(base) * de
+                d = base**exp * Log(base) * de
                 res = diff_repeated(d, xdata, order-1)
     # General case, f(x)**g(x)
     else:
         db = diff_generic(base, xdata, 1)
         de = diff_generic(exp, xdata, 1)
-        res = diff_repeated(base**exp * (exp*db / base + log(base)*de), xdata, order-1)
+        res = diff_repeated(base**exp * (exp*db / base + Log(base)*de), xdata, order-1)
     cache_factors[key] = res
     return res
 

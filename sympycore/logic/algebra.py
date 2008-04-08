@@ -1,6 +1,6 @@
 
 from ..core import classes
-from ..utils import EQ, NE, LT, LE, GT, GE, SYMBOL, AND, NOT, OR, NUMBER, IN
+from ..utils import EQ, NE, LT, LE, GT, GE, SYMBOL, AND, NOT, OR, NUMBER, IN, NOTIN
 from ..basealgebra import Algebra, Verbatim
 
 head_mth_map = {
@@ -38,6 +38,20 @@ class Logic(Algebra):
 
     """
 
+    @classmethod
+    def get_operand_algebra(cls, head, index=0):
+        """ Return algebra class for index-th operand of operation with head.
+        """
+        if head in [AND, OR, NOT]:
+            return cls
+        if head in [LT, LE, GT, GE, EQ, NE]:
+            return classes.Calculus
+        if head in [IN, NOTIN]:
+            if index==1:
+                return classes.Set
+            return classes.Verbatim
+        raise NotImplementedError('Algebra %s does not support operation %s' % (cls.__name__, head))
+
     def __nonzero__(self, head_mth_get=head_mth_map.get):
         """ Return lexicographic truth value for relational predicates
         and True for non-numeric predicates.
@@ -59,6 +73,12 @@ class Logic(Algebra):
         if name=='False': return cls.false
         return
 
+    @classmethod
+    def convert_number(cls, obj, typeerror=True):
+        if type(obj) is bool:
+            return obj
+        return cls.handle_convert_failure('number', obj, typeerror, 'expected bool')
+
     def convert_operand(self, obj, typeerror=True):
         head = self.head
         if head in [LT, GT, LE, GE, EQ, NE]:
@@ -76,15 +96,6 @@ class Logic(Algebra):
     is_And = property(lambda self: self.head is AND)
     is_Or = property(lambda self: self.head is OR)
     is_Not = property(lambda self: self.head is NOT)
-
-    @classmethod
-    def Symbol(cls, obj):
-        return cls(SYMBOL, obj)
-
-    @classmethod
-    def Number(cls, obj):
-        assert isinstance(obj, bool),`obj`
-        return cls(NUMBER, obj)
 
     def _subs(self, subexpr, newexpr):
         head, data = self.pair
@@ -183,7 +194,7 @@ class Logic(Algebra):
         return cls(NE, seq)
 
     @classmethod
-    def IsElement(cls, element, container):
+    def Element(cls, element, container):
         if hasattr(container, 'contains'):
             return container.contains(element)
         return cls(IN, (element, container))
