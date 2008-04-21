@@ -596,4 +596,6 @@ def test_to_polynomial_data():
 
     assert (x**(Number(3)/2)).to_polynomial_data()[0] == {3:1}
 
-
+def test_bug_issue61():
+    a = Symbol('a')
+    assert (a+1-1)==a

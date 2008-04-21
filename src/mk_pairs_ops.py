@@ -148,6 +148,7 @@ if not %(TMP)s:
     return %(RHS)s
 pairs = %(RHSDATA)s.copy()
 @ADD_VALUE_DICT(DICT=pairs; VALUE=%(TMP)s)
+@CANONIZE_TERMS_DICT(DICT=pairs)
 @RETURN_NEW(HEAD=TERMS; DATA=pairs)
 '''
 ADD_TERMS_VALUE = '@ADD_VALUE_TERMS(VALUE=%(VALUE)s; RHS=%(LHS)s; RHSDATA=%(LHSDATA)s)\n'
