@@ -43,6 +43,7 @@ oriented design that can be easily extended.
                       'sympycore.basealgebra',
                       'sympycore.calculus',
                       'sympycore.calculus.functions',
+                      'sympycore.functions',
                       'sympycore.logic',
                       'sympycore.matrices',
                       'sympycore.polynomials',
