@@ -4,7 +4,8 @@ __docformat__ = "restructuredtext"
 
 from .algebra import Calculus, I
 from .infinity import  oo, undefined, moo, zoo
-from .functions import Exp, Log, Sqrt, Sin, Cos, Tan, Cot, pi, E, gamma, Sign, Mod, Ln
+from .functions import (Exp, Log, Sqrt, Sin, Cos, Tan, Cot, pi, E, gamma,
+    Sign, Mod, Ln, Factorial)
 from differentiation import diff
 from integration import integrate
 

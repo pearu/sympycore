@@ -1,4 +1,4 @@
-""" Profides the implementation of differentation methods.
+""" Provides the implementation of differentation methods.
 """
 __docformat__ = "restructuredtext"
 __all__ = ['diff']
@@ -13,18 +13,26 @@ from .functions import Log
 cache_generic = {}
 cache_factors = {}
 
+def is_integer(expr):
+    return expr.is_Number and isinstance(expr.data, (int, long))
+
 def is_constant(expr, xdata):
     return xdata not in expr._get_symbols_data()
 
 def is_constant_exponent(exp, xdata):
     return isinstance(exp, algebra_numbers) or (xdata not in exp._get_symbols_data())
 
+monomial_msg = ("symbolic or fractional differentiation of a monomial (requires"
+    "symbolic gamma or Pochhammer, with conditions")
+
 # This is generally slow, so we try to avoid it when shortcuts
 # are available for high-order derivatives
 def diff_repeated(expr, xdata, order):
+    if not is_integer(order):
+        raise NotImplementedError('symbolic differentiation of %s' % expr)
     for k in xrange(order):
-        expr = diff_generic(expr, xdata, 1)
-        if expr == 0:
+        expr = diff_generic(expr, xdata, one)
+        if expr == zero:
             break
     return expr
 
@@ -42,7 +50,7 @@ def diff_callable(f, arg, xdata, order):
     if order != 1:
         # D^n f(a*x+b) -> a**n * [D^n f](a*x+b)]
         if hasattr(f, 'nth_derivative'):
-            a = diff_generic(arg, xdata, 1)
+            a = diff_generic(arg, xdata, one)
             if a == zero:
                 return zero
             if is_constant(a, xdata):
@@ -51,18 +59,18 @@ def diff_callable(f, arg, xdata, order):
     if type(arg) is tuple:
         terms = []
         for i, a in enumerate(arg):
-            da = diff_generic(a, xdata, 1)
+            da = diff_generic(a, xdata, one)
             if da == zero:
                 continue
             df = Calculus(partial_derivative(f, i+1), arg)
             terms.append(da * df)
         return Calculus.Add(*terms)
-    da = diff_generic(arg, xdata, 1)
+    da = diff_generic(arg, xdata, one)
     if da == zero:
         return zero
     if hasattr(f, 'derivative'):
         return diff_repeated(da * f.derivative(arg), xdata, order-1)
-    df = Calculus(partial_derivative(f, 1), arg)
+    df = Calculus(partial_derivative(f, one), arg)
     return df * da
 
 def diff_factor(base, exp, xdata, order):
@@ -78,23 +86,26 @@ def diff_factor(base, exp, xdata, order):
             # Note: this shouldn't be reached, but just to be sure...
             if data != xdata:
                 res = zero
-            elif order == 1:
+            elif order == one:
                 res = exp * base**(exp-1)
-            # Don't waste time if some tries to calculate the 1 millionth
+            # Don't waste time if someone tries to calculate the 1 millionth
             # derivative of x**3
-            elif isinstance(exp, inttypes) and exp > 0 and order > exp:
-                res = zero
-            # Repeatedly apply D(x**r) = r * x**(r-1)
-            # (Could be calculated for symbolic orders using Pochhammer.)
+            elif is_integer(order):
+                if isinstance(exp, inttypes) and exp > 0 and order > exp:
+                    res = zero
+                # Repeatedly apply D(x**r) = r * x**(r-1)
+                # (Could be calculated for symbolic orders using Pochhammer.)
+                else:
+                    p = 1
+                    for i in xrange(order):
+                        p *= exp
+                        exp -= 1
+                    res = p * base ** exp
             else:
-                p = 1
-                for i in xrange(order):
-                    p *= exp
-                    exp -= 1
-                res = p * base ** exp
+                raise NotImplementedError(monomial_msg)
         # f(x)**r
         else:
-            d = exp * base**(exp-1) * diff_generic(base, xdata, 1)
+            d = exp * base**(exp-1) * diff_generic(base, xdata, one)
             res = diff_repeated(d, xdata, order-1)
     # Handle a**f(x) where a is constant
     elif xdata not in base._get_symbols_data():
@@ -107,7 +118,7 @@ def diff_factor(base, exp, xdata, order):
                 res = base**exp * Log(base)**order
         # a**f(x)
         else:
-            de = diff_generic(exp, xdata, 1)
+            de = diff_generic(exp, xdata, one)
             # Special case:
             # D^n a**(b*x+c) = a**(b*x+c) * b**n * log(a)**10
             if is_constant(de, xdata):
@@ -119,13 +130,13 @@ def diff_factor(base, exp, xdata, order):
                 res = diff_repeated(d, xdata, order-1)
     # General case, f(x)**g(x)
     else:
-        db = diff_generic(base, xdata, 1)
-        de = diff_generic(exp, xdata, 1)
+        db = diff_generic(base, xdata, one)
+        de = diff_generic(exp, xdata, one)
         res = diff_repeated(base**exp * (exp*db / base + Log(base)*de), xdata, order-1)
     cache_factors[key] = res
     return res
 
-def diff_product(pairs, xdata, order=1, NUMBER=NUMBER, SYMBOL=SYMBOL, ADD=ADD, MUL=MUL):
+def diff_product(pairs, xdata, order=one):
     l = len(pairs)
     args = pairs.items()
     if l == 1:
@@ -134,8 +145,8 @@ def diff_product(pairs, xdata, order=1, NUMBER=NUMBER, SYMBOL=SYMBOL, ADD=ADD, M
     if l == 2:
         b1, e1 = args[0]
         b2, e2 = args[1]
-        dt1 = diff_factor(b1, e1, xdata, 1)
-        dt2 = diff_factor(b2, e2, xdata, 1)
+        dt1 = diff_factor(b1, e1, xdata, one)
+        dt2 = diff_factor(b2, e2, xdata, one)
         if e1 == 1: t1 = b1
         else:       t1 = b1 ** e1
         if e2 == 1: t2 = b2
@@ -145,7 +156,7 @@ def diff_product(pairs, xdata, order=1, NUMBER=NUMBER, SYMBOL=SYMBOL, ADD=ADD, M
         s = zero
         for i in xrange(l):
             b, e = args[i]
-            dt = diff_factor(b, e, xdata, 1)
+            dt = diff_factor(b, e, xdata, one)
             if dt != zero:
                 d1 = Calculus(FACTORS, dict(args[:i] + args[i+1:]))
                 s += dt * d1
@@ -160,12 +171,17 @@ def diff_generic(expr, xdata, order, NUMBER=NUMBER, SYMBOL=SYMBOL, ADD=ADD, MUL=
         return zero
     head, data = expr.pair
     if head is NUMBER:
-        r = zero
-    elif head is SYMBOL:
-        if data == xdata and order == 1:
-            r = one
-        else:
+        if is_integer(order):
             r = zero
+        else:
+            raise NotImplementedError(monomial_msg)
+    elif head is SYMBOL:
+        if data == xdata and order == one:
+            r = one
+        elif is_integer(order):
+            r = zero
+        else:
+            raise NotImplementedError(monomial_msg)
     elif head is ADD:
         # Differentiate term by term. Note that coefficients are constants.
         s = zero
@@ -178,8 +194,11 @@ def diff_generic(expr, xdata, order, NUMBER=NUMBER, SYMBOL=SYMBOL, ADD=ADD, MUL=
             if th is NUMBER:
                 continue
             elif th is SYMBOL:
-                if td == xdata and order == 1:
-                    inplace_add(cls, coeff, d, d_get, one)
+                if td == xdata:
+                    if not is_integer(order):
+                        raise NotImplementedError(monomial_msg)
+                    if order == one:
+                        inplace_add(cls, coeff, d, d_get, one)
                 # else: zero
                 continue
             if th is MUL:
@@ -196,7 +215,8 @@ def diff_generic(expr, xdata, order, NUMBER=NUMBER, SYMBOL=SYMBOL, ADD=ADD, MUL=
     cache_generic[key] = r
     return r
 
-def diff(expr, symbol, order=1):
+
+def diff(expr, symbol, order=one):
     """ Return derivative of the expression with respect to symbols.
 
     Examples::
@@ -204,9 +224,10 @@ def diff(expr, symbol, order=1):
       expr.diff(x,y) - 2nd derivative with respect to x and y
       expr.diff(x,4) is equivalent to expr.diff(x,x,x,x).
     """
-    # It should eventually be possible to support symbolic orders
+    expr = Calculus.convert(expr)
+    symbol = Calculus.convert(symbol)
+    order = Calculus.convert(order)
     try:
-        order = int(order)
         if not order:
             return expr
         return diff_generic(expr, symbol.data, order)

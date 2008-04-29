@@ -2,6 +2,7 @@ from sympycore.calculus import *
 from sympycore.calculus.differentiation import *
 
 x = Symbol('x')
+n = Symbol('n')
 M = 10**6
 
 def test_diff_poly():
@@ -48,3 +49,10 @@ def test_diff_trig():
     assert diff(Cos(3*x+1), x, 5) == -3**5 * Sin(3*x+1)
     assert diff(x*Sin(x), x) == x*Cos(x) + Sin(x)
     assert diff(x*Sin(x)*Cos(x), x) == x*Cos(x)**2 + Cos(x)*Sin(x) - x*Sin(x)**2
+
+def test_diff_symbolic_order():
+    assert diff(Exp(x), x, n) == Exp(x)
+    assert diff(Exp(-x), x, n) == (-1)**n * Exp(-x)
+    assert diff(Cos(2*x+3), x, n) == Cos(2*x+3 + n*pi/2) * 2**n
+    assert diff(Log(2*x+3), x, n) == (-1)**(n-1) * Factorial(n-1) * (3+2*x)**(-n) * 2**n
+    assert diff(2**(3*x+4), x, n) == 2**(4+3*x) * 3**n * Log(2)**n

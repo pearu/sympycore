@@ -4,13 +4,14 @@
 """ Provides elementary calculus functions sqrt, exp, log, sin, etc and constants pi, E.
 """
 
-__all__ = ['Sqrt', 'Exp', 'Log', 'Sin', 'Cos', 'Tan', 'Cot', 'Sign', 'Mod',
+__all__ = ['Sqrt', 'Exp', 'Log', 'Sin', 'Cos', 'Tan', 'Cot', 'Sign', 'Mod', 'Factorial',
            'E', 'pi', 'gamma', 'Ln']
 __docformat__ = "restructuredtext"
 
 from ..algebra import Calculus, I,  NUMBER, TERMS, FACTORS, SYMBOL, TERMS
-from ..infinity import oo, undefined, CalculusInfinity
+from ..infinity import oo, zoo, undefined, CalculusInfinity
 from ..constants import const_pi, const_E, const_gamma
+from ...utils import str_SUM, str_SYMBOL
 
 from ...core import DefinedFunction, get_nargs
 from ...arithmetic.evalf import evalf
@@ -25,10 +26,6 @@ one = Calculus.one
 half = one/2
 sqrt2 = Calculus.convert('2**(1/2)')
 sqrt3 = Calculus.convert('3**(1/2)')
-
-#---------------------------------------------------------------------------#
-#                                  Exponentials                             #
-#---------------------------------------------------------------------------#
 
 pi = const_pi.as_algebra(Calculus)
 E = const_E.as_algebra(Calculus)
@@ -60,6 +57,22 @@ class Mod(CalculusDefinedFunction):
         if xh is NUMBER and yh is NUMBER:
             return Calculus.convert(xd % yd)
         return Calculus(cls, (x, y))
+
+class Factorial(CalculusDefinedFunction):
+    def __new__(cls, x):
+        if not isinstance(x, Calculus):
+            x = Calculus.convert(x)
+        if x.is_Number:
+            n = x.data
+            if isinstance(n, (int, long)):
+                if n >= 0:
+                    return Calculus.convert(factorial(n))
+                return zoo
+        return Calculus(cls, x)
+
+#---------------------------------------------------------------------------#
+#                                  Exponentials                             #
+#---------------------------------------------------------------------------#
 
 class Sqrt(CalculusDefinedFunction):
     def __new__(cls, arg):
@@ -134,7 +147,7 @@ class Log(CalculusDefinedFunction):
 
     @classmethod
     def nth_derivative(cls, arg, n=1):
-        return (-1)**(n-1) * factorial(n-1) * arg**(-n)
+        return (-1)**(n-1) * Factorial(n-1) * arg**(-n)
 
 class Ln(Log):
     def __new__(cls, arg):
