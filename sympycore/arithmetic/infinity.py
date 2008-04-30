@@ -51,6 +51,9 @@ class Infinity(object):
 
     """
 
+    one = 1
+    zero = 0
+
     _add_ops = None
 
     @classmethod
@@ -246,7 +249,7 @@ class Infinity(object):
         """
         if is_undefined(self):
             return self
-        return 0
+        return self.zero
 
     def __pow__(self, other):
         """ exponentiation of extended numbers
@@ -258,14 +261,15 @@ class Infinity(object):
           (oo*x)**y      -> 0 if y<0; oo*(x**y) if y > 0
         """
         if not other:
-            return 1
+            return self.one
         cls = type(self)
         if is_undefined(self) or is_undefined(other) or is_zoo(other):
             return cls(0)
         x = self.data
+        zero = self.zero
         if isinstance(other, realtypes):
             if other < 0:
-                return 0
+                return zero
             if isinstance(x, realtypes):
                 if x > 0:
                     return cls(1)
@@ -275,7 +279,7 @@ class Infinity(object):
             y = other.data
             if isinstance(y, realtypes):
                 if y < 0:
-                    return 0
+                    return zero
                 if isinstance(x, realtypes):
                     if x > 0:
                         return cls(1)
@@ -296,17 +300,19 @@ class Infinity(object):
         """
         cls = type(self)
         x = self.data
+        zero = self.zero
+        one = self.one
         if isinstance(other, realtypes):
             if other==1:
-                return 1
+                return one
             elif other>1:
                 if x==1:
                     return self
                 if x==-1:
-                    return 0
+                    return zero
             elif other>-1:
                 if x==1:
-                    return 0
+                    return zero
                 if x==-1:
                     return cls(cls(0))
             elif other==-1:
@@ -315,7 +321,7 @@ class Infinity(object):
                 if x==1:
                     return cls(cls(0))
                 if x==-1:
-                    return 0
+                    return zero
             if is_zoo(self):
                 return cls(0)
             if is_undefined(self):

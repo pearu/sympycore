@@ -9,6 +9,9 @@ from .algebra import Calculus
 
 class CalculusInfinity(Infinity):
 
+    one = Calculus.one
+    zero = Calculus.zero
+
     def __new__(cls, direction):
         if isinstance(direction, Calculus):
             head, data = direction.head, direction.data

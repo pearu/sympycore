@@ -621,3 +621,8 @@ def test_undefined_optable():
     assert undefined ** oo == undefined
     assert undefined ** zoo == undefined
     assert undefined ** undefined == undefined
+
+def test_issue62():
+    z = one / zoo
+    assert z==0
+    assert type(z) is Calculus
