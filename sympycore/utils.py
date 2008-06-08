@@ -22,7 +22,7 @@ class HEAD(str):
 
     def init(self, *args):
         # derived class may set attributes here
-        pass
+        pass #pragma NO COVER
 
 # The following constants define both the order of operands
 # as well as placing parenthesis for classes deriving from
@@ -155,7 +155,7 @@ class MATRIX(HEAD):
             self.M = type(self)(rows, cols,  MATRIX_DICT_T)
             self.D = self
         else:
-            raise NotImplementedError(`storage`)
+            raise NotImplementedError(`storage`) #pragma NO COVER
 
 def get_head(head):
     """ Return head from head copy.

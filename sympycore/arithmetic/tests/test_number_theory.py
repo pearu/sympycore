@@ -1,5 +1,6 @@
 from sympycore.arithmetic.numbers import normalized_fraction as mpq
 from sympycore.arithmetic.number_theory import *
+from sympycore.arithmetic.number_theory import binomial_coefficients, binomial_coefficients_list
 
 def test_factorial():
     assert factorial(0) == 1
@@ -42,3 +43,18 @@ def test_real_digits():
     p = mpq(1234123456789,1000000000)
     assert real_digits(p, 10, 8) == ([1,2,3,4,1,2,3,4],4)
     assert real_digits(p, 10, 12) == ([1,2,3,4,1,2,3,4,5,6,7,8], 4)
+
+def test_binomial_coefficients_list():
+    assert binomial_coefficients_list(0) == [1]
+    assert binomial_coefficients_list(1) == [1,1]
+    assert binomial_coefficients_list(2) == [1,2,1]
+    assert binomial_coefficients_list(3) == [1,3,3,1]
+    assert binomial_coefficients_list(4) == [1,4,6,4,1]
+    assert binomial_coefficients_list(5) == [1,5,10,10,5,1]
+    assert binomial_coefficients_list(6) == [1,6,15,20,15,6,1]
+
+def test_binomial_coefficients():
+    for n in range(15):
+        c = binomial_coefficients(n)
+        l = [c[k] for k in sorted(c)]
+        assert l==binomial_coefficients_list(n)

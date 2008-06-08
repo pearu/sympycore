@@ -11,7 +11,7 @@ __docformat__ = "restructuredtext en"
 def factorial(n, memo=[1, 1]):
     """Return n factorial (for integers n >= 0 only)."""
     if n < 0:
-        raise ValueError
+        raise ValueError("expected non-negative integer, got %r" % (n)) #pragma NO COVER
     k = len(memo)
     if n < k:
         return memo[n]
@@ -99,6 +99,9 @@ def binomial_coefficients(n):
     return d
 
 def binomial_coefficients_list(n):
+    """ Return a list of binomial coefficients as rows of the Pascal's
+    triangle.
+    """
     d = [1] * (n+1)
     a = 1
     for k in xrange(1, n//2+1):

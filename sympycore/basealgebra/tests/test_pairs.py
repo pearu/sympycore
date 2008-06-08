@@ -240,6 +240,8 @@ def test_number_mul():
     assert str(n*s1)==str('6*a')
     assert str(n*m)==str('3*a*b')
     assert str(n*m1)==str('3*a**2')
+    assert str(m1*0)==str('0')
+    assert str(m1*Number(0))==str('0')
 
 def test_number_pow():
     n = Number(3)
@@ -318,6 +320,8 @@ def test_add_add():
     b = Symbol('b')
     s = 2 + a
     s1 = 2*a
+    s2 = a/2
+    s3 = 2/a
     m = a*b
     m1 = a**2
     assert str(s+2)==str('4 + a')
@@ -351,6 +355,10 @@ def test_add_add():
     assert str(s1-s1)==str('0')
     assert str(s1-m)==str('2*a - a*b')
     assert str(s1-m1)==str('2*a - a**2')
+
+    assert str((2*a)*(a/2))==str('a**2')
+    assert str((2*a)*(2/a))==str('4')
+    assert str((a+b) * (2/(a+b))) == str('2')
 
 def test_add_mul():
     n = Number(3)
@@ -433,6 +441,8 @@ def test_mul_mul():
     n = Number(3)
     a = Symbol('a')
     b = Symbol('b')
+    c = (-2*a*b)**(1/Number(2))
+    d = (2*a*b)**(1/Number(2))
     s = 2 + a
     s1 = 2*a
     m = a*b
@@ -444,6 +454,8 @@ def test_mul_mul():
     assert str(m*s1)==str('2*b*a**2')
     assert str(m*m)==str('a**2*b**2')
     assert str(m*m1)==str('b*a**3')
+    assert str(c*c)==str('-2*a*b')
+    assert str(d*d)==str('2*a*b')
 
     assert str(m1*2)=='2*a**2'
     assert str(m1*a)=='a**3'

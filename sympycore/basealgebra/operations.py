@@ -59,6 +59,8 @@ def multiply(self, other):
                 return result
             if result==self.one:
                 return cls(NUMBER, num)
+            if result.head is TERMS:
+                return result * num # TODO: inline terms * number
             return cls(TERMS, {result:num})
         elif head2 is TERMS:
             if len(data2)==1:
