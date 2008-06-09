@@ -216,6 +216,8 @@ def test_number_add():
     assert n-n==0
     assert str(n+a)==str('3 + a')
     assert str(n+s)==str('5 + a')
+    assert str((-2)+s)==str('a')
+    assert str(s+(-2))==str('a')
     assert str(n+s1)==str('3 + 2*a')
     assert str(n+m)==str('3 + a*b')
     assert str(n+m1)==str('3 + a**2')

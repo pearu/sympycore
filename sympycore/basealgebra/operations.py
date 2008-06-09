@@ -6,13 +6,16 @@
 from ..utils import TERMS, FACTORS, NUMBER
 from ..arithmetic.numbers import numbertypes_set
 
-__all__ = ['multiply', 'negate']
+__all__ = ['multiply', 'negate', 'add']
 
 # FACTORS < TERMS < NUMBER < rest
 _swap_args_set1 = frozenset([TERMS, FACTORS, NUMBER])
 _swap_args_set = frozenset([(TERMS, FACTORS), (NUMBER, FACTORS), (NUMBER, TERMS)])
+_add_swap_args_set1 = frozenset([TERMS, NUMBER])
 
 def negate(self):
+    """ Negate collecting field expression.
+    """
     head1, data1 = self.pair
     if head1 is NUMBER:
         return type(self)(NUMBER, -data1)
@@ -21,7 +24,59 @@ def negate(self):
         return r.canonize_TERMS() if len(data1)==1 else r
     return type(self)(TERMS, {self:-1})
 
+def add(self, other):
+    """ Add collecting field expressions.
+    """
+    head1, data1 = self.pair
+    t = type(other)
+    cls = type(self)
+    if t is not cls:
+        if t in self.coefftypes_set:
+            if not other:
+                return self
+            elif head1 is NUMBER:
+                return cls(NUMBER, data1 + other)
+            elif head1 is TERMS:
+                d = data1.copy()
+                result = cls(TERMS, d)
+                result._add_item(self.one, other)
+                if len(d)<=1:
+                    return result.canonize_TERMS()
+                return result
+            return cls(TERMS, {self.one: other, self: 1})
+        other = self.convert(other, False)
+        if other is NotImplemented:
+            return other
+    head2, data2 = other.pair
+    if head1 not in _add_swap_args_set1 or (head1, head2)==(NUMBER, TERMS):
+        head1, head2, data1, data2, self, other = head2, head1, data2, data1, other, self
+    if head1 is TERMS:
+        if head2 is NUMBER and not data2:
+            return self
+        d = data1.copy()
+        result = cls(TERMS, d)
+        if head2 is TERMS:
+            result._add_dict(data2)
+        elif head2 is NUMBER:
+            result._add_item(self.one, data2)
+        else:
+            result._add_item(other, 1)
+        if len(d)<=1:
+            return result.canonize_TERMS()
+        return result
+    elif head1 is NUMBER:
+        if head2 is NUMBER:
+            return cls(NUMBER, data1 + data2)
+        elif not data1:
+            return other
+        return cls(TERMS, {self.one: data1, other:1})
+    if data1==data2:
+        return cls(TERMS, {self:2})
+    return cls(TERMS, {self:1, other:1})
+
 def multiply(self, other):
+    """ Multiply collecting field expressions.
+    """
     head1, data1 = self.pair
     t = type(other)
     cls = type(self)
@@ -124,7 +179,7 @@ def multiply(self, other):
         if head2 is NUMBER:
             return cls(NUMBER, data1 * data2)
         return cls(TERMS, {other: data1})
-    else:
-        if self==other:
-            return cls(FACTORS, {self:2})
-        return cls(FACTORS, {self:1, other:1})
+
+    if self==other:
+        return cls(FACTORS, {self:2})
+    return cls(FACTORS, {self:1, other:1})

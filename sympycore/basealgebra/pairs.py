@@ -20,7 +20,7 @@ from ..arithmetic.numbers import mpq, realtypes, try_power, numbertypes_set,\
      mpqc, normalized_fraction, inttypes_set
 from ..arithmetic.number_theory import gcd
 
-from .pairs_ops import (add_method, sub_method, rsub_method,
+from .pairs_ops import (sub_method, rsub_method,
                         div_method, rdiv_method, pow_method)
 
 from .pairs_iops import (inplace_add, inplace_add2, inplace_sub,
@@ -29,7 +29,7 @@ from .pairs_iops import (inplace_add, inplace_add2, inplace_sub,
 
 from .pairs_expand import expand
 
-from .operations import multiply, negate
+from .operations import multiply, negate, add
 
 class ConstantFunc(Expr):
     """ Constant function returned by .func property of symbols and
@@ -67,7 +67,7 @@ class CollectingField(CommutativeRing):
 
     _coeff_terms = (1, None) # set by MUL_VALUE_TERMS
     __neg__ = negate
-    __add__ = __radd__ = add_method
+    __add__ = __radd__ = add
     __sub__ = sub_method
     __rsub__ = rsub_method
     __mul__ = __rmul__ = multiply
