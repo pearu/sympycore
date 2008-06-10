@@ -29,7 +29,7 @@ from .pairs_iops import (inplace_add, inplace_add2, inplace_sub,
 
 from .pairs_expand import expand
 
-from .operations import multiply, negate, add
+from .operations import multiply, negate, add, iadd, add_seq
 
 class ConstantFunc(Expr):
     """ Constant function returned by .func property of symbols and
@@ -465,24 +465,16 @@ class CollectingField(CommutativeRing):
     def Add(cls, *seq):
         """ Return canonized sum as an algebra element.
         """
-        d = {}
-        d_get = d.get
-        one = cls.one
-        for t in seq:
-            inplace_add(cls, t, d, d_get, one)
-        return return_terms(cls, d)
+        return add_seq(cls, seq)
 
     @classmethod
     def Sub(cls, *seq):
-        d = {}
-        d_get = d.get
-        one = cls.one
+        """ Return seq[0] - Add(*seq[1:]).
+        """
         if seq:
-            inplace_add(cls, seq[0], d, d_get, one)
-        for t in seq[1:]:
-            inplace_sub(cls, t, d, d_get, one)
-        return return_terms(cls, d)
-
+            return seq[0] - add_seq(seq[1:])
+        return cls.zero
+        
     @classmethod
     def Terms(cls, *seq):
         d = {}
@@ -511,6 +503,8 @@ class CollectingField(CommutativeRing):
             inplace_add2(cls, t, c, data, data.get, cls.one)
             return self
         return self + other
+
+    __iadd__ = iadd
 
     def __imul__(self, other):
         head, data = self.pair

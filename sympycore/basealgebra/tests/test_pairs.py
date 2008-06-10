@@ -21,9 +21,20 @@ def test_number():
 def test_add():
     a = Symbol('a')
     n = Number(2)
-    s = Add(n,a)
+    s = Add(n, a, Number(3), 0, Number(0), -3)
     assert str(s)=='2 + a'
-
+    s += n
+    assert str(s)=='4 + a'
+    s += 3
+    assert str(s)=='7 + a'
+    s += 0
+    assert str(s)=='7 + a'
+    s += Number(0)
+    assert str(s)=='7 + a'
+    s += -7
+    assert str(s)=='a'
+    assert s.is_Symbol
+    
 def test_mul():
     a = Symbol('a')
     n = Number(2)
@@ -385,6 +396,9 @@ def test_add_mul():
     assert str(s1*s1)==str('4*a**2')
     assert str(s1*m)==str('2*b*a**2')
     assert str(s1*m1)==str('2*a**3')
+
+    assert str(s*0)==str('0')
+    assert str(s*Number(0))==str('0')
 
 def test_add_pow():
     n = Number(3)

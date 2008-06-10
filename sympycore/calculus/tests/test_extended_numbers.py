@@ -31,6 +31,15 @@ def test_oo_sum():
     assert str((x+y) + (oo+y))=='oo + (y) + (x + y)'
     assert str((oo+y) + (oo+x))=='oo + (y) + (oo + (x))'
 
+    s = x+y
+    s += oo
+    assert str(s)=='oo + (x + y)'
+
+    assert str(Calculus.Add(oo, x))=='oo + (x)'
+    assert str(Calculus.Add(x, oo))=='oo + (x)'
+    assert str(Calculus.Add(y, oo, x))=='oo + (y) + (x)'
+    assert str(Calculus.Add(y, oo, x, oo))=='oo + (y) + (oo + (x))'
+
 def test_oo_symbol():
     assert str(oo + x)=='oo + (x)'
     assert str(oo - x)=='oo + (-x)'

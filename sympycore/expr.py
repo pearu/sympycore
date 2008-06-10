@@ -236,8 +236,9 @@ This is Python version of Expr type.
         return pair >= other.pair
 
     def _add_item(self, key, value):
+        # value must be non-zero
         head, data = self.pair
-        assert type(data) is dict
+        assert type(data) is dict and not value
         c = data.get(key)
         if c is None:
             data[key] = value

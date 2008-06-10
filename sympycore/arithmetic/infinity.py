@@ -176,11 +176,15 @@ class Infinity(object):
         if isinstance(other, cls):
             y = other.data
             r = cls(cls.EqualArg(x, y) * x)
+            r._add_ops = (self, other)
         else:
             y = other
-            z = (1+cls.IsUnbounded(y)*(cls.EqualArg(x, y)-1))
+            y_unbounded = cls.IsUnbounded(y)
+            if not y_unbounded:
+                return self
+            z = (1+y_unbounded*(cls.EqualArg(x, y)-1))
             r = cls(z * x)
-        r._add_ops = (self, other)
+            r._add_ops = (self, other)
         return r
 
     __radd__ = __add__

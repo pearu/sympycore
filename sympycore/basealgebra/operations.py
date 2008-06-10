@@ -6,7 +6,7 @@
 from ..utils import TERMS, FACTORS, NUMBER
 from ..arithmetic.numbers import numbertypes_set
 
-__all__ = ['multiply', 'negate', 'add']
+__all__ = ['multiply', 'negate', 'add', 'iadd', 'add_seq']
 
 # FACTORS < TERMS < NUMBER < rest
 _swap_args_set1 = frozenset([TERMS, FACTORS, NUMBER])
@@ -23,6 +23,68 @@ def negate(self):
         r = type(self)(TERMS, dict([(t,-c) for t,c in data1.iteritems()]))
         return r.canonize_TERMS() if len(data1)==1 else r
     return type(self)(TERMS, {self:-1})
+
+def add_seq(cls, seq):
+    """ Sum a sequence of collecting field expressions.
+    """
+    d = {}
+    result = cls(TERMS, d)
+    for obj in seq:
+        t = type(obj)
+        if t in result.coefftypes_set:
+            if not obj:
+                continue
+            result._add_item(result.one, obj)
+        else:
+            obj2 = result.convert(obj, False)
+            if obj2 is NotImplemented:
+                # obj can be extended number
+                i = list(seq).index(obj)
+                return result.canonize_TERMS() + obj + add_seq(cls, seq[i+1:])
+            else:
+                obj = obj2
+            head2, data2 = obj.pair
+            if head2 is TERMS:
+                result._add_dict(data2)
+            elif head2 is NUMBER:
+                if not data2:
+                    continue
+                result._add_item(result.one, data2)
+            else:
+                result._add_item(obj, 1)
+    if len(d)<=1:
+        return result.canonize_TERMS()
+    return result
+
+
+def iadd(self, other):
+    """ Add collecting field expressions in-place.
+    """
+    head1, data1 = self.pair
+    if head1 is TERMS and self.is_writable:
+        cls = type(self)
+        t = type(other)
+        if t in self.coefftypes_set:
+            if not other:
+                return self
+            self._add_item(self.one, other)
+        else:
+            other = self.convert(other, False)
+            if other is NotImplemented:
+                return other
+            head2, data2 = other.pair
+            if head2 is TERMS:
+                self._add_dict(data2)  
+            elif head2 is NUMBER:
+                if not data2:
+                    return self
+                self._add_item(self.one, data2)
+            else:
+                self._add_item(other, 1)
+        if len(data1)<=1:
+            return self.canonize_TERMS()
+        return self
+    return self + other
 
 def add(self, other):
     """ Add collecting field expressions.
