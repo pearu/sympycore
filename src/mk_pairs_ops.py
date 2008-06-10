@@ -731,16 +731,6 @@ def expand_mul_method(cls, self, other):
         else:
             @MUL_SYMBOL_SYMBOL(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
 
-def neg_method(self, NUMBER=NUMBER, TERMS=TERMS):
-    cls = type(self)
-    lhead, ldata = self.pair
-    if lhead is NUMBER:
-        @NEG_NUMBER(OP=self; OPDATA=ldata)
-    elif lhead is TERMS:
-        @NEG_TERMS(OP=self; OPDATA=ldata)
-    else:
-        @NEG_SYMBOL(OP=self; OPDATA=ldata)
-
 def rsub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
     cls = type(self)
     lhead, ldata = self.pair
@@ -812,9 +802,9 @@ def pow_method(self, other, z = None, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTOR
     return NotImplemented
 ''', globals())
 
-    print >> f, preprocess(OP3_TEMPLATE % (dict(op='add', OP='ADD')), globals())
+    #print >> f, preprocess(OP3_TEMPLATE % (dict(op='add', OP='ADD')), globals())
     print >> f, preprocess(OP3_TEMPLATE % (dict(op='sub', OP='SUB')), globals())
-    print >> f, preprocess(OP4_TEMPLATE % (dict(op='mul', OP='MUL')), globals())
+    #print >> f, preprocess(OP4_TEMPLATE % (dict(op='mul', OP='MUL')), globals())
     print >> f, preprocess(OP4_TEMPLATE % (dict(op='div', OP='DIV')), globals())
 
     f.close()
