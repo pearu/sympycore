@@ -461,18 +461,14 @@ class CollectingField(CommutativeRing):
             return cls(func, args)
         return cls(APPLY, (func,)+args)
 
-    @classmethod
-    def Add(cls, *seq):
-        """ Return canonized sum as an algebra element.
-        """
-        return add_seq(cls, seq)
+    Add = classmethod(add_seq)
 
     @classmethod
     def Sub(cls, *seq):
         """ Return seq[0] - Add(*seq[1:]).
         """
         if seq:
-            return seq[0] - add_seq(seq[1:])
+            return seq[0] - add_seq(cls, *seq[1:])
         return cls.zero
         
     @classmethod
@@ -483,26 +479,6 @@ class CollectingField(CommutativeRing):
         for t,c in seq:
             inplace_add2(cls, t, c, d, d_get, one)
         return return_terms(cls, d)
-
-    def __iadd__(self, other):
-        head, data = self.pair
-        cls = type(self)
-        if self.is_writable and head is TERMS:
-            if type(other) is not cls:
-                t = cls.convert(other)
-            else:
-                t = other
-            h, d = t.pair
-            if h is TERMS and len(d)==1:
-                t, c = d.items()[0]
-            elif h is NUMBER:
-                c = d
-                t = cls.one
-            else:
-                c = 1
-            inplace_add2(cls, t, c, data, data.get, cls.one)
-            return self
-        return self + other
 
     __iadd__ = iadd
 

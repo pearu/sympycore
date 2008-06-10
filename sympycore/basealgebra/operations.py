@@ -24,7 +24,7 @@ def negate(self):
         return r.canonize_TERMS() if len(data1)==1 else r
     return type(self)(TERMS, {self:-1})
 
-def add_seq(cls, seq):
+def add_seq(cls, *seq):
     """ Sum a sequence of collecting field expressions.
     """
     d = {}
@@ -40,7 +40,7 @@ def add_seq(cls, seq):
             if obj2 is NotImplemented:
                 # obj can be extended number
                 i = list(seq).index(obj)
-                return result.canonize_TERMS() + obj + add_seq(cls, seq[i+1:])
+                return result.canonize_TERMS() + obj + add_seq(cls, *seq[i+1:])
             else:
                 obj = obj2
             head2, data2 = obj.pair
