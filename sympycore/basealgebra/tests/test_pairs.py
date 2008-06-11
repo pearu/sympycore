@@ -34,6 +34,9 @@ def test_add():
     s += -7
     assert str(s)=='a'
     assert s.is_Symbol
+
+    assert str(Add('x+y','-x'))=='y'
+
     
 def test_mul():
     a = Symbol('a')

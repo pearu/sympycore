@@ -20,8 +20,8 @@ from ..arithmetic.numbers import mpq, realtypes, try_power, numbertypes_set,\
      mpqc, normalized_fraction, inttypes_set
 from ..arithmetic.number_theory import gcd
 
-from .pairs_ops import (sub_method, rsub_method,
-                        div_method, rdiv_method, pow_method)
+from .pairs_ops import div_method, rdiv_method, pow_method
+                        
 
 from .pairs_iops import (inplace_add, inplace_add2, inplace_sub,
                          return_terms, return_factors,
@@ -66,10 +66,20 @@ class CollectingField(CommutativeRing):
     exptypes = (int, long, mpq)
 
     _coeff_terms = (1, None) # set by MUL_VALUE_TERMS
+
     __neg__ = negate
+    
     __add__ = __radd__ = add
-    __sub__ = sub_method
-    __rsub__ = rsub_method
+    __iadd__ = iadd
+
+    def __sub__(self, other):
+        return self + (-other)
+    def __rsub__(self, other):
+        return (-self) + other
+    def __isub__(self, other):
+        self += -other
+        return self
+    
     __mul__ = __rmul__ = multiply
     __div__ = div_method
     __rdiv__ = rdiv_method
@@ -479,8 +489,6 @@ class CollectingField(CommutativeRing):
         for t,c in seq:
             inplace_add2(cls, t, c, d, d_get, one)
         return return_terms(cls, d)
-
-    __iadd__ = iadd
 
     def __imul__(self, other):
         head, data = self.pair

@@ -17,12 +17,13 @@ def negate(self):
     """ Negate collecting field expression.
     """
     head1, data1 = self.pair
+    cls = type(self)
     if head1 is NUMBER:
-        return type(self)(NUMBER, -data1)
+        return cls(NUMBER, -data1)
     if head1 is TERMS:
-        r = type(self)(TERMS, dict([(t,-c) for t,c in data1.iteritems()]))
+        r = cls(TERMS, dict([(t,-c) for t,c in data1.iteritems()]))
         return r.canonize_TERMS() if len(data1)==1 else r
-    return type(self)(TERMS, {self:-1})
+    return cls(TERMS, {self:-1})
 
 def add_seq(cls, *seq):
     """ Sum a sequence of collecting field expressions.
@@ -251,3 +252,4 @@ def multiply(self, other):
     if self==other:
         return cls(FACTORS, {self:2})
     return cls(FACTORS, {self:1, other:1})
+

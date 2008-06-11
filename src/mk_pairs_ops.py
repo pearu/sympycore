@@ -731,20 +731,20 @@ def expand_mul_method(cls, self, other):
         else:
             @MUL_SYMBOL_SYMBOL(LHS=self; LHSDATA=ldata; RHS=other; RHSDATA=rdata)
 
-def rsub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
-    cls = type(self)
-    lhead, ldata = self.pair
-    if isinstance(other, cls.coefftypes):
-        if lhead is NUMBER:
-            @SUB_VALUE_NUMBER(VALUE=other; RHS=self; RHSDATA=ldata)
-        elif lhead is TERMS:
-            @SUB_VALUE_TERMS(VALUE=other; RHS=self; RHSDATA=ldata)
-        else:
-            @SUB_VALUE_SYMBOL(VALUE=other; RHS=self; RHSDATA=ldata)
-    other = cls.convert(other, False)
-    if other is NotImplemented:
-        return other
-    return other - self
+#def rsub_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
+#    cls = type(self)
+#    lhead, ldata = self.pair
+#    if isinstance(other, cls.coefftypes):
+#        if lhead is NUMBER:
+#            @SUB_VALUE_NUMBER(VALUE=other; RHS=self; RHSDATA=ldata)
+#        elif lhead is TERMS:
+#            @SUB_VALUE_TERMS(VALUE=other; RHS=self; RHSDATA=ldata)
+#        else:
+#            @SUB_VALUE_SYMBOL(VALUE=other; RHS=self; RHSDATA=ldata)
+#    other = cls.convert(other, False)
+#    if other is NotImplemented:
+#        return other
+#    return other - self
 
 def rdiv_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
     cls = type(self)
@@ -803,7 +803,7 @@ def pow_method(self, other, z = None, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTOR
 ''', globals())
 
     #print >> f, preprocess(OP3_TEMPLATE % (dict(op='add', OP='ADD')), globals())
-    print >> f, preprocess(OP3_TEMPLATE % (dict(op='sub', OP='SUB')), globals())
+    #print >> f, preprocess(OP3_TEMPLATE % (dict(op='sub', OP='SUB')), globals())
     #print >> f, preprocess(OP4_TEMPLATE % (dict(op='mul', OP='MUL')), globals())
     print >> f, preprocess(OP4_TEMPLATE % (dict(op='div', OP='DIV')), globals())
 
