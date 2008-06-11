@@ -29,7 +29,7 @@ from .pairs_iops import (inplace_add, inplace_add2, inplace_sub,
 
 from .pairs_expand import expand
 
-from .operations import multiply, negate, add, iadd, add_seq
+from .operations import multiply, negate, add, iadd, add_seq, subtract
 
 class ConstantFunc(Expr):
     """ Constant function returned by .func property of symbols and
@@ -72,8 +72,8 @@ class CollectingField(CommutativeRing):
     __add__ = __radd__ = add
     __iadd__ = iadd
 
-    def __sub__(self, other):
-        return self + (-other)
+    __sub__ = subtract
+    
     def __rsub__(self, other):
         return (-self) + other
     def __isub__(self, other):

@@ -23,7 +23,9 @@ Python Expr:
 >>> %timeit Expr(1,2)
 1000000 loops, best of 3: 988 ns per loop
 >>> e=Expr(1,2)
->>> %timeit h = e.head
+>>> %timeit h = e.head    if head1 not in _add_swap_args_set1 or (head1, head2)==(NUMBER, TERMS):
+        head1, head2, data1, data2, self, other = head2, head1, data2, data1, other, self
+
 10000000 loops, best of 3: 119 ns per loop
 >>> %timeit h,d = e.pair
 10000000 loops, best of 3: 139 ns per loop
@@ -238,12 +240,26 @@ This is Python version of Expr type.
     def _add_item(self, key, value):
         # value must be non-zero
         head, data = self.pair
-        assert type(data) is dict and not value
+        assert type(data) is dict and value
         c = data.get(key)
         if c is None:
             data[key] = value
         else:
             c = c + value
+            if c:
+                data[key] = c
+            else:
+                del data[key]
+
+    def _sub_item(self, key, value):
+        # value must be non-zero
+        head, data = self.pair
+        assert type(data) is dict and value
+        c = data.get(key)
+        if c is None:
+            data[key] = -value
+        else:
+            c = c - value
             if c:
                 data[key] = c
             else:
@@ -258,6 +274,20 @@ This is Python version of Expr type.
                 data[key] = value
             else:
                 c = c + value
+                if c:
+                    data[key] = c
+                else:
+                    del data[key]
+
+    def _sub_dict(self, d):
+        head, data = self.pair
+        assert type(data) is dict
+        for key, value in d.iteritems():
+            c = data.get(key)
+            if c is None:
+                data[key] = -value
+            else:
+                c = c - value
                 if c:
                     data[key] = c
                 else:

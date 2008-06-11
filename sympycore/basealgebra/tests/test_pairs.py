@@ -36,7 +36,6 @@ def test_add():
     assert s.is_Symbol
 
     assert str(Add('x+y','-x'))=='y'
-
     
 def test_mul():
     a = Symbol('a')
@@ -240,6 +239,12 @@ def test_number_add():
     assert str(n-s1)==str('3 - 2*a')
     assert str(n-m)==str('3 - a*b')
     assert str(n-m1)==str('3 - a**2')
+    assert str(s - 0)==str(s)
+    assert str(s - Number(0))==str(s)
+    assert str(s - 2)==str('a')
+    assert str(s - Number(2))==str('a')
+    assert str(2 - (2 - a))==str('a')
+    assert str(Number(2) - (2 - a))==str('a')
 
 def test_number_mul():
     n = Number(3)

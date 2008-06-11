@@ -6,7 +6,8 @@
 from ..utils import TERMS, FACTORS, NUMBER
 from ..arithmetic.numbers import numbertypes_set
 
-__all__ = ['multiply', 'negate', 'add', 'iadd', 'add_seq']
+__all__ = ['multiply', 'negate', 'add', 'iadd', 'add_seq',
+           'subtract']
 
 # FACTORS < TERMS < NUMBER < rest
 _swap_args_set1 = frozenset([TERMS, FACTORS, NUMBER])
@@ -139,9 +140,71 @@ def add(self, other):
         elif not data1:
             return other
         return cls(TERMS, {self.one: data1, other:1})
-    if data1==data2:
+    if self==other:
         return cls(TERMS, {self:2})
     return cls(TERMS, {self:1, other:1})
+
+def subtract(self, other):
+    """ Subtract collecting field expressions.
+    """
+    head1, data1 = self.pair
+    t = type(other)
+    cls = type(self)
+    if t is not cls:
+        if t in self.coefftypes_set:
+            if not other:
+                return self
+            elif head1 is NUMBER:
+                return cls(NUMBER, data1 - other)
+            elif head1 is TERMS:
+                d = data1.copy()
+                result = cls(TERMS, d)
+                result._sub_item(self.one, other)
+                if len(d)<=1:
+                    return result.canonize_TERMS()
+                return result
+            return cls(TERMS, {self.one: -other, self: 1})
+        other = self.convert(other, False)
+        if other is NotImplemented:
+            return other
+    head2, data2 = other.pair
+    if head1 is TERMS:
+        if head2 is NUMBER and not data2:
+            return self
+        d = data1.copy()
+        result = cls(TERMS, d)
+        if head2 is TERMS:
+            result._sub_dict(data2)
+        elif head2 is NUMBER:
+            result._sub_item(self.one, data2)
+        else:
+            result._sub_item(other, 1)
+        if len(d)<=1:
+            return result.canonize_TERMS()
+        return result
+    elif head1 is NUMBER:
+        if head2 is NUMBER:
+            return cls(NUMBER, data1 - data2)
+        if not data1:
+            return -other
+        if head2 is TERMS:
+            d = dict([(t,-c) for (t, c) in data2.iteritems()])
+            result = cls(TERMS, d)
+            result._add_item(self.one, data1)
+            if len(d)<=1:
+                return result.canonize_TERMS()
+            return result
+        return cls(TERMS, {self.one: data1, other:-1})
+    if head2 is TERMS:
+        d = dict([(t,-c) for (t, c) in data2.iteritems()])
+        result = cls(TERMS, d)
+        result._add_item(self, 1)
+        if len(d)<=1:
+            return result.canonize_TERMS()
+        return result
+    if self==other:
+        return self.zero
+    return cls(TERMS, {self:1, other:-1})
 
 def multiply(self, other):
     """ Multiply collecting field expressions.

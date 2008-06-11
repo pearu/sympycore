@@ -650,6 +650,40 @@ Expr_dict_add_dict(Expr *self, PyObject *args) {
 }
 
 static PyObject*
+Expr_dict_sub_dict(Expr *self, PyObject *args) {
+  PyObject *sum = NULL;
+  PyObject *obj = NULL;
+  PyObject *data = PyTuple_GET_ITEM(self->pair, 1);
+  PyObject *dict = NULL;
+  PyObject *key = NULL;
+  PyObject *value = NULL;
+  Py_ssize_t pos = 0;
+  CHECK_WRITABLE_DICTDATA("Expr._sub_dict()", self);
+  CHECK_MTH_ARGS("Expr._sub_dict()", 1);
+  dict = PyTuple_GET_ITEM(args, 0);
+  CHECK_DICT_ARG("Expr._sub_dict()", dict);
+  while (PyDict_Next(dict, &pos, &key, &value)) {
+    obj = PyDict_GetItem(data, key);
+    if (obj==NULL) { 
+      if (PyDict_SetItem(data, key, PyNumber_Negative(value))==-1)
+	return NULL;
+    } else {
+      if ((sum = PyNumber_Subtract(obj, value))==NULL)
+	return NULL;
+      if (PyInt_CheckExact(sum) ? PyInt_AS_LONG(sum) : PyObject_IsTrue(sum)) {
+	if (PyDict_SetItem(data, key, sum)==-1)
+	  return NULL;
+      } else {
+	if (PyDict_DelItem(data, key)==-1)
+	  return NULL;
+      }
+    }
+  }
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+static PyObject*
 Expr_dict_add_dict2(Expr *self, PyObject *args) {
   PyObject *sum = NULL;
   PyObject *obj = NULL;
@@ -785,6 +819,39 @@ Expr_dict_add_item(Expr *self, PyObject *args) {
   return Py_None;
 }
 
+/*
+  If Expr.data is dictionary then subtract from it non-zero value inplace.
+ */
+static PyObject *
+Expr_dict_sub_item(Expr *self, PyObject *args) {
+  PyObject *sum = NULL;
+  PyObject *obj = NULL;
+  PyObject *d = PyTuple_GET_ITEM(self->pair, 1);
+  PyObject *item_key = NULL;
+  PyObject *item_value = NULL;
+  CHECK_WRITABLE_DICTDATA("Expr._sub_item()", self);
+  CHECK_MTH_ARGS("Expr._sub_item()", 2);
+  item_key = PyTuple_GET_ITEM(args, 0);
+  item_value = PyTuple_GET_ITEM(args, 1);
+  obj = PyDict_GetItem(d, item_key);
+  if (obj==NULL) { 
+    if (PyDict_SetItem(d, item_key, PyNumber_Negative(item_value))==-1)
+      return NULL;
+  } else {
+    if ((sum = PyNumber_Subtract(obj, item_value))==NULL)
+      return NULL;
+    if (PyInt_CheckExact(sum) ? PyInt_AS_LONG(sum) : PyObject_IsTrue(sum)) {
+      if (PyDict_SetItem(d, item_key, sum)==-1)
+	return NULL;
+    } else {
+      if (PyDict_DelItem(d, item_key)==-1)
+	return NULL;
+    }
+  }
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
 static PyGetSetDef Expr_getseters[] = {
     {"head", (getter)Expr_gethead, NULL,
      "read-only head attribute", NULL},
@@ -804,7 +871,9 @@ static PyMethodDef Expr_methods[] = {
   {"_sethash", (PyCFunction)Expr_sethash, METH_VARARGS, NULL},
   {"as_lowlevel", (PyCFunction)Expr_as_lowlevel, METH_VARARGS, NULL},
   {"_add_item", (PyCFunction)Expr_dict_add_item, METH_VARARGS, NULL},
+  {"_sub_item", (PyCFunction)Expr_dict_sub_item, METH_VARARGS, NULL},
   {"_add_dict", (PyCFunction)Expr_dict_add_dict, METH_VARARGS, NULL},
+  {"_sub_dict", (PyCFunction)Expr_dict_sub_dict, METH_VARARGS, NULL},
   {"_add_dict2", (PyCFunction)Expr_dict_add_dict2, METH_VARARGS, NULL},
   {"_add_dict3", (PyCFunction)Expr_dict_add_dict3, METH_VARARGS, NULL},
   {"canonize_FACTORS", (PyCFunction)Expr_canonize_FACTORS, METH_VARARGS, NULL},
