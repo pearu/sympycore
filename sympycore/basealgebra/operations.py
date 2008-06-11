@@ -36,13 +36,14 @@ def add_seq(cls, *seq):
                 continue
             result._add_item(result.one, obj)
         else:
-            obj2 = result.convert(obj, False)
-            if obj2 is NotImplemented:
-                # obj can be extended number
-                i = list(seq).index(obj)
-                return result.canonize_TERMS() + obj + add_seq(cls, *seq[i+1:])
-            else:
-                obj = obj2
+            if t is not cls:
+                obj2 = result.convert(obj, False)
+                if obj2 is NotImplemented:
+                    # obj can be extended number
+                    i = list(seq).index(obj)
+                    return result.canonize_TERMS() + obj + add_seq(cls, *seq[i+1:])
+                else:
+                    obj = obj2
             head2, data2 = obj.pair
             if head2 is TERMS:
                 result._add_dict(data2)
