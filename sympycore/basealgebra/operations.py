@@ -29,15 +29,20 @@ def add_seq(cls, *seq):
     """
     d = {}
     result = cls(TERMS, d)
+    add_item = result._add_item
+    add_dict = result._add_dict
+    coefftypes_set = result.coefftypes_set
+    convert = result.convert
+    one = result.one
     for obj in seq:
         t = type(obj)
-        if t in result.coefftypes_set:
+        if t in coefftypes_set:
             if not obj:
                 continue
-            result._add_item(result.one, obj)
+            add_item(one, obj)
         else:
             if t is not cls:
-                obj2 = result.convert(obj, False)
+                obj2 = convert(obj, False)
                 if obj2 is NotImplemented:
                     # obj can be extended number
                     i = list(seq).index(obj)
@@ -46,13 +51,13 @@ def add_seq(cls, *seq):
                     obj = obj2
             head2, data2 = obj.pair
             if head2 is TERMS:
-                result._add_dict(data2)
+                add_dict(data2)
             elif head2 is NUMBER:
                 if not data2:
                     continue
-                result._add_item(result.one, data2)
+                add_item(one, data2)
             else:
-                result._add_item(obj, 1)
+                add_item(obj, 1)
     if len(d)<=1:
         return result.canonize_TERMS()
     return result
