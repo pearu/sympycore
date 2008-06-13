@@ -4,12 +4,21 @@ from sympycore import Symbol, Add
 x,y,z = map(Symbol,'xyz')
 
 def test_sum():
-    """ sum(x**i/i,i=1..400)
+    """ sum(x**i/i,i=1..400) using iadd
     """
     s = 0
     i = 400
     while i:
         s += x**i/i
+        i -= 1
+
+def test_negsum():
+    """ sum(-x**i/i,i=1..400) using isub
+    """
+    s = 0
+    i = 400
+    while i:
+        s -= x**i/i
         i -= 1
 
 def test_inplace_sum():
@@ -62,5 +71,6 @@ if __name__=='__main__':
     run_tests([test_sum, test_inplace_sum,
                test_sum40, test_inplace_sum40,
                test_sum4, test_inplace_sum4,
+               test_negsum
                ])
 

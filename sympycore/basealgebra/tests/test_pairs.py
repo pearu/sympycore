@@ -4,6 +4,7 @@ from sympycore import CollectingField as Algebra
 Symbol = Algebra.Symbol
 Number = Algebra.Number
 Add = Algebra.Add
+Sub = Algebra.Sub
 Mul = Algebra.Mul
 Pow = Algebra.Pow
 Terms = Algebra.Terms
@@ -34,8 +35,32 @@ def test_add():
     s += -7
     assert str(s)=='a'
     assert s.is_Symbol
-
+    s += 2
+    assert str(s)=='2 + a'
+    s += Number(-2)
+    assert str(s)=='a'
+    assert s.is_Symbol
+        
     assert str(Add('x+y','-x'))=='y'
+
+    s = Sub(a,n, Number(4), 0, Number(0), -3)
+    assert str(s)=='a - 3'
+    s -= n
+    assert str(s)=='a - 5'
+    s -= -7
+    print s
+    assert str(s)=='2 + a'
+    s -= 0
+    assert str(s)=='2 + a'
+    s -= Number(0)
+    assert str(s)=='2 + a'
+    s -= 2
+    assert str(s)=='a'
+    assert s.is_Symbol
+    s -= -6
+    assert str(s)=='6 + a'
+    s -= Number(6)
+    assert str(s)=='a'
     
 def test_mul():
     a = Symbol('a')

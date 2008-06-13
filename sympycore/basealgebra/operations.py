@@ -7,7 +7,7 @@ from ..utils import TERMS, FACTORS, NUMBER
 from ..arithmetic.numbers import numbertypes_set
 
 __all__ = ['multiply', 'negate', 'add', 'iadd', 'add_seq',
-           'subtract']
+           'subtract', 'isubtract']
 
 # FACTORS < TERMS < NUMBER < rest
 _swap_args_set1 = frozenset([TERMS, FACTORS, NUMBER])
@@ -72,23 +72,26 @@ def iadd(self, other):
     if head1 is TERMS and self.is_writable:
         cls = type(self)
         t = type(other)
-        if t in self.coefftypes_set:
-            if not other:
+        if t is not cls:
+            if t in self.coefftypes_set:
+                if not other:
+                    return self
+                self._add_item(self.one, other)
+                if len(data1)<=1:
+                    return self.canonize_TERMS()
                 return self
-            self._add_item(self.one, other)
-        else:
             other = self.convert(other, False)
             if other is NotImplemented:
                 return other
-            head2, data2 = other.pair
-            if head2 is TERMS:
-                self._add_dict(data2)  
-            elif head2 is NUMBER:
-                if not data2:
-                    return self
-                self._add_item(self.one, data2)
-            else:
-                self._add_item(other, 1)
+        head2, data2 = other.pair
+        if head2 is TERMS:
+            self._add_dict(data2)  
+        elif head2 is NUMBER:
+            if not data2:
+                return self
+            self._add_item(self.one, data2)
+        else:
+            self._add_item(other, 1)
         if len(data1)<=1:
             return self.canonize_TERMS()
         return self
@@ -195,16 +198,50 @@ def subtract(self, other):
                 return result.canonize_TERMS()
             return result
         return cls(TERMS, {self.one: data1, other:-1})
-    if head2 is TERMS:
+    elif head2 is TERMS:
         d = dict([(t,-c) for (t, c) in data2.iteritems()])
         result = cls(TERMS, d)
         result._add_item(self, 1)
         if len(d)<=1:
             return result.canonize_TERMS()
         return result
-    if self==other:
+    elif head2 is NUMBER:
+        return cls(TERMS, {self:1, self.one:-data2})
+    elif self==other:
         return self.zero
     return cls(TERMS, {self:1, other:-1})
+
+def isubtract(self, other):
+    """ Subtract collecting field expressions in-place.
+    """
+    head1, data1 = self.pair
+    if head1 is TERMS and self.is_writable:
+        cls = type(self)
+        t = type(other)
+        if t is not cls:
+            if t in self.coefftypes_set:
+                if not other:
+                    return self
+                self._sub_item(self.one, other)
+                if len(data1)<=1:
+                    return self.canonize_TERMS()
+                return self
+            other = self.convert(other, False)
+            if other is NotImplemented:
+                return other
+        head2, data2 = other.pair
+        if head2 is TERMS:
+            self._sub_dict(data2)  
+        elif head2 is NUMBER:
+            if not data2:
+                return self
+            self._sub_item(self.one, data2)
+        else:
+            self._sub_item(other, 1)
+        if len(data1)<=1:
+            return self.canonize_TERMS()
+        return self
+    return self - other
 
 def multiply(self, other):
     """ Multiply collecting field expressions.
