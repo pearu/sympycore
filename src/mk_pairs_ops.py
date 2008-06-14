@@ -472,8 +472,10 @@ if len(lpairs)==1:
         if t2==t1:
             return cls(NUMBER, c)
         if c==1:
-            @RETURN_NEW(HEAD=FACTORS; DATA={t1:1, t2:-1})
-        @NEWINSTANCE(OBJ=%(TMP)s; HEAD=FACTORS; DATA={t1:1, t2:-1})
+            return t1 / t2
+            #@RETURN_NEW(HEAD=FACTORS; DATA={t1:1, t2:-1})
+        return (t1 / t2) * c
+        #@NEWINSTANCE(OBJ=%(TMP)s; HEAD=FACTORS; DATA={t1:1, t2:-1})
     else:
         %(TMP)s = t1 / %(RHS)s
     @RETURN_NEW(HEAD=TERMS; DATA={%(TMP)s:c1})

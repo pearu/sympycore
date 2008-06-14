@@ -68,6 +68,8 @@ def test_mul():
     s = Mul(n,a)
     assert str(s)=='2*a'
 
+    assert str((2/a) / (2*a))=='a**(-2)'
+
 def test_pow():
     a = Symbol('a')
     n = Number(2)
