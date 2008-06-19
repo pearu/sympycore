@@ -162,6 +162,7 @@ def test_int_roots():
     assert int_root(c2, 2) == (c, True)
     assert int_root(c2+1, 2) == (c, False)
     assert int_root(c2-1, 2) == (c-1, False)
+    assert int_root(2,10**10) == (1, False)
 
 def test_powers():
     assert try_power(3, 2) == (9, [])
