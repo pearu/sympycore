@@ -20,8 +20,7 @@ from ..arithmetic.numbers import mpq, realtypes, try_power, numbertypes_set,\
      mpqc, normalized_fraction, inttypes_set
 from ..arithmetic.number_theory import gcd
 
-from .pairs_ops import div_method, rdiv_method, pow_method
-                        
+from .pairs_ops import div_method, rdiv_method
 
 from .pairs_iops import (inplace_add, inplace_add2, inplace_sub,
                          return_terms, return_factors,
@@ -29,7 +28,7 @@ from .pairs_iops import (inplace_add, inplace_add2, inplace_sub,
 
 from .pairs_expand import expand
 
-from .operations import multiply, negate, add, iadd, add_seq, subtract, isubtract
+import operations
 
 class ConstantFunc(Expr):
     """ Constant function returned by .func property of symbols and
@@ -64,25 +63,26 @@ class CollectingField(CommutativeRing):
     coefftypes = tuple(coefftypes_set)
 
     exptypes = (int, long, mpq)
+    exptypes_set = set(exptypes)
 
     _coeff_terms = (1, None) # set by MUL_VALUE_TERMS
 
-    __neg__ = negate
+    __neg__ = operations.negate
     
-    __add__ = __radd__ = add
-    __iadd__ = iadd
+    __add__ = __radd__ = operations.add
+    __iadd__ = operations.iadd
 
-    __sub__ = subtract
-    __isub__ = isubtract
+    __sub__ = operations.subtract
+    __isub__ = operations.isubtract
     
     def __rsub__(self, other):
         return (-self) + other
     
-    __mul__ = __rmul__ = multiply
+    __mul__ = __rmul__ = operations.multiply
 
     __div__ = div_method
     __rdiv__ = rdiv_method
-    __pow__ = pow_method
+    __pow__ = operations.power
     expand = expand
 
     @classmethod
@@ -470,14 +470,14 @@ class CollectingField(CommutativeRing):
             return cls(func, args)
         return cls(APPLY, (func,)+args)
 
-    Add = classmethod(add_seq)
+    Add = classmethod(operations.add_seq)
 
     @classmethod
     def Sub(cls, *seq):
         """ Return seq[0] - Add(*seq[1:]).
         """
         if seq:
-            return seq[0] - add_seq(cls, *seq[1:])
+            return seq[0] - cls.Add(*seq[1:])
         return cls.zero
         
     @classmethod
@@ -542,7 +542,7 @@ class CollectingField(CommutativeRing):
 
     @classmethod
     def Pow(cls, base, exp):
-        return pow_method(base, exp)
+        return operations.power(base, exp)
 
     def __int__(self):
         head, data = self.pair

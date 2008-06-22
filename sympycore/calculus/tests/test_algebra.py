@@ -25,6 +25,10 @@ def test_powers():
     assert A('4/9') ** A('1/2') == A('2/3')
     assert A('4/7') ** A('1/2') == A('7**(-1/2)')*2
     assert A('7/4') ** A('1/2') == A('7**(1/2)')/2
+    assert str((I*x)**2)==str('-x**2')
+    assert str((-I*x)**2)==str('-x**2')
+    assert str((I*x)**4)==str('x**4')
+
 
 def test_has_symbol():
     assert (1 + Cos(1+2**x)).has_symbol(x)

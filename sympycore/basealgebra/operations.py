@@ -4,7 +4,7 @@
 # Created: March 2008
 
 from ..utils import TERMS, FACTORS, NUMBER
-from ..arithmetic.numbers import numbertypes_set
+from ..arithmetic.numbers import numbertypes_set, inttypes_set, mpq, try_power
 
 __all__ = ['multiply', 'negate', 'add', 'iadd', 'add_seq',
            'subtract', 'isubtract']
@@ -13,6 +13,15 @@ __all__ = ['multiply', 'negate', 'add', 'iadd', 'add_seq',
 _swap_args_set1 = frozenset([TERMS, FACTORS, NUMBER])
 _swap_args_set = frozenset([(TERMS, FACTORS), (NUMBER, FACTORS), (NUMBER, TERMS)])
 _add_swap_args_set1 = frozenset([TERMS, NUMBER])
+
+def number_inverse(b, cls):
+    if type(b) in inttypes_set:
+        if not b:
+            return cls.zoo
+        if b==1:
+            return 1
+        return mpq((1, b))
+    return 1/b
 
 def negate(self):
     """ Negate collecting field expression.
@@ -284,7 +293,8 @@ def multiply(self, other):
             if result==self.one:
                 return cls(NUMBER, num)
             if result.head is TERMS:
-                return result * num # TODO: inline terms * number
+                result *= num
+                return result
             return cls(TERMS, {result:num})
         elif head2 is TERMS:
             if len(data2)==1:
@@ -352,4 +362,58 @@ def multiply(self, other):
     if self==other:
         return cls(FACTORS, {self:2})
     return cls(FACTORS, {self:1, other:1})
+
+def power(self, other):
+    head1, data1 = self.pair
+    t = type(other)
+    cls = type(self)
+    if t is cls:
+        head2, data2 = other.pair
+        if head2 is NUMBER:
+            other = data2
+            t = type(other)
+        else:
+            if self==1:
+                return self
+            return cls(FACTORS, {self: other})
+    if t in inttypes_set:
+        if not other:
+            return self.one
+        if other==1:
+            return self
+        if head1 is NUMBER:
+            if other < 0:
+                return cls(NUMBER,  number_inverse((data1)**(-other), cls))
+            return cls(NUMBER, data1**other)
+        if head1 is TERMS:
+            if len(data1)==1:
+                t, c = data1.items()[0]
+                if other < 0:
+                    c = number_inverse(c**(-other), cls)
+                else:
+                    c = c ** other
+                t = t**(other)
+                if c==1:
+                    return t
+                return cls(TERMS, {t: c})
+            return cls(FACTORS, {self: other})
+        if head1 is FACTORS:
+            pairs = dict([(t, c*other) for t,c in data1.iteritems()])
+            if len(pairs)==1:
+                t, c = pairs.items()[0]
+                if c==1:
+                    return t
+            return cls(FACTORS, pairs)
+        return cls(FACTORS, {self: other})
+    if t in self.exptypes_set:
+        if head1 is NUMBER:
+            z, sym = try_power(data1, other)
+            if not sym:
+                return cls(NUMBER, z)
+            t = cls(FACTORS, dict([(cls(NUMBER, t),c) for t,c in sym]))
+            if z==1:
+                return t
+            return cls(TERMS, {t: z})
+        return cls(FACTORS, {self: other})        
+    return NotImplemented
 

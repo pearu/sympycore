@@ -765,43 +765,6 @@ def rdiv_method(self, other, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
         return other
     return other / self
 
-def pow_method(self, other, z = None, NUMBER=NUMBER, TERMS=TERMS, FACTORS=FACTORS):
-    cls = type(self)
-    lhead, ldata = self.pair
-    type_other = type(other)
-    if type_other is cls:
-        rhead, rdata = other.pair
-        if rhead is NUMBER:
-            other = rdata
-        type_other = type(other)
-    if type_other in inttypes_set:
-        if not other:
-            return cls.one
-        if other==1:
-            return self
-        if lhead is NUMBER:
-            @POW_NUMBER_INT(VALUE=other; LHS=self; LHSDATA=ldata)
-        elif lhead is TERMS:
-            @POW_TERMS_INT(VALUE=other; LHS=self; LHSDATA=ldata)
-        elif lhead is FACTORS:
-            @POW_FACTORS_INT(VALUE=other; LHS=self; LHSDATA=ldata)
-        else:
-            @POW_SYMBOL_INT(VALUE=other; LHS=self; LHSDATA=ldata)
-    if lhead is NUMBER and isinstance(other, cls.exptypes):
-        @POW_NUMBER_VALUE(VALUE=other; LHS=self; LHSDATA=ldata)
-    if type_other is mpq:
-        if lhead is TERMS:
-            @POW_TERMS_FRAC(VALUE=other; LHS=self; LHSDATA=ldata)
-        else:
-            @POW_SYMBOL_FRAC(VALUE=other; LHS=self; LHSDATA=ldata)
-    if type_other is cls or isinstance(other, cls.exptypes):
-        if lhead is NUMBER:
-            if ldata==1:
-                return self
-        elif lhead is FACTORS:
-            @POW_FACTORS_SYMBOL(LHS=self; LHSDATA=ldata; RHS=other)
-        @RETURN_NEW(HEAD=FACTORS; DATA={self: other})
-    return NotImplemented
 ''', globals())
 
     #print >> f, preprocess(OP3_TEMPLATE % (dict(op='add', OP='ADD')), globals())

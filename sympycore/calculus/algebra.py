@@ -32,6 +32,7 @@ class Calculus(CollectingField):
     coefftypes = algebra_numbers
     coefftypes_set = frozenset(coefftypes)
     exptypes = algebra_numbers
+    exptypes_set = frozenset(exptypes)
 
     def as_algebra(self, cls):
         """ Convert algebra to another algebra.

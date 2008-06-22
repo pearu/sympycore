@@ -447,6 +447,7 @@ def test_add_pow():
     assert s**1==s
     assert s**0==1
     assert str(s**2)=='(2 + a)**2'
+    assert str(s**-2)=='(2 + a)**(-2)'
     assert str(s**n)=='(2 + a)**3'
     assert str(s**a)==str('(2 + a)**a')
     assert str(s**s)==str('(2 + a)**(2 + a)')
@@ -457,6 +458,7 @@ def test_add_pow():
     assert s1**1==s1
     assert s1**0==1
     assert str(s1**2)=='4*a**2'
+    assert str(s1**-2)=='1/4*a**(-2)'
     assert str(s1**n)=='8*a**3'
     assert str(s1**a)==str('(2*a)**a')
     assert str(s1**s)==str('(2*a)**(2 + a)')
@@ -516,6 +518,16 @@ def test_mul_mul():
     assert str(m1*m)==str('b*a**3')
     assert str(m1*m1)==str('a**4')
 
+    assert str((a**2)*(a**-2))==str('1')
+    assert str(((a*b)**2)*(a**-2))==str('b**2')
+    assert str((a**b)*(a**-b))==str('1')
+    assert str((a**b*b**b)*(a**-b))==str('b**b')
+    assert str(((2*a)**b)*((2*a)**-b))==str('1')
+    assert str((a)**(1/n) * (a)**(2/n))==str('a')
+    assert str((2*a)**(1/n) * (2*a)**(2/n))==str('2*a')
+    assert str(((a)**(1/n)*2**(2/n)) * ((a)**(2/n) * 2**(1/n)))==str('2*a')
+    assert str(((2*a)**(1/n)*2**(2/n)) * ((2*a)**(2/n) * 2**(1/n)))==str('4*a')
+
 def test_mul_pow():
     n = Number(3)
     a = Symbol('a')
@@ -537,12 +549,12 @@ def test_mul_pow():
 
     assert str(m1**2)=='a**4'
     assert str(m1**n)=='a**6'
-    assert str(m1**a)==str('a**(2*a)')
-    assert str(m1**s)==str('a**(4 + 2*a)')
-    assert str(m1**s1)==str('a**(4*a)')
-    assert str(m1**m)==str('a**(2*a*b)')
-    assert str(m1**m1)==str('a**(2*a**2)')
-
+    assert str(m1**a)==str('(a**2)**a')
+    assert str(m1**s)==str('(a**2)**(2 + a)')
+    assert str(m1**s1)==str('(a**2)**(2*a)')
+    assert str(m1**m)==str('(a**2)**(a*b)')
+    assert str(m1**m1)==str('(a**2)**(a**2)')
+    assert str((a**(1/n))**n)==str('a')
 
 def test_expand():
     x,y,z = map(Symbol, 'xyz')
