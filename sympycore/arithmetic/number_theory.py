@@ -90,7 +90,22 @@ def real_digits(x, base=10, truncation=10):
 
 def binomial_coefficients(n):
     """Return a dictionary containing pairs {(k1,k2) : C_kn} where
-    C_kn are binomial coefficients and n=k1+k2."""
+    C_kn are binomial coefficients and n=k1+k2.
+
+    INPUT:
+        n -- an integer
+
+    OUTPUT:
+        dict
+ 
+    EXAMPLES:
+        >>> sorted(binomial_coefficients(3).items())
+        [((0, 3), 1), ((1, 2), 3), ((2, 1), 3), ((3, 0), 1)]
+ 
+    Notice the coefficients above are the same as below:
+        x**3 + 3*x**2*y + 3*x*y**2 + y^3
+
+    """
     d = {(0, n):1, (n, 0):1}
     a = 1
     for k in xrange(1, n//2+1):
@@ -99,7 +114,7 @@ def binomial_coefficients(n):
     return d
 
 def binomial_coefficients_list(n):
-    """ Return a list of binomial coefficients as rows of the Pascal's
+    """Return a list of binomial coefficients as rows of the Pascal's
     triangle.
     """
     d = [1] * (n+1)
@@ -114,19 +129,35 @@ def multinomial_coefficients(m, n, _tuple=tuple, _zip=zip):
     where ``C_kn`` are multinomial coefficients such that
     ``n=k1+k2+..+km``.
 
-    For example:
+    INPUT:
+        m -- integer
+        n -- integer
+        _tuple, _zip -- hacks for speed; don't set these as a user.
 
-    >>> print multinomial_coefficients(2,5)
-    {(3, 2): 10, (1, 4): 5, (2, 3): 10, (5, 0): 1, (0, 5): 1, (4, 1): 5}
+    OUTPUT:
+        dict
 
-    The algorithm is based on the following result:
+    EXAMPLES:
+        >>> sorted(multinomial_coefficients(2,5).items())
+        [((0, 5), 1), ((1, 4), 5), ((2, 3), 10), ((3, 2), 10), ((4, 1), 5), ((5, 0), 1)]
+
+    Notice that these are the coefficients of ``(x+y)**5``:
+         x**5 + 5*x**4*y + 10*x**3*y**2 + 10*x**2*y**3 + 5*x*y**4 + y**5
+ 
+        >>> sorted(multinomial_coefficients(3,2).items())
+        [((0, 0, 2), 1), ((0, 1, 1), 2), ((0, 2, 0), 1), ((1, 0, 1), 2), ((1, 1, 0), 2), ((2, 0, 0), 1)]
+
+
+    ALGORITHM:
+    The algorithm we implement for computing the multinomial coefficients
+    is based on the following result:
     
-       Consider a polynomial and it's ``m``-th exponent::
+       Consider a polynomial and its ``n``-th exponent::
        
          P(x) = sum_{i=0}^m p_i x^k
          P(x)^n = sum_{k=0}^{m n} a(n,k) x^k
 
-       The coefficients ``a(n,k)`` can be computed using the
+       We compute the coefficients ``a(n,k)`` using the
        J.C.P. Miller Pure Recurrence [see D.E.Knuth, Seminumerical
        Algorithms, The art of Computer Programming v.2, Addison
        Wesley, Reading, 1981;]::
