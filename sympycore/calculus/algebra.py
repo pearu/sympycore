@@ -34,6 +34,19 @@ class Calculus(CollectingField):
     exptypes = algebra_numbers
     exptypes_set = frozenset(exptypes)
 
+    def _sympy_(self):
+        import sympy as m
+        head, data = self.pair
+        if head is SYMBOL:
+            return m.Symbol(data)
+        if head is NUMBER:
+            return m.Number(data)
+        if head is TERMS:
+            return m.Add(*self.as_Add_args())
+        if head is FACTORS:
+            return m.Mul(*self.as_Mul_args())
+        raise NotImplemented(`self`)
+
     def as_algebra(self, cls):
         """ Convert algebra to another algebra.
         """
