@@ -11,11 +11,11 @@ def test_integrate():
     r1 = (1 + 4*y*x + 3*x**2).integrate(x)
     r2 = x + 2*y*x**2 + x**3
     assert r1 == r2
-    failures = [x**x, x**(1+y+5**x), 1/(2+x), x/(2+3*x+5), (3*x+2*y)*x]
+    failures = [x**x, x**(1+y+5**x), 1/(2+x), x/(2+3*x+5), (3*x+2*y)*x][:-1]
     for f in failures:
         try:
-            f.integrate(x)
-            assert 0, ("integration of %s expected to fail" % f)
+            r = f.integrate(x)
+            assert 0, ("integration of %s expected to fail but got %s" % (f, r))
         except NotImplementedError:
             pass
 
