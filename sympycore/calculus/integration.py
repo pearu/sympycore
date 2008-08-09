@@ -71,16 +71,9 @@ def integrate_definite(expr, x, a, b):
             # but this may cause infinite recursion if implemented
             # directly here
             elif x in base._get_symbols_data():
-                if len(data)==1:
-                    db = base.diff(x)
-                    if x not in db._get_symbols_data():
-                        x1 = Symbol(str(x)+'__')
-                        product *= integrate_definite(x1**e, x1, base.subs(x, a), base.subs (x, b))/db
-                        break
-                else:
-                    new_expr = expr.expand()
-                    if new_expr != expr:
-                        return integrate_definite(new_expr, x, a, b)
+                new_expr = expr.expand()
+                if new_expr != expr:
+                    return integrate_definite(new_expr, x, a, b)
                 unknown(expr, x, a, b)
             else:
                 product *= cls(FACTORS, {base:e})
