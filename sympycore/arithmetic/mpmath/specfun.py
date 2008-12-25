@@ -4,9 +4,9 @@ Nonelementary special functions (gamma, zeta, ...)
 
 __docformat__ = 'plaintext'
 
-from mptypes import mpnumeric, mpf, mpc, pi, euler, exp, log, sqrt, sin,\
+from .mptypes import mpnumeric, mpf, mpc, pi, euler, exp, log, sqrt, sin,\
     power, extraprec, mp
-from lib import bitcount, to_fixed, from_man_exp, round_nearest, fmuli
+from .lib import bitcount, to_fixed, from_man_exp, round_nearest, fmuli
 
 #from sympy import Rational
 

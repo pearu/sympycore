@@ -110,10 +110,19 @@ class _Tester:
             s = 'compiled'
         else:
             s = 'pure'
-        print >>sys.stderr, "Python version: %s" % (sys.version.replace('\n',''))
-        print >>sys.stderr, "nose version %d.%d.%d" % nose.__versioninfo__
-        print >>sys.stderr, 'Sympycore version: %s (%s)' % (__version__, s)
-        print >>sys.stderr, 'Sympycore is installed in %s' % (os.path.dirname(__file__))
+        print >>sys.stderr, 'Python version: %s' % (sys.version.replace('\n',''))
+        print >>sys.stderr, 'nose version %d.%d.%d' % nose.__versioninfo__
+        print >>sys.stderr, 'sympycore version: %s (%s)' % (__version__, s)
+        print >>sys.stderr, 'sympycore is installed in %s' % (os.path.dirname(__file__))
+        mpmath = sys.modules['sympycore.arithmetic.mpmath']
+        fn = os.path.join(os.path.dirname(mpmath.__file__), 'REVISION')
+        if os.path.isfile(fn):
+            f = open(fn, 'r')
+            rev = '(revision=%s)' % (f.read().strip())
+            f.close()
+        else:
+            rev = ''
+        print >>sys.stderr, 'mpmath version: %s %s' % (mpmath.__version__, rev)
 
 _tester = _Tester()
 _tester.check_testing()

@@ -14,10 +14,10 @@ Operating System :: MacOS
 """
 
 import os
+if os.path.exists('MANIFEST'): os.remove('MANIFEST')
+
 from distutils.core import Extension, Command
 from distutils.command.build_py import build_py as _build_py
-
-if os.path.exists('MANIFEST'): os.remove('MANIFEST')
 
 expr_ext = Extension('sympycore.expr_ext',
                      sources = [os.path.join('src','expr_ext.c')],
@@ -80,6 +80,11 @@ class build_py(_build_py):
                     except OSError: pass
                 atexit.register(rm_file)
                 files.append(target)
+
+        if package=='sympycore.arithmetic.mpmath':
+            f = os.path.join(src_dir, 'REVISION')
+            if os.path.isfile(f):
+                files.append(f)
 
         return files
 

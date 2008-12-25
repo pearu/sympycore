@@ -4,7 +4,9 @@ Defines the mpi class for interval arithmetic.
 
 __docformat__ = 'plaintext'
 
-from mptypes import *
+from .mptypes import (
+    mp, isnan, inf, exp, log
+    )
 
 class mpi:
     """Interval arithmetic class. Precision is controlled by mp.prec."""
