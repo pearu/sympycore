@@ -100,8 +100,12 @@ class _Tester:
     def check_testing(self):
         import os, sys
         import nose
-        d = os.path.dirname(os.path.abspath(__file__))
-        if sys.argv[:2] == [nose.core.__file__, d]:
+        if sys.platform=='win32':
+            m = lambda s: s.lower()
+        else:
+            m = lambda s: s
+        argv2 = [nose.core.__file__, os.path.dirname(os.path.abspath(__file__))]
+        if map(m, sys.argv[:2]) == map(m, argv2):
             self.show_config()
 
     def show_config(self):
