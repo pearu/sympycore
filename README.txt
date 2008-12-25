@@ -22,31 +22,53 @@ History
 
  * Version 0.1 released on February 29, 2008.
 
-Download and installation
-=========================
-
-sympycore package requires Python 2.5 or newer.
+Download
+========
 
 The latest release can be downloaded from sympycore website.
-
-To install sympycore, unpack the archive file and run::
-
-  python setup.py install
 
 The latest development code is available via SVN. To check it out,
 run::
 
-  svn checkout http://sympycore.googlecode.com/svn/trunk/ sympycore
+  svn checkout http://sympycore.googlecode.com/svn/trunk/ sympycore-svn
+  cd sympycore-svn
+
+Installation
+============
+
+To use sympycore, the following is required:
+
+  * Python 2.5 or newer
+  * optionally, a C/C++ compiler for compiling sympycore
+  * nose for running sympycore tests
+
+To install compiled sympycore, unpack the archive file, change to the
+sympycore source directory ``sympycore-?.?*`` (that contains setup.py
+file and sympycore directory), and run (requires C/C++ compiler)::
+
+  python setup.py install
+
+To install pure sympycore, copy sympycore source directory to Python
+path or just add it to PYTHONPATH or sys.path.
+
+To build and use compiled sympycore without installing it, run:: 
+
+  python setup.py build_ext --inplace
 
 Testing
 =======
 
-Make sure that sympycore directory is in python path (e.g. it should
-be listed in sys.path or PYTHONPATH) and then run in the parent
-directory of the sympycore source one of the following commands::
+To test pure Python sympycore from source directory, run::
 
-  nosetests sympycore
-  py.test sympycore
+  python setup.py test
+
+To test compiled sympycore from source directory, run::
+
+  python setup.py build_ext --inplace test
+
+To test installed sympycore, run::
+  
+  python -c 'from sympycore import test; test()'
 
 Basic usage
 ===========
@@ -65,7 +87,7 @@ Calculus('x + y')
 
 See the following demo page for more examples:
 
-  http://sympycore.googlecode.com/svn/trunk/doc/html/demo0_1.html
+  http://sympycore.googlecode.com/svn/trunk/doc/html/demo0_2.html
 
 Additional documentation, including SympyCore User's Guide and API
 documentation, is available online in SympyCore website.
@@ -80,3 +102,4 @@ You can report bugs at the sympycore issue tracker:
 SympyCore website contains links to sympycore mailing lists where one
 can ask support requests and discuss general sympycore related topics.
 Any comments and questions can be sent also to the authors.
+

@@ -3,10 +3,11 @@
 See http://sympycore.googlecode.com/ for more information.
 """
 __docformat__ = "restructuredtext"
-__version__ = '0.2-svn'
 __date__ = '2008'
 __author__ = 'Pearu Peterson, Fredrik Johansson'
 __license__ = 'New BSD License'
+
+from .version import version as __version__
 
 from .core import classes, defined_functions, DefinedFunction, Expr
 from basealgebra import *
@@ -77,3 +78,41 @@ cot = Function(Cot, Calculus, Calculus)
 exp = Function(Exp, Calculus, Calculus)
 log = Function(Log, (Calculus, Calculus), Calculus)
 ln = Function(Ln, Calculus, Calculus)
+
+
+# Define test() method:
+
+class _Tester:
+        
+    def test(self):
+        import os
+        import sys
+        import nose
+        d = os.path.dirname(os.path.abspath(__file__))
+        s = os.system('%s %s %s' % (sys.executable, nose.core.__file__, d))
+        if s:
+            print >>sys.stderr, "TESTS FAILED"
+
+    def check_testing(self):
+        import os, sys
+        import nose
+        d = os.path.dirname(os.path.abspath(__file__))
+        if sys.argv == [nose.core.__file__, d]:
+            self.show_config()
+
+    def show_config(self):
+        import os, sys, nose
+        if 'sympycore.expr_ext' in sys.modules:
+            s = 'compiled'
+        else:
+            s = 'pure'
+        print >>sys.stderr, "Python version: %s" % (sys.version.replace('\n',''))
+        print >>sys.stderr, "nose version %d.%d.%d" % nose.__versioninfo__
+        print >>sys.stderr, 'Sympycore version: %s (%s)' % (__version__, s)
+        print >>sys.stderr, 'Sympycore is installed in %s' % (os.path.dirname(__file__))
+
+_tester = _Tester()
+_tester.check_testing()
+test = _tester.test
+del _Tester, _tester
+
