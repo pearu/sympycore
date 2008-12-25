@@ -42,14 +42,21 @@ packages += [p+'.tests' for p in packages \
 
 class tester(Command):
     description = "run sympycore tests"
-    user_options = []
+    user_options = [('nose-args=', 'n', 'arguments to nose command'),
+                    ('coverage', None, 'run nose command with coverage enabled')]
     def initialize_options(self):
+        self.nose_args = None
+        self.coverage = None
         return
     def finalize_options (self):
+        if self.nose_args is None:
+            self.nose_args = ''
+        if self.coverage:
+            self.nose_args += ' --with-coverage --cover-package=sympycore'
         return
     def run(self):
         import sympycore
-        sympycore.test()
+        sympycore.test(nose_args=self.nose_args)
 
 class build_py(_build_py):
 

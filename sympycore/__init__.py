@@ -84,12 +84,16 @@ ln = Function(Ln, Calculus, Calculus)
 
 class _Tester:
         
-    def test(self):
+    def test(self, nose_args=''):
+        """ Run sympycore tests using nose.
+        """
         import os
         import sys
         import nose
         d = os.path.dirname(os.path.abspath(__file__))
-        s = os.system('%s %s %s' % (sys.executable, nose.core.__file__, d))
+        cmd = '%s %s %s %s' % (sys.executable, nose.core.__file__, d, nose_args)
+        print >>sys.stderr, 'Running %r' % cmd
+        s = os.system(cmd)
         if s:
             print >>sys.stderr, "TESTS FAILED"
 
@@ -97,7 +101,7 @@ class _Tester:
         import os, sys
         import nose
         d = os.path.dirname(os.path.abspath(__file__))
-        if sys.argv == [nose.core.__file__, d]:
+        if sys.argv[:2] == [nose.core.__file__, d]:
             self.show_config()
 
     def show_config(self):

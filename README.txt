@@ -70,6 +70,10 @@ To test installed sympycore, run::
   
   python -c 'from sympycore import test; test()'
 
+To test sympycore test coverage, run::
+
+  python setup.py test --coverage
+
 Basic usage
 ===========
 
