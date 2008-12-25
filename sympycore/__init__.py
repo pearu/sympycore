@@ -116,13 +116,17 @@ class _Tester:
         print >>sys.stderr, 'sympycore is installed in %s' % (os.path.dirname(__file__))
         mpmath = sys.modules['sympycore.arithmetic.mpmath']
         fn = os.path.join(os.path.dirname(mpmath.__file__), 'REVISION')
+        l = ['mode=%s' % (mpmath.settings.MODE)]
+        if mpmath.settings.MODE=='gmpy':
+            gmpy = mpmath.settings.gmpy
+            l.append('gmpy_version=%s' % (gmpy.version()))
         if os.path.isfile(fn):
             f = open(fn, 'r')
-            rev = '(revision=%s)' % (f.read().strip())
+            l.append('revision=%s' % (f.read().strip()))
             f.close()
         else:
             rev = ''
-        print >>sys.stderr, 'mpmath version: %s %s' % (mpmath.__version__, rev)
+        print >>sys.stderr, 'mpmath version: %s (%s)' % (mpmath.__version__, ', '.join(l))
 
 _tester = _Tester()
 _tester.check_testing()

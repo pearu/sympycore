@@ -56,6 +56,9 @@ if not os.environ.has_key('MPMATH_NOGMPY'):
         if gmpy.version() >= '1.03':
             MODE = 'gmpy'
             MP_BASE = gmpy.mpz
+        else:
+            print >>sys.stderr,'%s: gmpy version 1.03 or higher is required,'\
+                  ' got %s, ignoring.' %  (__file__, gmpy.version())
     except:
         pass
 
