@@ -43,16 +43,53 @@ packages += [p+'.tests' for p in packages \
 class tester(Command):
     description = "run sympycore tests"
     user_options = [('nose-args=', 'n', 'arguments to nose command'),
-                    ('coverage', None, 'run nose command with coverage enabled')]
+                    ('with-coverage', 'c', 'use nose --with-coverage flag'),
+                    ('cover-package=', None, 'use nose --cover-package flag'),
+                    ('detailed-errors', 'd', 'use nose --detailed-errors flag'),
+                    ('nocapture', 's', 'use nose --nocapture flag'),
+                    ('nose-verbose', 'v', 'use nose --verbose flag'),
+                    ('match=', 'm', 'use nose --match flag'),
+                    ('profile', 'p', 'use nose --profile flag'),
+                    ('with-doctest', None, 'use nose --with-doctest flag'),
+                    ('stop', 'x', 'use nose --stop flag')
+                    ]
     def initialize_options(self):
         self.nose_args = None
-        self.coverage = None
+        self.with_coverage = None
+        self.cover_package = None
+        self.detailed_errors = None
+        self.nocapture = None
+        self.nose_verbose = None
+        self.match = None
+        self.profile = None
+        self.with_doctest = None
+        self.stop = None
         return
     def finalize_options (self):
         if self.nose_args is None:
             self.nose_args = ''
-        if self.coverage:
-            self.nose_args += ' --with-coverage --cover-package=sympycore'
+        if self.with_coverage:
+            self.nose_args += ' --with-coverage'
+        if self.cover_package:
+            if not self.with_coverage:
+                self.nose_args += ' --with-coverage'
+            self.nose_args += ' --cover-package=%s' % self.cover_package
+        elif self.with_coverage:
+            self.nose_args += ' --cover-package=sympycore'
+        if self.detailed_errors:
+            self.nose_args += ' --detailed-errors'
+        if self.nocapture:
+            self.nose_args += ' --nocapture'
+        if self.nose_verbose:
+            self.nose_args += ' --verbose'
+        if self.match:
+            self.nose_args += ' --match=%r' % (self.match)
+        if self.profile:
+            self.nose_args += ' --with-profile'
+        if self.with_doctest:
+            self.nose_args += ' --with-doctest'
+        if self.stop:
+            self.nose_args += ' --stop'
         return
     def run(self):
         import sympycore

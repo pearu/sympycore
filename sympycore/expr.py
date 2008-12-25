@@ -85,6 +85,7 @@ This is Python version of Expr type.
             self.pair = obj.pair
             self._hash = obj._hash
         else:
+            #print (head, data)
             self.pair = (head, data)
             self._hash = None
 
@@ -139,14 +140,15 @@ This is Python version of Expr type.
             self._hash = hashvalue
 
     def __reduce__(self):
-        version = 2
+        # see also _reconstruct function in sympycore/core.py
+        version = 3
         from sympycore.core import _reconstruct
         if version==1:
             hashvalue = self._hash
             if hashvalue is None:
                 hashvalue = -1
             state = (type(self), self.pair, hashvalue)
-        elif version==2:
+        elif version==2 or version==3:
             hashvalue = self._hash
             if hashvalue is None:
                 hashvalue = -1

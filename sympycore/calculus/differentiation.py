@@ -3,7 +3,7 @@
 __docformat__ = "restructuredtext"
 __all__ = ['diff']
 
-from ..utils import SYMBOL, NUMBER, ADD, MUL, FACTORS
+from ..utils import SYMBOL, NUMBER, FACTORS, TERMS
 from ..arithmetic.numbers import inttypes
 from ..basealgebra import Algebra
 from ..basealgebra.pairs import inplace_add2, inplace_add, return_terms
@@ -162,7 +162,7 @@ def diff_product(pairs, xdata, order=one):
                 s += dt * d1
         return diff_repeated(s, xdata, order-1)
 
-def diff_generic(expr, xdata, order, NUMBER=NUMBER, SYMBOL=SYMBOL, ADD=ADD, MUL=MUL):
+def diff_generic(expr, xdata, order, NUMBER=NUMBER, SYMBOL=SYMBOL, TERMS=TERMS, FACTORS=FACTORS):
     key = (expr, xdata, order)
     c = cache_generic.get(key)
     if c is not None:
@@ -182,7 +182,7 @@ def diff_generic(expr, xdata, order, NUMBER=NUMBER, SYMBOL=SYMBOL, ADD=ADD, MUL=
             r = zero
         else:
             raise NotImplementedError(monomial_msg)
-    elif head is ADD:
+    elif head is TERMS:
         # Differentiate term by term. Note that coefficients are constants.
         s = zero
         d = {}
@@ -201,14 +201,14 @@ def diff_generic(expr, xdata, order, NUMBER=NUMBER, SYMBOL=SYMBOL, ADD=ADD, MUL=
                         inplace_add(cls, coeff, d, d_get, one)
                 # else: zero
                 continue
-            if th is MUL:
+            if th is FACTORS:
                 dterm = diff_product(term.data, xdata, order)
             # General case
             else:
                 dterm = diff_generic(term, xdata, order)
             inplace_add2(cls, dterm, coeff, d, d_get, one)
         r = return_terms(cls, d)
-    elif head is MUL:
+    elif head is FACTORS:
         r = diff_product(data, xdata, order)
     else:
         r = diff_callable(head, data, xdata, order)

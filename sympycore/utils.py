@@ -12,17 +12,47 @@ class HEAD(str):
     """
     _cache = {}
     def __new__(cls, *args):
-        key = cls.__name__, args
+        key = '%s%s' % (cls.__name__, args)
         obj = cls._cache.get(key)
         if obj is None:
-            obj = str.__new__(cls, '%s%s' % (cls.__name__, args))
+            obj = str.__new__(cls, key)
             cls._cache[key] = obj
+            obj._key = key
             obj.init(*args)
         return obj
 
     def init(self, *args):
         # derived class may set attributes here
         pass #pragma NO COVER
+
+    def as_unique_head(self):
+        # used by the pickler support to make HEAD instances unique
+        return self._cache[self._key]
+
+class STDHEAD(HEAD):
+    """ Standard head constants.
+
+    STDHEAD(<repr-result>, <str-result>)
+    """
+
+    def init(self, op_repr, op_str = None, op_mth=None, op_rmth=None):
+        if op_str is None:
+            op_str = op_repr
+        if op_mth is None:
+            op_mth = '__'+op_repr.lower()+'__'
+        if op_rmth is None:
+            if op_mth.startswith('__'):
+                op_rmth = '__r' + op_mth[2:]
+        self.op_repr = op_repr
+        self.op_str = op_str
+        self.op_mth = op_mth
+        self.op_rmth = op_rmth
+
+    def __str__(self):
+        return self.op_str
+
+    def __repr__(self):
+        return self.op_repr
 
 # The following constants define both the order of operands
 # as well as placing parenthesis for classes deriving from
@@ -35,61 +65,60 @@ str_APPLY = -4
 str_SYMBOL = -5
 str_NUMBER = -6
 
-
 # The following constants are used by PrimitiveAlgebra and
 # CollectingField classes.
 
-OR = intern(' or ')
-AND = intern(' and ')
-NOT = intern('not ')
+OR = STDHEAD('OR', ' or ', '')
+AND = STDHEAD('AND', ' and ', '')
+NOT = STDHEAD('NOT', 'not ')
 
-LT = intern('<')
-LE = intern('<=')
-GT = intern('>')
-GE = intern('>=')
-EQ = intern('==')
-NE = intern('!=')
+LT = STDHEAD('LT', '<')
+LE = STDHEAD('LE', '<=')
+GT = STDHEAD('GT', '>')
+GE = STDHEAD('GE', '>=')
+EQ = STDHEAD('EQ', '==')
+NE = STDHEAD('NE', '!=')
 
-IN = intern(' in ')
-NOTIN = intern(' not in ')
+IN = STDHEAD('IN', ' in ', '')
+NOTIN = STDHEAD('NOTIN', ' not in ', '')
 
-BAND = intern('&')
-BOR = intern('|')
-BXOR = intern('^')
-INVERT = intern('~')
+IS = STDHEAD('IS', ' is ', '')
+ISNOT = STDHEAD('ISNOT', ' is not ', '')
 
-POS = intern('+')
-NEG = intern('-')
-TERMS = ADD = intern(' + ')
-SUB = intern(' - ')
-MOD = intern('%')
-FACTORS = MUL = intern('*')
-DIV = intern('/')
-POW = intern('**')
+BAND = STDHEAD('BAND', '&', '__and__')
+BOR = STDHEAD('BOR', '|', '__or__')
+BXOR = STDHEAD('BXOR', '^', '__xor__')
+INVERT = STDHEAD('INVERT', '~')
 
-NUMBER = intern('N')
-SYMBOL = intern('S')
-APPLY = intern('A')
-TUPLE = intern('T')
-LAMBDA = intern('L')
+POS = STDHEAD('POS', '+')
+NEG = STDHEAD('NEG', '-')
+TERMS = STDHEAD('TERMS', ' + ')
+ADD = STDHEAD('ADD', ' + ')
+SUB = STDHEAD('SUB', ' - ')
+MOD = STDHEAD('MOD', '%')
+MUL = STDHEAD('MUL', '*')
+FACTORS = STDHEAD('FACTORS', '*')
+DIV = STDHEAD('DIV', '/')
+FLOORDIV = STDHEAD('FLOORDIV', '//')
+POW = STDHEAD('POW', '**')
+LSHIFT = STDHEAD('LSHIFT', '<<')
+RSHIFT = STDHEAD('RSHIFT', '>>')
+DIVMOD = STDHEAD('DIVMOD')
 
-SUBSCRIPT = intern('[]')
+NUMBER = STDHEAD('NUMBER')
+SYMBOL = STDHEAD('SYMBOL')
+APPLY = STDHEAD('APPLY')
+TUPLE = STDHEAD('TUPLE')
+LIST = STDHEAD('LIST')
+SET = STDHEAD('SET')
+LAMBDA = STDHEAD('LAMBDA')
 
-POLY = intern('P')
-DENSE_POLY = intern('DP')
+SUBSCRIPT = STDHEAD('SUBSCRIPT')
 
-DIFF = intern('D')
+POLY = STDHEAD('POLY')
+DENSE_POLY = STDHEAD('DENSE_POLY')
 
-head_to_string = {\
-    OR:'OR', AND:'AND', NOT:'NOT',
-    LT:'LT', LE:'LE', GT:'GT', GE:'GE', NE:'NE', EQ:'EQ',
-    IN:'IN', NOTIN:'NOTIN',
-    BAND:'BAND', BOR:'BOR', BXOR:'BXOR', INVERT:'INVERT',
-    POS:'POS', NEG:'NEG', ADD:'ADD', SUB:'SUB', MOD:'MOD', MUL:'MUL', DIV:'DIV', POW:'POW',
-    NUMBER:'NUMBER', SYMBOL:'SYMBOL', APPLY:'APPLY', TUPLE:'TUPLE', LAMBDA:'LAMBDA',
-    POLY:'POLY', DENSE_POLY:'DENSE_POLY',
-    DIFF:'DIFF',
-    }
+DIFF = STDHEAD('DIFF')
 
 MATRIX_DICT = intern('MATRIX_DICT')
 MATRIX_DICT_T = intern('MATRIX_DICT_T')
@@ -156,18 +185,5 @@ class MATRIX(HEAD):
             self.D = self
         else:
             raise NotImplementedError(`storage`) #pragma NO COVER
-
-def get_head(head):
-    """ Return head from head copy.
-
-    Used by unpickler to ensure that objects head's can always be
-    compared with ``is``.
-    """
-    n = head_to_string.get(head, None)
-    if n is not None:
-        return globals()[n]
-    if isinstance(head, str):
-        return eval(head, globals())
-    return head
 
 

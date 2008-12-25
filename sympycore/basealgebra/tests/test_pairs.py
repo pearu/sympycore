@@ -214,7 +214,7 @@ def test_as_verbatim():
     assert str(a.as_verbatim())=='a'
     assert str(n.as_verbatim())=='2'
     assert str(t.as_verbatim())=='-3'
-    assert str(s.as_verbatim())=='2 + a'
+    assert str(s.as_verbatim())=='2 + a',repr(str(s.as_verbatim()))
     assert str(s1.as_verbatim())=='2*a'
     assert str(m.as_verbatim())=='a**2'
     assert str(m2.as_verbatim())=='a*b'

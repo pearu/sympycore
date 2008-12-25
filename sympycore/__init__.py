@@ -79,10 +79,10 @@ exp = Function(Exp, Calculus, Calculus)
 log = Function(Log, (Calculus, Calculus), Calculus)
 ln = Function(Ln, Calculus, Calculus)
 
-
-# Define test() method:
-
 class _Tester:
+
+    def __init__(self):
+        self.check_testing()
         
     def test(self, nose_args=''):
         """ Run sympycore tests using nose.
@@ -109,21 +109,37 @@ class _Tester:
             self.show_config()
 
     def show_config(self):
-        import os, sys, nose
+        import os, sys
+
+        print >>sys.stderr, 'Python version: %s' % (sys.version.replace('\n',''))
+
+        nose = None
+        minimum_nose_version = (0,10,0)
+        try:
+            import nose
+            if nose.__versioninfo__ < minimum_nose_version:
+                nose = None
+        except:
+            pass
+        if nose is None:
+            msg = 'Need nose >= %d.%d.%d for tests - see ' \
+              'http://somethingaboutorange.com/mrl/projects/nose' % \
+              minimum_nose_version
+            raise ImportError(msg)            
+        else:
+            print >>sys.stderr, 'nose version: %d.%d.%d' % nose.__versioninfo__
+            print >>sys.stderr, 'nose is installed in %s' % (os.path.dirname(nose.__file__))
+
         if 'sympycore.expr_ext' in sys.modules:
             s = 'compiled'
         else:
             s = 'pure'
-        print >>sys.stderr, 'Python version: %s' % (sys.version.replace('\n',''))
-        print >>sys.stderr, 'nose version %d.%d.%d' % nose.__versioninfo__
         print >>sys.stderr, 'sympycore version: %s (%s)' % (__version__, s)
         print >>sys.stderr, 'sympycore is installed in %s' % (os.path.dirname(__file__))
+
         mpmath = sys.modules['sympycore.arithmetic.mpmath']
         fn = os.path.join(os.path.dirname(mpmath.__file__), 'REVISION')
         l = ['mode=%s' % (mpmath.settings.MODE)]
-        if mpmath.settings.MODE=='gmpy':
-            gmpy = mpmath.settings.gmpy
-            l.append('gmpy_version=%s' % (gmpy.version()))
         if os.path.isfile(fn):
             f = open(fn, 'r')
             l.append('revision=%s' % (f.read().strip()))
@@ -131,9 +147,14 @@ class _Tester:
         else:
             rev = ''
         print >>sys.stderr, 'mpmath version: %s (%s)' % (mpmath.__version__, ', '.join(l))
+        print >>sys.stderr, 'mpmath is installed in %s' % (os.path.dirname(mpmath.__file__))
 
-_tester = _Tester()
-_tester.check_testing()
-test = _tester.test
-del _Tester, _tester
+        if mpmath.settings.MODE=='gmpy':
+            gmpy = mpmath.settings.gmpy
+            print >>sys.stderr, 'gmpy version: %s' % (gmpy.version())
+            print >>sys.stderr, 'gmpy is installed in %s' % (os.path.dirname(gmpy.__file__))
+
+
+test = _Tester().test
+del _Tester
 

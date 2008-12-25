@@ -18,7 +18,6 @@ except ImportError, msg:
     from .expr import Expr
 
 # Pickling support:
-from .utils import get_head
 def _reconstruct(version, state):
     # Returned by <Expr instance>.__reduce__
     if version==1:
@@ -28,10 +27,19 @@ def _reconstruct(version, state):
         obj._sethash(hashvalue)
         return obj
     elif version==2:
+        from .utils import get_head
         cls, (head, data), hashvalue = state
         if type(cls) is tuple:
             cls = cls[0](*cls[1])
         head = get_head(head)
+        obj = cls(head, data)
+        obj._sethash(hashvalue)
+        return obj
+    elif version==3:
+        cls, (head, data), hashvalue = state
+        if type(cls) is tuple:
+            cls = cls[0](*cls[1])
+        head = getattr(head, 'as_unique_head', lambda head=head: head)()
         obj = cls(head, data)
         obj._sethash(hashvalue)
         return obj

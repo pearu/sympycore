@@ -5,7 +5,7 @@ __docformat__ = "restructuredtext"
 __all__ = ['Algebra', 'SymbolicEquality']
 
 from ..core import classes, Expr, defined_functions
-from ..utils import LT, GT, LE, GE, NE, EQ, SYMBOL, NUMBER, head_to_string
+from ..utils import LT, GT, LE, GE, NE, EQ, SYMBOL, NUMBER
 
 symbolic_comparison_map = dict(
     equality = dict(__eq__=EQ, __ne__=NE),
@@ -89,7 +89,8 @@ class Algebra(Expr):
         return s
 
     def __repr__(self):
-        return '%s(%r)' % (type(self).__name__, str(self))
+        s = str(self)
+        return '%s(%r)' % (type(self).__name__, s)
 
     def __nonzero__(self):
         return not not self.data
@@ -145,7 +146,7 @@ class Algebra(Expr):
 
     @classmethod
     def handle_get_operand_algebra_failure(cls, head, index):
-        raise TypeError('Cannot convert %s-th %s operand to %s algebra' % (index, head_to_string.get(head, head), cls.__name__))
+        raise TypeError('Cannot convert %s-th %s operand to %s algebra' % (index, repr(head), cls.__name__))
 
     @classmethod
     def convert(cls, obj, typeerror=True):
@@ -268,8 +269,8 @@ class Algebra(Expr):
     def args(self):
         """ Returns a sequence such that ``self.func(*self.args) == self``.
         """
-        raise NotImplementedError('%s must define property args'      #pragma NO COVER
-                                  % (cls.__name__))                   #pragma NO COVER
+        raise NotImplementedError('%s must define property "args"'      #pragma NO COVER
+                                  % (self.__class__.__name__))        #pragma NO COVER
 
     @classmethod
     def Symbol(cls, obj):
@@ -287,7 +288,7 @@ class Algebra(Expr):
     def symbols(self):
         """ Return a set of atomic subexpressions in a symbolic object.
         """
-        symbols = self._symbols
+        symbols = getattr(self,'_symbols', None)
         if symbols is None:
             args = self.args
             if args:

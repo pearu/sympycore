@@ -23,7 +23,7 @@ def test_pickle():
     x, y, z = map(Symbol,'xyz')
 
     obj = x+y
-    assert obj==pickler(obj)
+    assert obj==pickler(obj),`obj, pickler(obj)`
 
     obj = x+y/3
     assert obj==pickler(obj)

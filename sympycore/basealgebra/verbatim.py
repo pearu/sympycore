@@ -15,8 +15,9 @@ from compiler import ast
 
 from .algebra import Algebra
 from ..utils import (OR, AND, NOT, LT, LE, GT, GE, EQ, NE, BAND, BOR, BXOR,
-                     INVERT, POS, NEG, ADD, SUB, MOD, MUL, DIV, POW,
-                     NUMBER, SYMBOL, APPLY, TUPLE, LAMBDA, head_to_string,
+                     INVERT, POS, NEG, ADD, SUB, MOD, MUL, DIV, FLOORDIV, POW,
+                     LSHIFT, RSHIFT, DIVMOD, IS, ISNOT, LIST,
+                     NUMBER, SYMBOL, APPLY, TUPLE, LAMBDA, TERMS, FACTORS,
                      IN, NOTIN, SUBSCRIPT)
 from ..core import classes, Expr, objects
 
@@ -24,11 +25,13 @@ from ..core import classes, Expr, objects
 # XXX: LeftShift, RightShift, List*, Subscript, Slice, KeyWord, GetAttr, Ellipsis
 # XXX: function calls assume no optional nor *args nor *kwargs, same applies to lambda
 
+
+containing_lst = set([IN, NOTIN])
 boolean_lst = [AND, OR, NOT]
 compare_lst = [LT, LE, GT, GE, EQ, NE, IN, NOTIN]
 bit_lst = [BAND, BOR, BXOR, INVERT]
-arith_lst = [POS, NEG, ADD, SUB, MOD, MUL, DIV, POW]
-parentheses_map = {
+arith_lst = [POS, NEG, ADD, SUB, MOD, MUL, DIV, FLOORDIV, POW]
+parentheses_map = { # defines operator precedence
     OR: [LAMBDA],
     AND: [LAMBDA, OR],
     NOT: [LAMBDA, AND, OR],
@@ -40,19 +43,29 @@ parentheses_map = {
     NE: [LAMBDA] + boolean_lst,
     IN: [LAMBDA] + boolean_lst,
     NOTIN: [LAMBDA] + boolean_lst,
+    IS: [LAMBDA, IN, NOTIN] + boolean_lst,
+    ISNOT: [LAMBDA, IS, ISNOT] + boolean_lst,
     BOR: [LAMBDA] + compare_lst + boolean_lst,
     BXOR: [LAMBDA, BOR] + compare_lst + boolean_lst,
     BAND: [LAMBDA, BOR, BXOR] + compare_lst + boolean_lst,
-    INVERT: [LAMBDA, BOR, BXOR, BAND] + compare_lst + boolean_lst,
+    LSHIFT: [LAMBDA, BOR, BXOR, BAND] + compare_lst + boolean_lst,
+    RSHIFT: [LAMBDA, BOR, BXOR, BAND] + compare_lst + boolean_lst,
+    INVERT: [LAMBDA, BOR, BXOR, BAND, LSHIFT, RSHIFT] + compare_lst + boolean_lst,
     ADD: [LAMBDA] + compare_lst + boolean_lst,
     SUB: [LAMBDA, ADD] + compare_lst + boolean_lst,
     POS: [LAMBDA, ADD, SUB] + compare_lst + boolean_lst,
     NEG: [LAMBDA, ADD, SUB] + compare_lst + boolean_lst,
     MOD: [LAMBDA, ADD, SUB, POS, NEG] + compare_lst + boolean_lst,
-    MUL: [LAMBDA, ADD, SUB, POS, NEG, MOD] + compare_lst + boolean_lst,
-    DIV: [LAMBDA, ADD, SUB, POS, NEG, MOD, MUL,] + compare_lst + boolean_lst,
-    POW: [LAMBDA, ADD, SUB, POS, NEG, MOD, MUL, DIV, POW] + compare_lst + boolean_lst,
+    MUL: [LAMBDA, ADD, SUB, POS, NEG] + compare_lst + boolean_lst,
+    DIV: [LAMBDA, ADD, SUB, POS, NEG] + compare_lst + boolean_lst,
+    FLOORDIV: [LAMBDA, ADD, SUB, POS, NEG] + compare_lst + boolean_lst,
+    POW: [LAMBDA, ADD, SUB, POS, NEG, MOD, MUL, DIV, FLOORDIV, POW] + compare_lst + boolean_lst,
     }
+
+atomic_lst = set([SYMBOL, NUMBER])
+unary_lst = set([POS, NEG, NOT, INVERT])
+binary_lst = set([AND, OR, BAND, BOR, BXOR, ADD, SUB, MUL, DIV, FLOORDIV,
+                  MOD, POW, LSHIFT, RSHIFT, DIVMOD])
 
 _is_name = re.compile(r'\A[a-zA-z_]\w*\Z').match
 _is_number = re.compile(r'\A[-]?\d+\Z').match
@@ -60,12 +73,12 @@ _is_number = re.compile(r'\A[-]?\d+\Z').match
 head_order = [NUMBER, SYMBOL, APPLY,
               POS, ADD,
               SUB,
-              MOD, MUL, DIV, POW,
+              MOD, MUL, DIV, FLOORDIV, POW,
               NEG,
               BOR, BXOR, BAND, INVERT,
               EQ, NE, LT, GT, LE, GE,
               OR, AND, NOT,
-              LAMBDA, TUPLE
+              LAMBDA, TUPLE, LIST
               ]
 
 def tree_sort(a, b):
@@ -82,7 +95,7 @@ def tree_sort(a, b):
     if c:
         return c
     t1,t2 = a.data, b.data
-    if h1 is SYMBOL or h1 is NUMBER:
+    if h1 in atomic_lst:
         return cmp(t1, t2)
     c = cmp(len(t1), len(t2))
     if c:
@@ -102,6 +115,7 @@ convert_head_Op_map = {
     SUB : 'Sub',
     MUL : 'Mul',
     DIV : 'Div',
+    FLOORDIV : 'FloorDiv',
     POW : 'Pow',
     MOD : 'Mod',
     AND : 'And',
@@ -130,10 +144,8 @@ class Verbatim(Algebra):
         if isinstance(obj, (str, unicode)):
             obj = string2Verbatim(obj)
         if hasattr(obj, 'as_verbatim'):
-            # handle low-level numbers and constants
+            # handle low-level numbers and constants, as well as Verbatim subclasses
             return obj.as_verbatim()
-        if isinstance(obj, cls):
-            return obj
         return Verbatim(SYMBOL, obj)
 
     def as_verbatim(self):
@@ -147,6 +159,8 @@ class Verbatim(Algebra):
             return cls.convert_symbol(rest)
         n = convert_head_Op_map.get(head)
         if n is not None:
+            if head in unary_lst:
+                return getattr(cls, n)(rest.as_algebra(cls.get_operand_algebra(head, 0)))
             return getattr(cls, n)(*[r.as_algebra(cls.get_operand_algebra(head, i)) for i,r in enumerate(rest)])
         if head is APPLY:
             func = rest[0]
@@ -154,7 +168,7 @@ class Verbatim(Algebra):
             fcls = objects.get_function_ring((cls,)*len(args), cls)
             f = func.as_algebra(fcls)
             return f(*[a.as_algebra(cls) for a in args])
-        if head is IN or head is NOTIN:
+        if head in containing_lst:
             element, container = rest
             container = container.as_algebra(cls.get_operand_algebra(IN, 1))
             element_algebra = container.get_element_algebra()
@@ -170,6 +184,9 @@ class Verbatim(Algebra):
         print `head, rest`
         raise TypeError('%r cannot be converted to %s algebra' % (self, cls.__name__))
 
+    def __repr__(self):
+        return '%s(%r, %r)' % (type(self).__name__, self.head, self.data)
+
     def __str__(self):
         s = self._str
         if s is None:
@@ -178,7 +195,7 @@ class Verbatim(Algebra):
 
     def _compute_str(self):
         head, rest = self.pair
-        if head is SYMBOL or head is NUMBER:
+        if head in atomic_lst:
             if callable(rest):
                 s = rest.__name__
             else:
@@ -198,11 +215,18 @@ class Verbatim(Algebra):
             return '(%s)(%s)' % (s, ', '.join(map(str,args)))
         if head is LAMBDA:
             args = rest[0]
+            assert args.head is TUPLE,`args`
             body = rest[1]
+            if len(args.data)==1:
+                return 'lambda %s: %s' % (str(args.data[0]), body)
             return 'lambda %s: %s' % (str(args)[1:-1], body)
         if head is TUPLE:
+            if len(rest)==1:
+                return '(%s,)' % (rest[0])
             return '(%s)' % (', '.join(map(str,rest)))
-        if head is NEG or head is POS or head is NOT:
+        if head is LIST:
+            return '[%s]' % (', '.join(map(str,rest)))
+        if head in unary_lst:
             return '%s%s' % (head, rest)
         if head is ADD:
             if len(rest)>100:
@@ -235,6 +259,8 @@ class Verbatim(Algebra):
                 self.disable_sorting = True
             if not self.disable_sorting:
                 rest = sorted(rest, cmp=tree_sort)
+        if head is DIVMOD:
+            return 'divmod(%s, %s)' % rest
         try:
             len(rest)
         except TypeError:
@@ -258,8 +284,8 @@ class Verbatim(Algebra):
             return '%s(%s)' % (head.__name__, ', '.join(l))
 
         if len(l)==1: # unary operation
-            return head + l[0]
-        return head.join(l)
+            return str(head) + l[0]
+        return str(head).join(l)
 
     def as_tree(self, tab='', level=0):
         if level:
@@ -267,10 +293,10 @@ class Verbatim(Algebra):
         else:
             r = [self.__class__.__name__+':']
         head, rest = self.pair
-        if head in [SYMBOL, NUMBER]:
-            r.append(tab + '%s[%s]' % (head_to_string[head], rest))
+        if head in atomic_lst:
+            r.append(tab + '%r[%s]' % (head, rest))
         else:
-            r.append(tab + '%s[' % (head_to_string[head]))
+            r.append(tab + '%r[' % (head))
             if isinstance(rest, Verbatim):
                 rest = rest,
             for t in rest:
@@ -283,42 +309,26 @@ class Verbatim(Algebra):
             return self.pair == other.pair
         return False
 
-    def __pos__(self):
-        return Verbatim(POS, (self,))
-    def __neg__(self):
-        return Verbatim(NEG, (self,))
-    def __add__(self, other):
-        other = self.convert(other)
-        return Verbatim(ADD, (self, other))
-    def __radd__(self, other):
-        other = self.convert(other)
-        return Verbatim(ADD, (other, self))
-    def __sub__(self, other):
-        other = self.convert(other)
-        return Verbatim(SUB, (self, other))
-    def __rsub__(self, other):
-        other = self.convert(other)
-        return Verbatim(SUB, (other, self))
-    def __mul__(self, other):
-        other = self.convert(other)
-        return Verbatim(MUL, (self, other))
-    def __rmul__(self, other):
-        other = self.convert(other)
-        return Verbatim(MUL, (other, self))
-    def __div__(self, other):
-        other = self.convert(other)
-        return Verbatim(DIV, (self, other))
-    def __rdiv__(self, other):
-        other = self.convert(other)
-        return Verbatim(DIV, (other, self))
-    def __pow__(self, other):
-        other = self.convert(other)
-        return Verbatim(POW, (self, other))
-    def __rpow__(self, other):
-        other = self.convert(other)
-        return Verbatim(POW, (other, self))
+    for _h in unary_lst:
+        exec '''\
+def %s(self):
+    return Verbatim(%r, self)
+''' % (_h.op_mth, _h)
+
+    for _h in binary_lst:
+        if not _h.op_mth: continue
+        exec '''\
+def %s(self, other):
+    other = self.convert(other)
+    return Verbatim(%r, (self, other))
+def %s(self, other):
+    other = self.convert(other)
+    return Verbatim(%r, (other, self))
+''' % (_h.op_mth, _h, _h.op_rmth, _h)
+
     __truediv__ = __div__
     __rtruediv__ = __rdiv__
+
     def __call__(self, *args):
         return Verbatim(APPLY, (self,)+args)
 
@@ -334,14 +344,18 @@ for n, cls in ast.__dict__.items():
     if isinstance(cls, (type,types.ClassType)) and issubclass(cls, ast.Node):
         node_names.append(n)
 
-node_map = dict(Add='ADD', Mul='MUL', Sub='SUB', Div='DIV', FloorDiv='DIV',
-                UnaryAdd='POS', UnarySub='NEG', Mod='MOD', Not='NOT',
-                Or='OR', And='AND', Power='POW',
-                Bitand='BAND',Bitor='BOR',Bitxor='BXOR',CallFunc='APPLY',
-                Tuple='TUPLE', Subscript='SUBSCRIPT',
+node_map = dict(Add=ADD, Mul=MUL, Sub=SUB,
+                Div=DIV, FloorDiv=FLOORDIV, TrueDiv=DIV,
+                UnaryAdd=POS, UnarySub=NEG, Mod=MOD, Not=NOT,
+                Or=OR, And=AND, Power=POW,
+                Bitand=BAND,Bitor=BOR,Bitxor=BXOR,CallFunc=APPLY,
+                Tuple=TUPLE, Subscript=SUBSCRIPT,
+                Invert=INVERT, LeftShift=LSHIFT, RightShift=RSHIFT,
+                List=LIST
                 )
 compare_map = {'<':LT, '>':GT, '<=':LE, '>=':GE,
-               '==':EQ, '!=':NE, 'in':IN, 'not in': NOTIN}
+               '==':EQ, '!=':NE, 'in':IN, 'not in': NOTIN,
+               'is':IS, 'is not':ISNOT}
 
 class VerbatimWalker:
     """ Helper class for expression parser.
@@ -367,7 +381,12 @@ class VerbatimWalker:
                 # apply associativity:
                 last[1].extend(lst)
                 return
-        self.append(Verbatim(head, tuple(lst)))
+        if head in unary_lst:
+            assert len(lst)==1,`lst`
+            self.append(Verbatim(head, lst[0]))
+        else:
+            self.append(Verbatim(head, tuple(lst)))
+        
     # for atomic instance:
     def add(self, *args):
         self.append(Verbatim(*args))
@@ -387,7 +406,7 @@ def visit%s(self, node, *args):
     for _n,_v in node_map.items():
         exec '''\
 def visit%s(self, node):
-    self.start(%s)
+    self.start(%r)
     for child in node.getChildNodes():
         self.visit(child)
     self.end()

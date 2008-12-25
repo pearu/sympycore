@@ -264,7 +264,7 @@ Expr_reduce(Expr *self)
   /* version number of this pickle type. Increment if we need to
      change the format. Be sure to handle the old versions in
      sympycore.core._reconstruct. */
-  const int version = 2;
+  const int version = 3;
   PyObject *mod = NULL;
   PyObject *ret = NULL;
   PyObject *obj = NULL;
@@ -279,11 +279,12 @@ Expr_reduce(Expr *self)
            (version, state)
 	If version==1 then
 	  state = (cls, pair, hash)
-	If version==2 then
+	If version==2 or version==3 then
 	  If args=type(cls).__getinitargs__(cls) succeeds then
   	    state = ((type(cls), args), pair, hash)
 	  else
   	    state = (cls, pair, hash)
+          For version==3, pair[0] is always HEAD instance
    */
 
   ret = PyTuple_New(2);
@@ -306,6 +307,7 @@ Expr_reduce(Expr *self)
 				   self->hash));
     break;
   case 2:
+  case 3:
     args = PyObject_CallMethodObjArgs(typ, str_getinitargs, cls, NULL);
     if (args==NULL) {
       PyErr_Clear();

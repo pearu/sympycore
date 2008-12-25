@@ -11,7 +11,7 @@ __all__ = ['CollectingField']
 
 from ..core import classes, Expr
 from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_NUMBER
-from ..utils import ADD, SUB, MUL, DIV, TERMS, FACTORS, SYMBOL, NUMBER, APPLY, POW, TUPLE, head_to_string, NEG, POS
+from ..utils import ADD, SUB, MUL, DIV, TERMS, FACTORS, SYMBOL, NUMBER, APPLY, POW, TUPLE, NEG, POS
 
 from .algebra import Algebra
 from .ring import CommutativeRing
@@ -124,9 +124,6 @@ class CollectingField(CommutativeRing):
             return type(self)(head, dict(data))
         return self
 
-    #def __repr__(self):
-    #    return '%s(%r, head=%s)' % (type(self).__name__, self.data, head_to_string[self.head])
-
     def as_tree(self, tab='', level=0):
         if level:
             r = []
@@ -135,9 +132,9 @@ class CollectingField(CommutativeRing):
         data = self.data
         head = self.head
         if head in [SYMBOL, NUMBER]:
-            r.append(tab + '%s[%s]' % (head_to_string[head], data))
+            r.append(tab + '%r[%s]' % (head, data))
         elif head in [TERMS, FACTORS]:
-            r.append(tab + '%s[' % (head_to_string[head]))
+            r.append(tab + '%r[' % (head))
             for t,c in data.iteritems():
                 r.append(t.as_tree(tab=tab + ('  %s:' % (str(c))), level=level+1))
             r.append(tab+']')
@@ -279,6 +276,7 @@ class CollectingField(CommutativeRing):
             return str_APPLY, '%s(%s)' % (s1, s2)
         if callable(data):
             return str_SYMBOL, data.__name__
+        assert not isinstance(data, dict),`head, data, TERMS, head is TERMS`
         return str_SYMBOL, str(data)
 
     @property
@@ -404,7 +402,7 @@ class CollectingField(CommutativeRing):
         func = self.func
         args = self.args
         if func==self.Add:
-            r = Verbatim(TERMS,tuple([a.as_verbatim() for a in args]))
+            r = Verbatim(ADD, tuple([a.as_verbatim() for a in args]))
             r.commutative_add = True
         elif func==self.Mul:
             h, d = args[0].pair
@@ -415,11 +413,11 @@ class CollectingField(CommutativeRing):
                         return -args[0]
                 else:
                     args = [(-args[0]).as_verbatim()] + [a.as_verbatim() for a in args[1:]]
-                r = Verbatim(FACTORS, tuple(args))
+                r = Verbatim(MUL, tuple(args))
                 r.commutative_mul = True
                 r = -r
             else:
-                r = Verbatim(FACTORS, tuple([a.as_verbatim() for a in args]))
+                r = Verbatim(MUL, tuple([a.as_verbatim() for a in args]))
             r.commutative_mul = True
         elif func==self.Pow:
             r = Verbatim(POW, tuple(map(Verbatim.convert, args)))
