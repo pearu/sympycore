@@ -16,13 +16,13 @@ from compiler import ast
 from .algebra import Algebra
 from ..utils import (OR, AND, NOT, LT, LE, GT, GE, EQ, NE, BAND, BOR, BXOR,
                      INVERT, POS, NEG, ADD, SUB, MOD, MUL, DIV, FLOORDIV, POW,
-                     LSHIFT, RSHIFT, DIVMOD, IS, ISNOT, LIST,
+                     LSHIFT, RSHIFT, DIVMOD, IS, ISNOT, LIST, SLICE,
                      NUMBER, SYMBOL, APPLY, TUPLE, LAMBDA, TERMS, FACTORS,
                      IN, NOTIN, SUBSCRIPT)
 from ..core import classes, Expr, objects
 
 # XXX: Unimplemented expression parts:
-# XXX: LeftShift, RightShift, List*, Subscript, Slice, KeyWord, GetAttr, Ellipsis
+# XXX: KeyWord, GetAttr, Ellipsis
 # XXX: function calls assume no optional nor *args nor *kwargs, same applies to lambda
 
 
@@ -146,6 +146,17 @@ class Verbatim(Algebra):
         if hasattr(obj, 'as_verbatim'):
             # handle low-level numbers and constants, as well as Verbatim subclasses
             return obj.as_verbatim()
+        if isinstance(obj, slice):
+            start, stop, step = obj.start, obj.stop, obj.step
+            if start is not None: start = cls.convert(start)
+            if stop is not None: stop = cls.convert(stop)
+            if step is not None: step = cls.convert(step)
+            return cls(SLICE, (start, stop, step))
+        elif isinstance(obj, tuple):
+            return cls(TUPLE, tuple(map(cls.convert, obj)))
+        elif isinstance(obj, list):
+            return cls(LIST, tuple(map(cls.convert, obj)))
+
         return Verbatim(SYMBOL, obj)
 
     def as_verbatim(self):
@@ -213,6 +224,29 @@ class Verbatim(Algebra):
             if _is_name(s):
                 return '%s(%s)' % (s, ', '.join(map(str,args)))
             return '(%s)(%s)' % (s, ', '.join(map(str,args)))
+        if head is SUBSCRIPT:
+            obj = rest[0]
+            indices = rest[1:]
+            s = str(obj)
+            if _is_name(s):
+                return '%s[%s]' % (s, ', '.join(map(str, indices)))
+            return '(%s)[%s]' % (s, ', '.join(map(str, indices)))
+        if head is SLICE:
+            start, stop, step = rest
+            if start is None:
+                if stop is None:
+                    if step is None: return ':'
+                    else: return '::%s' % step
+                else:
+                    if step is None: return ':%s' % stop
+                    else: return ':%s:%s' % (stop, step)
+            else:
+                if stop is None:
+                    if step is None: return '%s:' % start
+                    else: return '%s::%s' % (start, step)
+                else:
+                    if step is None: return '%s:%s' % (start, stop)
+                    else: return '%s:%s:%s' % (start, stop, step)
         if head is LAMBDA:
             args = rest[0]
             assert args.head is TUPLE,`args`
@@ -316,21 +350,31 @@ def %s(self):
 ''' % (_h.op_mth, _h)
 
     for _h in binary_lst:
-        if not _h.op_mth: continue
-        exec '''\
+        if _h.op_mth:
+            exec '''\
 def %s(self, other):
     other = self.convert(other)
     return Verbatim(%r, (self, other))
+''' % (_h.op_mth, _h)
+        if _h.op_rmth:
+            exec '''\
 def %s(self, other):
     other = self.convert(other)
     return Verbatim(%r, (other, self))
-''' % (_h.op_mth, _h, _h.op_rmth, _h)
+''' % (_h.op_rmth, _h)
 
     __truediv__ = __div__
     __rtruediv__ = __rdiv__
 
     def __call__(self, *args):
         return Verbatim(APPLY, (self,)+args)
+
+    def __getitem__(self, key):
+        if type(key) is tuple:
+            key = tuple(map(self.convert, key))
+            return Verbatim(SUBSCRIPT, (self,)+key)
+        key = self.convert(key)
+        return Verbatim(SUBSCRIPT, (self, key))
 
 classes.Verbatim = Verbatim
 
@@ -348,11 +392,14 @@ node_map = dict(Add=ADD, Mul=MUL, Sub=SUB,
                 Div=DIV, FloorDiv=FLOORDIV, TrueDiv=DIV,
                 UnaryAdd=POS, UnarySub=NEG, Mod=MOD, Not=NOT,
                 Or=OR, And=AND, Power=POW,
-                Bitand=BAND,Bitor=BOR,Bitxor=BXOR,CallFunc=APPLY,
+                Bitand=BAND,Bitor=BOR,Bitxor=BXOR,
                 Tuple=TUPLE, Subscript=SUBSCRIPT,
                 Invert=INVERT, LeftShift=LSHIFT, RightShift=RSHIFT,
-                List=LIST
+                List=LIST, Sliceobj=SLICE
                 )
+
+callfunc_map = dict(divmod=DIVMOD, slice=SLICE)
+
 compare_map = {'<':LT, '>':GT, '<=':LE, '>=':GE,
                '==':EQ, '!=':NE, 'in':IN, 'not in': NOTIN,
                'is':IS, 'is not':ISNOT}
@@ -413,11 +460,15 @@ def visit%s(self, node):
 ''' % (_n, _v)
 
     # visitNode methods:
+
     def visitName(self, node):
         self.add(SYMBOL, node.name)
 
     def visitConst(self, node):
-        self.add(NUMBER, node.value)
+        if node.value is None:
+            self.append(None)
+        else:
+            self.add(NUMBER, node.value)
 
     def visitCompare(self, node):
         lhs = node.expr
@@ -436,6 +487,36 @@ def visit%s(self, node):
         self.start(LAMBDA)
         self.visit(ast.Tuple([ast.Name(n) for n in node.argnames]))
         self.visit(node.code)
+        self.end()
+
+    def visitCallFunc(self, node):
+        childs = node.getChildNodes()
+        func = childs[0]
+        if isinstance(func, ast.Name) and func.name in callfunc_map:
+            self.start(callfunc_map[func.name])
+            for child in childs[1:]:
+                self.visit(child)
+            self.end()
+            return
+        self.start(APPLY)
+        for child in childs:
+            self.visit(child)
+        self.end()
+
+    def visitSlice(self, node):
+        n=ast.Subscript(node.expr, compiler.consts.OP_APPLY, [ast.Sliceobj(node.asList()[2:])])
+        self.visit(n)
+
+    def visitSliceobj(self, node):
+        childs = list(node.asList())
+        childs.extend([None]*(3-len(childs)))
+        assert len(childs)==3,`childs`
+        self.start(SLICE)
+        for child in childs:
+            if child is None:
+                self.append(child)
+            else:
+                self.visit(child)
         self.end()
 
 def string2Verbatim(expr):

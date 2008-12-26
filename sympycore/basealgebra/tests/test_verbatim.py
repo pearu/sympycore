@@ -1,5 +1,6 @@
+from __future__ import with_statement
 
-from sympycore import Verbatim, utils
+from sympycore import Verbatim, utils, SymbolicEquality
 
 def test_basic():
     a = Verbatim('a')
@@ -13,6 +14,7 @@ def test_operations():
     a = Verbatim('a')
     b = Verbatim('b')
     c = Verbatim('c')
+    d = Verbatim('d')
     assert +a == Verbatim('+a'),`+a,Verbatim('+a')`
 
     assert str(+a)=='+a',`str(+a)`
@@ -35,6 +37,17 @@ def test_operations():
     assert repr(divmod(a,b))== "Verbatim(DIVMOD, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(divmod(a,b))
     assert repr(a(b))== "Verbatim(APPLY, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(a(b))
     assert repr(a())== "Verbatim(APPLY, (Verbatim(SYMBOL, 'a'),))", repr(a())
+    assert repr(a[b])== "Verbatim(SUBSCRIPT, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(a[b])
+    assert repr(a[b,c])== "Verbatim(SUBSCRIPT, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b'), Verbatim(SYMBOL, 'c')))", repr(a[b,c])
+    assert repr(a[b:c])== "Verbatim(SUBSCRIPT, (Verbatim(SYMBOL, 'a'), Verbatim(SLICE, (Verbatim(SYMBOL, 'b'), Verbatim(SYMBOL, 'c'), None))))", repr(a[b:c])
+    assert repr(a[:])== "Verbatim(SUBSCRIPT, (Verbatim(SYMBOL, 'a'), Verbatim(SLICE, (None, None, None))))", repr(a[:])
+    assert repr(a[b:])== "Verbatim(SUBSCRIPT, (Verbatim(SYMBOL, 'a'), Verbatim(SLICE, (Verbatim(SYMBOL, 'b'), None, None))))", repr(a[b:])
+    assert repr(a[:b])== "Verbatim(SUBSCRIPT, (Verbatim(SYMBOL, 'a'), Verbatim(SLICE, (None, Verbatim(SYMBOL, 'b'), None))))", repr(a[:b])
+    assert repr(a[::b])== "Verbatim(SUBSCRIPT, (Verbatim(SYMBOL, 'a'), Verbatim(SLICE, (None, None, Verbatim(SYMBOL, 'b')))))", repr(a[::b])
+
+    with SymbolicEquality(Verbatim):
+        assert repr(a==a)=="Logic('a==a')",repr(a==a)
+    
     assert repr(Verbatim('a and b'))=="Verbatim(AND, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(Verbatim('a and b'))
     assert repr(Verbatim('a or b'))=="Verbatim(OR, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(Verbatim('a or b'))
     assert repr(Verbatim('a in b'))=="Verbatim(IN, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(Verbatim('a in b'))
@@ -52,6 +65,22 @@ def test_operations():
     assert repr(Verbatim('[a,b]'))=="Verbatim(LIST, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(Verbatim('[a,b]'))
     assert repr(Verbatim('lambda : a'))=="Verbatim(LAMBDA, (Verbatim(TUPLE, ()), Verbatim(SYMBOL, 'a')))", repr(Verbatim('lambda : a'))
     assert repr(Verbatim('lambda x: a'))=="Verbatim(LAMBDA, (Verbatim(TUPLE, (Verbatim(SYMBOL, 'x'),)), Verbatim(SYMBOL, 'a')))", repr(Verbatim('lambda x: a'))
+    assert repr(Verbatim('a==b'))=="Verbatim(EQ, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(Verbatim('a==b'))
+    assert repr(Verbatim('a!=b'))=="Verbatim(NE, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(Verbatim('a!=b'))
+    assert repr(Verbatim('a<b'))=="Verbatim(LT, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(Verbatim('a<b'))
+    assert repr(Verbatim('a>b'))=="Verbatim(GT, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(Verbatim('a>b'))
+    assert repr(Verbatim('a<=b'))=="Verbatim(LE, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(Verbatim('a<=b'))
+    assert repr(Verbatim('a>=b'))=="Verbatim(GE, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(Verbatim('a>=b'))
+    assert repr(Verbatim('a<b<c'))=="Verbatim(AND, (Verbatim(LT, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b'))), Verbatim(LT, (Verbatim(SYMBOL, 'b'), Verbatim(SYMBOL, 'c')))))", repr(Verbatim('a<b<c'))
+    assert repr(Verbatim('a[b]'))=="Verbatim(SUBSCRIPT, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(Verbatim('a[b]'))
+    assert repr(Verbatim('a[b,c]'))=="Verbatim(SUBSCRIPT, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b'), Verbatim(SYMBOL, 'c')))", repr(Verbatim('a[b,c]'))
+
+    assert repr(Verbatim('divmod(a,b)'))=="Verbatim(DIVMOD, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))",repr(Verbatim('divmod(a,b)'))
+    assert repr(Verbatim('slice(a)'))=="Verbatim(SLICE, (Verbatim(SYMBOL, 'a'),))",repr(Verbatim('slice(a)'))
+    assert repr(Verbatim('slice(a,b)'))=="Verbatim(SLICE, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))",repr(Verbatim('slice(a,b)'))
+    assert repr(Verbatim('slice(a,b,c)'))=="Verbatim(SLICE, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b'), Verbatim(SYMBOL, 'c')))",repr(Verbatim('slice(a,b,c)'))
+    assert repr(Verbatim('a[b:c,d]'))=="Verbatim(SUBSCRIPT, (Verbatim(SYMBOL, 'a'), Verbatim(SLICE, (Verbatim(SYMBOL, 'b'), Verbatim(SYMBOL, 'c'), None)), Verbatim(SYMBOL, 'd')))", repr(Verbatim('a[b:c,d]'))
+    assert repr(Verbatim('a[b:c]'))=="Verbatim(SUBSCRIPT, (Verbatim(SYMBOL, 'a'), Verbatim(SLICE, (Verbatim(SYMBOL, 'b'), Verbatim(SYMBOL, 'c'), None))))", repr(Verbatim('a[b:c]'))
     
     assert str(+a) == "+a",str(+a)
     assert str(-a) == "-a",str(-a)
@@ -71,6 +100,15 @@ def test_operations():
     assert str(divmod(a,b))== "divmod(a, b)", str(divmod(a,b))
     assert str(a(b))== "a(b)", str(a(b))
     assert str(a())== "a()", str(a())
+    assert str(a[b])== "a[b]", str(a[b])
+    assert str(a[b:])== "a[b:]", str(a[b:])
+    assert str(a[b:c])== "a[b:c]", str(a[b:c])
+    assert str(a[b:c:d])== "a[b:c:d]", str(a[b:c:d])
+    assert str(a[:c:d])== "a[:c:d]", str(a[:c:d])
+    assert str(a[::d])== "a[::d]", str(a[::d])
+    assert str(a[b::d])== "a[b::d]", str(a[b::d])
+    assert str((a+b)[c])== "(a + b)[c]", str((a+c)[c])
+    assert str((a+b)(c))== "(a + b)(c)", str((a+c)(c))
     assert str(Verbatim('a and b'))=="a and b", str(Verbatim('a and b'))
     assert str(Verbatim('a or b'))=="a or b", str(Verbatim('a or b'))
     assert str(Verbatim('a in b'))=="a in b", str(Verbatim('a in b'))
@@ -87,6 +125,22 @@ def test_operations():
     assert str(Verbatim('lambda :a'))=="lambda : a", str(Verbatim('lambda : a'))
     assert str(Verbatim('lambda x:a'))=="lambda x: a", str(Verbatim('lambda x: a'))
     assert str(Verbatim('lambda x,y:a'))=="lambda x, y: a", str(Verbatim('lambda x,y: a'))
+    assert str(Verbatim('a< b'))=="a<b", str(Verbatim('a < b'))
+    assert str(Verbatim('a==b'))=="a==b", str(Verbatim('a ==b'))
+    assert str(Verbatim('a!= b'))=="a!=b", str(Verbatim('a!=b'))
+    assert str(Verbatim('a<= b'))=="a<=b", str(Verbatim('a <= b'))
+    assert str(Verbatim('a> b'))=="a>b", str(Verbatim('a > b'))
+    assert str(Verbatim('a>= b'))=="a>=b", str(Verbatim('a >= b'))
+    assert str(Verbatim('a<b<c'))=="a<b and b<c", str(Verbatim('a<b<c'))
+    assert str(Verbatim('a<b==c'))=="a<b and b==c", str(Verbatim('a<b==c'))
+    assert str(Verbatim('a[b:c]'))=="a[b:c]", str(Verbatim('a[b:c]'))
+    assert str(Verbatim('a[b:c,d]'))=="a[b:c, d]", str(Verbatim('a[b:c, d]'))
+    assert str(Verbatim('a[b:]'))=="a[b:]", str(Verbatim('a[b:]'))
+    assert str(Verbatim('a[:b]'))=="a[:b]", str(Verbatim('a[:b]'))
+    assert str(Verbatim('a[::b]'))=="a[::b]", str(Verbatim('a[::b]'))
+    assert str(Verbatim('a[b::c]'))=="a[b::c]", str(Verbatim('a[b::c]'))
+    assert str(Verbatim('a[b:c:d]'))=="a[b:c:d]", str(Verbatim('a[b:c:d]'))
+    assert str(Verbatim('a[b::]'))=="a[b:]", str(Verbatim('a[b::]'))
     
     assert Verbatim('+a') == +a
     assert Verbatim('-a') == -a
@@ -105,6 +159,9 @@ def test_operations():
     assert Verbatim('a (b)') == a(b)
     assert Verbatim('a (b, a)') == a(b,a)
     assert Verbatim('a ()') == a()
+    assert Verbatim('a[b]') == a[b]
+    assert Verbatim('a[b,c]') == a[b,c], `Verbatim('a[b,c]'),a[b,c]`
+    assert Verbatim('a[b:c,d]') == a[b:c,d], `Verbatim('a[b:c,d]'),a[b:c,d]`
 
     assert Verbatim('a and b') == Verbatim(utils.AND, (a, b))
     assert Verbatim('a or b') == Verbatim(utils.OR, (a, b))
@@ -122,3 +179,13 @@ def test_operations():
     assert Verbatim('[a,b]') == Verbatim(utils.LIST, (a,b))
     assert Verbatim('lambda :a') == Verbatim(utils.LAMBDA, (Verbatim(utils.TUPLE, ()), a))
     assert Verbatim('lambda b:a') == Verbatim(utils.LAMBDA, (Verbatim(utils.TUPLE, (b,)), a))
+    assert Verbatim('a==b')==Verbatim(utils.EQ, (a, b)), Verbatim('a == b')
+    assert Verbatim('a!=b')==Verbatim(utils.NE, (a, b)), Verbatim('a != b')
+    assert Verbatim('a<b')==Verbatim(utils.LT, (a, b)), Verbatim('a < b')
+    assert Verbatim('a<=b')==Verbatim(utils.LE, (a, b)), Verbatim('a <= b')
+    assert Verbatim('a>b')==Verbatim(utils.GT, (a, b)), Verbatim('a > b')
+    assert Verbatim('a>=b')==Verbatim(utils.GE, (a, b)), Verbatim('a >= b')
+    assert Verbatim('a[b]')==Verbatim(utils.SUBSCRIPT, (a, b)), Verbatim('a[b]')
+    assert Verbatim('a[b,c]')==Verbatim(utils.SUBSCRIPT, (a, b, c)), Verbatim('a[b,c]')
+    assert Verbatim('a[b:c]')==Verbatim(utils.SUBSCRIPT, (a, Verbatim(utils.SLICE, (b,c,None)))), `Verbatim('a[b:c]')`
+    assert Verbatim('a[b:c,d]')==Verbatim(utils.SUBSCRIPT, (a, Verbatim(utils.SLICE, (b,c,None)), d)), `Verbatim('a[b:c,d]')`
