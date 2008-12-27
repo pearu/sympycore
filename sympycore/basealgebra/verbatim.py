@@ -18,14 +18,15 @@ from ..utils import (OR, AND, NOT, LT, LE, GT, GE, EQ, NE, BAND, BOR, BXOR,
                      INVERT, POS, NEG, ADD, SUB, MOD, MUL, DIV, FLOORDIV, POW,
                      LSHIFT, RSHIFT, DIVMOD, IS, ISNOT, LIST, SLICE,
                      NUMBER, SYMBOL, APPLY, TUPLE, LAMBDA, TERMS, FACTORS,
-                     IN, NOTIN, SUBSCRIPT)
+                     IN, NOTIN, SUBSCRIPT, SPECIAL)
 from ..core import classes, Expr, objects
 
 # XXX: Unimplemented expression parts:
-# XXX: KeyWord, GetAttr, Ellipsis
+# XXX: KeyWord, GetAttr
 # XXX: function calls assume no optional nor *args nor *kwargs, same applies to lambda
 
-
+EllipsisType = type(Ellipsis)
+special_types = (EllipsisType, type(None))
 containing_lst = set([IN, NOTIN])
 boolean_lst = [AND, OR, NOT]
 compare_lst = [LT, LE, GT, GE, EQ, NE, IN, NOTIN]
@@ -147,16 +148,14 @@ class Verbatim(Algebra):
             # handle low-level numbers and constants, as well as Verbatim subclasses
             return obj.as_verbatim()
         if isinstance(obj, slice):
-            start, stop, step = obj.start, obj.stop, obj.step
-            if start is not None: start = cls.convert(start)
-            if stop is not None: stop = cls.convert(stop)
-            if step is not None: step = cls.convert(step)
-            return cls(SLICE, (start, stop, step))
+            slice_args = obj.start, obj.stop, obj.step
+            return cls(SLICE, tuple(map(cls.convert, slice_args)))
         elif isinstance(obj, tuple):
             return cls(TUPLE, tuple(map(cls.convert, obj)))
         elif isinstance(obj, list):
             return cls(LIST, tuple(map(cls.convert, obj)))
-
+        elif isinstance(obj, special_types):
+            return cls(SPECIAL, obj)
         return Verbatim(SYMBOL, obj)
 
     def as_verbatim(self):
@@ -214,6 +213,10 @@ class Verbatim(Algebra):
             if not (_is_name(s) or _is_number(s)) and not s.startswith('('):
                 s = '((%s))' % (s)
             return s
+        if head is SPECIAL:
+            if isinstance(rest, EllipsisType):
+                return '...'
+            return str(rest)
         if head is APPLY:
             func = rest[0]
             args = rest[1:]
@@ -233,6 +236,12 @@ class Verbatim(Algebra):
             return '(%s)[%s]' % (s, ', '.join(map(str, indices)))
         if head is SLICE:
             start, stop, step = rest
+            h, d = start.pair
+            if h is SPECIAL and d is None: start = None
+            h, d = stop.pair
+            if h is SPECIAL and d is None: stop = None
+            h, d = step.pair
+            if h is SPECIAL and d is None: step = None
             if start is None:
                 if stop is None:
                     if step is None: return ':'
@@ -443,7 +452,7 @@ class VerbatimWalker:
             continue
         exec '''\
 def visit%s(self, node, *args):
-    print "warning: using default visit%s"
+    print "warning: using default visit%s:", node
     self.start(%r)
     for child in node.getChildNodes():
         self.visit(child, *args)
@@ -466,7 +475,7 @@ def visit%s(self, node):
 
     def visitConst(self, node):
         if node.value is None:
-            self.append(None)
+            self.add(SPECIAL, None)
         else:
             self.add(NUMBER, node.value)
 
@@ -504,7 +513,7 @@ def visit%s(self, node):
         self.end()
 
     def visitSlice(self, node):
-        n=ast.Subscript(node.expr, compiler.consts.OP_APPLY, [ast.Sliceobj(node.asList()[2:])])
+        n = ast.Subscript(node.expr, compiler.consts.OP_APPLY, [ast.Sliceobj(node.asList()[2:])])
         self.visit(n)
 
     def visitSliceobj(self, node):
@@ -514,10 +523,13 @@ def visit%s(self, node):
         self.start(SLICE)
         for child in childs:
             if child is None:
-                self.append(child)
+                self.add(SPECIAL, child)
             else:
                 self.visit(child)
         self.end()
+
+    def visitEllipsis(self, node):
+        self.add(SPECIAL, Ellipsis)
 
 def string2Verbatim(expr):
     """ Parse string expr to Verbatim.
