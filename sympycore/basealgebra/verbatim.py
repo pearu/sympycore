@@ -18,15 +18,19 @@ from ..utils import (OR, AND, NOT, LT, LE, GT, GE, EQ, NE, BAND, BOR, BXOR,
                      INVERT, POS, NEG, ADD, SUB, MOD, MUL, DIV, FLOORDIV, POW,
                      LSHIFT, RSHIFT, DIVMOD, IS, ISNOT, LIST, SLICE,
                      NUMBER, SYMBOL, APPLY, TUPLE, LAMBDA, TERMS, FACTORS,
-                     IN, NOTIN, SUBSCRIPT, SPECIAL)
+                     IN, NOTIN, SUBSCRIPT, SPECIAL, DICT, ATTR, KWARG)
 from ..core import classes, Expr, objects
 
-# XXX: Unimplemented expression parts:
-# XXX: KeyWord, GetAttr
-# XXX: function calls assume no optional nor *args nor *kwargs, same applies to lambda
+# Restrictions:
+#
+#    Star and double star function arguments are not implemented,
+#    i.e. parsing 'f(*a)' and 'f(**b)' will fail.
+
 
 EllipsisType = type(Ellipsis)
-special_types = (EllipsisType, type(None))
+special_types = (EllipsisType, type(None), type(NotImplemented))
+special_objects = set([Ellipsis, None, NotImplemented])
+
 containing_lst = set([IN, NOTIN])
 boolean_lst = [AND, OR, NOT]
 compare_lst = [LT, LE, GT, GE, EQ, NE, IN, NOTIN]
@@ -71,7 +75,7 @@ binary_lst = set([AND, OR, BAND, BOR, BXOR, ADD, SUB, MUL, DIV, FLOORDIV,
 _is_name = re.compile(r'\A[a-zA-z_]\w*\Z').match
 _is_number = re.compile(r'\A[-]?\d+\Z').match
 
-head_order = [NUMBER, SYMBOL, APPLY,
+head_order = [SPECIAL, NUMBER, SYMBOL, APPLY,
               POS, ADD,
               SUB,
               MOD, MUL, DIV, FLOORDIV, POW,
@@ -79,7 +83,7 @@ head_order = [NUMBER, SYMBOL, APPLY,
               BOR, BXOR, BAND, INVERT,
               EQ, NE, LT, GT, LE, GE,
               OR, AND, NOT,
-              LAMBDA, TUPLE, LIST
+              LAMBDA, TUPLE, LIST, DICT
               ]
 
 def tree_sort(a, b):
@@ -269,6 +273,16 @@ class Verbatim(Algebra):
             return '(%s)' % (', '.join(map(str,rest)))
         if head is LIST:
             return '[%s]' % (', '.join(map(str,rest)))
+        if head is DICT:
+            return '{%s}' % (', '.join(['%s:%s' % kv for kv in rest]))
+        if head is ATTR:
+            expr, attr = rest
+            s = str(expr)
+            if _is_name(s):
+                return '%s.%s' % (s, attr)
+            return '(%s).%s' % (s, attr)
+        if head is KWARG:
+            return '%s=%s' % rest
         if head in unary_lst:
             return '%s%s' % (head, rest)
         if head is ADD:
@@ -375,8 +389,12 @@ def %s(self, other):
     __truediv__ = __div__
     __rtruediv__ = __rdiv__
 
-    def __call__(self, *args):
-        return Verbatim(APPLY, (self,)+args)
+    def __call__(self, *args, **kwargs):
+        convert = self.convert
+        args = map(convert, args)
+        for k, v in kwargs.items():
+            args.append(Verbatim(KWARG, (convert(k), convert(v))))
+        return Verbatim(APPLY, (self,)+tuple(args))
 
     def __getitem__(self, key):
         if type(key) is tuple:
@@ -384,6 +402,11 @@ def %s(self, other):
             return Verbatim(SUBSCRIPT, (self,)+key)
         key = self.convert(key)
         return Verbatim(SUBSCRIPT, (self, key))
+
+    def __getattr__(self, attr):
+        if not attr.startswith('_'):
+            return Verbatim(ATTR, (self, self.convert(attr)))
+        raise AttributeError
 
 classes.Verbatim = Verbatim
 
@@ -474,8 +497,8 @@ def visit%s(self, node):
         self.add(SYMBOL, node.name)
 
     def visitConst(self, node):
-        if node.value is None:
-            self.add(SPECIAL, None)
+        if node.value in special_objects:
+            self.add(SPECIAL, node.value)
         else:
             self.add(NUMBER, node.value)
 
@@ -499,16 +522,20 @@ def visit%s(self, node):
         self.end()
 
     def visitCallFunc(self, node):
-        childs = node.getChildNodes()
-        func = childs[0]
+        if node.star_args is not None:
+            raise NotImplementedError('parsing function star arguments')
+        if node.dstar_args is not None:
+            raise NotImplementedError('parsing function double star arguments')
+        func = node.node
         if isinstance(func, ast.Name) and func.name in callfunc_map:
             self.start(callfunc_map[func.name])
-            for child in childs[1:]:
+            for child in node.args:
                 self.visit(child)
             self.end()
             return
         self.start(APPLY)
-        for child in childs:
+        self.visit(func)
+        for child in node.args:
             self.visit(child)
         self.end()
 
@@ -530,6 +557,31 @@ def visit%s(self, node):
 
     def visitEllipsis(self, node):
         self.add(SPECIAL, Ellipsis)
+
+    def visitDict(self, node):
+        self.start(DICT)
+        for k,v in node.items:
+            self.visit(k)
+            self.visit(v)
+            # collect key and value to a 2-tuple:
+            self.stack[-1][1][-2] = tuple(self.stack[-1][1][-2:])
+            del self.stack[-1][1][-1]
+        self.end()
+
+    def visitGetattr(self, node):
+        self.start(ATTR)
+        self.visit(node.expr)
+        self.visit(ast.Name(node.attrname))
+        self.end()
+
+    def visitKeyword(self, node):
+        self.start(KWARG)
+        self.visit(ast.Name(node.name))
+        self.visit(node.expr)
+        self.end()
+
+class ast_Pair(ast.Tuple):
+    pass
 
 def string2Verbatim(expr):
     """ Parse string expr to Verbatim.

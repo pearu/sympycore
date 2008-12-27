@@ -89,6 +89,11 @@ def test_operations():
     assert repr(Verbatim('slice(a,b,c)'))=="Verbatim(SLICE, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b'), Verbatim(SYMBOL, 'c')))",repr(Verbatim('slice(a,b,c)'))
     assert repr(Verbatim('a[b:c,d]'))=="Verbatim(SUBSCRIPT, (Verbatim(SYMBOL, 'a'), Verbatim(SLICE, (Verbatim(SYMBOL, 'b'), Verbatim(SYMBOL, 'c'), Verbatim(SPECIAL, None))), Verbatim(SYMBOL, 'd')))", repr(Verbatim('a[b:c,d]'))
     assert repr(Verbatim('a[b:c]'))=="Verbatim(SUBSCRIPT, (Verbatim(SYMBOL, 'a'), Verbatim(SLICE, (Verbatim(SYMBOL, 'b'), Verbatim(SYMBOL, 'c'), Verbatim(SPECIAL, None)))))", repr(Verbatim('a[b:c]'))
+
+    assert repr(Verbatim('{a:b, c:d}'))=="Verbatim(DICT, ((Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')), (Verbatim(SYMBOL, 'c'), Verbatim(SYMBOL, 'd'))))", repr(Verbatim('{a:b, c:d}'))
+    assert repr(Verbatim('{a:b}'))=="Verbatim(DICT, ((Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')),))", repr(Verbatim('{a:b}'))
+    assert repr(Verbatim('a.b'))=="Verbatim(ATTR, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(Verbatim('a.b'))
+    assert repr(Verbatim('a(b=c)'))=="Verbatim(APPLY, (Verbatim(SYMBOL, 'a'), Verbatim(KWARG, (Verbatim(SYMBOL, 'b'), Verbatim(SYMBOL, 'c')))))", repr(Verbatim('a(b=c)'))
     
     assert str(+a) == "+a",str(+a)
     assert str(-a) == "-a",str(-a)
@@ -152,6 +157,13 @@ def test_operations():
     assert str(Verbatim('a[b::]'))=="a[b:]", str(Verbatim('a[b::]'))
     assert str(Verbatim('a[b,...,c]'))=="a[b, ..., c]", str(Verbatim('a[b,...,c]'))
     assert str(Verbatim('a[...]'))=="a[...]", str(Verbatim('a[...]'))
+    assert str(Verbatim('{a:b}'))=="{a:b}", str(Verbatim('{a:b}'))
+    assert str(Verbatim('{a:b, c:1}'))=="{a:b, c:1}", str(Verbatim('{a:b, c:1}'))
+    assert str(Verbatim('a.b'))=="a.b", str(Verbatim('a.b'))
+    assert str(Verbatim('(a+1).b'))=="(a + 1).b", str(Verbatim('(a+1).b'))
+    assert str(a.b)=="a.b", str(a.b)
+    assert str((a+1).b)=="(a + 1).b", str((a+1).b)
+    assert str(a(b=c))=="a(b=c)", str(a(b=c))
     
     assert Verbatim('+a') == +a
     assert Verbatim('-a') == -a
@@ -201,3 +213,9 @@ def test_operations():
     assert Verbatim('a[b:c]')==Verbatim(utils.SUBSCRIPT, (a, Verbatim(utils.SLICE, (b,c,Verbatim(utils.SPECIAL, None))))), `Verbatim('a[b:c]')`
     assert Verbatim('a[b:c,d]')==Verbatim(utils.SUBSCRIPT, (a, Verbatim(utils.SLICE, (b,c,Verbatim(utils.SPECIAL, None))), d)), `Verbatim('a[b:c,d]')`
     assert Verbatim('a[...]')==Verbatim(utils.SUBSCRIPT, (Verbatim(utils.SYMBOL, 'a'), Verbatim(utils.SPECIAL, Ellipsis))), `Verbatim('a[...]')`
+    assert Verbatim('{a:b}')==Verbatim(utils.DICT, ((a, b),))
+    assert Verbatim('a.b')==a.b
+    assert Verbatim('a(b=c)')==a(b=c)
+    assert Verbatim('a(b,c=d)')==a(b,c=d)
+
+    
