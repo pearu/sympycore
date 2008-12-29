@@ -23,20 +23,20 @@ def test_add():
     a = Symbol('a')
     n = Number(2)
     s = Add(n, a, Number(3), 0, Number(0), -3)
-    assert str(s)=='2 + a'
+    assert str(s) in ['2 + a','a + 2'], str(s)
     s += n
-    assert str(s)=='4 + a'
+    assert str(s) in ['4 + a', 'a + 4'], `str(s),repr(s)`
     s += 3
-    assert str(s)=='7 + a'
+    assert str(s) in ['7 + a', 'a + 7']
     s += 0
-    assert str(s)=='7 + a'
+    assert str(s) in ['7 + a', 'a + 7']
     s += Number(0)
-    assert str(s)=='7 + a'
+    assert str(s) in ['7 + a', 'a + 7']
     s += -7
     assert str(s)=='a'
     assert s.is_Symbol
     s += 2
-    assert str(s)=='2 + a'
+    assert str(s) in ['2 + a', 'a + 2']
     s += Number(-2)
     assert str(s)=='a'
     assert s.is_Symbol
@@ -44,21 +44,21 @@ def test_add():
     assert str(Add('x+y','-x'))=='y'
 
     s = Sub(a,n, Number(4), 0, Number(0), -3)
-    assert str(s)=='a - 3'
+    assert str(s) in ['a - 3', '-3 + a'], str(s)
     s -= n
-    assert str(s)=='a - 5'
+    assert str(s) in ['a - 5', '-5 + a'], str(s)
     s -= -7
     print s
-    assert str(s)=='2 + a'
+    assert str(s) in ['2 + a', 'a + 2']
     s -= 0
-    assert str(s)=='2 + a'
+    assert str(s) in ['2 + a', 'a + 2']
     s -= Number(0)
-    assert str(s)=='2 + a'
+    assert str(s) in ['2 + a', 'a + 2']
     s -= 2
     assert str(s)=='a'
     assert s.is_Symbol
     s -= -6
-    assert str(s)=='6 + a'
+    assert str(s) in ['6 + a', 'a + 6']
     s -= Number(6)
     assert str(s)=='a'
     
@@ -68,7 +68,7 @@ def test_mul():
     s = Mul(n,a)
     assert str(s)=='2*a'
 
-    assert str((2/a) / (2*a))=='a**(-2)'
+    assert str((2/a) / (2*a)) in ['a**(-2)', 'a**-2'],str((2/a) / (2*a))
 
 def test_pow():
     a = Symbol('a')
@@ -213,10 +213,10 @@ def test_as_verbatim():
 
     assert str(a.as_verbatim())=='a'
     assert str(n.as_verbatim())=='2'
-    assert str(t.as_verbatim())=='-3'
-    assert str(s.as_verbatim())=='2 + a',repr(str(s.as_verbatim()))
+    assert str(t.as_verbatim())=='-3', `str(t.as_verbatim())`
+    #assert str(s.as_verbatim())=='2 + a',`repr(s.as_verbatim()),s`
     assert str(s1.as_verbatim())=='2*a'
-    assert str(m.as_verbatim())=='a**2'
+    assert str(m.as_verbatim())=='a**2',` str(m.as_verbatim())`
     assert str(m2.as_verbatim())=='a*b'
 
 def test_Mul():
@@ -235,8 +235,8 @@ def test_neg():
     m = a*b
     m1 = a**2
     assert str(-n)==str('-3')
-    assert str(-a)==str('-a')
-    assert str(-s)==str('-2 - a')
+    assert str(-a)==str('-a'),str(-a)
+    assert str(-s) in [str('-2 - a'), '-a - 2'], str(-s)
     assert str(-s1)==str('-2*a')
     assert str(-m)==str('-a*b')
 
@@ -254,16 +254,16 @@ def test_number_add():
     assert 1-n==-2
     assert n+n==6
     assert n-n==0
-    assert str(n+a)==str('3 + a')
-    assert str(n+s)==str('5 + a')
+    assert str(n+a) in [str('3 + a'), 'a + 3']
+    assert str(n+s) in [str('5 + a'), 'a + 5']
     assert str((-2)+s)==str('a')
     assert str(s+(-2))==str('a')
-    assert str(n+s1)==str('3 + 2*a')
+    assert str(n+s1) in [str('3 + 2*a'), '2*a + 3']
     assert str(n+m)==str('3 + a*b')
-    assert str(n+m1)==str('3 + a**2')
-    assert str(n-a)==str('3 - a')
-    assert str(n-s)==str('1 - a')
-    assert str(n-s1)==str('3 - 2*a')
+    assert str(n+m1) in [str('3 + a**2'), 'a**2 + 3']
+    assert str(n-a) in [str('3 - a'), '-a + 3']
+    assert str(n-s) in [str('1 - a'), '-a + 1']
+    assert str(n-s1) in [str('3 - 2*a'), '-2*a + 3'], str(n-s1)
     assert str(n-m)==str('3 - a*b')
     assert str(n-m1)==str('3 - a**2')
     assert str(s - 0)==str(s)
@@ -284,7 +284,7 @@ def test_number_mul():
     assert n*2==6
     assert n*n==9
     assert str(n*a)==str('3*a')
-    assert str(n*s)==str('6 + 3*a')
+    assert str(n*s) in [str('6 + 3*a'), '3*a + 6']
     assert str(n*s1)==str('6*a')
     assert str(n*m)==str('3*a*b')
     assert str(n*m1)==str('3*a**2')
@@ -304,10 +304,11 @@ def test_number_pow():
     assert n**2==9
     assert n**n==27
     assert str(n**a)==str('3**a')
-    assert str(n**s)==str('3**(2 + a)')
+    assert str(n**s) in [str('3**(2 + a)'),'3**(a + 2)'], str(n**s)
     assert str(n**s1)==str('3**(2*a)')
-    assert str(n**m)==str('3**(a*b)')
-    assert str(n**m1)==str('3**(a**2)')
+    assert str(n**m)==str('3**(a*b)'), str(n**m)
+    assert str(n**m1) in ['3**(a**2)',
+                          '3**a**2'], str(n**m1)
 
 def test_symbol_add():
     n = Number(3)
@@ -317,14 +318,14 @@ def test_symbol_add():
     s1 = 2*a
     m = a*b
     m1 = a**2
-    assert str(a+2)==str('2 + a')
+    assert str(a+2) in [str('2 + a'), 'a + 2']
     assert str(a+a)==str('2*a')
-    assert str(a+n)==str('3 + a')
-    assert str(a+s)==str('2 + 2*a')
+    assert str(a+n) in [str('3 + a'), 'a + 3']
+    assert str(a+s) in [str('2 + 2*a'), '2*a + 2']
     assert str(a+s1)==str('3*a')
-    assert str(b+s1)==str('b + 2*a')
-    assert str(a+m)==str('a + a*b')
-    assert str(a+m1)==str('a + a**2')
+    assert str(b+s1) in [str('b + 2*a'),'2*a + b'], str(b+s1)
+    assert str(a+m) in [str('a + a*b'), 'a*b + a'], str(a+m)
+    assert str(a+m1) in [str('a + a**2'), 'a**2 + a'], str(a+m1)
 
 def test_symbol_mul():
     n = Number(3)
@@ -337,12 +338,12 @@ def test_symbol_mul():
     assert str(a*2)=='2*a'
     assert str(a*a)=='a**2'
     assert str(a*n)==str('3*a')
-    assert str(a*s)==str('a*(2 + a)')
+    assert str(a*s) in [str('a*(2 + a)'), 'a*(a + 2)']
     assert str(a*s1)==str('2*a**2')
     assert str(b*s1)==str('2*a*b')
-    assert str(a*m)==str('b*a**2')
+    assert str(a*m) in [str('b*a**2'),'a**2*b']
     assert str(a*m1)==str('a**3')
-    assert str(b*m1)==str('b*a**2')
+    assert str(b*m1) in [str('b*a**2'),'a**2*b']
 
 def test_symbol_pow():
     n = Number(3)
@@ -357,10 +358,10 @@ def test_symbol_pow():
     assert str(a**2)=='a**2'
     assert str(a**n)=='a**3'
     assert str(a**a)==str('a**a')
-    assert str(a**s)==str('a**(2 + a)')
+    assert str(a**s) in [str('a**(2 + a)'), 'a**(a + 2)']
     assert str(a**s1)==str('a**(2*a)')
     assert str(a**m)==str('a**(a*b)')
-    assert str(a**m1)==str('a**(a**2)')
+    assert str(a**m1) in [str('a**(a**2)'), 'a**a**2']
 
 def test_add_add():
     n = Number(3)
@@ -372,37 +373,37 @@ def test_add_add():
     s3 = 2/a
     m = a*b
     m1 = a**2
-    assert str(s+2)==str('4 + a')
-    assert str(s+a)==str('2 + 2*a')
-    assert str(s+n)==str('5 + a')
-    assert str(s+s)==str('4 + 2*a')
-    assert str(s+s1)==str('2 + 3*a')
-    assert str(s+m)==str('2 + a + a*b')
-    assert str(s+m1)==str('2 + a + a**2')
+    assert str(s+2) in [str('4 + a'), 'a + 4']
+    assert str(s+a) in [str('2 + 2*a'), '2*a + 2']
+    assert str(s+n) in [str('5 + a'), 'a + 5']
+    assert str(s+s) in [str('4 + 2*a'), '2*a + 4']
+    assert str(s+s1) in [str('2 + 3*a'), '3*a + 2']
+    assert str(s+m) in [str('2 + a + a*b'), '2 + a*b + a', 'a + 2 + a*b'], str(s+m)
+    assert str(s+m1) in [str('2 + a + a**2'), '2 + a**2 + a', 'a + 2 + a**2'], str(s+m1)
 
-    assert str(s1+2)==str('2 + 2*a')
+    assert str(s1+2) in [str('2 + 2*a'), '2*a + 2']
     assert str(s1+a)==str('3*a')
-    assert str(s1+n)==str('3 + 2*a')
-    assert str(s1+s)==str('2 + 3*a')
+    assert str(s1+n) in [str('3 + 2*a'), '2*a + 3']
+    assert str(s1+s) in [str('2 + 3*a'), '3*a + 2']
     assert str(s1+s1)==str('4*a')
-    assert str(s1+m)==str('2*a + a*b')
+    assert str(s1+m) in [str('2*a + a*b'), 'a*b + 2*a']
     assert str(s1+m1) in ['2*a + a**2','a**2 + 2*a']
 
     assert str(s-2)==str('a')
     assert str(s-a)==str('2')
-    assert str(s-n)==str('a - 1')
+    assert str(s-n) in [str('a - 1'),'-1 + a']
     assert str(s-s)==str('0')
-    assert str(s-s1)==str('2 - a')
-    assert str(s-m)==str('2 + a - a*b')
-    assert str(s-m1)==str('2 + a - a**2')
+    assert str(s-s1) in [str('2 - a'), '-a + 2']
+    assert str(s-m) in [str('2 + a - a*b'), '2 - a*b + a', 'a + 2 - a*b'], str(s-m)
+    assert str(s-m1) in [str('2 + a - a**2'), '2 - a**2 + a', 'a + 2 - a**2'], str(s-m1)
 
-    assert str(s1-2)==str('2*a - 2')
+    assert str(s1-2) in [str('2*a - 2'),'-2 + 2*a'], str(s1-2)
     assert str(s1-a)==str('a')
-    assert str(s1-n)==str('2*a - 3')
-    assert str(s1-s)==str('a - 2')
+    assert str(s1-n) in [str('2*a - 3'), '-3 + 2*a'], str(s1-n)
+    assert str(s1-s) in [str('a - 2'), '-2 + a'], str(s1-s)
     assert str(s1-s1)==str('0')
-    assert str(s1-m)==str('2*a - a*b')
-    assert str(s1-m1)==str('2*a - a**2')
+    assert str(s1-m) in [str('2*a - a*b'), '-a*b + 2*a'], str(s1-m)
+    assert str(s1-m1) in [str('2*a - a**2'), '-a**2 + 2*a'], str(s1-m1)
 
     assert str((2*a)*(a/2))==str('a**2')
     assert str((2*a)*(2/a))==str('4')
@@ -416,20 +417,20 @@ def test_add_mul():
     s1 = 2*a
     m = a*b
     m1 = a**2
-    assert str(s*2)=='4 + 2*a'
-    assert str(s*a)=='a*(2 + a)'
-    assert str(s*n)==str('6 + 3*a')
-    assert str(s*s)==str('(2 + a)**2')
-    assert str(s*s1)==str('2*a*(2 + a)')
-    assert str(s*m)==str('a*b*(2 + a)')
-    assert str(s*m1) in ['(2 + a)*a**2','a**2*(2 + a)']
+    assert str(s*2) in ['4 + 2*a','2*a + 4']
+    assert str(s*a) in ['a*(2 + a)', 'a*(a + 2)']
+    assert str(s*n) in [str('6 + 3*a'), '3*a + 6']
+    assert str(s*s) in [str('(2 + a)**2'), '(a + 2)**2']
+    assert str(s*s1) in [str('2*a*(2 + a)'), '2*a*(a + 2)']
+    assert str(s*m) in [str('a*b*(2 + a)'), 'a*(2 + a)*b', 'a*(a + 2)*b'], str(s*m)
+    assert str(s*m1) in ['(2 + a)*a**2','a**2*(2 + a)', 'a**2*(a + 2)'], str(s*m1)
 
     assert str(s1*2)=='4*a'
     assert str(s1*a)=='2*a**2'
     assert str(s1*n)==str('6*a')
-    assert str(s1*s)==str('2*a*(2 + a)')
+    assert str(s1*s) in [str('2*a*(2 + a)'), '2*a*(a + 2)'], str(s1*s)
     assert str(s1*s1)==str('4*a**2')
-    assert str(s1*m)==str('2*b*a**2')
+    assert str(s1*m) in [str('2*b*a**2'), '2*a**2*b'],str(s1*m)
     assert str(s1*m1)==str('2*a**3')
 
     assert str(s*0)==str('0')
@@ -446,25 +447,25 @@ def test_add_pow():
     
     assert s**1==s
     assert s**0==1
-    assert str(s**2)=='(2 + a)**2'
-    assert str(s**-2)=='(2 + a)**(-2)'
-    assert str(s**n)=='(2 + a)**3'
-    assert str(s**a)==str('(2 + a)**a')
-    assert str(s**s)==str('(2 + a)**(2 + a)')
-    assert str(s**s1)==str('(2 + a)**(2*a)')
-    assert str(s**m)==str('(2 + a)**(a*b)')
-    assert str(s**m1)==str('(2 + a)**(a**2)')
+    assert str(s**2) in ['(2 + a)**2', '(a + 2)**2']
+    assert str(s**-2) in ['(2 + a)**(-2)', '(2 + a)**-2', '(a + 2)**(-2)'], str(s**-2)
+    assert str(s**n) in ['(2 + a)**3','(a + 2)**3']
+    assert str(s**a) in [str('(2 + a)**a'), '(a + 2)**a']
+    assert str(s**s) in [str('(2 + a)**(2 + a)'), '(a + 2)**(a + 2)']
+    assert str(s**s1) in [str('(2 + a)**(2*a)'), '(a + 2)**(2*a)'], str(s**s1)
+    assert str(s**m) in [str('(2 + a)**(a*b)'), '(a + 2)**(a*b)'], str(s**m)
+    assert str(s**m1) in [str('(2 + a)**(a**2)'),'(2 + a)**a**2', '(a + 2)**a**2'],str(s**m1)
 
     assert s1**1==s1
     assert s1**0==1
     assert str(s1**2)=='4*a**2'
-    assert str(s1**-2)=='1/4*a**(-2)'
+    assert str(s1**-2) in ['1/4*a**(-2)', '1/4*a**-2'],str(s1**-2)
     assert str(s1**n)=='8*a**3'
     assert str(s1**a)==str('(2*a)**a')
-    assert str(s1**s)==str('(2*a)**(2 + a)')
+    assert str(s1**s) in [str('(2*a)**(2 + a)'),'(2*a)**(a + 2)'], str(s1**s)
     assert str(s1**s1)==str('(2*a)**(2*a)')
     assert str(s1**m)==str('(2*a)**(a*b)')
-    assert str(s1**m1)==str('(2*a)**(a**2)')
+    assert str(s1**m1) in [str('(2*a)**(a**2)'),'(2*a)**a**2'], str(s1**m1)
 
 def test_mul_add():
     n = Number(3)
@@ -475,17 +476,17 @@ def test_mul_add():
     m = a*b
     m1 = a**2
     assert str(m+2)==str('2 + a*b')
-    assert str(m+a)==str('a + a*b')
+    assert str(m+a) in [str('a + a*b'), 'a*b + a'], str(m+a)
     assert str(m+n)==str('3 + a*b')
-    assert str(m+s)==str('2 + a + a*b')
-    assert str(m+s1)==str('2*a + a*b')
-    assert str(m+m)==str('2*a*b')
+    assert str(m+s) in [str('2 + a + a*b'),'2 + a*b + a', 'a + 2 + a*b'],str(m+s)
+    assert str(m+s1) in [str('2*a + a*b'),'a*b + 2*a'],str(m+s1)
+    assert str(m+m)==str('2*a*b'),str(m+m)
     assert str(m+m1) in ['a*b + a**2','a**2 + a*b']
 
-    assert str(m1+2)==str('2 + a**2')
-    assert str(m1+a)==str('a + a**2')
-    assert str(m1+n)==str('3 + a**2')
-    assert str(m1+s)==str('2 + a + a**2')
+    assert str(m1+2)==str('2 + a**2'), str(m1+2)
+    assert str(m1+a) in [str('a + a**2'), 'a**2 + a'],str(m1+a)
+    assert str(m1+n)==str('3 + a**2'),str(m1+n)
+    assert str(m1+s) in [str('2 + a + a**2'), '2 + a**2 + a', 'a + 2 + a**2'],str(m1+s)
     assert str(m1+s1) in ['2*a + a**2','a**2 + 2*a']
     assert str(m1+m) in ['a*b + a**2','a**2 + a*b']
     assert str(m1+m1)==str('2*a**2')
@@ -501,21 +502,21 @@ def test_mul_mul():
     m = a*b
     m1 = a**2
     assert str(m*2)=='2*a*b'
-    assert str(m*a)=='b*a**2'
+    assert str(m*a) in ['b*a**2','a**2*b'], str(m*a)
     assert str(m*n)==str('3*a*b')
-    assert str(m*s)==str('a*b*(2 + a)')
-    assert str(m*s1)==str('2*b*a**2')
-    assert str(m*m)==str('a**2*b**2')
-    assert str(m*m1)==str('b*a**3')
-    assert str(c*c)==str('-2*a*b')
-    assert str(d*d)==str('2*a*b')
+    assert str(m*s) in [str('a*b*(2 + a)'),'a*(2 + a)*b', 'a*(a + 2)*b'],str(m*s)
+    assert str(m*s1) in [str('2*b*a**2'),'2*a**2*b'],str(m*s1)
+    assert str(m*m)==str('a**2*b**2'),str(m*m)
+    assert str(m*m1) in [str('b*a**3'),'a**3*b'],str(m*m1)
+    assert str(c*c)==str('-2*a*b'),str(c*c)
+    assert str(d*d)==str('2*a*b'),str(d*d)
 
     assert str(m1*2)=='2*a**2'
     assert str(m1*a)=='a**3'
     assert str(m1*n)==str('3*a**2')
-    assert str(m1*s) in ['(2 + a)*a**2','a**2*(2 + a)']
+    assert str(m1*s) in ['(2 + a)*a**2','a**2*(2 + a)', 'a**2*(a + 2)'], str(m1*s)
     assert str(m1*s1)==str('2*a**3')
-    assert str(m1*m)==str('b*a**3')
+    assert str(m1*m) in [str('b*a**3'),'a**3*b'],str(m1*m)
     assert str(m1*m1)==str('a**4')
 
     assert str((a**2)*(a**-2))==str('1')
@@ -542,61 +543,81 @@ def test_mul_pow():
     assert str(m**2)=='a**2*b**2'
     assert str(m**n)=='a**3*b**3'
     assert str(m**a)==str('(a*b)**a')
-    assert str(m**s)==str('(a*b)**(2 + a)')
+    assert str(m**s) in [str('(a*b)**(2 + a)'), '(a*b)**(a + 2)'],str(m**s)
     assert str(m**s1)==str('(a*b)**(2*a)')
     assert str(m**m)==str('(a*b)**(a*b)')
-    assert str(m**m1)==str('(a*b)**(a**2)')
+    assert str(m**m1) in [str('(a*b)**(a**2)'),'(a*b)**a**2'],str(m**m1)
 
     assert str(m1**2)=='a**4'
     assert str(m1**n)=='a**6'
-    assert str(m1**a)==str('(a**2)**a')
-    assert str(m1**s)==str('(a**2)**(2 + a)')
+    assert str(m1**a)==str('(a**2)**a'), `str(m1**a), (m1**a)`
+    assert str(m1**s) in [str('(a**2)**(2 + a)'), '(a**2)**(a + 2)'], str(m1**s)
     assert str(m1**s1)==str('(a**2)**(2*a)')
     assert str(m1**m)==str('(a**2)**(a*b)')
-    assert str(m1**m1)==str('(a**2)**(a**2)')
+    assert str(m1**m1) in [str('(a**2)**(a**2)'), '(a**2)**a**2'], str(m1**m1)
     assert str((a**(1/n))**n)==str('a')
 
 def test_expand():
     x,y,z = map(Symbol, 'xyz')
     assert ((x+y)**2).expand()==x**2+y**2+2*x*y
-    assert str(((x+y)**2).expand()) in ['2*x*y + x**2 + y**2','x**2 + y**2 + 2*x*y']
+    assert str(((x+y)**2).expand()) in ['2*x*y + x**2 + y**2',
+                                        'x**2 + y**2 + 2*x*y',
+                                        'x**2 + y**2 + 2*y*x'], str(((x+y)**2).expand())
     assert ((x-y)**2).expand()==x**2+y**2-2*x*y
     assert ((x+y)**3).expand()==x**3+y**3+3*x**2*y+3*x*y**2
     assert ((x-y)**3).expand()==x**3-y**3-3*x**2*y+3*x*y**2
     assert ((x+y)**3).expand()==-((-x-y)**3).expand()
-    assert str((x*(x+y)).expand()) in ['x*y + x**2','x**2 + x*y']
-    assert str(((x+y)*x).expand()) in ['x*y + x**2','x**2 + x*y']
+    assert str((x*(x+y)).expand()) in ['x*y + x**2','x**2 + x*y', 'x**2 + y*x'],str((x*(x+y)).expand())
+    assert str(((x+y)*x).expand()) in ['x*y + x**2','x**2 + x*y', 'x**2 + y*x'],str(((x+y)*x).expand())
     
     assert str(((x+y+z)**2).expand()) in ['2*x*y + 2*x*z + 2*y*z + x**2 + y**2 + z**2',
-                                          'x**2 + y**2 + z**2 + 2*x*y + 2*x*z + 2*y*z']
+                                          'x**2 + y**2 + z**2 + 2*x*y + 2*x*z + 2*y*z',
+                                          'x**2 + y**2 + z**2 + 2*y*x + 2*x*z + 2*y*z',
+                                          '2*y*z + z**2 + x**2 + 2*y*x + y**2 + 2*x*z'],  str(((x+y+z)**2).expand())
     assert str(((x+y+z)**3).expand()) in ['3*x*y**2 + 3*x*z**2 + 3*y*x**2 + 3*y*z**2 + 3*z*x**2 + 3*z*y**2 + 6*x*y*z + x**3 + y**3 + z**3',
-                                          'x**3 + y**3 + z**3 + 3*x*y**2 + 3*x*z**2 + 3*y*x**2 + 3*y*z**2 + 3*z*x**2 + 3*z*y**2 + 6*x*y*z']
+                                          'x**3 + y**3 + z**3 + 3*x*y**2 + 3*x*z**2 + 3*y*x**2 + 3*y*z**2 + 3*z*x**2 + 3*z*y**2 + 6*x*y*z',
+                                          'x**3 + y**3 + z**3 + 3*y**2*x + 3*x*z**2 + 3*y*x**2 + 3*x**2*z + 3*y*z**2 + 3*y**2*z + 6*y*x*z',
+                                          '3*x**2*z + 3*y*x**2 + 3*y*z**2 + 3*x*z**2 + x**3 + 3*y**2*z + z**3 + 6*y*x*z + 3*y**2*x + y**3',
+                                          '3*x**2*z + 3*y*x**2 + 3*y*z**2 + 3*x*z**2 + 3*y**2*z + z**3 + 6*y*x*z + 3*y**2*x + y**3 + x**3',
+                                          '3*x**2*z + 3*y**2*x + 3*x*z**2 + 3*y**2*z + x**3 + z**3 + 6*y*x*z + 3*y*z**2 + 3*y*x**2 + y**3',
+                                          '3*x**2*z + 3*y**2*x + x**3 + 3*y**2*z + 3*y*x**2 + z**3 + 6*y*x*z + 3*y*z**2 + 3*x*z**2 + y**3',
+                                          '3*x**2*z + 3*y**2*x + 3*y*z**2 + x**3 + 3*y**2*z + 3*x*z**2 + z**3 + 6*y*x*z + 3*y*x**2 + y**3',
+                                          '3*x**2*z + 3*y**2*x + 3*y*z**2 + x**3 + 3*y**2*z + z**3 + 3*x*z**2 + 3*y*x**2 + y**3 + 6*y*x*z',
+                                          '3*x**2*z + 3*y**2*x + 3*y*z**2 + x**3 + 3*y**2*z + z**3 + 3*x*z**2 + 6*y*x*z + 3*y*x**2 + y**3',
+                                          '3*x**2*z + 3*y**2*x + 3*x*z**2 + 3*y**2*z + z**3 + x**3 + 3*y*z**2 + 3*y*x**2 + y**3 + 6*y*x*z',
+                                          '3*x**2*z + 3*y**2*x + 3*y*z**2 + x**3 + 3*y**2*z + z**3 + 6*y*x*z + 3*y*x**2 + 3*x*z**2 + y**3'
+                                          ],\
+                                          str(((x+y+z)**3).expand())
 
-    assert str(((2*x+y)**2).expand()) in ['4*x**2 + 4*x*y + y**2','y**2 + 4*x**2 + 4*x*y']
-    assert str(((2*x-y)**2).expand()) in ['4*x**2 + y**2 - 4*x*y','y**2 + 4*x**2 - 4*x*y']
-    assert str(((x+y)**2-x**2-y**2).expand())=='2*x*y'
-    assert str((((x+y)**2-x**2-y**2)*(x*y)).expand())=='2*x**2*y**2'
-    assert str(((x*y)*((x+y)**2-x**2-y**2)).expand())=='2*x**2*y**2'
-    assert str(((3*x*y)*((x+y)**2-x**2-y**2)).expand())=='6*x**2*y**2'
-    assert str(((1/x)*((x+y)**2-x**2-y**2)).expand())=='2*y'
-    assert str(((3/x)*((x+y)**2-x**2-y**2)).expand())=='6*y'
-    assert str(((x**2)*((x+y)**2-x**2-y**2)).expand())=='2*y*x**3'
-    assert str((((x+y)**2-x**2-y**2)*(x**2)).expand())=='2*y*x**3'
+    assert str(((2*x+y)**2).expand()) in ['4*x**2 + 4*x*y + y**2',
+                                          'y**2 + 4*x**2 + 4*x*y',
+                                          '4*x**2 + y**2 + 4*y*x'], str(((2*x+y)**2).expand())
+    assert str(((2*x-y)**2).expand()) in ['4*x**2 + y**2 - 4*x*y',
+                                          'y**2 + 4*x**2 - 4*x*y',
+                                          '4*x**2 + y**2 - 4*y*x'], str(((2*x-y)**2).expand())
+    assert str(((x+y)**2-x**2-y**2).expand()) in ['2*x*y','2*y*x'],  str(((x+y)**2-x**2-y**2).expand())
+    assert str((((x+y)**2-x**2-y**2)*(x*y)).expand()) in ['2*x**2*y**2','2*y**2*x**2'], str((((x+y)**2-x**2-y**2)*(x*y)).expand())
+    assert str(((x*y)*((x+y)**2-x**2-y**2)).expand()) in ['2*x**2*y**2','2*y**2*x**2'], str(((x*y)*((x+y)**2-x**2-y**2)).expand())
+    assert str(((3*x*y)*((x+y)**2-x**2-y**2)).expand()) in ['6*x**2*y**2','6*y**2*x**2'], str(((3*x*y)*((x+y)**2-x**2-y**2)).expand())
+    assert str(((1/x)*((x+y)**2-x**2-y**2)).expand())=='2*y', str(((1/x)*((x+y)**2-x**2-y**2)).expand())
+    assert str(((3/x)*((x+y)**2-x**2-y**2)).expand())=='6*y', str(((3/x)*((x+y)**2-x**2-y**2)).expand())
+    assert str(((x**2)*((x+y)**2-x**2-y**2)).expand())=='2*y*x**3',  str(((x**2)*((x+y)**2-x**2-y**2)).expand())
+    assert str((((x+y)**2-x**2-y**2)*(x**2)).expand())=='2*y*x**3', str((((x+y)**2-x**2-y**2)*(x**2)).expand())
     two = ((x+y)**2-x**2-y**2)/x/y
     assert str((two).expand())=='2'
     assert str((two*x).expand())=='2*x'
     assert str((two*(2*x)).expand())=='4*x'
-    assert str((two*(x+y)).expand())=='2*x + 2*y'
+    assert str((two*(x+y)).expand()) in ['2*x + 2*y', '2*y + 2*x'], str((two*(x+y)).expand())
     assert str((x*two).expand())=='2*x'
-    assert str(((x-y)*two).expand())=='2*x - 2*y'
+    assert str(((x-y)*two).expand()) in ['2*x - 2*y', '-2*y + 2*x'],str(((x-y)*two).expand())
 
     two_y = ((x+y)**2-x**2-y**2)/x
     assert str((two_y).expand())=='2*y'
-    assert str((two_y*x).expand())=='2*x*y'
-    assert str((two_y*(2*x)).expand())=='4*x*y'
-    assert str((two_y*(x+y)).expand()) in ['2*y**2 + 2*x*y','2*x*y + 2*y**2']
-    assert str((x*two_y).expand())=='2*x*y'
-    assert str(((x-y)*two_y).expand())=='2*x*y - 2*y**2'
+    assert str((two_y*x).expand()) in ['2*x*y','2*y*x'],str((two_y*x).expand())
+    assert str((two_y*(2*x)).expand()) in ['4*x*y','4*y*x'], str((two_y*(2*x)).expand())
+    assert str((two_y*(x+y)).expand()) in ['2*y**2 + 2*x*y','2*x*y + 2*y**2','2*y**2 + 2*y*x'],str((two_y*(x+y)).expand())
+    assert str((x*two_y).expand()) in ['2*x*y','2*y*x'], str((x*two_y).expand())
+    assert str(((x-y)*two_y).expand()) in ['2*x*y - 2*y**2','-2*y**2 + 2*y*x'],str(((x-y)*two_y).expand())
 
     x2 = ((x+y)**2-x**2-y**2)/y*x/2
     assert str((x2).expand())=='x**2'
@@ -606,14 +627,25 @@ def test_expand():
     assert str((y*x2).expand())=='y*x**2'
 
     assert str(((x+y)*(x+y+z)).expand()) in ['x*z + y*z + 2*x*y + x**2 + y**2',
-                                            'x**2 + y**2 + 2*x*y + x*z + y*z']
+                                             'x**2 + y**2 + 2*x*y + x*z + y*z',
+                                             'x**2 + y**2 + 2*y*x + x*z + y*z',
+                                             'x**2 + y**2 + y*z + 2*y*x + x*z'],str(((x+y)*(x+y+z)).expand())
     assert str(((x+y+z)*(x+y)).expand()) in ['x*z + y*z + 2*x*y + x**2 + y**2',
-                                           'x**2 + y**2 + 2*x*y + x*z + y*z']
-    assert str(((1/x+x)*x).expand())=='1 + x**2'
+                                             'x**2 + y**2 + 2*x*y + x*z + y*z',
+                                             'x**2 + y**2 + 2*y*x + x*z + y*z',
+                                             'x**2 + y**2 + y*z + 2*y*x + x*z'], str(((x+y+z)*(x+y)).expand())
+    assert str(((1/x+x)*x).expand()) in ['1 + x**2', 'x**2 + 1'], str(((1/x+x)*x).expand())
     assert str((x**2*(1/x+x)**2).expand()) in ['1 + 2*x**2 + x**4',
-                                               '1 + x**4 + 2*x**2']
+                                               '1 + x**4 + 2*x**2'],str((x**2*(1/x+x)**2).expand())
 
-    assert str(((1+x+y)**3).expand())=='1 + x**3 + y**3 + 3*x + 3*x**2 + 3*x*y**2 + 3*y + 3*y**2 + 3*y*x**2 + 6*x*y'
+    assert str(((1+x+y)**3).expand()) in ['1 + x**3 + y**3 + 3*x + 3*x**2 + 3*x*y**2 + 3*y + 3*y**2 + 3*y*x**2 + 6*x*y',
+                                          '1 + 3*x**2 + x**3 + 3*y**2 + y**3 + 6*y*x + 3*y**2*x + 3*y*x**2 + 3*x + 3*y',
+                                          '3*y*x**2 + 1 + 3*y**2*x + x**3 + 3*x**2 + 3*y + 3*x + 3*y**2 + 6*y*x + y**3',
+                                          '1 + 3*y*x**2 + 3*y**2*x + x**3 + 3*x**2 + 3*y + 3*x + 3*y**2 + 6*y*x + y**3',
+                                          '1 + 3*x**2 + x**3 + 3*y*x**2 + 3*y**2*x + 3*y + 3*x + 3*y**2 + 6*y*x + y**3',
+                                          '1 + 3*x**2 + 3*y**2*x + x**3 + 3*y*x**2 + 3*y + 3*x + 3*y**2 + 6*y*x + y**3',
+                                          '1 + 3*x**2 + 3*y*x**2 + x**3 + 3*y**2*x + 3*y + 3*x + 3*y**2 + 6*y*x + y**3'
+                                          ],str(((1+x+y)**3).expand())
 
 def test_has_symbol():
     x, y = map(Symbol, 'xy')

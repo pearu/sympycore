@@ -4,6 +4,7 @@ __docformat__ = "restructuredtext"
 __all__ = ['CalculusInfinity', 'oo', 'moo', 'undefined', 'zoo']
 
 from ..utils import str_PRODUCT, NUMBER, TERMS, FACTORS, SYMBOL
+from ..heads import SPECIAL
 from ..arithmetic import Infinity
 from .algebra import Calculus
 
@@ -54,7 +55,7 @@ class CalculusInfinity(Infinity):
         if r is not NotImplemented:
             return Calculus.convert(r)
         x = Calculus.convert(x)
-        return Calculus(cls.IsUnbounded, x)
+        return Calculus.apply(cls.IsUnbounded, x)
 
     @classmethod
     def EqualArg(cls, x, y):
@@ -76,7 +77,7 @@ class CalculusInfinity(Infinity):
             return Calculus.convert(r)
         x = Calculus.convert(x)
         y = Calculus.convert(y)
-        return Calculus(cls.EqualArg, (x,y))
+        return Calculus.apply(cls.EqualArg, x,y)
 
     @classmethod
     def IsPositive(cls, x):
@@ -87,7 +88,7 @@ class CalculusInfinity(Infinity):
         if r is not NotImplemented:
             return Calculus.convert(r)
         x = Calculus.convert(x)
-        return Calculus(cls.IsPositive, x)
+        return Calculus.apply(cls.IsPositive, x)
 
     def __pow__(self, other):
         if isinstance(other, Calculus):
@@ -100,7 +101,7 @@ class CalculusInfinity(Infinity):
                 return r
             return Calculus.convert(r)
         x = Calculus.convert(other)
-        return Calculus(FACTORS, {self: x})
+        return Calculus(FACTORS, {Calculus(SPECIAL, self): x})
 
     def __rpow__(self, other):
         if isinstance(other, Calculus):

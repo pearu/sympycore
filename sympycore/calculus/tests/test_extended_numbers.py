@@ -15,25 +15,25 @@ fhalf = one/2.0
 x,y,z = map(Calculus.Symbol, 'xyz')
 
 def test_oo_product():
-    assert str(oo * (x+y))=='oo*(x + y)'
-    assert str(oo * (1+x+y))=='oo*(1 + x + y)'
+    assert str(oo * (x+y)) in ['oo*(x + y)', 'oo*(y + x)'], str(oo * (x+y))
+    assert str(oo * (1+x+y)) in ['oo*(1 + x + y)', 'oo*(y + 1 + x)'],  str(oo * (1+x+y))
     assert str(oo * (2*x))=='oo*(x)'
     assert str(oo / (2/x))=='oo*(x)'
     assert str(oo / (2*x))=='oo*(x**(-1))'
     
 def test_oo_sum():
-    assert str(oo + (x+y))=='oo + (x + y)'
-    assert str(oo + (2+x+y))=='oo + (2 + x + y)'
-    assert str((2+x+y) + oo)=='oo + (2 + x + y)'
-    assert str(oo - (2+x+y))=='oo + (-2 - x - y)'
+    assert str(oo + (x+y)) in ['oo + (x + y)','oo + (y + x)'], str(oo + (x+y))
+    assert str(oo + (2+x+y)) in ['oo + (2 + x + y)', 'oo + (y + 2 + x)'], str(oo + (2+x+y))
+    assert str((2+x+y) + oo) in ['oo + (2 + x + y)', 'oo + (y + 2 + x)'], str((2+x+y) + oo)
+    assert str(oo - (2+x+y)) in ['oo + (-2 - x - y)', 'oo + (-y - 2 - x)'], str(oo - (2+x+y))
 
-    assert str((oo+y) + (x+y))=='oo + (y) + (x + y)'
-    assert str((x+y) + (oo+y))=='oo + (y) + (x + y)'
-    assert str((oo+y) + (oo+x))=='oo + (y) + (oo + (x))'
+    assert str((oo+y) + (x+y)) in ['oo + (y) + (x + y)', 'oo + (y) + (y + x)'], str((oo+y) + (x+y))
+    assert str((x+y) + (oo+y)) in ['oo + (y) + (x + y)','oo + (y) + (y + x)'],  str((x+y) + (oo+y))
+    assert str((oo+y) + (oo+x))=='oo + (y) + (oo + (x))', str((oo+y) + (oo+x))
 
     s = x+y
     s += oo
-    assert str(s)=='oo + (x + y)'
+    assert str(s) in ['oo + (x + y)', 'oo + (y + x)'], str(s)
 
     assert str(Calculus.Add(oo, x))=='oo + (x)'
     assert str(Calculus.Add(x, oo))=='oo + (x)'
@@ -42,7 +42,7 @@ def test_oo_sum():
 
     s = x+y
     s -= -oo
-    assert str(s)=='oo + (x + y)'
+    assert str(s) in ['oo + (x + y)', 'oo + (y + x)']
 
 def test_oo_symbol():
     assert str(oo + x)=='oo + (x)'
@@ -51,8 +51,8 @@ def test_oo_symbol():
     assert str(oo * x)=='oo*(x)'
     assert str(oo / x)=='oo*(x**(-1))'
     assert str(x/oo)=='0'
-    assert str(oo ** x)=='(oo)**x'
-    assert str(x**oo)=='x**(oo)'
+    assert str(oo ** x) in ['(oo)**x', 'oo**x'],str(oo**x)
+    assert str(x**oo) in ['x**(oo)', 'x**oo'], str(x**oo)
 
     assert str(oo + pi)=='oo'
     assert str(oo - pi)=='oo'
@@ -63,7 +63,7 @@ def test_oo_symbol():
     assert str(pi/oo)=='0'
     #assert str(pi**oo)=='oo'
 
-    assert oo + x == x + oo
+    assert oo + x == x + oo,`oo+x, x+oo`
     assert oo * x == x * oo
     assert oo + pi == pi + oo
     assert oo * pi == pi * oo

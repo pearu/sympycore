@@ -5,7 +5,7 @@ __docformat__ = 'restructuredtext'
 
 import inspect
 
-class HEAD(str):
+class HEAD(object):
     """ Base class to head constants.
 
     Head constants are singletons.
@@ -15,7 +15,7 @@ class HEAD(str):
         key = '%s%s' % (cls.__name__, args)
         obj = cls._cache.get(key)
         if obj is None:
-            obj = str.__new__(cls, key)
+            obj = object.__new__(cls)
             cls._cache[key] = obj
             obj._key = key
             obj.init(*args)
@@ -29,31 +29,6 @@ class HEAD(str):
         # used by the pickler support to make HEAD instances unique
         return self._cache[self._key]
 
-class STDHEAD(HEAD):
-    """ Standard head constants.
-
-    STDHEAD(<repr-result>, <str-result>)
-    """
-
-    def init(self, op_repr, op_str = None, op_mth=None, op_rmth=None):
-        if op_str is None:
-            op_str = op_repr
-        if op_mth is None:
-            op_mth = '__'+op_repr.lower()+'__'
-        if op_rmth is None:
-            if op_mth.startswith('__'):
-                op_rmth = '__r' + op_mth[2:]
-        self.op_repr = op_repr
-        self.op_str = op_str
-        self.op_mth = op_mth
-        self.op_rmth = op_rmth
-
-    def __str__(self):
-        return self.op_str
-
-    def __repr__(self):
-        return self.op_repr
-
 # The following constants define both the order of operands
 # as well as placing parenthesis for classes deriving from
 # CollectingField:
@@ -65,65 +40,15 @@ str_APPLY = -4
 str_SYMBOL = -5
 str_NUMBER = -6
 
-# The following constants are used by PrimitiveAlgebra and
+# The following constants are used by Verbatim and
 # CollectingField classes.
 
-OR = STDHEAD('OR', ' or ', '')
-AND = STDHEAD('AND', ' and ', '')
-NOT = STDHEAD('NOT', 'not ')
+from heads import *
 
-LT = STDHEAD('LT', '<')
-LE = STDHEAD('LE', '<=')
-GT = STDHEAD('GT', '>')
-GE = STDHEAD('GE', '>=')
-EQ = STDHEAD('EQ', '==')
-NE = STDHEAD('NE', '!=')
+POLY = HEAD('POLY')
+DENSE_POLY = HEAD('DENSE_POLY')
 
-IN = STDHEAD('IN', ' in ', '')
-NOTIN = STDHEAD('NOTIN', ' not in ', '')
-
-IS = STDHEAD('IS', ' is ', '')
-ISNOT = STDHEAD('ISNOT', ' is not ', '')
-
-BAND = STDHEAD('BAND', '&', '__and__')
-BOR = STDHEAD('BOR', '|', '__or__')
-BXOR = STDHEAD('BXOR', '^', '__xor__')
-INVERT = STDHEAD('INVERT', '~')
-
-POS = STDHEAD('POS', '+')
-NEG = STDHEAD('NEG', '-')
-TERMS = STDHEAD('TERMS', ' + ')
-ADD = STDHEAD('ADD', ' + ')
-SUB = STDHEAD('SUB', ' - ')
-MOD = STDHEAD('MOD', '%')
-MUL = STDHEAD('MUL', '*')
-FACTORS = STDHEAD('FACTORS', '*')
-DIV = STDHEAD('DIV', '/')
-FLOORDIV = STDHEAD('FLOORDIV', '//')
-POW = STDHEAD('POW', '**')
-LSHIFT = STDHEAD('LSHIFT', '<<')
-RSHIFT = STDHEAD('RSHIFT', '>>')
-DIVMOD = STDHEAD('DIVMOD', 'divmod', '__divmod__', '')
-SLICE = STDHEAD('SLICE', 'slice', '')
-
-NUMBER = STDHEAD('NUMBER')
-SYMBOL = STDHEAD('SYMBOL')
-KWARG = STDHEAD('KWARG') # keyword argument
-SPECIAL = STDHEAD('SPECIAL') # head for special data such as None, Ellipsis
-APPLY = STDHEAD('APPLY')
-TUPLE = STDHEAD('TUPLE', 'tuple', '')
-LIST = STDHEAD('LIST', 'list', '')
-DICT = STDHEAD('DICT', 'dict', '')
-SET = STDHEAD('SET', 'set', '')
-ATTR = STDHEAD('ATTR')
-LAMBDA = STDHEAD('LAMBDA')
-
-SUBSCRIPT = STDHEAD('SUBSCRIPT')
-
-POLY = STDHEAD('POLY')
-DENSE_POLY = STDHEAD('DENSE_POLY')
-
-DIFF = STDHEAD('DIFF')
+DIFF = HEAD('DIFF')
 
 MATRIX_DICT = intern('MATRIX_DICT')
 MATRIX_DICT_T = intern('MATRIX_DICT_T')

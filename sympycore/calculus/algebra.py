@@ -270,3 +270,4 @@ Calculus.zero = zero
 I = Calculus.Number(mpqc(0,1))
 
 from ..polynomials.algebra import PolynomialRing, AdditiveTuple
+from .infinity import CalculusInfinity

@@ -18,8 +18,8 @@ def test_X():
     assert str(X.zero)=='0'
     assert str(X.one)=='1'
 
-    assert `C({2:3})`=="PolynomialRing[x, Calculus]('3*x**2')"
-    assert `C({2:3,4:5})`=="PolynomialRing[x, Calculus]('5*x**4 + 3*x**2')"
+    assert `C({2:3})`=="PolynomialRing[x, Calculus]('3*x**2')", `C({2:3})`
+    assert `C({2:3,4:5})`=="PolynomialRing[x, Calculus]('5*x**4 + 3*x**2')",`C({2:3,4:5})`
     assert `C([(2,3)])`=="PolynomialRing[x, Calculus]('3*x**2')"
     assert `C([(2,3),(4,5)])`=="PolynomialRing[x, Calculus]('5*x**4 + 3*x**2')"
 
@@ -52,6 +52,6 @@ def test_univariate():
     assert str(C([3, 0, 1])) == 'x**2 + 3'
     assert str(C([0])) == '0'
     assert str(C([1, 1])) == 'x + 1'
-    assert str((5 + 3*x) / 5) == '3/5*x + 1', str((5 + 3*x) / 5)
+    assert str((5 + 3*x) / 5) == '3/5*x + 1', repr((5 + 3*x) / 5)
     assert str(C([4, 11, 6]) / C([6, 12])) == '1/2*x + 2/3'
     assert str(C([2, 3, 4]) % C([1, 2, 3])) == '1/3*x + 2/3'

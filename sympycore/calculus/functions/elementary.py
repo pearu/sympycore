@@ -12,6 +12,7 @@ from ..algebra import Calculus, I,  NUMBER, TERMS, FACTORS, SYMBOL, TERMS
 from ..infinity import oo, zoo, undefined, CalculusInfinity
 from ..constants import const_pi, const_E, const_gamma
 from ...utils import str_SUM, str_SYMBOL
+from ...heads import SPECIAL
 
 from ...core import DefinedFunction, get_nargs
 from ...arithmetic.evalf import evalf
@@ -212,7 +213,8 @@ class TrigonometricFunction(CalculusDefinedFunction):
             if isinstance(arg, CalculusInfinity):
                 if arg == undefined:
                     return undefined
-                return Calculus(cls, arg)
+                arg = Calculus(SPECIAL, arg)
+                return Calculus.apply(cls, arg)
             else:
                 arg = Calculus.convert(arg)
         x, m = get_pi_shift(arg, 12)
@@ -240,9 +242,9 @@ class TrigonometricFunction(CalculusDefinedFunction):
             arg = -arg
             negate_result ^= (cls.parity == 'odd')
         if negate_result:
-            return -Calculus(cls, arg)
+            return -Calculus.apply(cls, arg)
         else:
-            return Calculus(cls, arg)
+            return Calculus.apply(cls, arg)
 
 class Sin(TrigonometricFunction):
     parity = 'odd'

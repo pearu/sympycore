@@ -42,7 +42,7 @@ def test_operations():
     assert repr(a^b)== "Verbatim(BXOR, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(a^b)
     assert repr(a<<b)== "Verbatim(LSHIFT, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(a<<b)
     assert repr(a>>b)== "Verbatim(RSHIFT, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(a>>b)
-    assert repr(divmod(a,b))== "Verbatim(DIVMOD, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(divmod(a,b))
+    assert repr(divmod(a,b))== "Verbatim(APPLY, (Verbatim(SYMBOL, 'divmod'), Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(divmod(a,b))
     assert repr(a(b))== "Verbatim(APPLY, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(a(b))
     assert repr(a())== "Verbatim(APPLY, (Verbatim(SYMBOL, 'a'),))", repr(a())
     assert repr(a[b])== "Verbatim(SUBSCRIPT, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(a[b])
@@ -83,7 +83,7 @@ def test_operations():
     assert repr(Verbatim('a[b]'))=="Verbatim(SUBSCRIPT, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(Verbatim('a[b]'))
     assert repr(Verbatim('a[b,c]'))=="Verbatim(SUBSCRIPT, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b'), Verbatim(SYMBOL, 'c')))", repr(Verbatim('a[b,c]'))
 
-    assert repr(Verbatim('divmod(a,b)'))=="Verbatim(DIVMOD, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))",repr(Verbatim('divmod(a,b)'))
+    assert repr(Verbatim('divmod(a,b)'))=="Verbatim(APPLY, (Verbatim(SYMBOL, 'divmod'), Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))",repr(Verbatim('divmod(a,b)'))
     assert repr(Verbatim('slice(a)'))=="Verbatim(SLICE, (Verbatim(SYMBOL, 'a'),))",repr(Verbatim('slice(a)'))
     assert repr(Verbatim('slice(a,b)'))=="Verbatim(SLICE, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))",repr(Verbatim('slice(a,b)'))
     assert repr(Verbatim('slice(a,b,c)'))=="Verbatim(SLICE, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b'), Verbatim(SYMBOL, 'c')))",repr(Verbatim('slice(a,b,c)'))
@@ -94,6 +94,8 @@ def test_operations():
     assert repr(Verbatim('{a:b}'))=="Verbatim(DICT, ((Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')),))", repr(Verbatim('{a:b}'))
     assert repr(Verbatim('a.b'))=="Verbatim(ATTR, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(Verbatim('a.b'))
     assert repr(Verbatim('a(b=c)'))=="Verbatim(APPLY, (Verbatim(SYMBOL, 'a'), Verbatim(KWARG, (Verbatim(SYMBOL, 'b'), Verbatim(SYMBOL, 'c')))))", repr(Verbatim('a(b=c)'))
+
+    #assert repr(Verbatim('a if b else c'))=='',repr(Verbatim('a if b else c'))
     
     assert str(+a) == "+a",str(+a)
     assert str(-a) == "-a",str(-a)

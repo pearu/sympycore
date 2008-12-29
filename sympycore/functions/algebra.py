@@ -159,12 +159,12 @@ class FunctionRing(CollectingField):
             if f is not None:
                 return f(*args)
         if not evaluate:
-            return self.value_algebra(self, args)
+            return self.value_algebra.apply(self, *args)
         if head is TERMS:
             return self.value_algebra.Terms(*[(t(*args),c) for t,c in data.iteritems()])
         if head is FACTORS:
             return self.value_algebra.Factors(*[(t(*args),c(*args) if callable(c) else c) for t,c in data.iteritems()])
-        return self.value_algebra(self, args)
+        return self.value_algebra.apply(self, *args)
 
     def fdiff(self, index=0):
         return FDiff(self, index)
@@ -205,7 +205,7 @@ class Differential(CollectingField):
     def __call__(self, func):
         func = Function(func)
         cls = type(func)
-        return cls(self, func)
+        return cls.apply(self, func)
 
 class DFactory(object):
 

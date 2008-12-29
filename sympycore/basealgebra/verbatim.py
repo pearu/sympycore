@@ -9,14 +9,13 @@ __docformat__ = "restructuredtext"
 __all__ = ['Verbatim']
 
 import types
-import re
 import compiler
 from compiler import ast
 
 from .algebra import Algebra
 from ..utils import (OR, AND, NOT, LT, LE, GT, GE, EQ, NE, BAND, BOR, BXOR,
                      INVERT, POS, NEG, ADD, SUB, MOD, MUL, DIV, FLOORDIV, POW,
-                     LSHIFT, RSHIFT, DIVMOD, IS, ISNOT, LIST, SLICE,
+                     LSHIFT, RSHIFT, IS, ISNOT, LIST, SLICE,
                      NUMBER, SYMBOL, APPLY, TUPLE, LAMBDA, TERMS, FACTORS,
                      IN, NOTIN, SUBSCRIPT, SPECIAL, DICT, ATTR, KWARG)
 from ..core import classes, Expr, objects
@@ -25,93 +24,19 @@ from ..core import classes, Expr, objects
 #
 #    Star and double star function arguments are not implemented,
 #    i.e. parsing 'f(*a)' and 'f(**b)' will fail.
-
+#
+# TODO: IfExp support: parse `a if b else c` to Verbatim(IF, (b, a, c))
 
 EllipsisType = type(Ellipsis)
 special_types = (EllipsisType, type(None), type(NotImplemented))
 special_objects = set([Ellipsis, None, NotImplemented])
 
 containing_lst = set([IN, NOTIN])
-boolean_lst = [AND, OR, NOT]
-compare_lst = [LT, LE, GT, GE, EQ, NE, IN, NOTIN]
-bit_lst = [BAND, BOR, BXOR, INVERT]
-arith_lst = [POS, NEG, ADD, SUB, MOD, MUL, DIV, FLOORDIV, POW]
-parentheses_map = { # defines operator precedence
-    OR: [LAMBDA],
-    AND: [LAMBDA, OR],
-    NOT: [LAMBDA, AND, OR],
-    LT: [LAMBDA] + boolean_lst,
-    LE: [LAMBDA] + boolean_lst,
-    GT: [LAMBDA] + boolean_lst,
-    GE: [LAMBDA] + boolean_lst,
-    EQ: [LAMBDA] + boolean_lst,
-    NE: [LAMBDA] + boolean_lst,
-    IN: [LAMBDA] + boolean_lst,
-    NOTIN: [LAMBDA] + boolean_lst,
-    IS: [LAMBDA, IN, NOTIN] + boolean_lst,
-    ISNOT: [LAMBDA, IS, ISNOT] + boolean_lst,
-    BOR: [LAMBDA] + compare_lst + boolean_lst,
-    BXOR: [LAMBDA, BOR] + compare_lst + boolean_lst,
-    BAND: [LAMBDA, BOR, BXOR] + compare_lst + boolean_lst,
-    LSHIFT: [LAMBDA, BOR, BXOR, BAND] + compare_lst + boolean_lst,
-    RSHIFT: [LAMBDA, BOR, BXOR, BAND] + compare_lst + boolean_lst,
-    INVERT: [LAMBDA, BOR, BXOR, BAND, LSHIFT, RSHIFT] + compare_lst + boolean_lst,
-    ADD: [LAMBDA] + compare_lst + boolean_lst,
-    SUB: [LAMBDA, ADD] + compare_lst + boolean_lst,
-    POS: [LAMBDA, ADD, SUB] + compare_lst + boolean_lst,
-    NEG: [LAMBDA, ADD, SUB] + compare_lst + boolean_lst,
-    MOD: [LAMBDA, ADD, SUB, POS, NEG] + compare_lst + boolean_lst,
-    MUL: [LAMBDA, ADD, SUB, POS, NEG] + compare_lst + boolean_lst,
-    DIV: [LAMBDA, ADD, SUB, POS, NEG] + compare_lst + boolean_lst,
-    FLOORDIV: [LAMBDA, ADD, SUB, POS, NEG] + compare_lst + boolean_lst,
-    POW: [LAMBDA, ADD, SUB, POS, NEG, MOD, MUL, DIV, FLOORDIV, POW] + compare_lst + boolean_lst,
-    }
 
 atomic_lst = set([SYMBOL, NUMBER])
 unary_lst = set([POS, NEG, NOT, INVERT])
 binary_lst = set([AND, OR, BAND, BOR, BXOR, ADD, SUB, MUL, DIV, FLOORDIV,
-                  MOD, POW, LSHIFT, RSHIFT, DIVMOD])
-
-_is_name = re.compile(r'\A[a-zA-z_]\w*\Z').match
-_is_number = re.compile(r'\A[-]?\d+\Z').match
-
-head_order = [SPECIAL, NUMBER, SYMBOL, APPLY,
-              POS, ADD,
-              SUB,
-              MOD, MUL, DIV, FLOORDIV, POW,
-              NEG,
-              BOR, BXOR, BAND, INVERT,
-              EQ, NE, LT, GT, LE, GE,
-              OR, AND, NOT,
-              LAMBDA, TUPLE, LIST, DICT
-              ]
-
-def tree_sort(a, b):
-    if callable(a):
-        if callable(b):
-            return cmp(str(a),str(b))
-        else:
-            return cmp(head_order.index(APPLY), head_order.index(b.head))
-    elif callable(b):
-        return cmp(head_order.index(a.head), head_order.index(APPLY))
-    h1 = a.head
-    h2 = b.head
-    c = cmp(head_order.index(h1), head_order.index(h2))
-    if c:
-        return c
-    t1,t2 = a.data, b.data
-    if h1 in atomic_lst:
-        return cmp(t1, t2)
-    c = cmp(len(t1), len(t2))
-    if c:
-        return c
-    if h1 in [ADD, MUL]:
-        t1 = sorted(t1, cmp=tree_sort)
-        t2 = sorted(t2, cmp=tree_sort)
-    for i1,i2 in zip(t1,t2):
-        c = tree_sort(i1, i2)
-        if c: return c
-    return 0
+                  MOD, POW, LSHIFT, RSHIFT])
 
 convert_head_Op_map = {
     NEG : 'Neg',
@@ -204,145 +129,9 @@ class Verbatim(Algebra):
     def __str__(self):
         s = self._str
         if s is None:
-            self._str = s = self._compute_str()
+            head, data = self.pair
+            self._str = s = head.data_to_str(data, 0.0)
         return s
-
-    def _compute_str(self):
-        head, rest = self.pair
-        if head in atomic_lst:
-            if callable(rest):
-                s = rest.__name__
-            else:
-                s = str(rest)
-            if not (_is_name(s) or _is_number(s)) and not s.startswith('('):
-                s = '((%s))' % (s)
-            return s
-        if head is SPECIAL:
-            if isinstance(rest, EllipsisType):
-                return '...'
-            return str(rest)
-        if head is APPLY:
-            func = rest[0]
-            args = rest[1:]
-            if callable(func) and hasattr(func,'__name__'):
-                s = func.__name__
-            else:
-                s = str(func)
-            if _is_name(s):
-                return '%s(%s)' % (s, ', '.join(map(str,args)))
-            return '(%s)(%s)' % (s, ', '.join(map(str,args)))
-        if head is SUBSCRIPT:
-            obj = rest[0]
-            indices = rest[1:]
-            s = str(obj)
-            if _is_name(s):
-                return '%s[%s]' % (s, ', '.join(map(str, indices)))
-            return '(%s)[%s]' % (s, ', '.join(map(str, indices)))
-        if head is SLICE:
-            start, stop, step = rest
-            h, d = start.pair
-            if h is SPECIAL and d is None: start = None
-            h, d = stop.pair
-            if h is SPECIAL and d is None: stop = None
-            h, d = step.pair
-            if h is SPECIAL and d is None: step = None
-            if start is None:
-                if stop is None:
-                    if step is None: return ':'
-                    else: return '::%s' % step
-                else:
-                    if step is None: return ':%s' % stop
-                    else: return ':%s:%s' % (stop, step)
-            else:
-                if stop is None:
-                    if step is None: return '%s:' % start
-                    else: return '%s::%s' % (start, step)
-                else:
-                    if step is None: return '%s:%s' % (start, stop)
-                    else: return '%s:%s:%s' % (start, stop, step)
-        if head is LAMBDA:
-            args = rest[0]
-            assert args.head is TUPLE,`args`
-            body = rest[1]
-            if len(args.data)==1:
-                return 'lambda %s: %s' % (str(args.data[0]), body)
-            return 'lambda %s: %s' % (str(args)[1:-1], body)
-        if head is TUPLE:
-            if len(rest)==1:
-                return '(%s,)' % (rest[0])
-            return '(%s)' % (', '.join(map(str,rest)))
-        if head is LIST:
-            return '[%s]' % (', '.join(map(str,rest)))
-        if head is DICT:
-            return '{%s}' % (', '.join(['%s:%s' % kv for kv in rest]))
-        if head is ATTR:
-            expr, attr = rest
-            s = str(expr)
-            if _is_name(s):
-                return '%s.%s' % (s, attr)
-            return '(%s).%s' % (s, attr)
-        if head is KWARG:
-            return '%s=%s' % rest
-        if head in unary_lst:
-            return '%s%s' % (head, rest)
-        if head is ADD:
-            if len(rest)>100:
-                self.disable_sorting = True
-            if self.commutative_add:
-                if not self.disable_sorting:
-                    rest = sorted(rest, cmp=tree_sort)
-            r = ''
-            for t in rest:
-                h = t.head
-                while h is POS:
-                    h,t = r.pair
-                sign = ' + '
-                if h is NEG:
-                    if not r:
-                        r = str(t)
-                        continue
-                    sign = ' - '
-                    s = str(t.data)
-                else:
-                    s = str(t)
-                    if not r:
-                        r = s
-                        continue
-                    sign = ' + '
-                r += sign + s
-            return r
-        if head is MUL and self.commutative_mul:
-            if len(rest)>100:
-                self.disable_sorting = True
-            if not self.disable_sorting:
-                rest = sorted(rest, cmp=tree_sort)
-        if head is DIVMOD:
-            return 'divmod(%s, %s)' % rest
-        try:
-            len(rest)
-        except TypeError:
-            return '((%s%s))' (head, rest)
-        l = []
-        for t in rest:
-            h = t.head if isinstance(t, Algebra) else None
-            s = str(t)
-            if h is NUMBER and s.startswith('-'):
-                h = ADD
-                if h in parentheses_map.get(head, [h]) and l:
-                    l.append('(%s)' % s)
-                else:
-                    l.append(s)
-            elif h in parentheses_map.get(head, [h]):
-                l.append('(%s)' % s)
-            else:
-                l.append(s)
-
-        if callable(head):
-            return '%s(%s)' % (head.__name__, ', '.join(l))
-
-        if len(l)==1: # unary operation
-            return str(head) + l[0]
-        return str(head).join(l)
 
     def as_tree(self, tab='', level=0):
         if level:
@@ -367,7 +156,8 @@ class Verbatim(Algebra):
         return False
 
     for _h in unary_lst:
-        exec '''\
+        if _h.op_mth:
+            exec '''\
 def %s(self):
     return Verbatim(%r, self)
 ''' % (_h.op_mth, _h)
@@ -388,6 +178,10 @@ def %s(self, other):
 
     __truediv__ = __div__
     __rtruediv__ = __rdiv__
+
+    def __divmod__(self, other):
+        other = self.convert(other)
+        return Verbatim(APPLY, (Verbatim(SYMBOL, 'divmod'), self, other))
 
     def __call__(self, *args, **kwargs):
         convert = self.convert
@@ -430,7 +224,8 @@ node_map = dict(Add=ADD, Mul=MUL, Sub=SUB,
                 List=LIST, Sliceobj=SLICE
                 )
 
-callfunc_map = dict(divmod=DIVMOD, slice=SLICE)
+callfunc_map = dict(#divmod=DIVMOD,
+                    slice=SLICE)
 
 compare_map = {'<':LT, '>':GT, '<=':LE, '>=':GE,
                '==':EQ, '!=':NE, 'in':IN, 'not in': NOTIN,
@@ -475,10 +270,13 @@ class VerbatimWalker:
             continue
         exec '''\
 def visit%s(self, node, *args):
-    print "warning: using default visit%s:", node
+    print "WARNING: using default unsupported visit%s, node=", node
     self.start(%r)
-    for child in node.getChildNodes():
-        self.visit(child, *args)
+    for child in node.asList():
+        if isinstance(child, ast.Node):
+            self.visit(child, *args)
+        else:
+            self.append(child)
     self.end()
 ''' % (_n, _n, _n)
 

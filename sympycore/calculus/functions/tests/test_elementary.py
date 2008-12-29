@@ -64,7 +64,7 @@ def test_trig_values():
 
 def test_trig_symmetry():
     x = Symbol('x')
-    assert Sin(-x) == -Sin(x)
+    assert Sin(-x) == -Sin(x),`Sin(-x).pair, (-Sin(x)).pair`
     assert Cos(-x) == Cos(x)
     assert Tan(-x) == -Tan(x)
     assert Cot(-x) == -Cot(x)
@@ -101,7 +101,7 @@ def test_trig_symmetry():
 
 def test_trig_diff():
     x = Symbol('x')
-    assert Sin(x).diff(x) == Cos(x)
+    assert Sin(x).diff(x) == Cos(x), `Sin(x).diff(x)`
     assert Cos(x).diff(x) == -Sin(x)
     assert Sin(2*x).diff(x) == 2*Cos(2*x)
 

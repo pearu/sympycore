@@ -60,6 +60,7 @@ static PyTypeObject ExprType;
 
 static PyObject* NUMBER;
 static PyObject* SYMBOL;
+static PyObject* SPECIAL;
 static PyObject* Expr_as_lowlevel(Expr *self);
 static PyObject* str_as_lowlevel;
 static PyObject* str_convert;
@@ -339,7 +340,7 @@ static PyObject *
 Expr_as_lowlevel(Expr *self)
 {
   PyObject *head = PyTuple_GET_ITEM(self->pair, 0);
-  if (head==NUMBER || head==SYMBOL) {
+  if (head==NUMBER || head==SYMBOL || head==SPECIAL) {
     PyObject *data = PyTuple_GET_ITEM(self->pair, 1);
     Py_INCREF(data);
     return data;
@@ -940,7 +941,7 @@ initexpr_ext(void)
   if (PyType_Ready(&ExprType) < 0)
     return;
 
-  m = PyImport_ImportModule("sympycore.utils");
+  m = PyImport_ImportModule("sympycore.heads");
   if (m == NULL)
     return;
   NUMBER = PyObject_GetAttrString(m, "NUMBER");
@@ -950,6 +951,11 @@ initexpr_ext(void)
   }
   SYMBOL = PyObject_GetAttrString(m, "SYMBOL");
   if (SYMBOL==NULL) {
+    Py_DECREF(m);
+    return;
+  }
+  SPECIAL = PyObject_GetAttrString(m, "SPECIAL");
+  if (SPECIAL==NULL) {
     Py_DECREF(m);
     return;
   }

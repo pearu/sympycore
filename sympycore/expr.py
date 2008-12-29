@@ -23,9 +23,7 @@ Python Expr:
 >>> %timeit Expr(1,2)
 1000000 loops, best of 3: 988 ns per loop
 >>> e=Expr(1,2)
->>> %timeit h = e.head    if head1 not in _add_swap_args_set1 or (head1, head2)==(NUMBER, TERMS):
-        head1, head2, data1, data2, self, other = head2, head1, data2, data1, other, self
-
+>>> %timeit h = e.head
 10000000 loops, best of 3: 119 ns per loop
 >>> %timeit h,d = e.pair
 10000000 loops, best of 3: 139 ns per loop
@@ -79,15 +77,16 @@ This is Python version of Expr type.
 
     __slots__ = ['head', 'data', 'pair', '_hash']
 
-    def __init__(self, head, data=None):
-        if data is None:
-            obj = self.convert(head)
+    def __init__(self, *args):
+        if len(args)==1:
+            obj = self.convert(args[0])
             self.pair = obj.pair
             self._hash = obj._hash
-        else:
-            #print (head, data)
-            self.pair = (head, data)
+        elif len(args)==2:
+            self.pair = args
             self._hash = None
+        else:
+            raise TypeError("%s requires 1 or 2 arguments but got %r" % (type(self), len(args)))
 
     def __repr__(self):
         return '%s%r' % (type(self).__name__, self.pair)
@@ -174,12 +173,13 @@ This is Python version of Expr type.
         used in comparison and in hash computation.
 
         By default. as_lowlevel returns ``data`` part if the ``head``
-        part is ``SYMBOL`` or ``NUMBER``. Otherwise it returns
-        ``pair`` tuple. Note that returning a copy of the tuple will
-        disable using ``frozenset`` hash algorithm for dictionaries.
+        part is ``SYMBOL``, ``NUMBER``, ``SPECIAL``. Otherwise it
+        returns ``pair`` tuple. Note that returning a copy of the
+        tuple will disable using ``frozenset`` hash algorithm for
+        dictionaries.
         """
         head, data = pair = self.pair
-        if head is NUMBER or head is SYMBOL:
+        if head is NUMBER or head is SYMBOL or head is SPECIAL:
             return data
         return pair
 
@@ -386,4 +386,4 @@ This is Python version of Expr type.
                 return type(self)(NUMBER, c)
         return self
 
-from .utils import NUMBER, SYMBOL
+from .heads.atomic import NUMBER, SYMBOL, SPECIAL

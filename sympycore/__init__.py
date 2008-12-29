@@ -21,6 +21,9 @@ from physics import *
 from functions import *
 
 import utils
+import heads
+heads.arith_ops.Expr = Expr
+heads.functional.Expr = Expr
 
 def profile_expr(expr):
     """ Printout the profiler information for executing ``expr``.

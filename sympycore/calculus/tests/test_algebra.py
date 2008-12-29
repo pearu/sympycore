@@ -21,7 +21,7 @@ def test_powers():
     assert Number(4) ** Number(1,2) == Number(2)
     assert 2**Number(3,2) * 2**Number(1,2) == 4
     assert I**Number(3,2) * I**Number(1,2) == -1
-    assert str(Number(2) ** Number(1,2)) == '2**(1/2)'
+    assert str(Number(2) ** Number(1,2)) == '2**(1/2)', str(Number(2) ** Number(1,2))
     assert A('4/9') ** A('1/2') == A('2/3')
     assert A('4/7') ** A('1/2') == A('7**(-1/2)')*2
     assert A('7/4') ** A('1/2') == A('7**(1/2)')/2

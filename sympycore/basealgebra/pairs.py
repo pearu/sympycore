@@ -177,6 +177,15 @@ class CollectingField(CommutativeRing):
     def __str__(self):
         return self.to_str_data()[1]
 
+    def __str__(self):
+        s = self._str_value
+        if s is None:
+            head, data = self.pair
+            s = head.data_to_str(data, 0.0)
+            if not self.is_writable:
+                self._str_value = s
+        return s
+
     def to_str_data(self, sort=True):
         head, data = self.pair
         one = self.one
@@ -682,9 +691,10 @@ class CollectingField(CommutativeRing):
             args = data
             if type(args) is tuple:
                 args = [a._subs(subexpr, newexpr) for a in args]
-                return head(*args)
+                r = head(*args)
             else:
-                return head(args._subs(subexpr, newexpr))
+                r = head(args._subs(subexpr, newexpr))
+            return r
 
         raise NotImplementedError(`self`)
 

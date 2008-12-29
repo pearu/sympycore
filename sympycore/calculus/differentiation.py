@@ -4,6 +4,7 @@ __docformat__ = "restructuredtext"
 __all__ = ['diff']
 
 from ..utils import SYMBOL, NUMBER, FACTORS, TERMS
+from ..heads import CallableHead
 from ..arithmetic.numbers import inttypes
 from ..basealgebra import Algebra
 from ..basealgebra.pairs import inplace_add2, inplace_add, return_terms
@@ -47,6 +48,10 @@ def partial_derivative(func, n):
     return dfunc
 
 def diff_callable(f, arg, xdata, order):
+    if isinstance(f, CallableHead):
+        f = f.func
+        if type(arg) is tuple and len(arg)==1:
+            arg = arg[0]
     if order != 1:
         # D^n f(a*x+b) -> a**n * [D^n f](a*x+b)]
         if hasattr(f, 'nth_derivative'):
@@ -62,7 +67,7 @@ def diff_callable(f, arg, xdata, order):
             da = diff_generic(a, xdata, one)
             if da == zero:
                 continue
-            df = Calculus(partial_derivative(f, i+1), arg)
+            df = Calculus.apply(partial_derivative(f, i+1), *arg)
             terms.append(da * df)
         return Calculus.Add(*terms)
     da = diff_generic(arg, xdata, one)
@@ -70,7 +75,7 @@ def diff_callable(f, arg, xdata, order):
         return zero
     if hasattr(f, 'derivative'):
         return diff_repeated(da * f.derivative(arg), xdata, order-1)
-    df = Calculus(partial_derivative(f, one), arg)
+    df = Calculus.apply(partial_derivative(f, one), arg)
     return df * da
 
 def diff_factor(base, exp, xdata, order):

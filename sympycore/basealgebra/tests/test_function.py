@@ -17,7 +17,7 @@ def foo(x):
     """
     if x==0:
         return x
-    return Algebra(foo, x)
+    return Algebra.apply(foo, x)
 
 class bar(object):
     """ Python new-style class can be used to construct applied
@@ -26,7 +26,7 @@ class bar(object):
     def __new__(cls, x):
         if x==0:
             return x
-        return Algebra(cls, x)
+        return Algebra.apply(cls, x)
 
 class Fun:
     """ A callable class instance can be used to construct applied
@@ -41,19 +41,19 @@ class Fun:
     def __call__(self, x):
         if x==0:
             return x
-        return Algebra(self, x)
+        return Algebra.apply(self, x)
 
 fun = Fun('fun')
 
 def mysin(x):
     if x==0:
         return x
-    return Algebra(mysin, x)
+    return Algebra.apply(mysin, x)
 
 def mycos(x):
     if x==0:
         return Algebra.one
-    return Algebra(mycos, x)
+    return Algebra.apply(mycos, x)
 
 mysin.derivative = lambda arg: mycos(arg)
 mycos.derivative = lambda arg: -mysin(arg)
@@ -61,22 +61,22 @@ mycos.derivative = lambda arg: -mysin(arg)
 def foo2(x, y):
     if x==y:
         return Algebra.one
-    return Algebra(foo2, (x,y))
+    return Algebra.apply(foo2, x,y)
 
 def foo2_1(x, y):
-    return Algebra(foo2_1, (x,y))
+    return Algebra.apply(foo2_1, x,y)
 def foo2_2(x, y):
-    return Algebra(foo2_2, (x,y))
+    return Algebra.apply(foo2_2, x,y)
 
 foo2.derivative = foo2_1,foo2_2
 
 def bar2(x, y):
-    return Algebra(bar2, (x,y))
+    return Algebra.apply(bar2, x,y)
 
 def test_foo():
-    assert str(foo(x))=='foo(x)'
+    assert str(foo(x))=='foo(x)',str(foo(x))
     assert str(foo(0))=='0'
-    assert str(foo(x+y))=='foo(x + y)'
+    assert str(foo(x+y)) in ['foo(x + y)', 'foo(y + x)'], str(foo(x+y))
 
     assert foo(x)==foo(x)
     assert foo(x).subs(x,z)==foo(z)
@@ -84,18 +84,21 @@ def test_foo():
     assert (y+foo(x)).subs(x,0)==y
 
     assert str(foo(foo(x)))=='foo(foo(x))'
-    assert str(foo(x)+foo(y))=='foo(x) + foo(y)'
-    assert str(foo(x)+x*foo(y))=='foo(x) + x*foo(y)'
+    assert str(foo(x)+foo(y))=='foo(x) + foo(y)', str(foo(x)+foo(y))
+    assert str(foo(x)+x*foo(y)) in ['foo(x) + x*foo(y)', 'x*foo(y) + foo(x)'], str(foo(x)+x*foo(y))
 
     assert str((foo(x)+foo(y))**2)=='(foo(x) + foo(y))**2'
     assert str(((foo(x)+foo(y))**2).expand()) in ['2*foo(x)*foo(y) + foo(x)**2 + foo(y)**2',
-                                                  'foo(x)**2 + foo(y)**2 + 2*foo(x)*foo(y)']
+                                                  'foo(x)**2 + foo(y)**2 + 2*foo(x)*foo(y)',
+                                                  'foo(y)**2 + foo(x)**2 + 2*foo(x)*foo(y)'], str(((foo(x)+foo(y))**2).expand())
 
 
 def test_bar():
     assert str(bar(x))=='bar(x)'
     assert str(bar(0))=='0'
-    assert str(bar(x+y))=='bar(x + y)'
+    assert str(bar(x+y)) in ['bar(x + y)',
+                             'bar(y + x)',
+                             ], str(bar(x+y))
 
     assert bar(x)==bar(x)
     assert bar(x).subs(x,z)==bar(z)
@@ -104,15 +107,16 @@ def test_bar():
 
     assert str(bar(bar(x)))=='bar(bar(x))'
     assert str(bar(x)+bar(y))=='bar(x) + bar(y)'
-    assert str(bar(x)+x*bar(y))=='bar(x) + x*bar(y)'
+    assert str(bar(x)+x*bar(y)) in ['bar(x) + x*bar(y)', 'x*bar(y) + bar(x)'], str(bar(x)+x*bar(y))
 
     assert str(((bar(x)+bar(y))**2).expand()) in ['2*bar(x)*bar(y) + bar(x)**2 + bar(y)**2',
-                                                  'bar(x)**2 + bar(y)**2 + 2*bar(x)*bar(y)']
+                                                  'bar(x)**2 + bar(y)**2 + 2*bar(x)*bar(y)',
+                                                  'bar(y)**2 + bar(x)**2 + 2*bar(x)*bar(y)'], str(((bar(x)+bar(y))**2).expand())
 
 def test_fun():
     assert str(fun(x))=='fun(x)'
     assert str(fun(0))=='0'
-    assert str(fun(x+y))=='fun(x + y)'
+    assert str(fun(x+y)) in ['fun(x + y)', 'fun(y + x)'], str(fun(x+y))
 
     assert fun(x)==fun(x)
     assert fun(x).subs(x,z)==fun(z)
@@ -121,9 +125,12 @@ def test_fun():
 
     assert str(fun(fun(x)))=='fun(fun(x))'
     assert str(fun(x)+fun(y))=='fun(x) + fun(y)'
-    assert str(fun(x)+x*fun(y))=='fun(x) + x*fun(y)'
+    assert str(fun(x)+x*fun(y)) in ['fun(x) + x*fun(y)', 'x*fun(y) + fun(x)'],str(fun(x)+x*fun(y))
 
-    assert str(((fun(x)+fun(y))**2).expand()) in ['2*fun(x)*fun(y) + fun(x)**2 + fun(y)**2','fun(x)**2 + fun(y)**2 + 2*fun(x)*fun(y)']
+    assert str(((fun(x)+fun(y))**2).expand()) in ['2*fun(x)*fun(y) + fun(x)**2 + fun(y)**2',
+                                                  'fun(x)**2 + fun(y)**2 + 2*fun(x)*fun(y)',
+                                                  'fun(y)**2 + fun(x)**2 + 2*fun(x)*fun(y)'], str(((fun(x)+fun(y))**2).expand())
+    
 
 def test_foo2():
     assert str(foo2(x,x))=='1'
