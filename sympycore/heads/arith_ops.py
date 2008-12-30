@@ -45,10 +45,7 @@ class AddHead(NaryHead):
         r = ''
         for t in data:
             h, d = t.pair
-            try:
-                s = h.data_to_str(d, precedence)
-            except AttributeError: # a temporary hack
-                s = str(d)
+            s = h.data_to_str(d, precedence)
             if h is NEG or h is POS:
                 r += s
             else:
@@ -141,6 +138,7 @@ class TermsHead(Head):
     def data_to_str(self, data, parent_precedence):
         l = []
         r = ''
+        mul_precedence = Head.precedence_map['MUL']
         precedence = prec = self.precedence
         for t, c in data.iteritems():
             h, d = t.pair
@@ -151,16 +149,16 @@ class TermsHead(Head):
             else:
                 sign = ' + '
             if sc=='1':
-                prec = self.precedence
-                st = h.data_to_str(d, prec)
+                prec = precedence
+                st = h.data_to_str(d, precedence)
                 s = st
             else:
-                prec = Head.precedence_map['MUL']
-                st = h.data_to_str(d, prec)
+                prec = mul_precedence
+                st = h.data_to_str(d, mul_precedence)
                 if st=='1':
                     s = sc
                 else:
-                    s = '%s*%s' % (sc, st)
+                    s = sc + '*' + st
             if r:
                 r += sign + s
             else:
@@ -168,8 +166,6 @@ class TermsHead(Head):
                     r += '-' + s
                 else:
                     r += s
-        if len(data)==1:
-            precedence = prec
         if precedence < parent_precedence:
             return '(' + r + ')'
         return r
@@ -191,13 +187,13 @@ class FactorsHead(Head):
             precedence = Head.precedence_map['POW']
         else:
             precedence = pow_precedence = self.precedence
-            
+        NUMBER_data_to_str = NUMBER.data_to_str
         for b, e in data.iteritems():
             if isinstance(e, Expr):
                 h, d = e.pair
                 se = h.data_to_str(d, precedence)
             else:
-                se = NUMBER.data_to_str(e, precedence)
+                se = NUMBER_data_to_str(e, precedence)
             h, d = b.pair
             if se=='1':
                 s = sb = h.data_to_str(d, precedence)
@@ -206,7 +202,7 @@ class FactorsHead(Head):
                 if sb=='1':
                     s = sb
                 else:
-                    s = '%s**%s' % (sb, se)
+                    s = sb + '**' + se
             if r:
                 r += '*' + s
             else:
