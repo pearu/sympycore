@@ -178,15 +178,6 @@ class CollectingField(CommutativeRing):
             return str_SYMBOL, obj.__name__
         return str_SYMBOL, str(obj)
 
-    def __str__(self):
-        s = self._str_value
-        if s is None:
-            head, data = self.pair
-            s = head.data_to_str(data, 0.0)
-            if not self.is_writable:
-                self._str_value = s
-        return s
-
     def to_str_data(self, sort=True):
         raise
         head, data = self.pair

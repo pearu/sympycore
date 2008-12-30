@@ -12,16 +12,16 @@ class ApplyHead(Head):
     precedence = Head.precedence_map['APPLY']
     op_mth = '__call__'
 
-    def data_to_str(self, data, parent_precedence):
+    def data_to_str(self, cls, data, parent_precedence):
         precedence = self.precedence
         func = data[0]
         args = data[1:]
         h, d = func.pair
-        r = h.data_to_str(d, precedence)
+        r = h.data_to_str(cls, d, precedence)
         l = []
         for a in args:
             h, d = a.pair
-            s = h.data_to_str(d, 0.0)
+            s = h.data_to_str(cls, d, 0.0)
             l.append(s)
         r += '(%s)' % (', '.join(l))
         if precedence < parent_precedence:
@@ -38,23 +38,17 @@ class SubscriptHead(Head):
     precedence = Head.precedence_map['SUBSCRIPT']
     op_mth = '__getitem__'
 
-    def data_to_str(self, data, parent_precedence):
+    def data_to_str(self, cls, data, parent_precedence):
         precedence = self.precedence
         func = data[0]
         args = data[1:]
 
         h, d = func.pair
-        try:
-            r = h.data_to_str(d, precedence)
-        except AttributeError: # a temporary hack
-            r = str(d)
+        r = h.data_to_str(cls, d, precedence)
         l = []
         for a in args:
             h, d = a.pair
-            try:
-                s = h.data_to_str(d, 0.0)
-            except AttributeError: # a temporary hack
-                s = str(d)
+            s = h.data_to_str(cls, d, 0.0)
             l.append(s)
         r += '[%s]' % (', '.join(l))
         if precedence < parent_precedence:
@@ -70,7 +64,7 @@ class SliceHead(Head):
     """
     precedence = Head.precedence_map['SLICE']
 
-    def data_to_str(self, data, parent_precedence):
+    def data_to_str(self, cls, data, parent_precedence):
         precedence = self.precedence
         start, stop, step = data
         h, d = start.pair
@@ -105,16 +99,16 @@ class LambdaHead(Head):
     data is a 2-tuple of arguments and an expression.
     """
     precedence = Head.precedence_map['LAMBDA']
-    def data_to_str(self, (args, expr), parent_precedence):
+    def data_to_str(self, cls, (args, expr), parent_precedence):
         precedence = self.precedence
         l = []
         h, args = args.pair
         for a in args:
             h, d = a.pair
-            s = h.data_to_str(d, precedence)
+            s = h.data_to_str(cls, d, precedence)
             l.append(s)
         h, d = expr.pair
-        s = h.data_to_str(d, precedence)
+        s = h.data_to_str(cls, d, precedence)
         r = 'lambda %s: %s' % (', '.join(l), s)
         if precedence < parent_precedence:
             return '(' + r + ')'
@@ -128,12 +122,12 @@ class AttrHead(Head):
     data is a 2-tuple of expression operands.
     """
     precedence = Head.precedence_map['ATTR']
-    def data_to_str(self, (expr, attr), parent_precedence):
+    def data_to_str(self, cls, (expr, attr), parent_precedence):
         precedence = self.precedence
         h, d = expr.pair
-        s1 = h.data_to_str(d, precedence)
+        s1 = h.data_to_str(cls, d, precedence)
         h, d = attr.pair
-        s2 = h.data_to_str(d, 0.0)
+        s2 = h.data_to_str(cls, d, 0.0)
         r = s1 + '.' + s2
         if precedence < parent_precedence:
             return '(' + r + ')'
@@ -147,12 +141,12 @@ class KwargHead(Head):
     data is a 2-tuple of expression operands.
     """
     precedence = Head.precedence_map['KWARG']
-    def data_to_str(self, (name, expr), parent_precedence):
+    def data_to_str(self, cls, (name, expr), parent_precedence):
         precedence = self.precedence
         h, d = name.pair
-        s1 = h.data_to_str(d, precedence)
+        s1 = h.data_to_str(cls, d, precedence)
         h, d = expr.pair
-        s2 = h.data_to_str(d, precedence)
+        s2 = h.data_to_str(cls, d, precedence)
         r = s1 + '=' + s2
         if precedence < parent_precedence:
             return '(' + r + ')'

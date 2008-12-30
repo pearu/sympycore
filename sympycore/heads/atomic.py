@@ -23,10 +23,10 @@ class AtomicHead(Head):
     AtomicHead is a base class to atomic expression heads.
     """
 
-    def data_to_str(self, data, parent_precedence):
+    def data_to_str(self, cls, data, parent_precedence):
         if isinstance(data, Expr):
             h, d = data.pair
-            return h.data_to_str(d, parent_precedence)
+            return h.data_to_str(cls, d, parent_precedence)
         s = '%s' % (data,)
         if self.get_precedence_for_data(data) < parent_precedence:
             return '(' + s + ')'
@@ -42,10 +42,10 @@ class SpecialHead(AtomicHead):
                                 _p = Head.precedence_map['SPECIAL']):
         return _p
     
-    def data_to_str(self, data, parent_precedence):
+    def data_to_str(self, cls, data, parent_precedence):
         if data is Ellipsis:
             return '...'
-        return AtomicHead.data_to_str(self, data, parent_precedence)
+        return AtomicHead.data_to_str(self, cls, data, parent_precedence)
 
     def __repr__(self): return 'SPECIAL'
 
@@ -99,10 +99,10 @@ class CallableHead(AtomicHead):
     """
     precedence = Head.precedence_map['SYMBOL']
 
-    def data_to_str(self, func, parent_precedence):
+    def data_to_str(self, cls, func, parent_precedence):
         if hasattr(func, '__name__'):
             return func.__name__
-        return AtomicHead.data_to_str(self, func, parent_precedence)
+        return AtomicHead.data_to_str(self, cls, func, parent_precedence)
 
     def __repr__(self): return 'CALLABLE'
 

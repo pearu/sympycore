@@ -86,7 +86,10 @@ class Algebra(Expr):
     def __str__(self):
         s = self._str_value
         if s is None:
-            s = self._str_value = str(self.as_verbatim())
+            head, data = self.pair
+            s = head.data_to_str(type(self), data, 0.0)
+            if not self.is_writable:
+                self._str_value = s
         return s
 
     def __repr__(self):

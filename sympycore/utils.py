@@ -45,8 +45,8 @@ str_NUMBER = -6
 
 from heads import *
 
-POLY = HEAD('POLY')
-DENSE_POLY = HEAD('DENSE_POLY')
+#POLY = HEAD('POLY')
+#DENSE_POLY = HEAD('DENSE_POLY')
 
 DIFF = HEAD('DIFF')
 

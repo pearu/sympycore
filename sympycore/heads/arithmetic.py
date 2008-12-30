@@ -43,12 +43,12 @@ class AddHead(NaryHead):
                                 _p = Head.precedence_map['ADD']):
         return _p
 
-    def data_to_str(self, data, parent_precedence,
+    def data_to_str(self, cls, data, parent_precedence,
                     _p = Head.precedence_map['ADD']):
         r = ''
         for t in data:
             h, d = t.pair
-            s = h.data_to_str(d, _p)
+            s = h.data_to_str(cls, d, _p)
             if h is NEG or h is POS:
                 r += s
             else:
@@ -143,7 +143,7 @@ class TermsHead(Head):
                                 _p2 = Head.precedence_map['TERMS']):
         return _p1 if len(data)==1 else _p2
 
-    def data_to_str(self, data, parent_precedence, _mul_p = Head.precedence_map['MUL']):
+    def data_to_str(self, cls, data, parent_precedence, _mul_p = Head.precedence_map['MUL']):
         l = []
         r = ''
         precedence = self.get_precedence_for_data(data)
@@ -156,10 +156,10 @@ class TermsHead(Head):
             else:
                 sign = ' + '
             if sc=='1':
-                st = h.data_to_str(d, precedence)
+                st = h.data_to_str(cls, d, precedence)
                 s = st
             else:
-                st = h.data_to_str(d, _mul_p)
+                st = h.data_to_str(cls, d, _mul_p)
                 if st=='1':
                     s = sc
                 else:
@@ -189,7 +189,7 @@ class FactorsHead(Head):
                                 _p2 = Head.precedence_map['FACTORS']):
         return _p1 if len(data)==1 else _p2
             
-    def data_to_str(self, data, parent_precedence,
+    def data_to_str(self, cls, data, parent_precedence,
                     _pow_p = Head.precedence_map['POWPOW']):
         l = []
         l_append = l.append
@@ -199,11 +199,11 @@ class FactorsHead(Head):
         for b, e in data.iteritems():
             if isinstance(e, Expr):
                 h, d = e.pair
-                se = h.data_to_str(d, precedence)
+                se = h.data_to_str(cls, d, precedence)
             else:
-                se = NUMBER_data_to_str(e, precedence)
+                se = NUMBER_data_to_str(cls, e, precedence)
             h, d = b.pair
-            s = h.data_to_str(d, _pow_p)
+            s = h.data_to_str(cls, d, _pow_p)
             if se!='1':
                 s = s + '**' + se
             l_append(s)

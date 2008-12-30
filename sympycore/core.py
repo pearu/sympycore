@@ -127,11 +127,6 @@ class DefinedFunction(object):
     def get_argument_algebras(cls):
         raise NotImplementedError(`cls`)
 
-    @classmethod
-    def data_to_str(cls, data, parent_precedence):
-        r = cls.__name__ + '(%s)' % data
-        return r
-
 def get_nargs(obj):
     assert callable(obj),`obj`
     if isinstance(obj, classes.FunctionRing):

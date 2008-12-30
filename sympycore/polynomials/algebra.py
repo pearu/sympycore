@@ -9,7 +9,7 @@ __docformat__ = "restructuredtext"
 __all__ = "PolynomialRing"
 
 from ..core import classes
-from ..utils import SYMBOL, NUMBER, ADD, MUL, POW, POLY, SUB, DIV
+from ..utils import SYMBOL, NUMBER, ADD, MUL, POW, SPARSE_POLY, SUB, DIV
 from ..basealgebra.algebra import Algebra
 from ..basealgebra.ring import CommutativeRing
 from ..basealgebra.verbatim import Verbatim
@@ -163,9 +163,9 @@ class PolynomialRing(CommutativeRing):
                 if type(data[0]) not in [tuple,list,set]:
                     data = [(i,c) for (i,c) in enumerate(data) if c]
             data = dict(data)
-            return cls(POLY, data)
+            return cls(SPARSE_POLY, data)
         elif isinstance(data, dict):
-            return cls(POLY, data)
+            return cls(SPARSE_POLY, data)
         return super(CommutativeRing, cls).convert(data, typeerror=True)
 
     @classmethod
@@ -202,7 +202,7 @@ class PolynomialRing(CommutativeRing):
             i = list(cls.variables).index(obj)
         l = [0]*cls.nvars
         l[i] = 1
-        return cls(POLY, {AdditiveTuple(l):1})
+        return cls(SPARSE_POLY, {AdditiveTuple(l):1})
 
     @classmethod
     def convert_symbol(cls, obj):
@@ -215,7 +215,7 @@ class PolynomialRing(CommutativeRing):
             i = list(cls.variables).index(obj)
         l = [0]*cls.nvars
         l[i] = 1
-        return cls(POLY, {AdditiveTuple(l):1})
+        return cls(SPARSE_POLY, {AdditiveTuple(l):1})
 
     @classmethod
     def Number(cls, obj):
@@ -227,11 +227,11 @@ class PolynomialRing(CommutativeRing):
           r.Number(2) -> r({0:2})
         """
         data = {AdditiveTuple((0,)*cls.nvars): obj} if obj else {}        
-        return cls(POLY, data)
+        return cls(SPARSE_POLY, data)
 
     @classmethod
     def Add(cls, *seq):
-        r = cls(POLY, {})
+        r = cls(SPARSE_POLY, {})
         for t in seq:
             tcls = t.__class__
             if cls==tcls:
@@ -507,7 +507,7 @@ def divmod_POLY1_POLY1_SPARSE(lhs, rhs, cls):
     while 1:
         d1 = max(dseq)
         if d1 < d2:
-            return cls(POLY, dq), cls(POLY, dr)
+            return cls(SPARSE_POLY, dq), cls(SPARSE_POLY, dr)
         c1 = dr[d1]
         e = d1 - d2
         c = div(c1, c2)
@@ -560,7 +560,7 @@ def pow_POLY_INT(base, exp, cls):
     data = base.data
     if len(data)==1:
         exps, coeff = data.items()[0]
-        return cls(POLY, {exps * exp: coeff ** exp})
+        return cls(SPARSE_POLY, {exps * exp: coeff ** exp})
     nvars = cls.nvars
     d = {}
     items = data.items()
@@ -582,7 +582,7 @@ def pow_POLY_INT(base, exp, cls):
                 d[new_exps] = c
             else:
                 del d[new_exps]
-    return cls(POLY, d)
+    return cls(SPARSE_POLY, d)
     
 
 def add_POLY_POLY(lhs, rhs, cls):
@@ -597,7 +597,7 @@ def add_POLY_POLY(lhs, rhs, cls):
                 d[exps] = c
             else:
                 del d[exps]
-    return cls(POLY, d)
+    return cls(SPARSE_POLY, d)
 
 def iadd_POLY_POLY(lhs, rhs, cls):
     d = lhs.data
@@ -628,7 +628,7 @@ def mul_POLY_POLY(lhs, rhs, cls):
                     d[exps] = c
                 else:
                     del d[exps]
-    return cls(POLY, d)
+    return cls(SPARSE_POLY, d)
 
 def mul_POLY_COEFF(lhs, rhs, cls):
     d = {}
@@ -642,4 +642,4 @@ def mul_POLY_COEFF(lhs, rhs, cls):
                 d[exps] = c
             else:
                 del d[exps]
-    return cls(POLY, d)
+    return cls(SPARSE_POLY, d)

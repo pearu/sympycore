@@ -76,7 +76,7 @@ class Head(object):
         # used by the pickler support to make HEAD instances unique
         return self._cache.get(self._key, self)
 
-    def data_to_str(self, data, parent_precedence):
+    def data_to_str(self, cls, data, parent_precedence):
         """ Convert expression data to Python string expression.
         """
         precedence = self.precedence
@@ -96,10 +96,10 @@ class UnaryHead(Head):
     data is an expression operand.
     """
 
-    def data_to_str(self, data, parent_precedence):
+    def data_to_str(self, cls, data, parent_precedence):
         precedence = self.precedence
         h, d = data.pair
-        r = self.op_symbol + h.data_to_str(d, precedence)
+        r = self.op_symbol + h.data_to_str(cls, d, precedence)
         if precedence < parent_precedence:
             return '(' + r + ')'
         return r
@@ -109,12 +109,12 @@ class BinaryHead(Head):
     BinaryHead is base class for binary operation heads,
     data is a 2-tuple of expression operands.
     """
-    def data_to_str(self, (lhs, rhs), parent_precedence):
+    def data_to_str(self, cls, (lhs, rhs), parent_precedence):
         precedence = self.precedence
         h,d = lhs.pair
-        s1 = h.data_to_str(d, precedence)
+        s1 = h.data_to_str(cls, d, precedence)
         h,d = rhs.pair
-        s2 = h.data_to_str(d, precedence)
+        s2 = h.data_to_str(cls, d, precedence)
         r = s1 + self.op_symbol + s2
         if precedence < parent_precedence:
             return '(' + r + ')'
@@ -125,13 +125,13 @@ class NaryHead(Head):
     NaryHead is base class for n-ary operation heads,
     data is a n-tuple of expression operands.
     """
-    def data_to_str(self, data, parent_precedence):
+    def data_to_str(self, cls, data, parent_precedence):
         precedence = self.precedence
         l = []
         l_append = l.append
         for t in data:
             h, d = t.pair
-            l_append(h.data_to_str(d, precedence))
+            l_append(h.data_to_str(cls, d, precedence))
         r = self.op_symbol.join(l)
         if precedence < parent_precedence:
             return '(' + r + ')'

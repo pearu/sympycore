@@ -13,13 +13,13 @@ class TupleHead(Head):
                                 _p = Head.precedence_map['TUPLE']):
         return _p
     
-    def data_to_str(self, data, parent_precedence,
+    def data_to_str(self, cls, data, parent_precedence,
                     _p = Head.precedence_map['TUPLE']):
         l = []
         l_append = l.append
         for t in data:
             h, d = t.pair
-            s = h.data_to_str(d, _p)
+            s = h.data_to_str(cls, d, _p)
             l_append(s)
         if len(l)==1:
             return '('+ l[0] +',)'
@@ -37,13 +37,13 @@ class ListHead(Head):
                                 _p = Head.precedence_map['LIST']):
         return _p
 
-    def data_to_str(self, data, parent_precedence,
+    def data_to_str(self, cls, data, parent_precedence,
                     _p = Head.precedence_map['LIST']):
         l = []
         l_append = l.append
         for t in data:
             h, d = t.pair
-            s = h.data_to_str(d, _p)
+            s = h.data_to_str(cls, d, _p)
             l_append(s)
         r = '[' + (', '.join(l)) + ']'
         if _p < parent_precedence:
@@ -62,16 +62,16 @@ class DictHead(Head):
                                 _p = Head.precedence_map['DICT']):
         return _p
 
-    def data_to_str(self, data, parent_precedence,
+    def data_to_str(self, cls, data, parent_precedence,
                     _p = Head.precedence_map['DICT']
                     ):
         l = []
         l_append = l.append
         for k, v in data:
             h, d = k.pair
-            s1 = h.data_to_str(d, _p)
+            s1 = h.data_to_str(cls, d, _p)
             h, d = v.pair
-            s2 = h.data_to_str(d, _p)
+            s2 = h.data_to_str(cls, d, _p)
             l_append(s1 + ':' + s2)
         r = '{'  + (', '.join(l)) + '}'
         if _p < parent_precedence:

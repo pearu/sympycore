@@ -127,15 +127,6 @@ class Verbatim(Algebra):
     def __repr__(self):
         return '%s(%r, %r)' % (type(self).__name__, self.head, self.data)
 
-    def __str__(self):
-        s = self._str
-        if s is None:
-            head, data = self.pair
-            s = head.data_to_str(data, 0.0)
-            if not self.is_writable:
-                self._str = s
-        return s
-
     def as_tree(self, tab='', level=0):
         if level:
             r = []

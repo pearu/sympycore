@@ -20,6 +20,8 @@ from ...arithmetic.numbers import complextypes, realtypes, inttypes
 from ...arithmetic.number_theory import factorial
 from ...arithmetic import infinity
 
+Apply = Calculus.Apply
+
 import math
 
 zero = Calculus.zero
@@ -45,7 +47,7 @@ class Sign(CalculusDefinedFunction):
     def __new__(cls, arg):
         if not isinstance(arg, Calculus):
             arg = Calculus.convert(arg)
-        return Calculus(cls, arg)
+        return Apply(cls, arg)
 
 class Mod(CalculusDefinedFunction):
     def __new__(cls, x, y):
@@ -57,7 +59,7 @@ class Mod(CalculusDefinedFunction):
         yh,yd = y.pair
         if xh is NUMBER and yh is NUMBER:
             return Calculus.convert(xd % yd)
-        return Calculus(cls, (x, y))
+        return Apply(cls, (x, y))
 
 class Factorial(CalculusDefinedFunction):
     def __new__(cls, x):
@@ -69,7 +71,7 @@ class Factorial(CalculusDefinedFunction):
                 if n >= 0:
                     return Calculus.convert(factorial(n))
                 return zoo
-        return Calculus(cls, x)
+        return Apply(cls, x)
 
 #---------------------------------------------------------------------------#
 #                                  Exponentials                             #
@@ -102,7 +104,7 @@ class Log(CalculusDefinedFunction):
                     return oo
                 if arg == undefined:
                     return undefined
-                return Calculus(cls, arg)
+                return Apply(cls, arg)
             else:
                 arg = Calculus.convert(arg)
         if base != E:
@@ -126,21 +128,21 @@ class Log(CalculusDefinedFunction):
                 return Ipi + Log(-arg)
             if isinstance(data, complextypes) and data.real == 0:
                 im = data.imag
-                if im > 0: return Calculus(cls, Calculus(NUMBER, im)) + Ipi2
-                if im < 0: return Calculus(cls, Calculus(NUMBER, -im)) - Ipi2
-            return Calculus(cls, arg)
+                if im > 0: return Apply(cls, Calculus(NUMBER, im)) + Ipi2
+                if im < 0: return Apply(cls, Calculus(NUMBER, -im)) - Ipi2
+            return Apply(cls, arg)
         if arg == E:
             return one
         from ..relational import is_positive
         if head is FACTORS and len(data) == 1:
             base, expt = data.items()[0]
             if is_positive(base) and isinstance(expt, realtypes):
-                return Calculus(cls, base) * expt
+                return Apply(cls, base) * expt
         if head is TERMS and len(data) == 1:
             term, coeff = data.items()[0]
             if (isinstance(coeff, realtypes) and coeff < 0) and is_positive(base):
                 return Ipi + Log(-arg)
-        return Calculus(cls, arg)
+        return Apply(cls, arg)
 
     @classmethod
     def derivative(cls, arg):
@@ -214,7 +216,7 @@ class TrigonometricFunction(CalculusDefinedFunction):
                 if arg == undefined:
                     return undefined
                 arg = Calculus(SPECIAL, arg)
-                return Calculus.Apply(cls, arg)
+                return Apply(cls, arg)
             else:
                 arg = Calculus.convert(arg)
         x, m = get_pi_shift(arg, 12)
@@ -242,9 +244,9 @@ class TrigonometricFunction(CalculusDefinedFunction):
             arg = -arg
             negate_result ^= (cls.parity == 'odd')
         if negate_result:
-            return -Calculus.Apply(cls, arg)
+            return -Apply(cls, arg)
         else:
-            return Calculus.Apply(cls, arg)
+            return Apply(cls, arg)
 
 class Sin(TrigonometricFunction):
     parity = 'odd'
