@@ -29,3 +29,14 @@ def test_gcd():
     assert q.degree == 0 and not r
     q, r = divmod(lcm(p1, p2), p1*poly([2,1]))
     assert q.degree == 0 and not r
+
+def test_poly_of_poly():
+    p1 = poly([1,2,3],'x')
+    p2 = poly([4,5,6],p1)
+    assert str(p2)=="4 + 5*(1 + 2*x + 3*x**2) + 6*(1 + 2*x + 3*x**2)**2",str(p2)
+
+def test_coeff_poly():
+    p1 = poly([1,2,3],'x')
+    p2 = poly([4,p1],'y')
+    p2 += poly([0,3],'y')
+    assert str(p2)=='4 + (4 + 2*x + 3*x**2)*y', str(p2)
