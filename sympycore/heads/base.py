@@ -84,14 +84,11 @@ class Head(object):
             return '(%s)' % data
         return '%s' % data
 
-    def sort_lexicographic(self, data):
-        return data
-
-    def __cmp2__(self, other):
-        c = cmp(other.precedence, self.precedence)
-        if c:
-            return c
-        return cmp(id(self), id(other))
+    def get_precedence_for_data(self, data):
+        """
+        Return the precedence order corresponding to given data.
+        """
+        return self.precedence
 
 class UnaryHead(Head):
     """

@@ -6,7 +6,7 @@ def test_add():
     f = Function('f')
     g = Function('g')
     assert str(f+g) in ['f + g', 'g + f'], str(f+g)
-    assert str((f+g)(x))=='f(x) + g(x)'
+    assert str((f+g)(x)) in ['f(x) + g(x)', 'g(x) + f(x)'],  str((f+g)(x))
     assert str((f+g)(x, evaluate=False)) in ['(f + g)(x)',
                                              '(g + f)(x)'], str((f+g)(x, evaluate=False))
 

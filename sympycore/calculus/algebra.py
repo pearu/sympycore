@@ -8,6 +8,7 @@ __all__ = ['Calculus', 'I']
 
 from ..core import classes, defined_functions
 from ..utils import TERMS, str_PRODUCT, FACTORS, SYMBOL, NUMBER
+from ..heads import APPLY, CALLABLE
 from ..basealgebra import Algebra, Verbatim
 from ..basealgebra.pairs import CollectingField
 
@@ -154,13 +155,18 @@ class Calculus(CollectingField):
             if r is not NotImplemented:
                 return self.Number(r)
             return self
-        if callable(head):
-            v = self.args[0].evalf(n)
+        if head is APPLY:
+            func = data[0]
+            h, func_data = func.pair
+            assert h is CALLABLE, `self, func` # todo: support symbolic functions
+            args = data[1:]
+            assert len (args)==1,`self, args` # todo: support multivariate functions
+            v = args[0].evalf(n)
             h, d = v.pair
             if h is NUMBER:
-                return self.Number(getattr(mpmath, self.func.__name__.lower())(d))
+                return self.Number(getattr(mpmath, func_data.__name__.lower())(d))
             else:
-                return head(v)
+                return type(self)(APPLY, (func, v))
         convert = self.convert
         return self.func(*[convert(a).evalf(n) for a in self.args])
 

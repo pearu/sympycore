@@ -42,7 +42,7 @@ def test_operations():
     assert repr(a^b)== "Verbatim(BXOR, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(a^b)
     assert repr(a<<b)== "Verbatim(LSHIFT, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(a<<b)
     assert repr(a>>b)== "Verbatim(RSHIFT, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(a>>b)
-    assert repr(divmod(a,b))== "Verbatim(APPLY, (Verbatim(SYMBOL, 'divmod'), Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(divmod(a,b))
+    assert repr(divmod(a,b))== "Verbatim(APPLY, (Verbatim(CALLABLE, <built-in function divmod>), Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(divmod(a,b))
     assert repr(a(b))== "Verbatim(APPLY, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(a(b))
     assert repr(a())== "Verbatim(APPLY, (Verbatim(SYMBOL, 'a'),))", repr(a())
     assert repr(a[b])== "Verbatim(SUBSCRIPT, (Verbatim(SYMBOL, 'a'), Verbatim(SYMBOL, 'b')))", repr(a[b])

@@ -6,7 +6,7 @@ __all__ = ['Algebra', 'SymbolicEquality']
 
 from ..core import classes, Expr, defined_functions
 from ..utils import LT, GT, LE, GE, NE, EQ, SYMBOL, NUMBER
-from ..heads import CallableHead
+from ..heads import CALLABLE, APPLY
 
 symbolic_comparison_map = dict(
     equality = dict(__eq__=EQ, __ne__=NE),
@@ -288,11 +288,14 @@ class Algebra(Expr):
     @classmethod
     def apply(cls, func, *args, **kwargs):
         convert= cls.convert
-        args = map(convert, args)
+        if callable(func):
+            new_args = [cls(CALLABLE, func)]
+        else:
+            new_args = [cls(SYMBOL, func)]
+        new_args += map(convert, args)
         for k, v in kwargs.items():
-            args.append(cls(KWARG, (convert(k), convert(v))))
-        r = cls(CallableHead(func), tuple(args))
-        return r
+            new_args.append(cls(KWARG, (convert(k), convert(v))))
+        return cls(APPLY, tuple(new_args))
 
     @property
     def symbols(self):

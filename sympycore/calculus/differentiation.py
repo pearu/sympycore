@@ -4,7 +4,7 @@ __docformat__ = "restructuredtext"
 __all__ = ['diff']
 
 from ..utils import SYMBOL, NUMBER, FACTORS, TERMS
-from ..heads import CallableHead
+from ..heads import APPLY, CALLABLE
 from ..arithmetic.numbers import inttypes
 from ..basealgebra import Algebra
 from ..basealgebra.pairs import inplace_add2, inplace_add, return_terms
@@ -48,10 +48,16 @@ def partial_derivative(func, n):
     return dfunc
 
 def diff_callable(f, arg, xdata, order):
-    if isinstance(f, CallableHead):
-        f = f.func
-        if type(arg) is tuple and len(arg)==1:
+    if f is APPLY:
+        h, d = arg[0].pair
+        assert h is CALLABLE,`f, arg` # todo: support for symbolic functions
+        f = d
+        arg = arg[1:]
+        if len(arg)==1:
             arg = arg[0]
+        else:
+            arg = tuple(arg)
+
     if order != 1:
         # D^n f(a*x+b) -> a**n * [D^n f](a*x+b)]
         if hasattr(f, 'nth_derivative'):

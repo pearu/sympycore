@@ -135,11 +135,17 @@ class TermsHead(Head):
     arbitrary Python objects.
     """
     precedence = Head.precedence_map['TERMS']
+    def get_precedence_for_data(self, data):
+        if len(data)==1:
+            return Head.precedence_map['MUL']
+        else:
+            return Head.precedence_map['TERMS']
+
     def data_to_str(self, data, parent_precedence):
         l = []
         r = ''
         mul_precedence = Head.precedence_map['MUL']
-        precedence = prec = self.precedence
+        precedence = self.get_precedence_for_data(data)
         for t, c in data.iteritems():
             h, d = t.pair
             sc = str(c)
@@ -149,11 +155,9 @@ class TermsHead(Head):
             else:
                 sign = ' + '
             if sc=='1':
-                prec = precedence
                 st = h.data_to_str(d, precedence)
                 s = st
             else:
-                prec = mul_precedence
                 st = h.data_to_str(d, mul_precedence)
                 if st=='1':
                     s = sc

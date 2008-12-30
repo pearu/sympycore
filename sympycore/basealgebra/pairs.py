@@ -12,6 +12,7 @@ __all__ = ['CollectingField']
 from ..core import classes, Expr
 from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_NUMBER
 from ..utils import ADD, SUB, MUL, DIV, TERMS, FACTORS, SYMBOL, NUMBER, APPLY, POW, TUPLE, NEG, POS
+from ..heads import CALLABLE
 
 from .algebra import Algebra
 from .ring import CommutativeRing
@@ -146,6 +147,7 @@ class CollectingField(CommutativeRing):
 
     @classmethod
     def coefficient_to_str_data(cls, obj, sort=True):
+        raise
         tobj = type(obj)
         if tobj is int or tobj is long:
             if obj < 0:
@@ -157,6 +159,7 @@ class CollectingField(CommutativeRing):
 
     @classmethod
     def exponent_to_str_data(cls, obj, sort=True):
+        raise
         tobj = type(obj)
         if tobj is int or tobj is long:
             if obj < 0:
@@ -168,14 +171,12 @@ class CollectingField(CommutativeRing):
 
     @classmethod
     def callable_to_str_data(cls, obj, sort=True):
+        raise
         if isinstance(obj, Algebra):
             return obj.to_str_data(sort=True)
         if hasattr(obj, '__name__'):
             return str_SYMBOL, obj.__name__
         return str_SYMBOL, str(obj)
-
-    def __str__(self):
-        return self.to_str_data()[1]
 
     def __str__(self):
         s = self._str_value
@@ -187,6 +188,7 @@ class CollectingField(CommutativeRing):
         return s
 
     def to_str_data(self, sort=True):
+        raise
         head, data = self.pair
         one = self.one
         cls = type(self)
@@ -266,15 +268,6 @@ class CollectingField(CommutativeRing):
                 return str_PRODUCT, '*'.join(r1)
             h, l = d.items()[0]
             return h, l[0]
-        if callable(head):
-            h1, s1 = cls.callable_to_str_data(head, sort)
-            if h1 > str_APPLY:
-                s1 = '(%s)' % (s1)
-            args = data
-            if type(args) is not tuple:
-                args = args,
-            s2 = ', '.join([a.to_str_data(sort)[1] for a in args])
-            return str_APPLY, '%s(%s)' % (s1, s2)
         if head is APPLY:
             func = data[0]
             args = data[1:]
@@ -293,7 +286,7 @@ class CollectingField(CommutativeRing):
         """ Return callable func such that ``self.func(**self.args) == self``
         """
         head, data = self.pair
-        if head is SYMBOL or head is NUMBER:
+        if head is SYMBOL or head is NUMBER or head is CALLABLE:
             return ConstantFunc(None, self)
         elif head is TERMS:
             if len(data)==1:
@@ -306,6 +299,10 @@ class CollectingField(CommutativeRing):
         elif callable(head):
             return head
         elif head is APPLY:
+            func = data[0]
+            h, d = func.pair
+            if h is CALLABLE:
+                return d
             return ApplyFunc(None, self)
         raise NotImplementedError(`self, head`)
 
@@ -314,7 +311,7 @@ class CollectingField(CommutativeRing):
         """ Return a sequence args such that ``self.func(**self.args) == self``
         """
         head, data = self.pair
-        if head is SYMBOL or head is NUMBER:
+        if head is SYMBOL or head is NUMBER or head is CALLABLE:
             return []
         elif head is TERMS:
             if len(data)==1:
@@ -474,7 +471,7 @@ class CollectingField(CommutativeRing):
     @classmethod
     def Apply(cls, func, args):
         if callable(func):
-            return cls(func, args)
+            func = cls(CALLABLE, func)
         return cls(APPLY, (func,)+args)
 
     Add = classmethod(operations.add_seq)
@@ -653,7 +650,7 @@ class CollectingField(CommutativeRing):
             if h is head and d==data:
                 return self.convert_operand(newexpr)
 
-        if head is SYMBOL or head is NUMBER:            
+        if head is SYMBOL or head is NUMBER or head is CALLABLE:            
             return self
             
         if head is TERMS:
@@ -687,6 +684,16 @@ class CollectingField(CommutativeRing):
                 return r
             return r * num
 
+        elif head is APPLY:
+            func = data[0] # todo: subs functional expressions
+            args = data[1:]
+            new_args = [a._subs(subexpr, newexpr) for a in args]
+            h, d = func.pair
+            if h is CALLABLE:
+                return d(*new_args)
+            else:
+                new_args.insert(0, func)
+                return cls(APPLY, tuple(new_args))
         elif callable(head):
             args = data
             if type(args) is tuple:

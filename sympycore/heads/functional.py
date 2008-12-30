@@ -1,5 +1,5 @@
 
-__all__ = ['APPLY', 'SUBSCRIPT', 'SLICE', 'LAMBDA', 'ATTR', 'KWARG', 'CallableHead']
+__all__ = ['APPLY', 'SUBSCRIPT', 'SLICE', 'LAMBDA', 'ATTR', 'KWARG', 'CALLABLE']
 
 from .base import Head
 from .atomic import SPECIAL
@@ -18,19 +18,12 @@ class ApplyHead(Head):
         precedence = self.precedence
         func = data[0]
         args = data[1:]
-
         h, d = func.pair
-        try:
-            r = h.data_to_str(d, precedence)
-        except AttributeError: # a temporary hack
-            r = str(d)
+        r = h.data_to_str(d, precedence)
         l = []
         for a in args:
             h, d = a.pair
-            try:
-                s = h.data_to_str(d, 0.0)
-            except AttributeError: # a temporary hack
-                s = str(d)
+            s = h.data_to_str(d, 0.0)
             l.append(s)
         r += '(%s)' % (', '.join(l))
         if precedence < parent_precedence:
@@ -188,55 +181,25 @@ class KwargHead(Head):
     def __repr__(self): return 'KWARG'
 
 class CallableHead(Head):
-    is_singleton = False
-    precedence = Head.precedence_map['APPLY']
+    """
+    CallableHead is a head for interpreting callable objects,
+    data is any callable Python object.
+    """
+    precedence = Head.precedence_map['SYMBOL']
 
-    def __hash__(self):
-        return hash(self.func)
-    def __eq__(self, other):
-        if type(self) is type(other):
-            return self.func == other.func
-        return False
-
-    def init(self, func):
-        self.func = func
-        if hasattr(func, '__name__'):
-            self.__name__ = func.__name__
-        else:
-            self.__name__ = str(func)
-
-    def data_to_str(self, args, parent_precedence):
-        precedence = self.precedence
-        func = self.func
+    def data_to_str(self, func, parent_precedence):
         if isinstance(func, Expr):
             h, d = func.pair
-            r = h.data_to_str(d, precedence)
+            return h.data_to_str(d, parent_precedence)
+        elif hasattr (func, '__name__'):
+            r = func.__name__
         else:
-            r = str(self)
-        l = []
-        for a in args:
-            h, d = a.pair
-            try:
-                s = h.data_to_str(d, 0.0)
-            except AttributeError: # a temporary hack
-                s = str(d)
-            l.append(s)
-        r += '(%s)' % (', '.join(l))
+            r = str(func)
+        precedence = self.get_precedence_for_data(func)
         if precedence < parent_precedence:
             return '(' + r + ')'
         return r
-
-    def __str__(self):
-        func = self.func
-        if callable(func):
-            return self.__name__
-        return str(func)
-
-    def __repr__(self):
-        return 'CallableHead(%s)' % (repr(self.func))
-
-    def __call__(self, *args, **kwargs):
-        return self.func(*args, **kwargs)
+    def __repr__(self): return 'CALLABLE'
 
 APPLY = ApplyHead()
 SUBSCRIPT = SubscriptHead()
@@ -244,3 +207,4 @@ SLICE = SliceHead()
 LAMBDA = LambdaHead()
 ATTR = AttrHead()
 KWARG = KwargHead()
+CALLABLE = CallableHead()

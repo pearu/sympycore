@@ -18,6 +18,7 @@ from ..utils import (OR, AND, NOT, LT, LE, GT, GE, EQ, NE, BAND, BOR, BXOR,
                      LSHIFT, RSHIFT, IS, ISNOT, LIST, SLICE,
                      NUMBER, SYMBOL, APPLY, TUPLE, LAMBDA, TERMS, FACTORS,
                      IN, NOTIN, SUBSCRIPT, SPECIAL, DICT, ATTR, KWARG)
+from ..heads import CALLABLE
 from ..core import classes, Expr, objects
 
 # Restrictions:
@@ -181,7 +182,7 @@ def %s(self, other):
 
     def __divmod__(self, other):
         other = self.convert(other)
-        return Verbatim(APPLY, (Verbatim(SYMBOL, 'divmod'), self, other))
+        return Verbatim(APPLY, (Verbatim(CALLABLE, divmod), self, other))
 
     def __call__(self, *args, **kwargs):
         convert = self.convert
@@ -198,6 +199,7 @@ def %s(self, other):
         return Verbatim(SUBSCRIPT, (self, key))
 
     def __getattr__(self, attr):
+        # warning: with this feature hasattr() may return True when not desired.
         if not attr.startswith('_'):
             return Verbatim(ATTR, (self, self.convert(attr)))
         raise AttributeError

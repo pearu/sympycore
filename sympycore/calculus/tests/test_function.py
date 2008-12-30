@@ -97,7 +97,8 @@ def test_foo():
     assert str((foo(x)+foo(y))**2)=='(foo(x) + foo(y))**2'
     assert str(((foo(x)+foo(y))**2).expand()) in ['2*foo(x)*foo(y) + foo(x)**2 + foo(y)**2',
                                                   'foo(x)**2 + foo(y)**2 + 2*foo(x)*foo(y)',
-                                                  'foo(y)**2 + foo(x)**2 + 2*foo(x)*foo(y)'], str(((foo(x)+foo(y))**2).expand())
+                                                  'foo(y)**2 + foo(x)**2 + 2*foo(x)*foo(y)',
+                                                  'foo(x)**2 + 2*foo(x)*foo(y) + foo(y)**2'], str(((foo(x)+foo(y))**2).expand())
 
 
 def test_bar():
@@ -116,7 +117,8 @@ def test_bar():
 
     assert str(((bar(x)+bar(y))**2).expand()) in ['2*bar(x)*bar(y) + bar(x)**2 + bar(y)**2',
                                                   'bar(x)**2 + bar(y)**2 + 2*bar(x)*bar(y)',
-                                                  'bar(y)**2 + bar(x)**2 + 2*bar(x)*bar(y)'], str(((bar(x)+bar(y))**2).expand())
+                                                  'bar(y)**2 + bar(x)**2 + 2*bar(x)*bar(y)',
+                                                  'bar(x)**2 + 2*bar(x)*bar(y) + bar(y)**2'], str(((bar(x)+bar(y))**2).expand())
 
 def test_fun():
     assert str(fun(x))=='fun(x)'
@@ -134,7 +136,8 @@ def test_fun():
 
     assert str(((fun(x)+fun(y))**2).expand()) in ['2*fun(x)*fun(y) + fun(x)**2 + fun(y)**2',
                                                   'fun(x)**2 + fun(y)**2 + 2*fun(x)*fun(y)',
-                                                  'fun(y)**2 + fun(x)**2 + 2*fun(x)*fun(y)'],\
+                                                  'fun(y)**2 + fun(x)**2 + 2*fun(x)*fun(y)',
+                                                  'fun(x)**2 + 2*fun(x)*fun(y) + fun(y)**2'],\
                                                   str(((fun(x)+fun(y))**2).expand())
 
 def test_diff():
