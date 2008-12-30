@@ -39,13 +39,37 @@ class SparsepolyHead(Head):
                 terms.append('1')
         r = ' + '.join(terms)
         return r
+    
 
 class DensepolyHead(Head):
     """
     DensepolyHead is a head for dense polynomials represented
-    as n-tuple of coefficients, data can be a tuple object.
-
+    as n-tuple of coefficients, data is a 2-tuple (symbol, coeffseq).
     """
+    def data_to_str(self, cls, (symbol, data), parent_precedence):
+        str_symbol = str(symbol)
+        terms = []
+        for exp, coeff in enumerate(data):
+            if not coeff:
+                continue
+            if exp:
+                if exp==1:
+                    if coeff==1:
+                        terms.append(str_symbol)
+                    else:
+                        terms.append('%s*%s' % (coeff, str_symbol))
+                else:
+                    if coeff==1:
+                        terms.append('%s**%s' % (str_symbol, exp))
+                    else:
+                        terms.append('%s*%s**%s' % (coeff, str_symbol, exp))
+            else:
+                terms.append('%s' % (coeff,))
+        if terms:
+            r = ' + '.join(terms)
+        else:
+            r = '0'
+        return r
 
 SPARSE_POLY = SparsepolyHead()
 DENSE_POLY = DensepolyHead()
