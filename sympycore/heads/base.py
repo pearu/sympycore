@@ -24,7 +24,7 @@ class Head(object):
     in a range [0.0, 1.0]. Lowest precedence value 0.0 is assigned
     for atomic expressions.
     """
-    precedence = 1.0
+
     precedence_map = dict(
         LAMBDA = 0.0,
         KWARG = 0.01,

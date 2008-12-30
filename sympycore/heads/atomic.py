@@ -22,6 +22,7 @@ class AtomicHead(Head):
     """
     AtomicHead is a base class to atomic expression heads.
     """
+
     def data_to_str(self, data, parent_precedence):
         if isinstance(data, Expr):
             h, d = data.pair
@@ -36,8 +37,11 @@ class SpecialHead(AtomicHead):
     SpecialHead is head for special objects like None, NotImplemented,
     Ellipsis, etc.  Data can be any Python object.
     """
-    precedence = Head.precedence_map['SPECIAL']
 
+    def get_precedence_for_data(self, data,
+                                _p = Head.precedence_map['SPECIAL']):
+        return _p
+    
     def data_to_str(self, data, parent_precedence):
         if data is Ellipsis:
             return '...'
@@ -49,16 +53,13 @@ class SymbolHead(AtomicHead):
     """
     SymbolHead is a head for symbols, data can be any Python object.
     """
-    precedence = Head.precedence_map['SYMBOL']
 
-    def get_precedence_for_data(self, data):
-        m = Head.precedence_map
-        if isinstance(data, str):
-            return m['SYMBOL']
-        elif isinstance(data, Expr):
+    def get_precedence_for_data(self, data,
+                                _p = Head.precedence_map['SYMBOL']):
+        if isinstance(data, Expr):
             h, d = data.pair
             return h.get_precedence_for_data(d)
-        return m['SYMBOL']
+        return _p
     
     def __repr__(self): return 'SYMBOL'
 
@@ -66,25 +67,28 @@ class NumberHead(AtomicHead):
     """
     NumberHead is a head for symbols, data can be any Python object.
     """
-    precedence = Head.precedence_map['NUMBER']
 
-    def get_precedence_for_data(self, data):
-        m = Head.precedence_map
+    def get_precedence_for_data(self, data,
+                                _p = Head.precedence_map['NUMBER'],
+                                _neg_p = Head.precedence_map['NEG'],
+                                _add_p = Head.precedence_map['ADD'],
+                                _div_p = Head.precedence_map['DIV'],
+                                ):
         if isinstance(data, complextypes):
             # todo: check for pure imaginary numbers
-            return m['ADD']
+            return _add_p
         elif isinstance(data, rationaltypes):
             if data < 0:
-                return m['NEG']
-            return m['DIV']
+                return _neg_p
+            return _div_p
         elif isinstance(data, realtypes):
             if data < 0:
-                return m['NEG']
-            return m['NUMBER']
+                return _neg_p
+            return _p
         elif isinstance(data, Expr):
             h, d = data.pair
             return h.get_precedence_for_data(d)
-        return m['NUMBER']
+        return _p
     
     def __repr__(self): return 'NUMBER'
 

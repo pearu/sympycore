@@ -36,16 +36,19 @@ class AddHead(NaryHead):
     given as a n-tuple of expressions. For example, expression 'a +
     2*b' is 'Expr(ADD, (a, 2*b))' where ADD=AddHead()
     """
-    precedence = Head.precedence_map['ADD']
     op_mth = '__add__'
     op_rmth = '__radd__'
-    
-    def data_to_str(self, data, parent_precedence):
-        precedence = self.precedence
+
+    def get_precedence_for_data(self, data,
+                                _p = Head.precedence_map['ADD']):
+        return _p
+
+    def data_to_str(self, data, parent_precedence,
+                    _p = Head.precedence_map['ADD']):
         r = ''
         for t in data:
             h, d = t.pair
-            s = h.data_to_str(d, precedence)
+            s = h.data_to_str(d, _p)
             if h is NEG or h is POS:
                 r += s
             else:
@@ -53,7 +56,7 @@ class AddHead(NaryHead):
                     r += ' + ' + s
                 else:
                     r += s
-        if precedence < parent_precedence:
+        if _p < parent_precedence:
             return '(' + r + ')'
         return r
 
@@ -134,17 +137,15 @@ class TermsHead(Head):
     is a dictionary or a frozenset of such pairs, coefficients are
     arbitrary Python objects.
     """
-    precedence = Head.precedence_map['TERMS']
-    def get_precedence_for_data(self, data):
-        if len(data)==1:
-            return Head.precedence_map['MUL']
-        else:
-            return Head.precedence_map['TERMS']
 
-    def data_to_str(self, data, parent_precedence):
+    def get_precedence_for_data(self, data,
+                                _p1 = Head.precedence_map['MUL'],
+                                _p2 = Head.precedence_map['TERMS']):
+        return _p1 if len(data)==1 else _p2
+
+    def data_to_str(self, data, parent_precedence, _mul_p = Head.precedence_map['MUL']):
         l = []
         r = ''
-        mul_precedence = Head.precedence_map['MUL']
         precedence = self.get_precedence_for_data(data)
         for t, c in data.iteritems():
             h, d = t.pair
@@ -158,7 +159,7 @@ class TermsHead(Head):
                 st = h.data_to_str(d, precedence)
                 s = st
             else:
-                st = h.data_to_str(d, mul_precedence)
+                st = h.data_to_str(d, _mul_p)
                 if st=='1':
                     s = sc
                 else:
@@ -182,18 +183,17 @@ class FactorsHead(Head):
     data is a dictionary or a frozenset of such pairs, exponents are
     arbitrary Python objects that are treated as NUMBER expressions.
     """
-    precedence = Head.precedence_map['FACTORS']
-    def get_precedence_for_data(self, data):
-        if len(data)==1:
-            return Head.precedence_map['POW']
-        else:
-            return Head.precedence_map['FACTORS']
+
+    def get_precedence_for_data(self, data,
+                                _p1 = Head.precedence_map['POW'],
+                                _p2 = Head.precedence_map['FACTORS']):
+        return _p1 if len(data)==1 else _p2
             
-    def data_to_str(self, data, parent_precedence):
+    def data_to_str(self, data, parent_precedence,
+                    _pow_p = Head.precedence_map['POWPOW']):
         l = []
         l_append = l.append
         r = ''
-        pow_precedence = Head.precedence_map['POWPOW']
         precedence = self.get_precedence_for_data(data)
         NUMBER_data_to_str = NUMBER.data_to_str
         for b, e in data.iteritems():
@@ -203,7 +203,7 @@ class FactorsHead(Head):
             else:
                 se = NUMBER_data_to_str(e, precedence)
             h, d = b.pair
-            s = h.data_to_str(d, pow_precedence)
+            s = h.data_to_str(d, _pow_p)
             if se!='1':
                 s = s + '**' + se
             l_append(s)
