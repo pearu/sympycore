@@ -102,7 +102,10 @@ class _Tester:
 
     def check_testing(self):
         import os, sys
-        import nose
+        try:
+            import nose
+        except ImportError:
+            return
         if sys.platform=='win32':
             m = lambda s: s.lower()
         else:
