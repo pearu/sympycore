@@ -22,8 +22,14 @@ from functions import *
 
 import utils
 import heads
+
+from .arithmetic.numbers import realtypes, rationaltypes, complextypes
+
 heads.arith_ops.Expr = Expr
-heads.functional.Expr = Expr
+heads.atomic.Expr = Expr
+heads.atomic.realtypes = realtypes
+heads.atomic.rationaltypes = rationaltypes
+heads.atomic.complextypes = complextypes
 
 def profile_expr(expr):
     """ Printout the profiler information for executing ``expr``.

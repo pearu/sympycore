@@ -116,7 +116,7 @@ def test_bar():
                                                   'bar(x)**2 + 2*bar(x)*bar(y) + bar(y)**2'], str(((bar(x)+bar(y))**2).expand())
 
 def test_fun():
-    assert str(fun(x))=='fun(x)'
+    assert str(fun(x))=='fun(x)',str(fun(x))
     assert str(fun(0))=='0'
     assert str(fun(x+y)) in ['fun(x + y)', 'fun(y + x)'], str(fun(x+y))
 

@@ -309,11 +309,13 @@ class mpqc(object):
 #
 
 inttypes = (int, long)
+rationaltypes = (mpq,)
 numbertypes = (int, long, float, complex, mpq, mpqc, mpf, mpc)
 realtypes = (int, long, float, mpq, mpf)
 complextypes = (complex, mpqc, mpc)
 
 inttypes_set = frozenset(inttypes)
+rationaltypes_set = frozenset(rationaltypes)
 realtypes_set = frozenset(realtypes)
 complextypes_set = frozenset(complextypes)
 numbertypes_set = frozenset(numbertypes)

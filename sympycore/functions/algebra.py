@@ -11,6 +11,7 @@ from ..core import classes, DefinedFunction, objects, get_nargs
 from ..basealgebra import CollectingField, Verbatim, Algebra
 from ..utils import SYMBOL, NUMBER, APPLY, DIFF, str_SYMBOL, TERMS, FACTORS
 from ..calculus import Calculus
+from ..heads import CALLABLE
 
 def aseqvalg2str(seq, alg):
     shortname_map = {'Calculus':'Calc'}
@@ -65,7 +66,8 @@ def Function(obj, *args):
     
     ``valg`` is a algebra class defining the domain of function values.
     """
-    if callable(obj):
+    is_callable = callable(obj)
+    if is_callable:
         nargs = get_nargs(obj)
     else:
         nargs = 1
@@ -93,6 +95,8 @@ def Function(obj, *args):
     cls = get_function_ring(aseq, valg)
     if isinstance(obj, valg): # constant function
         return cls(NUMBER, obj)
+    if is_callable:
+        return cls(CALLABLE, obj)
     return cls(SYMBOL, obj)   # defined and undefined functions
 
 objects.Function = Function

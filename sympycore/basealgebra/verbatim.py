@@ -131,7 +131,9 @@ class Verbatim(Algebra):
         s = self._str
         if s is None:
             head, data = self.pair
-            self._str = s = head.data_to_str(data, 0.0)
+            s = head.data_to_str(data, 0.0)
+            if not self.is_writable:
+                self._str = s
         return s
 
     def as_tree(self, tab='', level=0):
@@ -316,8 +318,15 @@ def visit%s(self, node):
         self.visit(n)
 
     def visitLambda(self, node):
+        assert not (node.kwargs or node.varargs),`node` # parsing `lambda *args, **kwargs: ..` not supported
         self.start(LAMBDA)
-        self.visit(ast.Tuple([ast.Name(n) for n in node.argnames]))
+        self.start(TUPLE)
+        for n,d in zip(node.argnames, (len(node.argnames) - len(node.defaults))*[None] + list(node.defaults)):
+            if d is None:
+                self.visit(ast.Name(n))
+            else:
+                self.visit(ast.Keyword(n, d))
+        self.end()
         self.visit(node.code)
         self.end()
 

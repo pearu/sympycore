@@ -26,8 +26,8 @@ class Head(object):
     """
     precedence = 1.0
     precedence_map = dict(
-        KWARG = 0.0,
-        LAMBDA = 0.01,
+        LAMBDA = 0.0,
+        KWARG = 0.01,
         OR = 0.02, AND = 0.03, NOT = 0.04,
         LT = 0.1, LE = 0.1, GT = 0.1, GE = 0.1, EQ = 0.09, NE = 0.09,
         IN = 0.1, NOTIN = 0.1, IS = 0.1, ISNOT = 0.1,
@@ -81,14 +81,14 @@ class Head(object):
         """
         precedence = self.precedence
         if precedence < parent_precedence:
-            return '(%s)' % data
-        return '%s' % data
+            return '(%s)' % (data,)
+        return '%s' % (data,)
 
     def get_precedence_for_data(self, data):
         """
         Return the precedence order corresponding to given data.
         """
-        return self.precedence
+        return 1.0
 
 class UnaryHead(Head):
     """
@@ -99,10 +99,7 @@ class UnaryHead(Head):
     def data_to_str(self, data, parent_precedence):
         precedence = self.precedence
         h, d = data.pair
-        try:
-            r = self.op_symbol + h.data_to_str(d, precedence)
-        except AttributeError: # a temporary hack
-            r = self.op_symbol + str(data)
+        r = self.op_symbol + h.data_to_str(d, precedence)
         if precedence < parent_precedence:
             return '(' + r + ')'
         return r
@@ -112,20 +109,13 @@ class BinaryHead(Head):
     BinaryHead is base class for binary operation heads,
     data is a 2-tuple of expression operands.
     """
-    def data_to_str(self, data, parent_precedence):
+    def data_to_str(self, (lhs, rhs), parent_precedence):
         precedence = self.precedence
-        lhs, rhs = data
         h,d = lhs.pair
-        try:
-            sl = h.data_to_str(d, precedence)
-        except AttributeError: # a temporary hack
-            sl = str(d)
+        s1 = h.data_to_str(d, precedence)
         h,d = rhs.pair
-        try:
-            sr = h.data_to_str(d, precedence)
-        except AttributeError: # a temporary hack
-            sr = str(d)
-        r = '%s%s%s' % (sl, self.op_symbol, sr)
+        s2 = h.data_to_str(d, precedence)
+        r = s1 + self.op_symbol + s2
         if precedence < parent_precedence:
             return '(' + r + ')'
         return r
@@ -137,17 +127,12 @@ class NaryHead(Head):
     """
     def data_to_str(self, data, parent_precedence):
         precedence = self.precedence
-        r = ''
+        l = []
+        l_append = l.append
         for t in data:
             h, d = t.pair
-            try:
-                s = h.data_to_str(d, precedence)
-            except AttributeError: # a temporary hack
-                s = str(d)
-            if r:
-                r += self.op_symbol + s
-            else:
-                r += s
+            l_append(h.data_to_str(d, precedence))
+        r = self.op_symbol.join(l)
         if precedence < parent_precedence:
             return '(' + r + ')'
         return r

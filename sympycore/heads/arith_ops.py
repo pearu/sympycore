@@ -180,17 +180,21 @@ class FactorsHead(Head):
     """
     FactorsHead is a head of a product of factor and exponent pairs,
     data is a dictionary or a frozenset of such pairs, exponents are
-    arbitrary Python objects.
+    arbitrary Python objects that are treated as NUMBER expressions.
     """
     precedence = Head.precedence_map['FACTORS']
+    def get_precedence_for_data(self, data):
+        if len(data)==1:
+            return Head.precedence_map['POW']
+        else:
+            return Head.precedence_map['FACTORS']
+            
     def data_to_str(self, data, parent_precedence):
         l = []
+        l_append = l.append
         r = ''
-        if len(data)==1:
-            pow_precedence = Head.precedence_map['POWPOW']
-            precedence = Head.precedence_map['POW']
-        else:
-            precedence = pow_precedence = self.precedence
+        pow_precedence = Head.precedence_map['POWPOW']
+        precedence = self.get_precedence_for_data(data)
         NUMBER_data_to_str = NUMBER.data_to_str
         for b, e in data.iteritems():
             if isinstance(e, Expr):
@@ -199,18 +203,11 @@ class FactorsHead(Head):
             else:
                 se = NUMBER_data_to_str(e, precedence)
             h, d = b.pair
-            if se=='1':
-                s = sb = h.data_to_str(d, precedence)
-            else:
-                sb = h.data_to_str(d, pow_precedence)
-                if sb=='1':
-                    s = sb
-                else:
-                    s = sb + '**' + se
-            if r:
-                r += '*' + s
-            else:
-                r += s
+            s = h.data_to_str(d, pow_precedence)
+            if se!='1':
+                s = s + '**' + se
+            l_append(s)
+        r = '*'.join(l)
         if precedence < parent_precedence:
             return '(' + r + ')'
         return r        

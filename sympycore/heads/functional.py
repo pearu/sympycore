@@ -1,10 +1,8 @@
 
-__all__ = ['APPLY', 'SUBSCRIPT', 'SLICE', 'LAMBDA', 'ATTR', 'KWARG', 'CALLABLE']
+__all__ = ['APPLY', 'SUBSCRIPT', 'SLICE', 'LAMBDA', 'ATTR', 'KWARG']
 
 from .base import Head
 from .atomic import SPECIAL
-
-Expr = None
 
 class ApplyHead(Head):
     """
@@ -113,16 +111,10 @@ class LambdaHead(Head):
         h, args = args.pair
         for a in args:
             h, d = a.pair
-            try:
-                s = h.data_to_str(d, 0.0)
-            except AttributeError: # a temporary hack
-                s = str(d)
+            s = h.data_to_str(d, precedence)
             l.append(s)
         h, d = expr.pair
-        try:
-            s = h.data_to_str(d, 0.0)
-        except AttributeError: # a temporary hack
-            s = str(d)
+        s = h.data_to_str(d, precedence)
         r = 'lambda %s: %s' % (', '.join(l), s)
         if precedence < parent_precedence:
             return '(' + r + ')'
@@ -139,16 +131,10 @@ class AttrHead(Head):
     def data_to_str(self, (expr, attr), parent_precedence):
         precedence = self.precedence
         h, d = expr.pair
-        try:
-            se = h.data_to_str(d, precedence)
-        except AttributeError: # a temporary hack
-            se = str(d)
+        s1 = h.data_to_str(d, precedence)
         h, d = attr.pair
-        try:
-            sa = h.data_to_str(d, 0.0)
-        except AttributeError: # a temporary hack
-            sa = str(d)
-        r = '%s.%s' % (se, sa)
+        s2 = h.data_to_str(d, 0.0)
+        r = s1 + '.' + s2
         if precedence < parent_precedence:
             return '(' + r + ')'
         return r
@@ -164,42 +150,15 @@ class KwargHead(Head):
     def data_to_str(self, (name, expr), parent_precedence):
         precedence = self.precedence
         h, d = name.pair
-        try:
-            s1 = h.data_to_str(d, precedence)
-        except AttributeError: # a temporary hack
-            s1 = str(d)
+        s1 = h.data_to_str(d, precedence)
         h, d = expr.pair
-        try:
-            s2 = h.data_to_str(d, precedence)
-        except AttributeError: # a temporary hack
-            s2 = str(d)
-        r = '%s=%s' % (s1, s2)
+        s2 = h.data_to_str(d, precedence)
+        r = s1 + '=' + s2
         if precedence < parent_precedence:
             return '(' + r + ')'
         return r
         
     def __repr__(self): return 'KWARG'
-
-class CallableHead(Head):
-    """
-    CallableHead is a head for interpreting callable objects,
-    data is any callable Python object.
-    """
-    precedence = Head.precedence_map['SYMBOL']
-
-    def data_to_str(self, func, parent_precedence):
-        if isinstance(func, Expr):
-            h, d = func.pair
-            return h.data_to_str(d, parent_precedence)
-        elif hasattr (func, '__name__'):
-            r = func.__name__
-        else:
-            r = str(func)
-        precedence = self.get_precedence_for_data(func)
-        if precedence < parent_precedence:
-            return '(' + r + ')'
-        return r
-    def __repr__(self): return 'CALLABLE'
 
 APPLY = ApplyHead()
 SUBSCRIPT = SubscriptHead()
@@ -207,4 +166,3 @@ SLICE = SliceHead()
 LAMBDA = LambdaHead()
 ATTR = AttrHead()
 KWARG = KwargHead()
-CALLABLE = CallableHead()

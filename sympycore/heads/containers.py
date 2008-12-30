@@ -12,16 +12,15 @@ class TupleHead(Head):
     def data_to_str(self, data, parent_precedence):
         precedence = self.precedence
         l = []
+        l_append = l.append
         for t in data:
             h, d = t.pair
-            try:
-                s = h.data_to_str(d, precedence)
-            except AttributeError: # a temporary hack
-                s = str(d)
-            l.append(s)
+            s = h.data_to_str(d, precedence)
+            l_append(s)
         if len(l)==1:
-            return '(%s,)' % (l[0])
-        return '(%s)' % (', '.join(l))        
+            return '('+ l[0] +',)'
+        return '(' + (', '.join(l)) + ')'
+    
     def __repr__(self): return 'TUPLE'
 
 class ListHead(Head):
@@ -33,14 +32,12 @@ class ListHead(Head):
     def data_to_str(self, data, parent_precedence):
         precedence = self.precedence
         l = []
+        l_append = l.append
         for t in data:
             h, d = t.pair
-            try:
-                s = h.data_to_str(d, precedence)
-            except AttributeError: # a temporary hack
-                s = str(d)
-            l.append(s)
-        r = '[%s]' % (', '.join(l))
+            s = h.data_to_str(d, precedence)
+            l_append(s)
+        r = '[' + (', '.join(l)) + ']'
         if precedence < parent_precedence:
             return '(' + r + ')'
         return r
@@ -56,20 +53,14 @@ class DictHead(Head):
     def data_to_str(self, data, parent_precedence):
         precedence = self.precedence
         l = []
+        l_append = l.append
         for k, v in data:
             h, d = k.pair
-            try:
-                sk = h.data_to_str(d, 0.0)
-            except AttributeError: # a temporary hack
-                sk = str(d)
+            s1 = h.data_to_str(d, precedence)
             h, d = v.pair
-            try:
-                sv = h.data_to_str(d, 0.0)
-            except AttributeError: # a temporary hack
-                sv = str(d)
-            s = '%s:%s' % (sk, sv)
-            l.append(s)
-        r = '{%s}' % (', '.join(l))
+            s2 = h.data_to_str(d, precedence)
+            l_append(s1 + ':' + s2)
+        r = '{'  + (', '.join(l)) + '}'
         if precedence < parent_precedence:
             return '(' + r + ')'
         return r

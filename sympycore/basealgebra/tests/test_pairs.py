@@ -48,7 +48,6 @@ def test_add():
     s -= n
     assert str(s) in ['a - 5', '-5 + a'], str(s)
     s -= -7
-    print s
     assert str(s) in ['2 + a', 'a + 2']
     s -= 0
     assert str(s) in ['2 + a', 'a + 2']
@@ -214,8 +213,8 @@ def test_as_verbatim():
     assert str(a.as_verbatim())=='a'
     assert str(n.as_verbatim())=='2'
     assert str(t.as_verbatim())=='-3', `str(t.as_verbatim())`
-    #assert str(s.as_verbatim())=='2 + a',`repr(s.as_verbatim()),s`
-    assert str(s1.as_verbatim())=='2*a'
+    assert str(s.as_verbatim()) in ['2 + a','a + 2'],`repr(s.as_verbatim()),s`
+    assert str(s1.as_verbatim())=='2*a', str(s1.as_verbatim())
     assert str(m.as_verbatim())=='a**2',` str(m.as_verbatim())`
     assert str(m2.as_verbatim())=='a*b'
 
@@ -448,7 +447,7 @@ def test_add_pow():
     assert s**1==s
     assert s**0==1
     assert str(s**2) in ['(2 + a)**2', '(a + 2)**2']
-    assert str(s**-2) in ['(2 + a)**(-2)', '(2 + a)**-2', '(a + 2)**(-2)'], str(s**-2)
+    assert str(s**-2) in ['(2 + a)**(-2)', '(2 + a)**-2', '(a + 2)**(-2)', '(a + 2)**-2'], str(s**-2)
     assert str(s**n) in ['(2 + a)**3','(a + 2)**3']
     assert str(s**a) in [str('(2 + a)**a'), '(a + 2)**a']
     assert str(s**s) in [str('(2 + a)**(2 + a)'), '(a + 2)**(a + 2)']
@@ -586,8 +585,9 @@ def test_expand():
                                           '3*x**2*z + 3*y**2*x + 3*y*z**2 + x**3 + 3*y**2*z + z**3 + 3*x*z**2 + 6*y*x*z + 3*y*x**2 + y**3',
                                           '3*x**2*z + 3*y**2*x + 3*x*z**2 + 3*y**2*z + z**3 + x**3 + 3*y*z**2 + 3*y*x**2 + y**3 + 6*y*x*z',
                                           '3*x**2*z + 3*y**2*x + 3*y*z**2 + x**3 + 3*y**2*z + z**3 + 6*y*x*z + 3*y*x**2 + 3*x*z**2 + y**3',
-                                          '3*x**2*z + 3*y**2*x + 3*y*z**2 + 3*x*z**2 + x**3 + z**3 + 6*y*x*z + 3*y*x**2 + 3*y**2*z + y**3'
-                                          ],\
+                                          '3*x**2*z + 3*y**2*x + 3*y*z**2 + 3*x*z**2 + x**3 + z**3 + 6*y*x*z + 3*y*x**2 + 3*y**2*z + y**3',
+                                          '3*x**2*z + 3*y**2*x + 3*x*z**2 + 3*y**2*z + z**3 + 6*y*x*z + 3*y*z**2 + x**3 + 3*y*x**2 + y**3',
+                                          '3*x**2*z + 3*y**2*x + x**3 + 3*x*z**2 + 3*y**2*z + z**3 + 6*y*x*z + 3*y*z**2 + 3*y*x**2 + y**3'],\
                                           str(((x+y+z)**3).expand())
 
     assert str(((2*x+y)**2).expand()) in ['4*x**2 + 4*x*y + y**2',
@@ -645,8 +645,10 @@ def test_expand():
                                           '1 + 3*y*x**2 + 3*y**2*x + x**3 + 3*x**2 + 3*y + 3*x + 3*y**2 + 6*y*x + y**3',
                                           '1 + 3*x**2 + x**3 + 3*y*x**2 + 3*y**2*x + 3*y + 3*x + 3*y**2 + 6*y*x + y**3',
                                           '1 + 3*x**2 + 3*y**2*x + x**3 + 3*y*x**2 + 3*y + 3*x + 3*y**2 + 6*y*x + y**3',
-                                          '1 + 3*x**2 + 3*y*x**2 + x**3 + 3*y**2*x + 3*y + 3*x + 3*y**2 + 6*y*x + y**3'
-                                          ],str(((1+x+y)**3).expand())
+                                          '1 + 3*x**2 + 3*y*x**2 + x**3 + 3*y**2*x + 3*y + 3*x + 3*y**2 + 6*y*x + y**3',
+                                          '1 + 3*x**2 + x**3 + 3*y*x**2 + 3*y + 3*x + 3*y**2 + 3*y**2*x + 6*y*x + y**3',
+                                          '1 + 3*x**2 + x**3 + 6*y*x + 3*y**2*x + 3*y + 3*x + 3*y*x**2 + 3*y**2 + y**3'],\
+                                          str(((1+x+y)**3).expand())
 
 def test_has_symbol():
     x, y = map(Symbol, 'xy')
