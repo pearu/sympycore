@@ -25,7 +25,7 @@ import heads
 
 from .arithmetic.numbers import realtypes, rationaltypes, complextypes
 
-heads.arith_ops.Expr = Expr
+heads.arithmetic.Expr = Expr
 heads.atomic.Expr = Expr
 heads.atomic.realtypes = realtypes
 heads.atomic.rationaltypes = rationaltypes
