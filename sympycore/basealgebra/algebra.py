@@ -286,7 +286,7 @@ class Algebra(Expr):
         return cls(NUMBER, num)
 
     @classmethod
-    def apply(cls, func, *args, **kwargs):
+    def Apply(cls, func, *args, **kwargs):
         convert= cls.convert
         if callable(func):
             new_args = [cls(CALLABLE, func)]

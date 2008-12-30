@@ -468,12 +468,6 @@ class CollectingField(CommutativeRing):
         """
         return cls(NUMBER, obj)
 
-    @classmethod
-    def Apply(cls, func, args):
-        if callable(func):
-            func = cls(CALLABLE, func)
-        return cls(APPLY, (func,)+args)
-
     Add = classmethod(operations.add_seq)
 
     @classmethod

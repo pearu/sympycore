@@ -17,7 +17,7 @@ def foo(x):
     """
     if x==0:
         return x
-    return Algebra.apply(foo, x)
+    return Apply(foo, x)
 
 class bar(object):
     """ Python new-style class can be used to construct applied
@@ -26,7 +26,7 @@ class bar(object):
     def __new__(cls, x):
         if x==0:
             return x
-        return Algebra.apply(cls, x)
+        return Apply(cls, x)
 
 class Fun:
     """ A callable class instance can be used to construct applied
@@ -41,19 +41,19 @@ class Fun:
     def __call__(self, x):
         if x==0:
             return x
-        return Algebra.apply(self, x)
+        return Apply(self, x)
 
 fun = Fun('fun')
 
 def mysin(x):
     if x==0:
         return x
-    return Algebra.apply(mysin, x)
+    return Apply(mysin, x)
 
 def mycos(x):
     if x==0:
         return Algebra.one
-    return Algebra.apply(mycos, x)
+    return Apply(mycos, x)
 
 mysin.derivative = lambda arg: mycos(arg)
 mycos.derivative = lambda arg: -mysin(arg)
@@ -61,17 +61,17 @@ mycos.derivative = lambda arg: -mysin(arg)
 def foo2(x, y):
     if x==y:
         return Algebra.one
-    return Algebra.apply(foo2, x,y)
+    return Apply(foo2, x,y)
 
 def foo2_1(x, y):
-    return Algebra.apply(foo2_1, x,y)
+    return Apply(foo2_1, x,y)
 def foo2_2(x, y):
-    return Algebra.apply(foo2_2, x,y)
+    return Apply(foo2_2, x,y)
 
 foo2.derivative = foo2_1,foo2_2
 
 def bar2(x, y):
-    return Algebra.apply(bar2, x,y)
+    return Apply(bar2, x,y)
 
 def test_foo():
     assert str(foo(x))=='foo(x)',str(foo(x))

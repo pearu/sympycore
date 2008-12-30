@@ -73,7 +73,7 @@ def diff_callable(f, arg, xdata, order):
             da = diff_generic(a, xdata, one)
             if da == zero:
                 continue
-            df = Calculus.apply(partial_derivative(f, i+1), *arg)
+            df = Calculus.Apply(partial_derivative(f, i+1), *arg)
             terms.append(da * df)
         return Calculus.Add(*terms)
     da = diff_generic(arg, xdata, one)
@@ -81,7 +81,7 @@ def diff_callable(f, arg, xdata, order):
         return zero
     if hasattr(f, 'derivative'):
         return diff_repeated(da * f.derivative(arg), xdata, order-1)
-    df = Calculus.apply(partial_derivative(f, one), arg)
+    df = Calculus.Apply(partial_derivative(f, one), arg)
     return df * da
 
 def diff_factor(base, exp, xdata, order):

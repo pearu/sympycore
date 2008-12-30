@@ -214,7 +214,7 @@ class TrigonometricFunction(CalculusDefinedFunction):
                 if arg == undefined:
                     return undefined
                 arg = Calculus(SPECIAL, arg)
-                return Calculus.apply(cls, arg)
+                return Calculus.Apply(cls, arg)
             else:
                 arg = Calculus.convert(arg)
         x, m = get_pi_shift(arg, 12)
@@ -242,9 +242,9 @@ class TrigonometricFunction(CalculusDefinedFunction):
             arg = -arg
             negate_result ^= (cls.parity == 'odd')
         if negate_result:
-            return -Calculus.apply(cls, arg)
+            return -Calculus.Apply(cls, arg)
         else:
-            return Calculus.apply(cls, arg)
+            return Calculus.Apply(cls, arg)
 
 class Sin(TrigonometricFunction):
     parity = 'odd'

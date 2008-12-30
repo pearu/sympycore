@@ -8,7 +8,7 @@ Mul = Algebra.Mul
 Pow = Algebra.Pow
 Terms = Algebra.Terms
 Factors = Algebra.Factors
-Apply = Algebra.apply
+Apply = Algebra.Apply
 
 x,y,z = map(Symbol, 'xyz')
 
@@ -27,7 +27,7 @@ class bar(object):
     def __new__(cls, x):
         if x==0:
             return x
-        r = Algebra.apply(cls, x)
+        r = Apply(cls, x)
         return r
 
 class Fun:

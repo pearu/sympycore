@@ -55,7 +55,7 @@ class CalculusInfinity(Infinity):
         if r is not NotImplemented:
             return Calculus.convert(r)
         x = Calculus.convert(x)
-        return Calculus.apply(cls.IsUnbounded, x)
+        return Calculus.Apply(cls.IsUnbounded, x)
 
     @classmethod
     def EqualArg(cls, x, y):
@@ -77,7 +77,7 @@ class CalculusInfinity(Infinity):
             return Calculus.convert(r)
         x = Calculus.convert(x)
         y = Calculus.convert(y)
-        return Calculus.apply(cls.EqualArg, x,y)
+        return Calculus.Apply(cls.EqualArg, x,y)
 
     @classmethod
     def IsPositive(cls, x):

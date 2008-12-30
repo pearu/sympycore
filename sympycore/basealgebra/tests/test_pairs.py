@@ -116,7 +116,7 @@ def test_apply_args():
     a = Symbol('a')
     b = Symbol('b')
     f = Symbol('f')
-    fab = Apply(f, (a,b))
+    fab = Apply(f, a,b)
     assert fab.args==(a,b)
     assert fab.func(*fab.args)==fab
     
