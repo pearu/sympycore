@@ -26,6 +26,9 @@ static char Expr_doc[] = \
   "value is defined as::\n"						\
   "\n"									\
   "  hash((<Expr>.head, frozenset(<Expr>.data.items())))\n"		\
+  "If ``data`` is a Python list, then the hash value is::"		\
+  "\n"									\
+  "  hash((<Expr>.head, tuple(<Expr>.data)))\n"				\
   "\n"									\
   "WARNING: the hash value of an Expr instance is computed (and cached)\n"\
   "when it is used as a key to Python dictionary. This means that the\n"\
@@ -134,6 +137,7 @@ Expr_new(PyTypeObject *type, PyObject *args, PyObject *kws)
 }
 
 static long dict_hash(PyObject *d);
+static long list_hash(PyObject *d);
 
 static long
 tuple2_hash(PyObject *item0, PyObject *item1) {
@@ -147,6 +151,8 @@ tuple2_hash(PyObject *item0, PyObject *item1) {
   mult += 82522L;
   if (PyDict_Check(item1)) {
     h = dict_hash(item1);
+  } else if (PyList_Check(item1)) {
+    h = list_hash(item1);
   } else
     h = PyObject_Hash(item1);
   if (h==-1)
@@ -160,6 +166,8 @@ tuple2_hash(PyObject *item0, PyObject *item1) {
 
 /*
   hash(dict) == hash(frozenset(dict.items()))
+
+  Code copied from Pyhton-2.5.1/Objects/setobject.c.
  */
 static long
 dict_hash(PyObject *d) {
@@ -178,6 +186,35 @@ dict_hash(PyObject *d) {
   if (hash == -1)
     hash = 590923713L;
   return hash;
+}
+
+/*
+  hash(list) = hash(tuple(list))
+
+  Code copied from Pyhton-2.5.1/Objects/tupleobject.c
+*/
+static long
+list_hash(PyObject *o)
+{
+  PyListObject *v = (PyListObject *)o;
+  register long x, y;
+  register Py_ssize_t len = v->ob_size;
+  register PyObject **p;
+  long mult = 1000003L;
+  x = 0x345678L;
+  p = v->ob_item;
+  while (--len >= 0) {
+    y = PyObject_Hash(*p++);
+    if (y == -1)
+      return -1;
+    x = (x ^ y) * mult;
+    /* the cast might truncate len; that doesn't change hash stability */
+    mult += (long)(82520L + len + len);
+  }
+  x += 97531L;
+  if (x == -1)
+    x = -2;
+  return x;
 }
 
 /*

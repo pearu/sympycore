@@ -53,6 +53,10 @@ value is defined as::
   									
     hash((<Expr>.head, frozenset(<Expr>.data.items())
 
+If ``data`` is a Python list, then the hash value is::
+
+  hash((<Expr>.head, tuple(<Expr>.data)))
+
 WARNING: the hash value of an Expr instance is computed (and cached)
 when it is used as a key to Python dictionary. This means that the
 instance content MUST NOT be changed after the hash is computed.  To
@@ -105,8 +109,11 @@ This is Python version of Expr type.
                 h = hash(obj)
             else:
                 head, data = pair = self.pair
-                if type(data) is dict:
+                tdata = type(data)
+                if tdata is dict:
                     h = hash((head, frozenset(data.iteritems())))
+                elif tdata is list:
+                    h = hash((head, tuple(data)))
                 else:
                     h = hash(pair)
             self._hash = h
@@ -176,7 +183,7 @@ This is Python version of Expr type.
         part is ``SYMBOL``, ``NUMBER``, ``SPECIAL``. Otherwise it
         returns ``pair`` tuple. Note that returning a copy of the
         tuple will disable using ``frozenset`` hash algorithm for
-        dictionaries.
+        dictionaries or ``tuple`` hash for lists.
         """
         head, data = pair = self.pair
         if head is NUMBER or head is SYMBOL or head is SPECIAL:

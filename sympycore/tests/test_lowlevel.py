@@ -1,6 +1,6 @@
 
 from sympycore.core import Expr
-from sympycore.utils import NUMBER, SYMBOL, TERMS, FACTORS
+from sympycore.utils import NUMBER, SYMBOL, TERMS, FACTORS, MUL
 
 class MyExpr(Expr):
 
@@ -82,6 +82,14 @@ def test_hash_symbol():
     assert hash(Symbol('x'))==hash('x')
     assert hash(Symbol('y'))==hash('y')
 
-def test_hash_add():
+def test_hash_dict_data():
     x, y, z = map(Symbol,'xyz')
     assert hash(x + y) == hash((TERMS, frozenset([(x,1),(y,1)])))
+
+def test_hash_list_data():
+    l = [1,2,3]
+    e1 = MyExpr(MUL, l)
+    assert e1.is_writable
+    e2 = MyExpr(MUL, tuple(l))
+    assert hash(e1)==hash(e2)
+    assert not e1.is_writable
