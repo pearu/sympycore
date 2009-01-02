@@ -102,7 +102,7 @@ This is Python version of Expr type.
         dictionary values contain dictionaries.
         """
         h = self._hash
-        if not h:
+        if h is None:
             pair = self.pair
             obj = self.as_lowlevel()
             if obj is not pair:
@@ -120,8 +120,15 @@ This is Python version of Expr type.
         return h
 
     @property
-    def is_writable(self):
-        return not self._hash
+    def is_writable(self, _writable_types = (list, dict)):
+        if self._hash is None:
+            data = self.pair[1]
+            tdata = type(data)
+            if tdata in _writable_types:
+                return True
+            if tdata is Pair:
+                return data.is_writable
+        return False
 
     @property
     def head(self):

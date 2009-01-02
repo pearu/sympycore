@@ -1,5 +1,5 @@
 
-from sympycore.core import Expr
+from sympycore.core import Expr, Pair
 from sympycore.utils import NUMBER, SYMBOL, TERMS, FACTORS, MUL
 
 class MyExpr(Expr):
@@ -93,3 +93,11 @@ def test_hash_list_data():
     e2 = MyExpr(MUL, tuple(l))
     assert hash(e1)==hash(e2)
     assert not e1.is_writable
+
+def test_is_writable():
+    assert MyExpr(MUL, [1,2]).is_writable
+    assert not MyExpr(MUL, (1,2)).is_writable
+    assert not MyExpr(MUL, Pair(1,2)).is_writable
+    assert MyExpr(MUL, Pair(1,[2])).is_writable
+    assert not MyExpr(MUL, Pair(1,(1,2))).is_writable
+    

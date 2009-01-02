@@ -60,6 +60,7 @@ typedef struct {
 } Expr;
 
 static PyTypeObject ExprType;
+static PyTypeObject PairType;
 
 static PyObject* NUMBER;
 static PyObject* SYMBOL;
@@ -72,6 +73,8 @@ static PyObject* str_getinitargs;
 
 #define Expr_Check(op) PyObject_TypeCheck(op, &ExprType)
 #define Expr_CheckExact(op) ((op)->ob_type == &ExprType)
+#define Pair_Check(op) PyObject_TypeCheck(op, &PairType)
+#define Pair_CheckExact(op) ((op)->ob_type == &PairType)
 
 static int
 Expr_traverse(Expr *self, visitproc visit, void *arg)
@@ -302,7 +305,12 @@ static PyObject *
 Expr_getis_writable(Expr *self, void *closure)
 {
   if (self->hash==-1) {
-    Py_RETURN_TRUE;
+    PyObject *data = PyTuple_GET_ITEM(self->pair, 1);
+    if (Pair_CheckExact(data))
+      return Expr_getis_writable((Expr*)data, closure);
+    if (PyDict_CheckExact(data) || PyList_CheckExact(data)) {
+      Py_RETURN_TRUE;
+    }
   }
   Py_RETURN_FALSE;
 }
