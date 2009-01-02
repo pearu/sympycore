@@ -136,6 +136,34 @@ Expr_new(PyTypeObject *type, PyObject *args, PyObject *kws)
   return (PyObject *)self;
 }
 
+static PyObject *
+Pair_new(PyTypeObject *type, PyObject *args, PyObject *kws)
+{
+  Py_ssize_t len;
+  Expr *self = NULL;
+ 
+  if (!PyTuple_Check(args)) {
+    PyErr_SetString(PyExc_SystemError,
+		    "new style getargs format but argument is not a tuple");
+    return NULL;
+  }
+
+  len = PyTuple_GET_SIZE(args);
+  if (len!=2) {
+    PyErr_SetString(PyExc_TypeError,
+		    "Pair.__new__ expects 2 arguments: (head, data)");
+    return NULL;
+  }
+  
+  self = (Expr *)type->tp_alloc(type, 0);
+  if (self != NULL) {
+    self->pair = args;    
+    self->hash = -1;
+    Py_INCREF(self->pair);
+  }
+  return (PyObject *)self;
+}
+
 static long dict_hash(PyObject *d);
 static long list_hash(PyObject *d);
 
@@ -892,6 +920,24 @@ Expr_dict_sub_item(Expr *self, PyObject *args) {
   return Py_None;
 }
 
+static Py_ssize_t
+Pairlength(Expr *self)
+{
+  return ((PyTupleObject*)(self->pair))->ob_size;
+}
+
+static PyObject *
+Pairitem(register Expr *self, register Py_ssize_t i)
+{
+  if (i < 0 || i >= ((PyTupleObject*)(self->pair))->ob_size) {
+    PyErr_SetString(PyExc_IndexError, "Pair index out of range");
+    return NULL;
+  }
+  Py_INCREF(((PyTupleObject*)(self->pair))->ob_item[i]);
+  return ((PyTupleObject*)(self->pair))->ob_item[i];
+}
+
+
 static PyGetSetDef Expr_getseters[] = {
     {"head", (getter)Expr_gethead, NULL,
      "read-only head attribute", NULL},
@@ -963,6 +1009,61 @@ static PyTypeObject ExprType = {
   Expr_new,                  /* tp_new */
 };
 
+static PySequenceMethods Pair_as_sequence = {
+  (lenfunc)Pairlength,       /* sq_length */
+  0,                         /* sq_concat */
+  0,                         /* sq_repeat */
+  (ssizeargfunc)Pairitem,    /* sq_item */
+  0,                         /* sq_slice */
+  0,                         /* sq_ass_item */
+  0,                         /* sq_ass_slice */
+  0,                         /* sq_contains */
+};
+
+
+static PyTypeObject PairType = {
+  PyObject_HEAD_INIT(NULL)
+  0,                         /*ob_size*/
+  "Pair",                    /*tp_name*/
+  sizeof(Expr),              /*tp_basicsize*/
+  0,                         /*tp_itemsize*/
+  0,                         /*tp_dealloc*/
+  0,                         /*tp_print*/
+  0,                         /*tp_getattr*/
+  0,                         /*tp_setattr*/
+  0,                         /*tp_compare*/
+  0,                         /*tp_repr*/
+  0,                         /*tp_as_number*/
+  &Pair_as_sequence,         /*tp_as_sequence*/
+  0,                         /*tp_as_mapping*/
+  0,                         /*tp_hash */
+  0,                         /*tp_call*/
+  0,                         /*tp_str*/
+  0,                         /*tp_getattro*/
+  0,                         /*tp_setattro*/
+  0,                         /*tp_as_buffer*/
+  Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /*tp_flags*/
+  0,                         /* tp_doc */
+  0,                         /* tp_traverse */
+  0,                         /* tp_clear */
+  0,	                     /* tp_richcompare */
+  0,	                     /* tp_weaklistoffset */
+  0,	                     /* tp_iter */
+  0,	                     /* tp_iternext */
+  0,                         /* tp_methods */
+  0,                         /* tp_members */
+  0,                         /* tp_getset */
+  0,                         /* tp_base */
+  0,                         /* tp_dict */
+  0,                         /* tp_descr_get */
+  0,                         /* tp_descr_set */
+  0,                         /* tp_dictoffset */
+  0,                         /* tp_init */
+  0,                         /* tp_alloc */
+  Pair_new,                  /* tp_new */
+};
+
+
 static PyMethodDef module_methods[] = {
     {NULL}  /* Sentinel */
 };
@@ -976,6 +1077,10 @@ initexpr_ext(void)
   PyObject* m = NULL;
 
   if (PyType_Ready(&ExprType) < 0)
+    return;
+
+  PairType.tp_base = &ExprType;
+  if (PyType_Ready(&PairType) < 0)
     return;
 
   m = PyImport_ImportModule("sympycore.heads");
@@ -1018,4 +1123,7 @@ initexpr_ext(void)
 
   Py_INCREF(&ExprType);
   PyModule_AddObject(m, "Expr", (PyObject *)&ExprType);
+
+  Py_INCREF(&PairType);
+  PyModule_AddObject(m, "Pair", (PyObject *)&PairType);
 }

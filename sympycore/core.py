@@ -3,19 +3,19 @@
 
 __docformat__ = 'restructuredtext'
 __all__ = ['classes', 'Expr', 'defined_functions', 'DefinedFunction',
-           'objects']
+           'objects', 'Pair']
 
 import inspect
 
 using_C_Expr = False
 try:
-    from .expr_ext import Expr
+    from .expr_ext import Expr, Pair
     using_C_Expr = True
 except ImportError, msg:
     msg = str(msg)
     if msg!='No module named expr_ext':
         print msg
-    from .expr import Expr
+    from .expr import Expr, Pair
 
 # Pickling support:
 def _reconstruct(version, state):
@@ -140,3 +140,5 @@ def get_nargs(obj):
     raise NotImplementedError(`obj`)        
 
 classes.Expr = Expr
+classes.Pair = Pair
+

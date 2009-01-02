@@ -31,7 +31,7 @@ Python Expr:
 # Author: Pearu Peterson
 # Created: March 2008
 
-__all__ = ['Expr']
+__all__ = ['Expr', 'Pair']
 
 rc_switch = []
 
@@ -392,5 +392,11 @@ This is Python version of Expr type.
             if t==self.one:
                 return type(self)(NUMBER, c)
         return self
+
+class Pair(Expr):
+    def __len__(self):
+        return 2
+    def __getitem__(self, index):
+        return self.pair[index]
 
 from .heads.atomic import NUMBER, SYMBOL, SPECIAL

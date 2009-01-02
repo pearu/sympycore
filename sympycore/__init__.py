@@ -9,7 +9,7 @@ __license__ = 'New BSD License'
 
 from .version import version as __version__
 
-from .core import classes, defined_functions, DefinedFunction, Expr
+from .core import classes, defined_functions, DefinedFunction, Expr, Pair
 from basealgebra import *
 from arithmetic import *
 from logic import *
@@ -19,6 +19,7 @@ from polynomials import *
 from matrices import *
 from physics import *
 from functions import *
+#from ring import *
 
 import utils
 import heads
