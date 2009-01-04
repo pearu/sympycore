@@ -24,18 +24,41 @@ Apply = Calculus.Apply
 
 import math
 
-zero = Calculus.zero
-one = Calculus.one
-half = one/2
-sqrt2 = Calculus.convert('2**(1/2)')
-sqrt3 = Calculus.convert('3**(1/2)')
-
-pi = const_pi.as_algebra(Calculus)
 E = const_E.as_algebra(Calculus)
+pi = const_pi.as_algebra(Calculus)
 gamma = const_gamma.as_algebra(Calculus)
+    
+def init_module(m):
+    m.zero = Calculus.zero
+    m.one = Calculus.one
+    m.half = one/2
+    sqrt2 = Calculus.convert('2**(1/2)')
+    sqrt3 = Calculus.convert('3**(1/2)')
 
-Ipi = I*pi
-Ipi2 = Ipi/2
+    m.Ipi = Ipi = I*pi
+    m.Ipi2 = Ipi2 = Ipi/2
+
+    m.log_number_table = {
+        m.zero.data : -oo,
+        m.one.data : zero,
+        I.data : Ipi2,
+        (-I).data : -Ipi2
+        }
+
+    # Tabulated values of sin(x) at multiples of pi/12
+    C0 = (sqrt3-1)/(2*sqrt2)
+    C1 = one/2
+    C2 = sqrt2/2
+    C3 = sqrt3/2
+    C4 = (sqrt3+1)/(2*sqrt2)
+    
+    # Replace entries with None to prevent from evaluating
+    m.sine_table = [ \
+  Calculus.zero, C0, C1, C2, C3, C4, Calculus.one, C4, C3, C2, C1,C0,
+  Calculus.zero,-C0,-C1,-C2,-C3,-C4,-Calculus.one,-C4,-C3,-C2,-C1,-C0]
+
+    del m.init_module # avoid calling the function twice
+            
 
 class CalculusDefinedFunction(DefinedFunction):
 
@@ -88,13 +111,6 @@ class Exp(CalculusDefinedFunction):
     @staticmethod
     def derivative(arg):
         return E ** arg
-
-log_number_table = {
-    zero.data : -oo,
-    one.data : zero,
-    I.data : Ipi2,
-    (-I).data : -Ipi2
-}
 
 class Log(CalculusDefinedFunction):
     def __new__(cls, arg, base=E):
@@ -160,17 +176,7 @@ class Ln(Log):
 #                          Trigonometric functions                          #
 #---------------------------------------------------------------------------#
 
-# Tabulated values of sin(x) at multiples of pi/12
-C0 = (sqrt3-1)/(2*sqrt2)
-C1 = one/2
-C2 = sqrt2/2
-C3 = sqrt3/2
-C4 = (sqrt3+1)/(2*sqrt2)
 
-# Replace entries with None to prevent from evaluating
-sine_table = [ \
-  Calculus.zero, C0, C1, C2, C3, C4, Calculus.one, C4, C3, C2, C1,C0,
-  Calculus.zero,-C0,-C1,-C2,-C3,-C4,-Calculus.one,-C4,-C3,-C2,-C1,-C0]
 
 def get_pi_shift(arg, N):
     """Parse as x, n where arg = x + n*pi/N"""

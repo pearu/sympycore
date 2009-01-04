@@ -1,8 +1,7 @@
 
 __all__ = ['APPLY', 'SUBSCRIPT', 'SLICE', 'LAMBDA', 'ATTR', 'KWARG']
 
-from .base import Head
-from .atomic import SPECIAL
+from .base import Head, heads
 
 class ApplyHead(Head):
     """
@@ -68,11 +67,11 @@ class SliceHead(Head):
         precedence = self.precedence
         start, stop, step = data
         h, d = start.pair
-        if h is SPECIAL and d is None: start = None
+        if h is heads.SPECIAL and d is None: start = None
         h, d = stop.pair
-        if h is SPECIAL and d is None: stop = None
+        if h is heads.SPECIAL and d is None: stop = None
         h, d = step.pair
-        if h is SPECIAL and d is None: step = None
+        if h is heads.SPECIAL and d is None: step = None
         if start is None:
             if stop is None:
                 if step is None: r = ':'

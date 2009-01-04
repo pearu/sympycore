@@ -10,8 +10,13 @@ __license__ = 'New BSD License'
 from .version import version as __version__
 
 from .core import classes, defined_functions, DefinedFunction, Expr, Pair
+import heads
+
+
 from basealgebra import *
+
 from arithmetic import *
+
 from logic import *
 from sets import *
 from calculus import *
@@ -19,18 +24,24 @@ from polynomials import *
 from matrices import *
 from physics import *
 from functions import *
-#from ring import *
+from ring import *
 
 import utils
 import heads
+import calculus
 
-from .arithmetic.numbers import realtypes, rationaltypes, complextypes
+core.expr_module.init_module(core.expr_module)
 
-heads.arithmetic.Expr = Expr
-heads.atomic.Expr = Expr
-heads.atomic.realtypes = realtypes
-heads.atomic.rationaltypes = rationaltypes
-heads.atomic.complextypes = complextypes
+import sys
+for n in sorted(sys.modules):
+    if n.startswith('sympycore'):
+        m = sys.modules[n]
+        init_module = getattr(m, 'init_module', None)
+        if init_module is not None:
+            #print 'Calling',n,'init_module'
+            init_module(m)
+
+#from .core import heads # replaces heads module instance with Holder instance
 
 def profile_expr(expr):
     """ Printout the profiler information for executing ``expr``.

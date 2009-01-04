@@ -1,8 +1,7 @@
 
 __all__ = ['SPARSE_POLY', 'DENSE_POLY']
 
-from .base import Head
-from .atomic import SYMBOL, NUMBER
+from .base import Head, heads
 
 class SparsepolyHead(Head):
     """
@@ -39,8 +38,8 @@ class SparsepolyHead(Head):
         symbols = cls.variables
         is_univariate = len(symbols)==1
         terms = []
-        SYMBOL_data_to_str = SYMBOL.data_to_str
-        NUMBER_data_to_str = NUMBER.data_to_str
+        SYMBOL_data_to_str = heads.SYMBOL.data_to_str
+        NUMBER_data_to_str = heads.NUMBER.data_to_str
         for exps in sorted(data.keys(), reverse=True):
             coeff = data[exps]
             if coeff==1:
@@ -114,8 +113,8 @@ class DensepolyHead(Head):
                     ):
         precedence = self.get_precedence_for_data((symbol, data))
         terms = []
-        SYMBOL_data_to_str = SYMBOL.data_to_str
-        NUMBER_data_to_str = NUMBER.data_to_str
+        SYMBOL_data_to_str = heads.SYMBOL.data_to_str
+        NUMBER_data_to_str = heads.NUMBER.data_to_str
         for exp, coeff in enumerate(data):
             if not coeff:
                 continue

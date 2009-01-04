@@ -1,6 +1,8 @@
 
 __all__ = ['Head', 'UnaryHead', 'BinaryHead', 'NaryHead']
 
+from ..core import Expr, heads, heads_precedence, Pair
+
 class Head(object):
 
     """
@@ -34,6 +36,7 @@ class Head(object):
         BOR = 0.2, BXOR = 0.21, BAND = 0.22, 
         LSHIFT = 0.3, RSHIFT = 0.3,
         ADD = 0.4, SUB = 0.4, TERMS = 0.45,
+        NCMUL = 0.5,
         MUL = 0.5, DIV = 0.5, MOD = 0.5, FLOORDIV = 0.5,
         FACTORS = 0.55,
         POS = 0.6, NEG = 0.6, INVERT = 0.6,
@@ -62,10 +65,11 @@ class Head(object):
         obj = cls._cache.get(key)
         if obj is None:
             obj = object.__new__(cls)
-            if cls.is_singleton:
-                cls._cache[key] = obj
             obj._key = key
             obj.init(*args)
+            if cls.is_singleton:
+                cls._cache[key] = obj
+                setattr(heads, repr(obj), obj)
         return obj
 
     def init(self, *args):
@@ -79,7 +83,7 @@ class Head(object):
     def data_to_str(self, cls, data, parent_precedence):
         """ Convert expression data to Python string expression.
         """
-        precedence = self.precedence
+        precedence = self.get_precedence_for_data(data)
         if precedence < parent_precedence:
             return '(%s)' % (data,)
         return '%s' % (data,)
@@ -90,6 +94,23 @@ class Head(object):
         """
         return 1.0
 
+    def data_to_str_and_precedence(self, cls, data):
+        return '%s(%r, %r)' % (cls.__name__, self, data), 1.0
+
+class AtomicHead(Head):
+    """
+    AtomicHead is a base class to atomic expression heads.
+    """
+
+    def data_to_str(self, cls, data, parent_precedence):
+        if isinstance(data, Expr):
+            h, d = data.pair
+            return h.data_to_str(cls, d, parent_precedence)
+        s = '%s' % (data,)
+        if self.get_precedence_for_data(data) < parent_precedence:
+            return '(' + s + ')'
+        return s
+
 class UnaryHead(Head):
     """
     UnaryHead is base class for unary operation heads,
@@ -97,7 +118,7 @@ class UnaryHead(Head):
     """
 
     def data_to_str(self, cls, data, parent_precedence):
-        precedence = self.precedence
+        precedence = self.get_precedence_for_data(data)
         h, d = data.pair
         r = self.op_symbol + h.data_to_str(cls, d, precedence)
         if precedence < parent_precedence:
@@ -110,7 +131,7 @@ class BinaryHead(Head):
     data is a 2-tuple of expression operands.
     """
     def data_to_str(self, cls, (lhs, rhs), parent_precedence):
-        precedence = self.precedence
+        precedence = self.get_precedence_for_data((lhs, rhs))
         h,d = lhs.pair
         s1 = h.data_to_str(cls, d, precedence)
         h,d = rhs.pair
@@ -126,7 +147,7 @@ class NaryHead(Head):
     data is a n-tuple of expression operands.
     """
     def data_to_str(self, cls, data, parent_precedence):
-        precedence = self.precedence
+        precedence = self.get_precedence_for_data(data)
         l = []
         l_append = l.append
         for t in data:
@@ -136,3 +157,6 @@ class NaryHead(Head):
         if precedence < parent_precedence:
             return '(' + r + ')'
         return r
+
+for k, v in Head.precedence_map.items():
+    setattr(heads_precedence, k, v)

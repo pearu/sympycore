@@ -9,13 +9,16 @@ import inspect
 
 using_C_Expr = False
 try:
-    from .expr_ext import Expr, Pair
+    from . import expr_ext as expr_module
     using_C_Expr = True
 except ImportError, msg:
     msg = str(msg)
-    if msg!='No module named expr_ext':
+    if msg!='No module named expr_ext' and msg!='cannot import name expr_ext':
         print msg
-    from .expr import Expr, Pair
+    from . import expr as expr_module
+
+Expr = expr_module.Expr
+Pair = expr_module.Pair
 
 # Pickling support:
 def _reconstruct(version, state):
@@ -58,11 +61,17 @@ if using_C_Expr:
 class Holder:
     """ Holds pairs ``(name, value)`` as instance attributes.
     
-    The set of pairs is extendable via setting
+    The set of Holder pairs is extendable by
 
     ::
     
       <Holder instance>.<name> = <value>
+
+    and the values are accessible as
+
+    ::
+
+      value = <Holder instance>.<name>
     """
     def __init__(self, descr):
         self._descr = descr
@@ -87,6 +96,8 @@ class Holder:
 
 classes = Holder('SympyCore classes holder (%(_counter)s classes)')
 objects = Holder('SympyCore objects holder (%(_counter)s classes)')
+heads = Holder('SympyCore expression heads holder (%(_counter)s heads)')
+heads_precedence = Holder('SympyCore heads precedence holder (%(_counter)s items).')
 defined_functions = Holder('SympyCore defined functions holder (%(_counter)s classes)')
 
 class FunctionType(type):
@@ -141,4 +152,3 @@ def get_nargs(obj):
 
 classes.Expr = Expr
 classes.Pair = Pair
-

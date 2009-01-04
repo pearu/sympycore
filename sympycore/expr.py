@@ -33,7 +33,9 @@ Python Expr:
 
 __all__ = ['Expr', 'Pair']
 
-rc_switch = []
+NUMBER = None
+SYMBOL = None
+SPECIAL = None
 
 class Expr(object):
     """Represents an symbolic expression in a pair form: (head, data)	
@@ -193,6 +195,7 @@ This is Python version of Expr type.
         dictionaries or ``tuple`` hash for lists.
         """
         head, data = pair = self.pair
+        assert NUMBER is not None
         if head is NUMBER or head is SYMBOL or head is SPECIAL:
             return data
         return pair
@@ -406,4 +409,12 @@ class Pair(Expr):
     def __getitem__(self, index):
         return self.pair[index]
 
-from .heads.atomic import NUMBER, SYMBOL, SPECIAL
+def init_module(m):
+    import sys
+    heads = sys.modules['sympycore.heads']
+    m.NUMBER = heads.NUMBER
+    m.SYMBOL = heads.SYMBOL
+    m.SPECIAL = heads.SPECIAL
+    del m.init_module # avoid calling the function twice
+
+#from .heads.atomic import NUMBER, SYMBOL, SPECIAL
