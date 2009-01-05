@@ -3,11 +3,17 @@ __all__ = ['NCMUL']
 
 from .base import Head, heads, heads_precedence, Pair
 
+def init_module(m):
+    from .base import heads
+    for n,h in heads.iterNameValue(): setattr(m, n, h)
+
 class NCMulHead(Head):
     """
     Algebra(NCMUL, Pair(<commutative_part>, <list of non-commutative factors>))
     """
+    
     def __repr__(self): return 'NCMUL'
+    
     def data_to_str_and_precedence(self, cls, (commutative_part, factor_list)):
         m = len(factor_list)
         ncmul_p = heads_precedence.NCMUL
@@ -16,7 +22,7 @@ class NCMulHead(Head):
             r = ''
             is_mul = m>1
         else:
-            f, f_p = heads.NUMBER.data_to_str_and_precedence(cls, commutative_part)
+            f, f_p = NUMBER.data_to_str_and_precedence(cls, commutative_part)
             r = '('+f+')' if f_p < ncmul_p else f
             is_mul = True
         for factor in factor_list:

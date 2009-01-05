@@ -1,12 +1,13 @@
 
 __all__ = ['POW']
 
-from .base import BinaryHead, heads, heads_precedence, Head, Expr, Pair
+from .base import BinaryHead, heads_precedence, Head, Expr, Pair
 
 def init_module(m):
-    import sys
-    n = sys.modules['sympycore.arithmetic.numbers']
+    from ..arithmetic import numbers as n
     m.numbertypes = n.numbertypes
+    from .base import heads
+    for n,h in heads.iterNameValue(): setattr(m, n, h)
 
 class PowHead(BinaryHead):
     """ PowHead represents exponentiation operation, data is a 2-tuple
@@ -22,7 +23,7 @@ class PowHead(BinaryHead):
         pow_p = heads_precedence.POW
         b, b_p = base.head.data_to_str_and_precedence(cls, base.data)
         if isinstance(exp, numbertypes):
-            e, e_p = heads.NUMBER.data_to_str_and_precedence(cls, exp)
+            e, e_p = NUMBER.data_to_str_and_precedence(cls, exp)
         else:
             e, e_p = exp.head.data_to_str_and_precedence(cls, exp.data)
         s1 = '('+b+')' if b_p < pow_p else b
@@ -30,7 +31,7 @@ class PowHead(BinaryHead):
         return s1 + '**' + s2, pow_p
 
     def as_ncmul(self, cls, expr):
-        return cls(heads.NCMUL, Pair(1, [expr])) # todo: check expr commutativity
+        return cls(NCMUL, Pair(1, [expr])) # todo: check expr commutativity
 
     def base_exp(self, cls, expr):
         base, exp = expr.data

@@ -2,16 +2,16 @@
 __all__ = ['NUMBER']
 
 def init_module(m): # will be executed in sympycore/__init__.py
-    import sys
-    n = sys.modules['sympycore.arithmetic.numbers']
+    from ..arithmetic import numbers as n
     m.realtypes = n.realtypes
     m.rationaltypes = n.rationaltypes
     m.complextypes = n.complextypes
-    del m.init_module # avoid calling the function twice
+    from .base import heads
+    for n,h in heads.iterNameValue(): setattr(m, n, h)
             
 import re
 
-from .base import Head, Expr, heads, heads_precedence, AtomicHead, Pair
+from .base import Head, Expr, heads_precedence, AtomicHead, Pair
 
 
 _is_number = re.compile(r'\A[-]?\d+\Z').match
@@ -50,7 +50,7 @@ class NumberHead(AtomicHead):
         return str(data), 0.0 # force parenthesis
 
     def term_coeff(self, cls, expr):
-        return cls(heads.NUMBER, 1), expr.data
+        return cls(NUMBER, 1), expr.data
 
     def get_precedence_for_data(self, data): # obsolete
         if isinstance(data, complextypes):
@@ -73,17 +73,17 @@ class NumberHead(AtomicHead):
         return cls(self, -expr.data)
 
     def as_add(self, cls, expr):
-        return cls(heads.ADD, [expr])
+        return cls(ADD, [expr])
     
     def add(self, cls, lhs, rhs):
         h, d = rhs.pair
         if h is NUMBER:
             return cls(NUMBER, lhs.data + d)
-        if h is heads.SYMBOL:
+        if h is SYMBOL:
             if lhs==0:
                 return rhs
-            return cls(heads.ADD, [lhs, rhs])
-        if h is heads.ADD:
+            return cls(ADD, [lhs, rhs])
+        if h is ADD:
             terms = []
             for term in d:
                 h1, c = term
@@ -97,11 +97,11 @@ class NumberHead(AtomicHead):
                 return cls(NUMBER, 0)
             if len(terms)==1:
                 return terms[0]
-            return cls(heads.ADD, terms)
+            return cls(ADD, terms)
         raise NotImplementedError(`self, lhs, rhs`)
 
     def as_ncmul(self, cls, expr):
-        return cls(heads.NCMUL, Pair(expr, []))
+        return cls(NCMUL, Pair(expr, []))
 
     def ncmul(self, cls, lhs, rhs):
         if rhs.head is NUMBER:
@@ -110,6 +110,6 @@ class NumberHead(AtomicHead):
         return lhs.head.ncmul(cls, lhs, rhs)
 
     def pow(self, cls, base, exp):
-        return cls(heads.POW, (base, exp))
+        return cls(POW, (base, exp))
 
 NUMBER = NumberHead()

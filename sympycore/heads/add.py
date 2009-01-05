@@ -1,7 +1,11 @@
 
 __all__ = ['ADD']
 
-from .base import NaryHead, heads, heads_precedence
+from .base import NaryHead, heads_precedence
+
+def init_module(m):
+    from .base import heads
+    for n,h in heads.iterNameValue(): setattr(m, n, h)
 
 class AddHead(NaryHead):
 
@@ -44,7 +48,7 @@ class AddHead(NaryHead):
         for t in data:
             h, d = t.pair
             s = h.data_to_str(cls, d, add_p)
-            if h is heads.NEG or h is heads.POS:
+            if h is NEG or h is POS:
                 r += s
             else:
                 if r:
@@ -58,7 +62,7 @@ class AddHead(NaryHead):
     def term_coeff(self, cls, expr):
         term_list = expr.data
         if not term_list:
-            return cls(heads.NUMBER, 0), 1
+            return cls(NUMBER, 0), 1
         if len(term_list)==1:
             expr = term_list[0]
             return expr.head.term_coeff(cls, expr)
@@ -91,7 +95,7 @@ class AddHead(NaryHead):
                     else:
                         d[term] = c
             r = []
-            one = cls(heads.NUMBER, 1)
+            one = cls(NUMBER, 1)
             for term in l:
                 c = d.get(term)
                 if c is not None:
@@ -99,9 +103,9 @@ class AddHead(NaryHead):
                         r.append(term)
                     else:
                         if term==one:
-                            r.append(cls(heads.NUMBER, c))
+                            r.append(cls(NUMBER, c))
                         else:
-                            r.append(cls(heads.TERM_COEFF_DICT, {term:c}))
+                            r.append(cls(TERM_COEFF_DICT, {term:c}))
             if not r:
                 return cls(0)
             if len(r)==1:

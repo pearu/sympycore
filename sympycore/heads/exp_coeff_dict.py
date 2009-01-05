@@ -1,7 +1,11 @@
 
 __all__ = ['EXP_COEFF_DICT']
 
-from .base import Head, heads, heads_precedence, Expr
+from .base import Head, heads_precedence, Expr
+
+def init_module(m):
+    from .base import heads
+    for n,h in heads.iterNameValue(): setattr(m, n, h)
 
 class ExpCoeffDict(Head):
     """
@@ -12,8 +16,8 @@ class ExpCoeffDict(Head):
     def data_to_str_and_precedence(self, cls, (variables, exp_coeff_dict)):
         # This is a complete solution for converting expressions to
         # string with correct placement of parentheses.
-        SYMBOL_data_to_str_and_precedence = heads.SYMBOL.data_to_str_and_precedence
-        NUMBER_data_to_str_and_precedence = heads.NUMBER.data_to_str_and_precedence
+        SYMBOL_data_to_str_and_precedence = SYMBOL.data_to_str_and_precedence
+        NUMBER_data_to_str_and_precedence = NUMBER.data_to_str_and_precedence
         pow_p = heads_precedence.POW
         mul_p = heads_precedence.MUL
         add_p = heads_precedence.ADD

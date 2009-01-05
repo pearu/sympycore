@@ -33,9 +33,9 @@ Python Expr:
 
 __all__ = ['Expr', 'Pair']
 
-NUMBER = None
-SYMBOL = None
-SPECIAL = None
+def init_module(m):
+    from .core import heads
+    for n,h in heads.iterNameValue(): setattr(m, n, h)
 
 class Expr(object):
     """Represents an symbolic expression in a pair form: (head, data)	
@@ -409,12 +409,5 @@ class Pair(Expr):
     def __getitem__(self, index):
         return self.pair[index]
 
-def init_module(m):
-    import sys
-    heads = sys.modules['sympycore.heads']
-    m.NUMBER = heads.NUMBER
-    m.SYMBOL = heads.SYMBOL
-    m.SPECIAL = heads.SPECIAL
-    del m.init_module # avoid calling the function twice
 
-#from .heads.atomic import NUMBER, SYMBOL, SPECIAL
+

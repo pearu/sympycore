@@ -3,12 +3,16 @@ __all__ = ['TERM_COEFF_DICT']
 
 from .base import Head, heads, heads_precedence
 
+def init_module(m):
+    from .base import heads
+    for n,h in heads.iterNameValue(): setattr(m, n, h)
+
 class TermCoeffDictHead(Head):
 
     def __repr__(self): return 'TERM_COEFF_DICT'
 
     def data_to_str_and_precedence(self, cls, term_coeff_dict):
-        NUMBER_data_to_str_and_precedence = heads.NUMBER.data_to_str_and_precedence
+        NUMBER_data_to_str_and_precedence = NUMBER.data_to_str_and_precedence
         neg_p = heads_precedence.NEG
         add_p = heads_precedence.ADD
         mul_p = heads_precedence.MUL
@@ -16,7 +20,7 @@ class TermCoeffDictHead(Head):
         m = len(term_coeff_dict)
         is_add = m>1
         r = ''
-        one = cls(heads.NUMBER, 1)
+        one = cls(NUMBER, 1)
         for term, coeff in term_coeff_dict.items():
             factors = []
             if term==one:

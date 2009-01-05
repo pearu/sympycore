@@ -945,6 +945,32 @@ Pairitem(register Expr *self, register Py_ssize_t i)
   return ((PyTupleObject*)(self->pair))->ob_item[i];
 }
 
+static PyObject *init_module(PyObject *self, PyObject *args)
+{
+  if (NUMBER==NULL)
+    {
+      PyObject* m = PyImport_ImportModule("sympycore.heads");
+      if (m == NULL)
+	return NULL;
+      NUMBER = PyObject_GetAttrString(m, "NUMBER");
+      if (NUMBER==NULL) {
+	Py_DECREF(m);
+	return NULL;
+      }
+      SYMBOL = PyObject_GetAttrString(m, "SYMBOL");
+      if (SYMBOL==NULL) {
+	Py_DECREF(m);
+	return NULL;
+      }
+      SPECIAL = PyObject_GetAttrString(m, "SPECIAL");
+      if (SPECIAL==NULL) {
+	Py_DECREF(m);
+	return NULL;
+      }
+      Py_DECREF(m);
+    }
+  return Py_BuildValue("");
+}
 
 static PyGetSetDef Expr_getseters[] = {
     {"head", (getter)Expr_gethead, NULL,
@@ -1073,7 +1099,8 @@ static PyTypeObject PairType = {
 
 
 static PyMethodDef module_methods[] = {
-    {NULL}  /* Sentinel */
+  {"init_module",  init_module, METH_VARARGS, "Initialize module."},
+  {NULL}  /* Sentinel */
 };
 
 #ifndef PyMODINIT_FUNC	/* declarations for DLL import/export */
@@ -1083,6 +1110,7 @@ PyMODINIT_FUNC
 initexpr_ext(void) 
 {
   PyObject* m = NULL;
+  NUMBER = SYMBOL = SPECIAL = NULL;
 
   if (PyType_Ready(&ExprType) < 0)
     return;
@@ -1090,26 +1118,6 @@ initexpr_ext(void)
   PairType.tp_base = &ExprType;
   if (PyType_Ready(&PairType) < 0)
     return;
-
-  m = PyImport_ImportModule("sympycore.heads");
-  if (m == NULL)
-    return;
-  NUMBER = PyObject_GetAttrString(m, "NUMBER");
-  if (NUMBER==NULL) {
-    Py_DECREF(m);
-    return;
-  }
-  SYMBOL = PyObject_GetAttrString(m, "SYMBOL");
-  if (SYMBOL==NULL) {
-    Py_DECREF(m);
-    return;
-  }
-  SPECIAL = PyObject_GetAttrString(m, "SPECIAL");
-  if (SPECIAL==NULL) {
-    Py_DECREF(m);
-    return;
-  }
-  Py_DECREF(m);
 
   str_as_lowlevel = PyString_FromString("as_lowlevel");
   if (str_as_lowlevel==NULL)
@@ -1123,8 +1131,7 @@ initexpr_ext(void)
   str_getinitargs = PyString_FromString("__getinitargs__");
   if (str_getinitargs==NULL)
     return;
-  m = Py_InitModule3("expr_ext", module_methods,
-		     "Provides extension type Expr.");
+  m = Py_InitModule3("expr_ext", module_methods, "Provides extension type Expr.");
   
   if (m == NULL)
     return;

@@ -10,13 +10,12 @@ __license__ = 'New BSD License'
 from .version import version as __version__
 
 from .core import classes, defined_functions, DefinedFunction, Expr, Pair
-import heads
-
 
 from basealgebra import *
+from ring import *
+
 
 from arithmetic import *
-
 from logic import *
 from sets import *
 from calculus import *
@@ -24,24 +23,15 @@ from polynomials import *
 from matrices import *
 from physics import *
 from functions import *
-from ring import *
 
-import utils
-import heads
-import calculus
 
+### Initialize sympycore subpackage namespaces (mostly with heads
+### symbols):
 core.expr_module.init_module(core.expr_module)
-
-import sys
-for n in sorted(sys.modules):
-    if n.startswith('sympycore'):
-        m = sys.modules[n]
-        init_module = getattr(m, 'init_module', None)
-        if init_module is not None:
-            #print 'Calling',n,'init_module'
-            init_module(m)
-
-#from .core import heads # replaces heads module instance with Holder instance
+import sys as _sys
+for _n, _m in sorted(_sys.modules.items()):
+    if _n.startswith('sympycore'):
+        getattr(_m, 'init_module', lambda _m:None)(_m)
 
 def profile_expr(expr):
     """ Printout the profiler information for executing ``expr``.

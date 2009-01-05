@@ -3,14 +3,15 @@ __all__ = ['SYMBOL']
 
 import re
 
-from .base import AtomicHead, heads_precedence, Expr, heads, Pair
+from .base import AtomicHead, heads_precedence, Expr, Pair
 
 _is_atomic = re.compile(r'\A\w+\Z').match
 
 def init_module(m):
-    import sys
-    n = sys.modules['sympycore.arithmetic.numbers']
+    from ..arithmetic import numbers as n
     m.numbertypes = n.numbertypes
+    from .base import heads
+    for n,h in heads.iterNameValue(): setattr(m, n, h)
 
 class SymbolHead(AtomicHead):
     """
@@ -39,49 +40,49 @@ class SymbolHead(AtomicHead):
         return expr, 1
 
     def neg(self, cls, expr):
-        return cls(heads.TERM_COEFF_DICT, {expr:-1})
+        return cls(TERM_COEFF_DICT, {expr:-1})
 
     def as_add(self, cls, expr):
-        return cls(heads.ADD, [expr])
+        return cls(ADD, [expr])
     
     def add(self, cls, lhs, rhs):
         if lhs==rhs:
-            return cls(heads.TERM_COEFF_DICT, {lhs:2})
+            return cls(TERM_COEFF_DICT, {lhs:2})
         h = rhs.head
         if h is self:
-            return cls(heads.ADD, [lhs, rhs])
-        if h is heads.NUMBER:
-            return cls(heads.ADD, [lhs, rhs])
+            return cls(ADD, [lhs, rhs])
+        if h is NUMBER:
+            return cls(ADD, [lhs, rhs])
         raise NotImplementedError(`self, lhs, rhs`)
 
     def as_ncmul(self, cls, expr):
-        return cls(heads.NCMUL, Pair(1, [expr])) # todo: check expr commutativity
+        return cls(NCMUL, Pair(1, [expr])) # todo: check expr commutativity
 
     def base_exp(self, cls, expr):
         return expr, 1
 
     def ncmul(self, cls, lhs, rhs):
         if lhs==rhs:
-            return cls(heads.POW, (lhs, 2))
+            return cls(POW, (lhs, 2))
         h = rhs.head
         if h is SYMBOL:
-            return cls(heads.NCMUL, (1, [lhs, rhs]))
+            return cls(NCMUL, (1, [lhs, rhs]))
         lhs = self.as_ncmul(cls, lhs)
         return lhs.head.ncmul(cls, lhs, rhs)
-        if h is heads.NCMUL:
-            return heads.NCMUL.ncmul(cls, lhs.head.as_ncmul(cls, lhs), rhs)
+        if h is NCMUL:
+            return NCMUL.ncmul(cls, lhs.head.as_ncmul(cls, lhs), rhs)
         raise NotImplementedError(`self, lhs, h, rhs`)
 
     def pow(self, cls, base, exp):
         if exp==0:
-            return cls(heads.NUMBER, 1)
+            return cls(NUMBER, 1)
         if exp==1:
             return base
         h, d = exp.pair
-        if h is heads.NUMBER:
-            return cls(heads.POW, (base, exp))
+        if h is NUMBER:
+            return cls(POW, (base, exp))
         if h is SYMBOL:
-            return cls(heads.POW, (base, exp))
+            return cls(POW, (base, exp))
         raise NotImplementedError(`self, base, exp`)
 
 SYMBOL = SymbolHead()
