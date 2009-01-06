@@ -113,4 +113,11 @@ class AddHead(NaryHead):
             return cls(ADD, r)
         raise NotImplementedError(`self, lhs, rhs`)
 
+    def pow(self, cls, base, exp):
+        if exp==0:
+            return cls(NUMBER, 1)
+        if exp==1:
+            return base
+        return cls(POW, (base, exp))
+
 ADD = AddHead()

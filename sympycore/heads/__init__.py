@@ -20,11 +20,12 @@ from .callable import CALLABLE
 from .pos import POS
 from .neg import NEG
 from .add import ADD
+from .sub import SUB
 from .pow import POW
 from .ncmul import NCMUL
 from .term_coeff_dict import TERM_COEFF_DICT
 
-from .arithmetic import SUB, MUL, MOD, DIV, FLOORDIV, TERMS, FACTORS
+from .arithmetic import MUL, MOD, DIV, FLOORDIV, TERMS, FACTORS
 from .relational import EQ, NE, LT, GT, LE, GE
 from .binary import INVERT, BOR, BXOR, BAND, LSHIFT, RSHIFT
 from .functional import APPLY, SUBSCRIPT, SLICE, LAMBDA, ATTR, KWARG

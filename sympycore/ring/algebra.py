@@ -26,6 +26,12 @@ class Ring(Algebra):
 
     __radd__ = __add__
 
+    def __sub__(self, other):
+        return self + (-other)
+
+    def __rsub__(self, other):
+        return other + (-self)
+
     def __mul__(self, other):
         cls = type(self)
         tother = type(other)
@@ -53,3 +59,17 @@ class Ring(Algebra):
         if cls is not tother:
             other = cls.convert(other)
         return other.head.pow(cls, other, self)
+
+    def __div__(self, other):
+        cls = type(self)
+        tother = type(other)
+        if cls is not tother:
+            other = cls.convert(other)
+        return self * other**-1
+
+    def __rdiv__(self, other):
+        cls = type(self)
+        tother = type(other)
+        if cls is not tother:
+            other = cls.convert(other)
+        return other * self**-1

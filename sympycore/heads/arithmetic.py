@@ -1,23 +1,11 @@
 
-__all__ = ['SUB', 'DIV', 'FLOORDIV', 'MUL', 'MOD', 'POW',
+__all__ = ['DIV', 'FLOORDIV', 'MUL', 'MOD', 'POW',
            'TERMS', 'FACTORS']
 
 
 from .base import Head, UnaryHead, BinaryHead, NaryHead, Expr, heads
 
 
-
-class SubHead(NaryHead):
-
-    """
-    SubHead represents subtraction n-ary operation where operands is
-    given as a n-tuple of expressions.
-    """
-    precedence = Head.precedence_map['SUB']
-    op_mth = '__sub__'
-    op_rmth = '__rsub__'
-    op_symbol = ' - '
-    def __repr__(self): return 'SUB'
 
 class MulHead(NaryHead):
 
@@ -151,7 +139,6 @@ class FactorsHead(Head):
 
 TERMS = TermsHead()
 FACTORS = FactorsHead()
-SUB = SubHead()
 MUL = MulHead()
 MOD = ModHead()
 DIV = DivHead()

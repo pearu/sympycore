@@ -49,11 +49,18 @@ class SymbolHead(AtomicHead):
         if lhs==rhs:
             return cls(TERM_COEFF_DICT, {lhs:2})
         h = rhs.head
-        if h is self:
+        if h is SYMBOL or h is NUMBER:
             return cls(ADD, [lhs, rhs])
-        if h is NUMBER:
-            return cls(ADD, [lhs, rhs])
-        raise NotImplementedError(`self, lhs, rhs`)
+        lhs = self.as_add(cls, lhs)
+        return lhs.head.add(cls, lhs, rhs)
+
+    def sub(self, cls, lhs, rhs):
+        if lhs==rhs:
+            return cls(NUMBER, 0)
+        h = rhs.head
+        if h is SYMBOL or h is NUMBER:
+            return cls(SUB, [lhs, rhs])
+        raise NotImplementedError(`self, lhs, h, rhs`)
 
     def as_ncmul(self, cls, expr):
         return cls(NCMUL, Pair(1, [expr])) # todo: check expr commutativity
@@ -69,20 +76,13 @@ class SymbolHead(AtomicHead):
             return cls(NCMUL, (1, [lhs, rhs]))
         lhs = self.as_ncmul(cls, lhs)
         return lhs.head.ncmul(cls, lhs, rhs)
-        if h is NCMUL:
-            return NCMUL.ncmul(cls, lhs.head.as_ncmul(cls, lhs), rhs)
-        raise NotImplementedError(`self, lhs, h, rhs`)
+
 
     def pow(self, cls, base, exp):
         if exp==0:
             return cls(NUMBER, 1)
         if exp==1:
             return base
-        h, d = exp.pair
-        if h is NUMBER:
-            return cls(POW, (base, exp))
-        if h is SYMBOL:
-            return cls(POW, (base, exp))
-        raise NotImplementedError(`self, base, exp`)
+        return cls(POW, (base, exp))
 
 SYMBOL = SymbolHead()

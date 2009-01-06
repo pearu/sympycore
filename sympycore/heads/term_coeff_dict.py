@@ -11,6 +11,12 @@ class TermCoeffDictHead(Head):
 
     def __repr__(self): return 'TERM_COEFF_DICT'
 
+    def term_coeff(self, cls, expr):
+        term_coeff_dict = expr.data
+        if len(term_coeff_dict)==1:
+            return term_coeff_dict.items()[0]
+        return expr, 1
+
     def data_to_str_and_precedence(self, cls, term_coeff_dict):
         NUMBER_data_to_str_and_precedence = NUMBER.data_to_str_and_precedence
         neg_p = heads_precedence.NEG
@@ -47,5 +53,11 @@ class TermCoeffDictHead(Head):
             else:
                 return '0', num_p
         return r, add_p
+
+    def as_add(self, cls, expr):
+        add_list = []
+        for term, coeff in expr.data.items():
+            add_list.append(term * coeff)
+        return cls(ADD, add_list)
 
 TERM_COEFF_DICT = TermCoeffDictHead()

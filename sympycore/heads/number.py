@@ -6,6 +6,8 @@ def init_module(m): # will be executed in sympycore/__init__.py
     m.realtypes = n.realtypes
     m.rationaltypes = n.rationaltypes
     m.complextypes = n.complextypes
+    m.numbertypes = n.numbertypes
+    m.try_power = n.try_power
     from .base import heads
     for n,h in heads.iterNameValue(): setattr(m, n, h)
             
@@ -110,6 +112,20 @@ class NumberHead(AtomicHead):
         return lhs.head.ncmul(cls, lhs, rhs)
 
     def pow(self, cls, base, exp):
+        if isinstance(base, Expr):
+            h, d = base.pair
+            if h is NUMBER and isinstance(d, numbertypes):
+                base = d
+                if isinstance(exp, Expr):
+                    h, d = exp.pair
+                    if h is NUMBER and isinstance(d, numbertypes):
+                        exp = d
+
+        if isinstance(base, numbertypes) and isinstance(exp, numbertypes):
+            r, base_exp_list = try_power(base, exp)
+            if not base_exp_list:
+                return cls(NUMBER, r)
+            return cls(MUL, [cls(NUMBER,r)] + [cls(POW, (cls(NUMBER, b), e)) for b,e in base_exp_list])
         return cls(POW, (base, exp))
 
 NUMBER = NumberHead()

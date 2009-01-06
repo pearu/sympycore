@@ -34,6 +34,13 @@ def test_add():
     assert str(2 + x) == 'x + 2', str(2+x)
     assert str(2 + x + y) == 'x + 2 + y', str(2+x + y)
 
+def test_sub():
+    x,y,z = map(Ring, 'xyz')
+    assert str(x-y)=='x - y', str(x-y)
+    assert str(x-y-z)=='x - y - z', str(x-y-z)
+    assert str(x-(y+z))=='x - y - z', str(x-(y+z))
+    assert str((x-y)-z)=='x - y - z', str((x-y)-z)
+
 def test_ncmul():
     x,y,z = map(Ring, 'xyz')
     assert str(x*y)=='x*y', str(x*y)
@@ -57,3 +64,18 @@ def test_pow():
     assert str(x*x)=='x**2', str(x*x)
     assert str(x**y)=='x**y', str(x**y)
     assert str(2**x)=='2**x', str(2**x)
+
+def test_div():
+    x,y,z = map(Ring, 'xyz')
+    assert str(1/y)=='1/y', str(1/y)
+    assert str(1/y/y)=='1/y**2', str(1/y/y)
+    assert str(x/y)=='x/y', str(x/y)
+    assert str(x/y/y)=='x/y**2', str(x/y/y)
+    assert str(x/y/y*y)=='x/y', str(x/y/y*y)
+    assert str(x/y/y*x)=='x/y**2*x', str(x/y/y*x)
+    assert str(1/(x+y))=='1/(x + y)', str(1/(x+y))
+    assert str(1/(x*y))=='1/y/x', str(1/(x*y))
+    assert str(y/(x*y))=='1/x', str(y/(x*y))
+    assert str((x*y)*(1/(x*y)))=='1', str((x*y)*(1/(x*y)))
+    assert str(1/(2*x*y))=='1/2/y/x', str(1/(2*x*y))
+    assert str(1/(x*y/2))=='2/y/x', str(1/(x*y/2))

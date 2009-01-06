@@ -1,9 +1,12 @@
 
 __all__ = ['NCMUL']
 
-from .base import Head, heads, heads_precedence, Pair
+from .base import Head, heads_precedence, Pair, Expr
 
 def init_module(m):
+    from ..arithmetic import numbers as n
+    m.numbertypes = n.numbertypes
+    m.inttypes = n.inttypes
     from .base import heads
     for n,h in heads.iterNameValue(): setattr(m, n, h)
 
@@ -21,6 +24,9 @@ class NCMulHead(Head):
         if commutative_part==1:
             r = ''
             is_mul = m>1
+        elif commutative_part==-1:
+            r = '-'
+            is_mul = m>1
         else:
             f, f_p = NUMBER.data_to_str_and_precedence(cls, commutative_part)
             r = '('+f+')' if f_p < ncmul_p else f
@@ -31,11 +37,20 @@ class NCMulHead(Head):
             if is_mul:
                 if not r:
                     r += '('+f+')' if f_p<ncmul_p else f
+                elif f.startswith('1/'):
+                    r += f[1:]
                 else:
                     r += '*('+f+')' if f_p<ncmul_p else '*'+f
             else:
                 return f, f_p
         return r, ncmul_p
+
+    def term_coeff(self, cls, expr):
+        compart, ncmul_list = expr.data
+        term, coeff = compart.head.term_coeff(cls, compart)
+        if coeff==1:
+            return expr, 1
+        return cls(NCMUL, Pair(coeff, ncmul_list)), coeff
 
     def as_ncmul(self, cls, expr):
         return expr
@@ -74,5 +89,21 @@ class NCMulHead(Head):
                 return cls(compart)
             return cls(NCMUL, Pair(compart, factors))
         raise NotImplementedError(`self, lhs, rhs`)
+
+    def pow(self, cls, base, exp):
+        if exp==0:
+            return cls(NUMBER, 1)
+        if exp==1:
+            return base
+        if isinstance(exp, Expr):
+            h, d = exp.pair
+            if h is NUMBER and isinstance(d, inttypes):
+                compart, factors_list = base.data
+                compart = NUMBER.pow(cls, compart, d)
+                factors_list = [factor**d for factor in factors_list]
+                if exp<0:
+                    factors_list.reverse()
+                return cls(NCMUL, Pair(compart, factors_list)) * cls(NCMUL, Pair(1,[])) # to force normalization
+        return cls(POW, (base, exp))
 
 NCMUL = NCMulHead()
