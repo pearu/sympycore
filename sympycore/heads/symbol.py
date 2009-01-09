@@ -81,10 +81,9 @@ class SymbolHead(AtomicHead):
             return cls(POW, (lhs, 2))
         h = rhs.head
         if h is SYMBOL:
-            return cls(NCMUL, (1, [lhs, rhs]))
+            return cls(NCMUL, Pair(1, [lhs, rhs]))
         lhs = self.as_ncmul(cls, lhs)
         return lhs.head.ncmul(cls, lhs, rhs)
-
 
     def pow(self, cls, base, exp):
         if exp==0:
@@ -92,5 +91,13 @@ class SymbolHead(AtomicHead):
         if exp==1:
             return base
         return cls(POW, (base, exp))
+
+    def expand(self, cls, expr):
+        return expr
+
+    def expand_intpow(self, cls, expr, intexp):
+        if intexp==0:
+            return cls(NUMBER, 1)
+        return cls(POW, (expr, intexp))
 
 SYMBOL = SymbolHead()

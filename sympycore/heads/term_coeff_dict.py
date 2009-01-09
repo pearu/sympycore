@@ -11,6 +11,7 @@ def init_module(m):
     m.dict_get_item = expr_module.dict_get_item
     m.dict_add_dict = expr_module.dict_add_dict
     m.dict_sub_dict = expr_module.dict_sub_dict
+    m.dict_mul_dict = expr_module.dict_mul_dict
 
 class TermCoeffDictHead(Head):
 
@@ -19,7 +20,7 @@ class TermCoeffDictHead(Head):
     def term_coeff(self, cls, expr):
         term_coeff_dict = expr.data
         if len(term_coeff_dict)==1:
-            return term_coeff_dict.items()[0]
+            return dict_get_item(term_coeff_dict)
         return expr, 1
 
     def data_to_str_and_precedence(self, cls, term_coeff_dict):
@@ -65,11 +66,9 @@ class TermCoeffDictHead(Head):
             add_list.append(term * coeff)
         return cls(ADD, add_list)
 
-    def add(self, cls, lhs, rhs):
-        
+    def add(self, cls, lhs, rhs):        
         d = lhs.data.copy()
         h2, d2 = rhs.pair
-
         if h2 is SYMBOL:
             dict_add_item(d, rhs, 1)
         elif h2 is NUMBER:
@@ -79,19 +78,15 @@ class TermCoeffDictHead(Head):
         else:
             rhs = h2.as_term_coeff_dict(cls, rhs)
             dict_add_dict(d, rhs.data)
-
         if len(d)==1:
             t,c = dict_get_item(d)
-            if c==1:
-                return t
-            if t==1:
-                return cls(NUMBER, c)
+            if t==1: return cls(NUMBER, c)
+            if c==1: return t
         return cls(TERM_COEFF_DICT, d)
 
     def sub(self, cls, lhs, rhs):
         d = lhs.data.copy()
         h2, d2 = rhs.pair
-
         if h2 is SYMBOL:
             dict_add_item(d, rhs, -1)
         elif h2 is NUMBER:
@@ -101,20 +96,15 @@ class TermCoeffDictHead(Head):
         else:
             rhs = h2.as_term_coeff_dict(cls, rhs)
             dict_sub_dict(d, rhs.data)
-
         if len(d)==1:
             t,c = dict_get_item(d)
-            if c==1:
-                return t
-            if t==1:
-                return cls(NUMBER, c)
+            if t==1: return cls(NUMBER, c)
+            if c==1: return t
         return cls(TERM_COEFF_DICT, d)
 
     def pow(self, cls, base, exp):
-        if exp==0:
-            return cls(NUMBER, 1)
-        if exp==1:
-            return base
+        if exp==0: return cls(NUMBER, 1)
+        if exp==1: return base
         return cls(POW, (base, exp))
 
     def neg(self, cls, expr):
@@ -123,5 +113,56 @@ class TermCoeffDictHead(Head):
             d[key] = -d[key]
         return cls(TERM_COEFF_DICT, d)
 
+    def expand(self, cls, expr):
+        d = {}
+        for t, c in expr.data.items():
+            if t==1:
+                dict_add_item(d, 1, c)
+            else:
+                t = t.expand()
+                h, dt = t.pair
+                if h is SYMBOL:
+                    dict_add_item(d, t, c)
+                elif h is NUMBER:
+                    dict_add_item(d, 1, dt * c)
+                elif h is TERM_COEFF_DICT:
+                    dict_add_dict(d, dt, c)
+                else:
+                    t = h.as_term_coeff_dict(cls, t)
+                    dict_add_dict(d, t.data, c)
+        if len(d)==1:
+            t,c = dict_get_item(d)
+            if t==1: return cls(NUMBER, c)
+            if c==1: return t
+        return cls(TERM_COEFF_DICT, d)
+
+    def expand_intpow(self, cls, expr, intexp):
+        if intexp<0:
+            return cls(POW, (expr, intexp))
+        if intexp==0:
+            return cls(NUMBER, 1)
+        if intexp==1:
+            return expr
+
+        d = {}
+        if intexp==2:
+            d1 = expr.data
+            dict_mul_dict(d, d1, d1)
+        else:
+            expr2 = self.expand_intpow(cls, expr, intexp//2)
+            h1, d1 = expr2.pair
+            assert h1 is TERM_COEFF_DICT,`expr, intexp, expr2`
+            if intexp % 2: # odd intexp
+                d2 = {}
+                dict_mul_dict(d2, d1, expr.data)
+                dict_mul_dict(d, d2, d1)
+            else:
+                dict_mul_dict(d, d1, d1)
+
+        if len(d)==1:
+            t, c = dict_get_item(d)
+            if t==1: return cls(NUMBER, c)
+            if c==1: return t
+        return cls(TERM_COEFF_DICT, d)
 
 TERM_COEFF_DICT = TermCoeffDictHead()

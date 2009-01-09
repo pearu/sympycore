@@ -51,6 +51,9 @@ class PowHead(BinaryHead):
     def as_ncmul(self, cls, expr):
         return cls(NCMUL, Pair(1, [expr])) # todo: check expr commutativity
 
+    def as_term_coeff_dict(self, cls, expr):
+        return cls(TERM_COEFF_DICT, {expr:1})
+
     def base_exp(self, cls, expr):
         base, exp = expr.data
         return base, exp
@@ -60,7 +63,19 @@ class PowHead(BinaryHead):
         return lhs.head.ncmul(cls, lhs, rhs)
 
     def pow(self, cls, base, exp):
-        
         raise NotImplementedError(`base, exp`)
+
+    def expand(self, cls, expr):
+        base, exp = expr.data
+        if isinstance(exp, Expr):
+            exp = exp.expand()
+            h, d = exp.pair
+            if h is NUMBER and isinstance(d, int):
+                exp = d
+        if isinstance(base, Expr):
+            base = base.expand()
+            if isinstance(exp, int):
+                return base.head.expand_intpow(cls, base, exp)
+        return cls(POW, (base, exp))
 
 POW = PowHead()

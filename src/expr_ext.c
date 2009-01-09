@@ -52,7 +52,7 @@ static char Expr_doc[] = \
 ;
 
 #include <Python.h>
-
+#include <assert.h>
 typedef struct {
   PyObject_HEAD
   PyObject *pair;
@@ -692,36 +692,137 @@ Expr_canonize_TERMS(Expr *self) {
 }
 
 static PyObject*
+dict_mul_dict(PyObject *self, PyObject *args) 
+{
+  PyObject *sum = NULL;
+  PyObject *obj = NULL;
+  int nofargs = PyTuple_GET_SIZE(args);
+  if (!(nofargs==3)) 
+    {	    
+      PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("dict_mul_dict takes 3 arguments (%d given)", nofargs));
+      return NULL;							
+    }			
+  PyObject *d = PyTuple_GET_ITEM(args, 0);
+  PyObject *dict1 = PyTuple_GET_ITEM(args, 1);
+  PyObject *dict2 = PyTuple_GET_ITEM(args, 2);
+  Py_ssize_t pos1 = 0;
+  Py_ssize_t pos2 = 0;
+  PyObject *t1 = NULL;
+  PyObject *c1 = NULL;
+  PyObject *t2 = NULL;
+  PyObject *c2 = NULL;
+  PyObject *t = NULL;
+  PyObject *c = NULL;
+  while (PyDict_Next(dict1, &pos1, &t1, &c1)) 
+    {
+      pos2 = 0;
+      while (PyDict_Next(dict2, &pos2, &t2, &c2))
+	{
+	  if ((t = PyNumber_Multiply(t1, t2))==NULL) return NULL;
+	  if ((c = PyNumber_Multiply(c1, c2))==NULL) return NULL;
+	  obj = PyDict_GetItem(d, t);
+	  if (obj==NULL)
+	    {
+	      if (PyDict_SetItem(d, t, c)==-1)
+		return NULL;
+	    }
+	  else
+	    {
+	      if ((sum = PyNumber_Add(obj, c))==NULL) return NULL;
+	      if (PyInt_CheckExact(sum) ? PyInt_AS_LONG(sum) : PyObject_IsTrue(sum)) 
+		{
+		  if (PyDict_SetItem(d, t, sum)==-1) return NULL;
+		}
+	      else 
+		{
+		  if (PyDict_DelItem(d, t)==-1) return NULL;
+		}
+	    }
+	}
+    }
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+static PyObject*
 dict_add_dict(PyObject *self, PyObject *args) {
   PyObject *sum = NULL;
   PyObject *obj = NULL;
   // check that args[0] and args[1] are dicts and len(args)==2
-  PyObject* d = PyTuple_GET_ITEM(args, 0);
+  int nofargs = PyTuple_GET_SIZE(args);
+  if (!(nofargs==2 || nofargs==3)) 
+    {	    
+      PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("dict_add_dict takes 2 or 3 arguments (%d given)", nofargs));
+      return NULL;							
+    }						 
+  PyObject *d = PyTuple_GET_ITEM(args, 0);
   PyObject *dict = PyTuple_GET_ITEM(args, 1);
+  PyObject *coeff = NULL;
   PyObject *key = NULL;
   PyObject *value = NULL;
   Py_ssize_t pos = 0;
-  while (PyDict_Next(dict, &pos, &key, &value)) 
+
+  if (nofargs==3)
     {
-      obj = PyDict_GetItem(d, key);
-      if (obj==NULL) 
-	{ 
-	  if (PyDict_SetItem(d, key, value)==-1)
-	    return NULL;
-	} 
-      else 
+      coeff = PyTuple_GET_ITEM(args, 2);
+      if (PyInt_CheckExact(coeff) && PyInt_AS_LONG(coeff)==1)
+	nofargs = 2;
+    }
+  if (nofargs==3)
+    {
+      while (PyDict_Next(dict, &pos, &key, &value)) 
 	{
-	  if ((sum = PyNumber_Add(obj, value))==NULL)
-	    return NULL;
-	  if (PyInt_CheckExact(sum) ? PyInt_AS_LONG(sum) : PyObject_IsTrue(sum)) 
-	    {
+	  obj = PyDict_GetItem(d, key);
+	  if (obj==NULL) 
+	    { 
+	      if ((sum = PyNumber_Multiply(value, coeff))==NULL)
+		return NULL;
 	      if (PyDict_SetItem(d, key, sum)==-1)
 		return NULL;
-	    }
+	    } 
 	  else 
 	    {
-	      if (PyDict_DelItem(d, key)==-1)
+	      if ((sum = PyNumber_Multiply(value, coeff))==NULL)
 		return NULL;
+	      if ((sum = PyNumber_Add(obj, sum))==NULL)
+		return NULL;
+	      if (PyInt_CheckExact(sum) ? PyInt_AS_LONG(sum) : PyObject_IsTrue(sum)) 
+		{
+		  if (PyDict_SetItem(d, key, sum)==-1)
+		    return NULL;
+		}
+	      else 
+		{
+		  if (PyDict_DelItem(d, key)==-1)
+		    return NULL;
+		}
+	    }
+	}
+    }
+  else
+    {
+      while (PyDict_Next(dict, &pos, &key, &value)) 
+	{
+	  obj = PyDict_GetItem(d, key);
+	  if (obj==NULL) 
+	    { 
+	      if (PyDict_SetItem(d, key, value)==-1)
+		return NULL;
+	    } 
+	  else 
+	    {
+	      if ((sum = PyNumber_Add(obj, value))==NULL)
+		return NULL;
+	      if (PyInt_CheckExact(sum) ? PyInt_AS_LONG(sum) : PyObject_IsTrue(sum)) 
+		{
+		  if (PyDict_SetItem(d, key, sum)==-1)
+		    return NULL;
+		}
+	      else 
+		{
+		  if (PyDict_DelItem(d, key)==-1)
+		    return NULL;
+		}
 	    }
 	}
     }
@@ -1218,8 +1319,9 @@ static PyMethodDef module_methods[] = {
   {"init_module",  init_module, METH_VARARGS, "Initialize module."},
   {"dict_add_item",  dict_add_item, METH_VARARGS, "dict_add_item(dict, key, value) - add (key, value) pair to dict"},
   {"dict_get_item", dict_get_item, METH_VARARGS, "dict_get_item(dict) - return the first (key, value) pair of a dict."},
-  {"dict_add_dict",  dict_add_dict, METH_VARARGS, "dict_add_dict(dict1, dict2) - add dict2 items to dict1"},
-  {"dict_sub_dict",  dict_sub_dict, METH_VARARGS, "dict_sub_dict(dict1, dict2) - add negated dict2 items to dict1"},
+  {"dict_add_dict",  dict_add_dict, METH_VARARGS, "dict_add_dict(dict, dict1) - add dict1 items to dict"},
+  {"dict_sub_dict",  dict_sub_dict, METH_VARARGS, "dict_sub_dict(dict, dict1) - add negated dict1 items to dict"},
+  {"dict_mul_dict",  dict_mul_dict, METH_VARARGS, "dict_mul_dict(dict, dict1, dict2) - multiply dict1 and dict2 items and add them to dict"},
   {NULL}  /* Sentinel */
 };
 

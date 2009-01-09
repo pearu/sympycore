@@ -52,7 +52,9 @@ class NumberHead(AtomicHead):
         return str(data), 0.0 # force parenthesis
 
     def term_coeff(self, cls, expr):
-        return cls(NUMBER, 1), expr.data
+        if isinstance(expr, Expr):
+            return cls(NUMBER, 1), expr.data
+        return cls(NUMBER, 1), expr
 
     def get_precedence_for_data(self, data): # obsolete
         if isinstance(data, complextypes):
@@ -130,5 +132,8 @@ class NumberHead(AtomicHead):
                 return cls(NUMBER, r)
             return cls(MUL, [cls(NUMBER,r)] + [cls(POW, (cls(NUMBER, b), e)) for b,e in base_exp_list])
         return cls(POW, (base, exp))
+
+    def expand(self, cls, expr):
+        return expr
 
 NUMBER = NumberHead()

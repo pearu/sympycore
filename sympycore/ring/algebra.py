@@ -77,3 +77,6 @@ class Ring(Algebra):
         if cls is not tother:
             other = cls.convert(other)
         return other * self**-1
+
+    def expand(self):
+        return self.head.expand(type(self), self)

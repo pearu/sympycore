@@ -446,3 +446,19 @@ def dict_sub_dict(dict1, dict2):
                 dict1[key] = c
             else:
                 del dict1[key]
+
+def dict_mul_dict(d, dict1, dict2):
+    for t1,c1 in dict1.iteritems():
+        for t2,c2 in dict2.iteritems():
+            t = t1 * t2
+            c12 = c1 * c2
+            c = d.get(t)
+            if c is None:
+                d[t] = c12
+            else:
+                c = c + c12
+                if c:
+                    d[t] = c
+                else:
+                    del d[t]
+    

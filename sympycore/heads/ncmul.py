@@ -55,6 +55,18 @@ class NCMulHead(Head):
     def as_ncmul(self, cls, expr):
         return expr
 
+    def as_term_coeff_dict(self, cls, expr):
+        compart, ncmul_list = expr.data
+        if isinstance(compart, Expr):
+            term, coeff = compart.head.term_coeff(cls, compart)
+        else:
+            term, coeff = NUMBER.term_coeff(cls, compart)
+        if coeff==1:
+            return cls(TERM_COEFF_DICT, {expr:1})
+        if term==1 and len(ncmul_list)==1:
+            return cls(TERM_COEFF_DICT, {ncmul_list[0]: coeff})
+        return cls(TERM_COEFF_DICT, {cls(NCMUL, Pair(term, ncmul_list)):coeff})
+
     def ncmul(self, cls, lhs, rhs):
         head, data = rhs.pair
         if head is not NCMUL:
@@ -105,5 +117,12 @@ class NCMulHead(Head):
                     factors_list.reverse()
                 return cls(NCMUL, Pair(compart, factors_list)) * cls(NCMUL, Pair(1,[])) # to force normalization
         return cls(POW, (base, exp))
+
+    def expand(self, cls, expr):
+        compart, ncmul_list = expr.data
+        if isinstance(compart, Expr):
+            compart = compart.expand()
+        ncmul_list = [f.expand() for f in ncmul_list]
+        return cls(NCMUL, Pair(compart, ncmul_list))
 
 NCMUL = NCMulHead()
