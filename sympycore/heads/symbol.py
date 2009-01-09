@@ -46,24 +46,32 @@ class SymbolHead(AtomicHead):
         return cls(ADD, [expr])
     
     def add(self, cls, lhs, rhs):
-        if lhs==rhs:
-            return cls(TERM_COEFF_DICT, {lhs:2})
-        h = rhs.head
-        if h is SYMBOL or h is NUMBER:
-            return cls(ADD, [lhs, rhs])
-        lhs = self.as_add(cls, lhs)
+        h,d = rhs.pair
+        if h is SYMBOL:
+            if lhs==rhs:
+                return cls(TERM_COEFF_DICT, {lhs:2})
+            return cls(TERM_COEFF_DICT, {lhs:1, rhs:1})
+        if h is NUMBER:
+            return cls(TERM_COEFF_DICT, {lhs:1, 1:d})
+        lhs = self.as_term_coeff_dict(cls, lhs)
         return lhs.head.add(cls, lhs, rhs)
 
     def sub(self, cls, lhs, rhs):
-        if lhs==rhs:
-            return cls(NUMBER, 0)
-        h = rhs.head
-        if h is SYMBOL or h is NUMBER:
-            return cls(SUB, [lhs, rhs])
-        raise NotImplementedError(`self, lhs, h, rhs`)
+        h,d = rhs.pair
+        if h is SYMBOL:
+            if lhs==rhs:
+                return cls(NUMBER, 0)
+            return cls(TERM_COEFF_DICT, {lhs:1, rhs:-1})
+        if h is NUMBER:
+            return cls(TERM_COEFF_DICT, {lhs:1, 1:-d})
+        lhs = self.as_term_coeff_dict(cls, lhs)
+        return lhs.head.sub(cls, lhs, rhs)
 
     def as_ncmul(self, cls, expr):
         return cls(NCMUL, Pair(1, [expr])) # todo: check expr commutativity
+
+    def as_term_coeff_dict(self, cls, expr):
+        return cls(TERM_COEFF_DICT, {expr: 1})
 
     def base_exp(self, cls, expr):
         return expr, 1

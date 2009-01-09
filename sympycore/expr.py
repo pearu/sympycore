@@ -409,5 +409,40 @@ class Pair(Expr):
     def __getitem__(self, index):
         return self.pair[index]
 
+def dict_add_item(d, key, value):
+    c = d.get(key)
+    if c is None:
+        d[key] = value
+    else:
+        c = c + value
+        if c:
+            d[key] = c
+        else:
+            del d[key]
 
+def dict_get_item(d):
+    return d.items()[0]
 
+def dict_add_dict(dict1, dict2):
+    for key, value in dict2.iteritems():
+        c = dict1.get(key)
+        if c is None:
+            dict1[key] = value
+        else:
+            c = c + value
+            if c:
+                dict1[key] = c
+            else:
+                del dict1[key]
+
+def dict_sub_dict(dict1, dict2):
+    for key, value in dict2.iteritems():
+        c = dict1.get(key)
+        if c is None:
+            dict1[key] = -value
+        else:
+            c = c - value
+            if c:
+                dict1[key] = c
+            else:
+                del dict1[key]

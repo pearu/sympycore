@@ -27,7 +27,11 @@ class Ring(Algebra):
     __radd__ = __add__
 
     def __sub__(self, other):
-        return self + (-other)
+        cls = type(self)
+        tother = type(other)
+        if cls is not tother:
+            other = cls.convert(other)
+        return self.head.sub(cls, self, other)
 
     def __rsub__(self, other):
         return other + (-self)

@@ -692,6 +692,82 @@ Expr_canonize_TERMS(Expr *self) {
 }
 
 static PyObject*
+dict_add_dict(PyObject *self, PyObject *args) {
+  PyObject *sum = NULL;
+  PyObject *obj = NULL;
+  // check that args[0] and args[1] are dicts and len(args)==2
+  PyObject* d = PyTuple_GET_ITEM(args, 0);
+  PyObject *dict = PyTuple_GET_ITEM(args, 1);
+  PyObject *key = NULL;
+  PyObject *value = NULL;
+  Py_ssize_t pos = 0;
+  while (PyDict_Next(dict, &pos, &key, &value)) 
+    {
+      obj = PyDict_GetItem(d, key);
+      if (obj==NULL) 
+	{ 
+	  if (PyDict_SetItem(d, key, value)==-1)
+	    return NULL;
+	} 
+      else 
+	{
+	  if ((sum = PyNumber_Add(obj, value))==NULL)
+	    return NULL;
+	  if (PyInt_CheckExact(sum) ? PyInt_AS_LONG(sum) : PyObject_IsTrue(sum)) 
+	    {
+	      if (PyDict_SetItem(d, key, sum)==-1)
+		return NULL;
+	    }
+	  else 
+	    {
+	      if (PyDict_DelItem(d, key)==-1)
+		return NULL;
+	    }
+	}
+    }
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+static PyObject*
+dict_sub_dict(PyObject *self, PyObject *args) {
+  PyObject *sum = NULL;
+  PyObject *obj = NULL;
+  // check that args[0] and args[1] are dicts and len(args)==2
+  PyObject* d = PyTuple_GET_ITEM(args, 0);
+  PyObject *dict = PyTuple_GET_ITEM(args, 1);
+  PyObject *key = NULL;
+  PyObject *value = NULL;
+  Py_ssize_t pos = 0;
+  while (PyDict_Next(dict, &pos, &key, &value)) 
+    {
+      obj = PyDict_GetItem(d, key);
+      if (obj==NULL) 
+	{ 
+	  if (PyDict_SetItem(d, key, PyNumber_Negative(value))==-1)
+	    return NULL;
+	} 
+      else 
+	{
+	  if ((sum = PyNumber_Subtract(obj, value))==NULL)
+	    return NULL;
+	  if (PyInt_CheckExact(sum) ? PyInt_AS_LONG(sum) : PyObject_IsTrue(sum)) 
+	    {
+	      if (PyDict_SetItem(d, key, sum)==-1)
+		return NULL;
+	    }
+	  else 
+	    {
+	      if (PyDict_DelItem(d, key)==-1)
+		return NULL;
+	    }
+	}
+    }
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+static PyObject*
 Expr_dict_add_dict(Expr *self, PyObject *args) {
   PyObject *sum = NULL;
   PyObject *obj = NULL;
@@ -860,6 +936,46 @@ Expr_dict_add_dict3(Expr *self, PyObject *args) {
     return Py_None;
   }
   return result;
+}
+
+static PyObject *
+dict_get_item(PyObject *self, PyObject *args)
+{
+  // check that args[0] is dict and len(args)==1
+  PyObject *d = PyTuple_GET_ITEM(args, 0);
+  PyObject *key = NULL;
+  PyObject *value = NULL;
+  Py_ssize_t pos = 0;
+  if (!PyDict_Next(d, &pos, &key, &value))
+    return NULL;
+  return Py_BuildValue("OO", key, value);
+}
+
+static PyObject *
+dict_add_item(PyObject *self, PyObject *args)
+{
+  // check that args[0] is dict and len(args)==3
+  PyObject *d = PyTuple_GET_ITEM(args, 0);
+  PyObject* item_key = PyTuple_GET_ITEM(args, 1);
+  PyObject* item_value = PyTuple_GET_ITEM(args, 2);
+  PyObject *sum = NULL;
+  PyObject* obj = PyDict_GetItem(d, item_key);
+  if (obj==NULL) { 
+    if (PyDict_SetItem(d, item_key, item_value)==-1)
+      return NULL;
+  } else {
+    if ((sum = PyNumber_Add(obj, item_value))==NULL)
+      return NULL;
+    if (PyInt_CheckExact(sum) ? PyInt_AS_LONG(sum) : PyObject_IsTrue(sum)) {
+      if (PyDict_SetItem(d, item_key, sum)==-1)
+	return NULL;
+    } else {
+      if (PyDict_DelItem(d, item_key)==-1)
+	return NULL;
+    }
+  }
+  Py_INCREF(Py_None);
+  return Py_None;
 }
 
 /*
@@ -1100,6 +1216,10 @@ static PyTypeObject PairType = {
 
 static PyMethodDef module_methods[] = {
   {"init_module",  init_module, METH_VARARGS, "Initialize module."},
+  {"dict_add_item",  dict_add_item, METH_VARARGS, "dict_add_item(dict, key, value) - add (key, value) pair to dict"},
+  {"dict_get_item", dict_get_item, METH_VARARGS, "dict_get_item(dict) - return the first (key, value) pair of a dict."},
+  {"dict_add_dict",  dict_add_dict, METH_VARARGS, "dict_add_dict(dict1, dict2) - add dict2 items to dict1"},
+  {"dict_sub_dict",  dict_sub_dict, METH_VARARGS, "dict_sub_dict(dict1, dict2) - add negated dict2 items to dict1"},
   {NULL}  /* Sentinel */
 };
 

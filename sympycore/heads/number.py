@@ -76,6 +76,9 @@ class NumberHead(AtomicHead):
 
     def as_add(self, cls, expr):
         return cls(ADD, [expr])
+
+    def as_term_coeff_dict(self, cls, expr):
+        return cls(TERM_COEFF_DICT, {1: expr.data})
     
     def add(self, cls, lhs, rhs):
         h, d = rhs.pair
