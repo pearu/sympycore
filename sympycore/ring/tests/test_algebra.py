@@ -65,6 +65,9 @@ def test_pow():
     assert str(x**y)=='x**y', str(x**y)
     assert str(2**x)=='2**x', str(2**x)
 
+    assert str(x*y*x**-1 * x*y*x**-1 * x*y*x**-1)=='x*y**3/x',str(x*y*x**-1 * x*y*x**-1 * x*y*x**-1)
+    assert str((x*y*x**-1)**3)=='x*y**3/x', str((x*y*x**-1)**3)
+
 def test_div():
     x,y,z = map(Ring, 'xyz')
     assert str(1/y)=='1/y', str(1/y)

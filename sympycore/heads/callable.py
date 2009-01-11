@@ -22,7 +22,6 @@ class CallableHead(AtomicHead):
             return s, heads_precedence.CALLABLE
         return s, 0.0 # force parenthesis
 
-
     precedence = AtomicHead.precedence_map['SYMBOL'] # obsolete
     def data_to_str(self, cls, func, parent_precedence): # obsolete
         if hasattr(func, '__name__'):

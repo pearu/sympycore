@@ -1,7 +1,7 @@
 
 __all__ = ['TERM_COEFF_DICT']
 
-from .base import Head, heads, heads_precedence
+from .base import heads, heads_precedence, ArithmeticHead, Pair
 
 def init_module(m):
     from .base import heads
@@ -12,8 +12,9 @@ def init_module(m):
     m.dict_add_dict = expr_module.dict_add_dict
     m.dict_sub_dict = expr_module.dict_sub_dict
     m.dict_mul_dict = expr_module.dict_mul_dict
+    m.dict_mul_value = expr_module.dict_mul_value
 
-class TermCoeffDictHead(Head):
+class TermCoeffDictHead(ArithmeticHead):
 
     def __repr__(self): return 'TERM_COEFF_DICT'
 
@@ -22,6 +23,10 @@ class TermCoeffDictHead(Head):
         if len(term_coeff_dict)==1:
             return dict_get_item(term_coeff_dict)
         return expr, 1
+
+    def as_ncmul(self, cls, expr):
+        t, c = self.term_coeff(cls, expr)
+        return cls(NCMUL, Pair(c, [t]))
 
     def data_to_str_and_precedence(self, cls, term_coeff_dict):
         NUMBER_data_to_str_and_precedence = NUMBER.data_to_str_and_precedence
@@ -136,6 +141,21 @@ class TermCoeffDictHead(Head):
             if c==1: return t
         return cls(TERM_COEFF_DICT, d)
 
+    def ncmul(self, cls, lhs, rhs):
+        h, d2 = rhs.pair
+        if h is NUMBER:
+            if not d2: return rhs # rhs is 0
+            if d2==1: return lhs # rhs is 1
+            d = lhs.data.copy()       
+            dict_mul_value(d, d2)
+            if len(d)==1:
+                t,c = dict_get_item(d)
+                if t==1: return cls(NUMBER, c)
+                if c==1: return t
+            return cls(TERM_COEFF_DICT, d)
+        lhs = self.as_ncmul(cls, lhs)
+        return NCMUL.ncmul(cls, lhs, rhs)
+        
     def expand_intpow(self, cls, expr, intexp):
         if intexp<0:
             return cls(POW, (expr, intexp))
@@ -151,7 +171,6 @@ class TermCoeffDictHead(Head):
         else:
             expr2 = self.expand_intpow(cls, expr, intexp//2)
             h1, d1 = expr2.pair
-            assert h1 is TERM_COEFF_DICT,`expr, intexp, expr2`
             if intexp % 2: # odd intexp
                 d2 = {}
                 dict_mul_dict(d2, d1, expr.data)

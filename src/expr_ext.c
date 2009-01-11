@@ -692,6 +692,29 @@ Expr_canonize_TERMS(Expr *self) {
 }
 
 static PyObject*
+dict_mul_value(PyObject *self, PyObject *args)
+{
+  int nofargs = PyTuple_GET_SIZE(args);
+  if (!(nofargs==2)) 
+    {	    
+      PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("dict_mul_value takes 2 arguments (%d given)", nofargs));
+      return NULL;							
+    }
+  PyObject *d = PyTuple_GET_ITEM(args, 0);
+  PyObject *value = PyTuple_GET_ITEM(args, 1);
+  Py_ssize_t pos = 0;
+  PyObject *t = NULL;
+  PyObject *c = NULL;
+  while (PyDict_Next(d, &pos, &t, &c)) 
+    {
+      if ((c = PyNumber_Multiply(c, value))==NULL) return NULL;
+      if (PyDict_SetItem(d, t, c)==-1) return NULL;
+    }
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+static PyObject*
 dict_mul_dict(PyObject *self, PyObject *args) 
 {
   PyObject *sum = NULL;
@@ -1322,6 +1345,7 @@ static PyMethodDef module_methods[] = {
   {"dict_add_dict",  dict_add_dict, METH_VARARGS, "dict_add_dict(dict, dict1) - add dict1 items to dict"},
   {"dict_sub_dict",  dict_sub_dict, METH_VARARGS, "dict_sub_dict(dict, dict1) - add negated dict1 items to dict"},
   {"dict_mul_dict",  dict_mul_dict, METH_VARARGS, "dict_mul_dict(dict, dict1, dict2) - multiply dict1 and dict2 items and add them to dict"},
+  {"dict_mul_value",  dict_mul_value, METH_VARARGS, "dict_mul_value(dict, value) - multiply dict values with value"},
   {NULL}  /* Sentinel */
 };
 

@@ -1,6 +1,10 @@
 
 from ..basealgebra import Algebra
 
+def init_module(m):
+    from ..core import heads
+    for n,h in heads.iterNameValue(): setattr(m, n, h)
+
 class Ring(Algebra):
     """
     Ring represents algebraic ring (R, +, *) where (R, +) is abelian
@@ -80,3 +84,14 @@ class Ring(Algebra):
 
     def expand(self):
         return self.head.expand(type(self), self)
+
+    @classmethod
+    def try_ncmul_combine(cls, lhs, rhs):
+        """ Try combining lhs, rhs in non-commutative lhs*rhs operation.
+        Return new expression or None.
+        """
+        b1, e1 = lhs.head.base_exp(cls, lhs)
+        b2, e2 = rhs.head.base_exp(cls, rhs)
+        if b1==b2:
+            return b1 ** (e1 + e2)
+        return # combining not possible

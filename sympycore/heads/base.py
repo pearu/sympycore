@@ -1,6 +1,8 @@
 
 __all__ = ['Head', 'UnaryHead', 'BinaryHead', 'NaryHead']
 
+not_implemented_error_msg = '%s.%s() method, report to http://code.google.com/p/sympycore/issues/'
+
 from ..core import Expr, heads, heads_precedence, Pair
 
 class Head(object):
@@ -97,6 +99,7 @@ class Head(object):
     def data_to_str_and_precedence(self, cls, data):
         return '%s(%r, %r)' % (cls.__name__, self, data), 1.0
 
+
 class AtomicHead(Head):
     """
     AtomicHead is a base class to atomic expression heads.
@@ -158,5 +161,69 @@ class NaryHead(Head):
             return '(' + r + ')'
         return r
 
+
+class ArithmeticHead(Head):
+    """ Base class for heads representing arithmetic operations.
+    """
+
+    def term_coeff(self, cls, expr):
+        """ Return (term, coefficent) pair such that
+
+          expr = term * coefficent
+          coefficent is a number instance
+
+        """
+        raise NotImplementedError(not_implemented_error_msg % (self, 'term_coeff'))
+
+    def as_add(self, cls, expr):
+        """ Return expr as ADD expression.
+        """
+        raise NotImplementedError(not_implemented_error_msg % (self, 'as_add'))
+
+    def as_term_coeff_dict(self, cls, expr):
+        """ Return expr as TERM_COEFF_DICT expression.
+        """
+        raise NotImplementedError(not_implemented_error_msg % (self, 'as_term_coeff_dict'))
+    
+    def as_ncmul(self, cls, expr):
+        """ Return expr as NCMUL expression.
+        """
+        raise NotImplementedError(not_implemented_error_msg % (self, 'as_ncmul'))
+
+    def neg(self, cls, expr):
+        """ Return negated expression: -expr.
+        """
+        raise NotImplementedError(not_implemented_error_msg % (self, 'neg'))
+
+    def add(self, cls, lhs, rhs):
+        """ Return a sum of expressions: lhs + rhs.
+        """
+        raise NotImplementedError(not_implemented_error_msg % (self, 'add'))
+
+    def sub(self, cls, lhs, rhs):
+        """ Return a subtract of expressions: lhs + rhs.
+        """
+        raise NotImplementedError(not_implemented_error_msg % (self, 'sub'))
+
+    def ncmul(self, cls, lhs, rhs):
+        """ Return a non-commutative product of expressions: lhs * rhs.
+        """
+        raise NotImplementedError(not_implemented_error_msg % (self, 'add'))
+
+    def pow(self, cls, base, exp):
+        """ Return a power of expressions: base ** exp.
+        """
+        raise NotImplementedError(not_implemented_error_msg % (self, 'pow'))
+
+    def expand(self, cls, expr):
+        """ Return expanded expression: open parenthesis of arithmetic operations.
+        """
+        raise NotImplementedError(not_implemented_error_msg % (self, 'expand'))
+
+    def expand_intpow(self, cls, expr, intexp):
+        """ Return expanded expr ** intexp where intexp is integer.
+        """
+        raise NotImplementedError(not_implemented_error_msg % (self, 'expand_intpow'))
+    
 for k, v in Head.precedence_map.items():
     setattr(heads_precedence, k, v)

@@ -1,13 +1,13 @@
 
 __all__ = ['ADD']
 
-from .base import NaryHead, heads_precedence
+from .base import heads_precedence, ArithmeticHead
 
 def init_module(m):
     from .base import heads
     for n,h in heads.iterNameValue(): setattr(m, n, h)
 
-class AddHead(NaryHead):
+class AddHead(ArithmeticHead):
 
     """
     AddHead represents addition n-ary operation where operands is

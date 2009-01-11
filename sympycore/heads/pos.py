@@ -1,9 +1,9 @@
 
 __all__ = ['POS']
 
-from .base import UnaryHead, heads_precedence
+from .base import UnaryHead, heads_precedence, ArithmeticHead
 
-class PosHead(UnaryHead):
+class PosHead(ArithmeticHead, UnaryHead):
 
     """
     PosHead represents positive unary operation where operand (data)

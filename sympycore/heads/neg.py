@@ -1,9 +1,9 @@
 
 __all__ = ['NEG']
 
-from .base import UnaryHead, heads_precedence
+from .base import UnaryHead, heads_precedence, ArithmeticHead
 
-class NegHead(UnaryHead):
+class NegHead(ArithmeticHead, UnaryHead):
 
     """
     PosHead represents positive unary operation where operand (data)

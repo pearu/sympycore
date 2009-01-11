@@ -462,3 +462,6 @@ def dict_mul_dict(d, dict1, dict2):
                 else:
                     del d[t]
     
+def dict_mul_value(d, value):
+    for t, c in d.items():
+        d[t] = c*value
