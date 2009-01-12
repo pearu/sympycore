@@ -40,7 +40,7 @@ class NCMulHead(ArithmeticHead, Head):
             h, d = factor.pair
             f, f_p = h.data_to_str_and_precedence(cls, d)
             if is_mul:
-                if not r:
+                if not r or r=='-':
                     r += '('+f+')' if f_p<ncmul_p else f
                 elif f.startswith('1/'):
                     r += f[1:]
@@ -52,10 +52,13 @@ class NCMulHead(ArithmeticHead, Head):
 
     def term_coeff(self, cls, expr):
         compart, ncmul_list = expr.data
-        term, coeff = compart.head.term_coeff(cls, compart)
+        if isinstance(compart, Expr):
+            term, coeff = compart.head.term_coeff(cls, compart)
+        else:
+            term, coeff = NUMBER.term_coeff(cls, compart)
         if coeff==1:
             return expr, 1
-        return cls(NCMUL, Pair(coeff, ncmul_list)), coeff
+        return cls(NCMUL, Pair(term, ncmul_list)), coeff
 
     def as_ncmul(self, cls, expr):
         return expr
@@ -96,7 +99,14 @@ class NCMulHead(ArithmeticHead, Head):
                             if h is NUMBER: # TODO: or c is commutative:
                                 compart = compart * c
                                 break
-                            factor = c
+                            if h is NCMUL:
+                                c1, f_lst = d
+                                if c1 != 1:
+                                    compart = compart * c1
+                                factors.extend(f_lst[:-1])
+                                factor = f_lst[-1]
+                            else:
+                                factor = c
                         if not factors or c is None:
                             factors.append(factor)
                             break
@@ -123,6 +133,9 @@ class NCMulHead(ArithmeticHead, Head):
             if compart==1 and len(factors_list)==1:
                 return factors_list[0]
             return cls(NCMUL, Pair(compart, factors_list))
+        term, coeff = self.term_coeff(cls, base)
+        if coeff!=1:
+            return NUMBER.pow(cls, coeff, exp) * term**exp
         if isinstance(exp, Expr):
             h, d = exp.pair
             if h is NUMBER and isinstance(d, inttypes) and d>0:
@@ -141,6 +154,12 @@ class NCMulHead(ArithmeticHead, Head):
                     else:
                         middle = cls(NCMUL, Pair(1, rest))
                     return compart * first * middle**d * last # could be optimized
+                if compart != 1:
+                    if len(factors_list)==1:
+                        new_base = factors_list[0]
+                    else:
+                        new_base = cls(NCMUL, Pair(1, factors_list))
+                    return cls(TERM_COEFF_DICT, {cls(POW, (new_base, exp)):compart})
         return cls(POW, (base, exp))
 
     def expand(self, cls, expr):

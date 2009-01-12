@@ -50,8 +50,13 @@ class TermCoeffDictHead(ArithmeticHead):
             else:
                 t, t_p = term.head.data_to_str_and_precedence(cls, term.data)
                 c, c_p = NUMBER_data_to_str_and_precedence(cls, coeff)            
-                t = ('('+c+')' if c_p < mul_p else c) +'*'+ ('('+t+')' if t_p < mul_p else t)
-                t_c = mul_p
+                cs = ('('+c+')' if c_p < mul_p else c)
+                ts = ('('+t+')' if t_p < mul_p else t)
+                if ts.startswith('1/'):
+                    t = cs + ts[1:]
+                else:
+                    t = cs + '*' + ts
+                t_p = mul_p
             if is_add:
                 if not r:
                     r += '(' + t + ')' if t_p < add_p else t
@@ -110,6 +115,13 @@ class TermCoeffDictHead(ArithmeticHead):
     def pow(self, cls, base, exp):
         if exp==0: return cls(NUMBER, 1)
         if exp==1: return base
+        d = base.data
+        if len(d)==1:
+            t,c = dict_get_item(d)
+            t,c = t**exp, c**exp
+            if t==1: return cls(NUMBER, c)
+            if c==1: return t
+            return cls(TERM_COEFF_DICT, {t:c})
         return cls(POW, (base, exp))
 
     def neg(self, cls, expr):

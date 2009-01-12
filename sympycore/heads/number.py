@@ -125,7 +125,11 @@ class NumberHead(AtomicHead):
                     h, d = exp.pair
                     if h is NUMBER and isinstance(d, numbertypes):
                         exp = d
-
+        if isinstance(base, numbertypes):
+            if isinstance(exp, Expr):
+                h, d = exp.pair
+                if h is NUMBER and isinstance(d, numbertypes):
+                    exp = d
         if isinstance(base, numbertypes) and isinstance(exp, numbertypes):
             r, base_exp_list = try_power(base, exp)
             if not base_exp_list:

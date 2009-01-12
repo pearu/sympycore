@@ -37,7 +37,7 @@ class Head(object):
         IN = 0.1, NOTIN = 0.1, IS = 0.1, ISNOT = 0.1,
         BOR = 0.2, BXOR = 0.21, BAND = 0.22, 
         LSHIFT = 0.3, RSHIFT = 0.3,
-        ADD = 0.4, SUB = 0.4, TERMS = 0.45,
+        ADD = 0.4, SUB = 0.4, TERMS = 0.45, 
         NCMUL = 0.5,
         MUL = 0.5, DIV = 0.5, MOD = 0.5, FLOORDIV = 0.5,
         FACTORS = 0.55,

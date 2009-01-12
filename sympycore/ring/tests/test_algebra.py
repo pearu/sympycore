@@ -18,6 +18,7 @@ def test_neg():
     assert str(-x)=='-x', str(-x)
     assert str(-Ring(2))=='-2', str(-Ring(2))
     assert str(-(x+y)) in ['-x - y', '-y - x'], str(-(x+y))
+    assert str(-x*y)=='-x*y', str(-x*y)
 
 def test_add():
     x,y,z = map(Ring, 'xyz')
@@ -61,9 +62,16 @@ def test_ncmul():
 def test_pow():
     x,y,z = map(Ring, 'xyz')
     assert str(x**2)=='x**2', str(x**2)
+    assert str((2*x)**2)=='4*x**2', str((2*x)**2)
+    assert str((2*x*y)**2)=='4*(x*y)**2', str((2*x*y)**2)
     assert str(x*x)=='x**2', str(x*x)
     assert str(x**y)=='x**y', str(x**y)
     assert str(2**x)=='2**x', str(2**x)
+
+    assert str((2*x)**-2)=='1/4/x**2', str((2*x)**-2)
+    assert str((2*x*y)**-2)=='1/4/(x*y)**2', str((2*x*y)**-2)
+
+    assert str(((z*y)**2) * (1/(2*z*y)**2))=='1/4', str(((z*y)**2) * (1/(2*z*y)**2))
 
     assert str(x*y*x**-1 * x*y*x**-1 * x*y*x**-1)=='x*y**3/x',str(x*y*x**-1 * x*y*x**-1 * x*y*x**-1)
     assert str((x*y*x**-1)**3)=='x*y**3/x', str((x*y*x**-1)**3)
