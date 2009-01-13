@@ -117,24 +117,25 @@ div.warning p.admonition-title {
 <li><a class="reference" href="#introduction" id="id2" name="id2">1&nbsp;&nbsp;&nbsp;Introduction</a></li>
 <li><a class="reference" href="#fundamental-idea" id="id3" name="id3">2&nbsp;&nbsp;&nbsp;Fundamental idea</a><ul class="auto-toc">
 <li><a class="reference" href="#implementation-of-principles" id="id4" name="id4">2.1&nbsp;&nbsp;&nbsp;Implementation of principles</a></li>
-<li><a class="reference" href="#constructing-instances" id="id5" name="id5">2.2&nbsp;&nbsp;&nbsp;Constructing instances</a></li>
-<li><a class="reference" href="#various-representations" id="id6" name="id6">2.3&nbsp;&nbsp;&nbsp;Various representations</a></li>
+<li><a class="reference" href="#pre-defined-expression-heads" id="id5" name="id5">2.2&nbsp;&nbsp;&nbsp;Pre-defined expression heads</a></li>
+<li><a class="reference" href="#constructing-instances" id="id6" name="id6">2.3&nbsp;&nbsp;&nbsp;Constructing instances</a></li>
+<li><a class="reference" href="#various-representations" id="id7" name="id7">2.4&nbsp;&nbsp;&nbsp;Various representations</a></li>
 </ul>
 </li>
-<li><a class="reference" href="#classes-in-sympycore" id="id7" name="id7">3&nbsp;&nbsp;&nbsp;Classes in SympyCore</a><ul class="auto-toc">
-<li><a class="reference" href="#low-level-numbers" id="id8" name="id8">3.1&nbsp;&nbsp;&nbsp;Low-level numbers</a></li>
-<li><a class="reference" href="#id1" id="id9" name="id9">3.2&nbsp;&nbsp;&nbsp;Constructing instances</a></li>
-<li><a class="reference" href="#verbatim-algebra" id="id10" name="id10">3.3&nbsp;&nbsp;&nbsp;Verbatim algebra</a></li>
-<li><a class="reference" href="#logic-algebra" id="id11" name="id11">3.4&nbsp;&nbsp;&nbsp;Logic algebra</a></li>
-<li><a class="reference" href="#collecting-field" id="id12" name="id12">3.5&nbsp;&nbsp;&nbsp;Collecting field</a></li>
+<li><a class="reference" href="#classes-in-sympycore" id="id8" name="id8">3&nbsp;&nbsp;&nbsp;Classes in SympyCore</a><ul class="auto-toc">
+<li><a class="reference" href="#low-level-numbers" id="id9" name="id9">3.1&nbsp;&nbsp;&nbsp;Low-level numbers</a></li>
+<li><a class="reference" href="#id1" id="id10" name="id10">3.2&nbsp;&nbsp;&nbsp;Constructing instances</a></li>
+<li><a class="reference" href="#verbatim-algebra" id="id11" name="id11">3.3&nbsp;&nbsp;&nbsp;Verbatim algebra</a></li>
+<li><a class="reference" href="#logic-algebra" id="id12" name="id12">3.4&nbsp;&nbsp;&nbsp;Logic algebra</a></li>
+<li><a class="reference" href="#collecting-field" id="id13" name="id13">3.5&nbsp;&nbsp;&nbsp;Collecting field</a></li>
 </ul>
 </li>
-<li><a class="reference" href="#defining-functions-in-sympycore" id="id13" name="id13">4&nbsp;&nbsp;&nbsp;Defining functions in SympyCore</a></li>
-<li><a class="reference" href="#how-does-it-work-in-sympycore" id="id14" name="id14">5&nbsp;&nbsp;&nbsp;How does it work in SympyCore?</a><ul class="auto-toc">
-<li><a class="reference" href="#how-strings-are-parsed-to-expressions" id="id15" name="id15">5.1&nbsp;&nbsp;&nbsp;How strings are parsed to expressions?</a></li>
-<li><a class="reference" href="#how-arbitrary-python-objects-are-converted-to-expressions" id="id16" name="id16">5.2&nbsp;&nbsp;&nbsp;How arbitrary Python objects are converted to expressions?</a></li>
-<li><a class="reference" href="#how-algebra-expressions-are-converted-to-other-algebras" id="id17" name="id17">5.3&nbsp;&nbsp;&nbsp;How algebra expressions are converted to other algebras?</a></li>
-<li><a class="reference" href="#how-verbatim-expressions-are-converted-to-other-algebras" id="id18" name="id18">5.4&nbsp;&nbsp;&nbsp;How verbatim expressions are converted to other algebras?</a></li>
+<li><a class="reference" href="#defining-functions-in-sympycore" id="id14" name="id14">4&nbsp;&nbsp;&nbsp;Defining functions in SympyCore</a></li>
+<li><a class="reference" href="#how-does-it-work-in-sympycore" id="id15" name="id15">5&nbsp;&nbsp;&nbsp;How does it work in SympyCore?</a><ul class="auto-toc">
+<li><a class="reference" href="#how-strings-are-parsed-to-expressions" id="id16" name="id16">5.1&nbsp;&nbsp;&nbsp;How strings are parsed to expressions?</a></li>
+<li><a class="reference" href="#how-arbitrary-python-objects-are-converted-to-expressions" id="id17" name="id17">5.2&nbsp;&nbsp;&nbsp;How arbitrary Python objects are converted to expressions?</a></li>
+<li><a class="reference" href="#how-algebra-expressions-are-converted-to-other-algebras" id="id18" name="id18">5.3&nbsp;&nbsp;&nbsp;How algebra expressions are converted to other algebras?</a></li>
+<li><a class="reference" href="#how-verbatim-expressions-are-converted-to-other-algebras" id="id19" name="id19">5.4&nbsp;&nbsp;&nbsp;How verbatim expressions are converted to other algebras?</a></li>
 </ul>
 </li>
 </ul>
@@ -156,26 +157,165 @@ the features of <tt class="docutils literal"><span class="pre">sympycore</span><
 classes is based on the following assertions:</p>
 <ul class="simple">
 <li>Any symbolic expression can be expressed as a pair of <em>expression
-head</em> and <em>expression data</em>. The <em>expression head</em> contains
-information how the <em>expression data</em> is interpreted.</li>
-<li>The mathematical meaning of symbolic expressions depends on the
-assumption to what <em>algebraic structure</em> the possible values of a
-symbolic expression belong. The specified algebraic structure
-defines the rules for how the symbolic expressions can be combined
-in algebraic operations.</li>
+head</em> and <em>expression data</em>. The <em>expression head</em> defines
+how the <em>expression data</em> is interpreted.</li>
+<li>Symbolic expression represents an unevaluated element of an
+<em>algebraic structure</em> under consideration. In the following we call
+a algebraic structure as an algebra for brevity.  An algebra is
+represented by a Python class (an <em>algebra class</em>) and the
+instances of this class represent symbolic expressions.</li>
+<li>An algebra may define <em>operations</em> between its elements
+to form <em>composite</em> symbolic expressions. Each operation is
+represented by the corresponding expression head. Since the same
+operation may be defined for different algebras then the
+same expression head (defining evaluation rules and other methods)
+is used for symbolic expressions of different algebra classes.</li>
+<li>Symbolic expressions can be constructed directly from expression
+head and data parts, or indirectly from performing operations with
+other symbolic operations. Direct construction, <tt class="docutils literal"><span class="pre">&lt;Algebra</span>
+<span class="pre">class&gt;(&lt;head&gt;,</span> <span class="pre">&lt;data&gt;)</span></tt>, results an unevaluated symbolic expression
+instance while indirect construction, <tt class="docutils literal"><span class="pre">&lt;expr1&gt;</span> <span class="pre">&lt;operation&gt;</span>
+<span class="pre">&lt;expr2&gt;</span></tt>, evaluates the symbolic expression instance to a canonical
+form. Direct construction does not have any argument validity checks for
+efficiency and should be used internally by evaluation methods.</li>
 </ul>
-<p>In the following we call a algebraic structure as an algebra for
-brevity.</p>
 <div class="section">
 <h2><a class="toc-backref" href="#id4" id="implementation-of-principles" name="implementation-of-principles">2.1&nbsp;&nbsp;&nbsp;Implementation of principles</a></h2>
 <p>The assertions of the fundamental idea is implemented as follows:</p>
 <ul class="simple">
 <li>To hold the head and data parts of symbolic expressions, a class
 <tt class="docutils literal"><span class="pre">Expr</span></tt> is defined that instances will have an attribute <tt class="docutils literal"><span class="pre">pair</span></tt>
-holding the head and data pair.</li>
-<li>To define the algebraic rules for symbolic expressions, subclasses
-of <tt class="docutils literal"><span class="pre">Expr</span></tt> implement the corresponding methods.</li>
+holding the head and data pair.  In a way, the <tt class="docutils literal"><span class="pre">Expr</span></tt> class
+represents an algebra with no mathematical properties - it just
+holds some <em>head</em> and some <em>data</em>.</li>
+<li>To define the algebra operations for symbolic expressions,
+subclasses of <tt class="docutils literal"><span class="pre">Expr</span></tt> implement the corresponding methods.</li>
+<li>The head parts of symbolic expressions are instances of
+<tt class="docutils literal"><span class="pre">sympycore.heads.Head</span></tt> classes that implement the evaluation rules
+of the corresponding algebra operations. Since head instances are
+singletons then Python <tt class="docutils literal"><span class="pre">is</span></tt> operation can be used for comparing
+expression heads.</li>
 </ul>
+<p>The following section gives an overview of pre-defined expression heads.</p>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id5" id="pre-defined-expression-heads" name="pre-defined-expression-heads">2.2&nbsp;&nbsp;&nbsp;Pre-defined expression heads</a></h2>
+<p>All head instances are available as attributes to the holder object
+<tt class="docutils literal"><span class="pre">sympycore.core.heads</span></tt>.</p>
+<div class="section">
+<h3><a id="atomic-heads" name="atomic-heads">2.2.1&nbsp;&nbsp;&nbsp;Atomic heads</a></h3>
+<p>SYMBOL</p>
+<blockquote>
+A symbolic expression with <tt class="docutils literal"><span class="pre">SYMBOL</span></tt> head represents any element of
+the algebra. The corresponding expression data part can be any
+Python object (usually it is a string). <tt class="docutils literal"><span class="pre">SYMBOL</span></tt> head defines no
+interpretation rules for the data.</blockquote>
+<p>NUMBER</p>
+<blockquote>
+A symbolic expression with <tt class="docutils literal"><span class="pre">NUMBER</span></tt> head represents a generalized
+repetition operation of algebra elements. The data part can be any
+Python object that supports Python numbers protocol, that is, the
+objects type must define all basic arithmetic operations. Usually
+the data part contains number instances such as integers, floats,
+complex numbers or numbers defined by the
+<tt class="docutils literal"><span class="pre">sympycore.arithmetic.numbers</span></tt> module: rational numbers and
+arbitrary precision floating point numbers. The data part can also
+contain symbolic expression of some other algebra (<em>coefficient
+algebra</em>), then such expressions are considered as coefficients that
+always commute with the elements of the given algebra.</blockquote>
+<p>CALLABLE</p>
+<blockquote>
+A symbolic expression with <tt class="docutils literal"><span class="pre">CALLABLE</span></tt> head represents an element
+of functions algebra. The data part must be Python callable object
+that returns a symbolic expression representing an element of
+functions values algebra. Symbolic expressions with <tt class="docutils literal"><span class="pre">CALLABLE</span></tt>
+head are usually used in connection with <tt class="docutils literal"><span class="pre">APPLY</span></tt> head to represent
+unevaluated applied function expressions. In fact, if the callable
+data part cannot evaluate its arguments then it should return
+<tt class="docutils literal"><span class="pre">Algebra(APPLY,</span> <span class="pre">(Algebra(CALLABLE,</span> <span class="pre">&lt;callable&gt;),</span> <span class="pre">&lt;argument1&gt;,</span> <span class="pre">...))</span></tt>.</blockquote>
+<p>SPECIAL</p>
+<blockquote>
+A symbolic expression with <tt class="docutils literal"><span class="pre">SPECIAL</span></tt> head does not represent any
+element of the given algebra. That said, the data part can hold any
+Python object. In practice, data can be Python <tt class="docutils literal"><span class="pre">Ellipsis</span></tt> or
+<tt class="docutils literal"><span class="pre">None</span></tt> objects. Also, data can hold extended number instances
+(e.g. infinities) of the given algebra.</blockquote>
+</div>
+<div class="section">
+<h3><a id="arithmetic-heads" name="arithmetic-heads">2.2.2&nbsp;&nbsp;&nbsp;Arithmetic heads</a></h3>
+<p>POS</p>
+<blockquote>
+A symbolic expression with <tt class="docutils literal"><span class="pre">POS</span></tt> head represents unevaluated unary
+positive sign operation. The data part must be a symbolic expression.
+For example, <tt class="docutils literal"><span class="pre">Algebra(POS,</span> <span class="pre">a)</span></tt> represents <tt class="docutils literal"><span class="pre">+a</span></tt>.</blockquote>
+<p>NEG</p>
+<blockquote>
+A symbolic expression with <tt class="docutils literal"><span class="pre">NEG</span></tt> head represents unevaluated unary
+negative sign operation. The data part must be a symbolic
+expression.
+For example, <tt class="docutils literal"><span class="pre">Algebra(NEG,</span> <span class="pre">a)</span></tt> represents <tt class="docutils literal"><span class="pre">-a</span></tt>.</blockquote>
+<p>ADD</p>
+<blockquote>
+A symbolic expression with <tt class="docutils literal"><span class="pre">ADD</span></tt> head represents unevaluated n-ary
+addition operation. The data part must be a Python list of symbolic
+expression. For example, <tt class="docutils literal"><span class="pre">Algebra(ADD,</span> <span class="pre">[a,</span> <span class="pre">b,</span> <span class="pre">c])</span></tt> represents <tt class="docutils literal"><span class="pre">a</span>
+<span class="pre">+</span> <span class="pre">b</span> <span class="pre">+</span> <span class="pre">c</span></tt>.</blockquote>
+<p>SUB</p>
+<blockquote>
+A symbolic expression with <tt class="docutils literal"><span class="pre">SUB</span></tt> head represents unevaluated n-ary
+subtraction operation. The data part must be a Python list of symbolic
+expression. For example, <tt class="docutils literal"><span class="pre">Algebra(SUB,</span> <span class="pre">[a,</span> <span class="pre">b,</span> <span class="pre">c])</span></tt> represents <tt class="docutils literal"><span class="pre">a</span>
+<span class="pre">-</span> <span class="pre">b</span> <span class="pre">-</span> <span class="pre">c</span></tt>.</blockquote>
+<p>MUL</p>
+<blockquote>
+A symbolic expression with <tt class="docutils literal"><span class="pre">MUL</span></tt> head represents unevaluated n-ary
+multiplication operation. The data part must be a Python list of symbolic
+expression. For example, <tt class="docutils literal"><span class="pre">Algebra(MUL,</span> <span class="pre">[a,</span> <span class="pre">b,</span> <span class="pre">c])</span></tt> represents <tt class="docutils literal"><span class="pre">a</span>
+<span class="pre">*</span> <span class="pre">b</span> <span class="pre">*</span> <span class="pre">c</span></tt>.</blockquote>
+<p>NCMUL</p>
+<blockquote>
+A symbolic expression with <tt class="docutils literal"><span class="pre">NCMUL</span></tt> head represents unevaluated n-ary
+non-commutative multiplication operation. The data part must be a
+Python list of symbolic expression that are not numbers. For
+example, <tt class="docutils literal"><span class="pre">Algebra(NCMUL,</span> <span class="pre">[a,</span> <span class="pre">b,</span> <span class="pre">c])</span></tt> represents <tt class="docutils literal"><span class="pre">a</span> <span class="pre">*</span> <span class="pre">b</span> <span class="pre">*</span> <span class="pre">c</span></tt>.</blockquote>
+<p>DIV</p>
+<blockquote>
+A symbolic expression with <tt class="docutils literal"><span class="pre">DIV</span></tt> head represents unevaluated n-ary
+division operation. The data part must be a Python list of symbolic
+expression. For example, <tt class="docutils literal"><span class="pre">Algebra(DIV,</span> <span class="pre">[a,</span> <span class="pre">b,</span> <span class="pre">c])</span></tt> represents <tt class="docutils literal"><span class="pre">a</span>
+<span class="pre">/</span> <span class="pre">b</span> <span class="pre">/</span> <span class="pre">c</span></tt>.</blockquote>
+<p>POW</p>
+<blockquote>
+A symbolic expression with <tt class="docutils literal"><span class="pre">DIV</span></tt> head represents unevaluated
+exponentiation operation. The data part must be a Python 2-tuple of
+symbolic expressions. For example, <tt class="docutils literal"><span class="pre">Algebra(POW,</span> <span class="pre">(a,</span> <span class="pre">b))</span></tt>
+represents <tt class="docutils literal"><span class="pre">a</span> <span class="pre">**</span> <span class="pre">b</span></tt>.</blockquote>
+<p>TERM_COEFF_DICT</p>
+<blockquote>
+A symbolic expression with <tt class="docutils literal"><span class="pre">TERM_COEFF_DICT</span></tt> head represents
+unevaluated unordered addition operation. The data part must be a
+Python dictionary of symbolic expression and coefficient pairs.
+For example, <tt class="docutils literal"><span class="pre">Algebra(TERM_COEFF_DICT,</span> <span class="pre">{a:2,</span> <span class="pre">b:1})</span></tt> represents
+<tt class="docutils literal"><span class="pre">2*a</span> <span class="pre">+</span> <span class="pre">b</span></tt>.</blockquote>
+<p>BASE_EXP_DICT</p>
+<blockquote>
+A symbolic expression with <tt class="docutils literal"><span class="pre">BASE_EXP_DICT</span></tt> head represents
+unevaluated unordered multiplication operation. The data part must be a
+Python dictionary of symbolic expression and exponent pairs.
+For example, <tt class="docutils literal"><span class="pre">Algebra(BASE_EXP_DICT,</span> <span class="pre">{a:2,</span> <span class="pre">b:1})</span></tt> represents
+<tt class="docutils literal"><span class="pre">a**2</span> <span class="pre">*</span> <span class="pre">b</span></tt>.</blockquote>
+<p>EXP_COEFF_DICT</p>
+<blockquote>
+A symbolic expression with <tt class="docutils literal"><span class="pre">EXP_COEFF_DICT</span></tt> head represents
+unevaluated unordered polynomial addition operation. The data part
+must be a <tt class="docutils literal"><span class="pre">Pair</span></tt> instance containing a tuple of variable
+expressions and a dictionary of exponent and coefficient pairs.
+For example, <tt class="docutils literal"><span class="pre">Algbera(EXP_COEFF_DICT,</span> <span class="pre">Pair((x,</span> <span class="pre">sin(x)),</span> <span class="pre">{(0,1):2,</span>
+<span class="pre">(2,3):5}))</span></tt> represents <tt class="docutils literal"><span class="pre">2*sin(x)</span> <span class="pre">+</span> <span class="pre">5*x**2*sin(x)**3</span></tt>.</blockquote>
+<div class="warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">THE CONTENT BELOW NEEDS A REVISION.</p>
+</div>
 <div class="warning">
 <p class="first admonition-title">Warning</p>
 <p class="last">The Python code fragments shown in this section are presented only
@@ -194,8 +334,6 @@ class Expr(object):
     head = property(lambda self: self.pair[0])
     data = property(lambda self: self.pair[1])
 </pre>
-<p>In a way, the <tt class="docutils literal"><span class="pre">Expr</span></tt> class represents an algebra with no
-mathematical properties - it just holds some <em>head</em> and some <em>data</em>.</p>
 <p>To define an algebra with additional properties that define opertions
 between its elements, a Python class is derived from the <tt class="docutils literal"><span class="pre">Expr</span></tt>
 class:</p>
@@ -222,8 +360,9 @@ class CommutativeRing(Expr):
          return CommutativeRing('*', (self, other))
 </pre>
 </div>
+</div>
 <div class="section">
-<h2><a class="toc-backref" href="#id5" id="constructing-instances" name="constructing-instances">2.2&nbsp;&nbsp;&nbsp;Constructing instances</a></h2>
+<h2><a class="toc-backref" href="#id6" id="constructing-instances" name="constructing-instances">2.3&nbsp;&nbsp;&nbsp;Constructing instances</a></h2>
 <p>For convenience, one can provide additional methods or functions that
 will simplify creating instances of the <tt class="docutils literal"><span class="pre">Expr</span></tt> based classes. For
 example, to construct a symbol of a commutative ring, one can define
@@ -253,7 +392,7 @@ algebras, the functions above are usually implemented as Python
 <tt class="docutils literal"><span class="pre">head</span></tt> parts may be changed to anything more appropiate.</p>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id6" id="various-representations" name="various-representations">2.3&nbsp;&nbsp;&nbsp;Various representations</a></h2>
+<h2><a class="toc-backref" href="#id7" id="various-representations" name="various-representations">2.4&nbsp;&nbsp;&nbsp;Various representations</a></h2>
 <p>Note that a fixed symbolic expression may have different but
 mathematically equivalent representations. For example, consider the
 following symbolic expression:</p>
@@ -279,7 +418,7 @@ applications.</p>
 </div>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id7" id="classes-in-sympycore" name="classes-in-sympycore">3&nbsp;&nbsp;&nbsp;Classes in SympyCore</a></h1>
+<h1><a class="toc-backref" href="#id8" id="classes-in-sympycore" name="classes-in-sympycore">3&nbsp;&nbsp;&nbsp;Classes in SympyCore</a></h1>
 <p>The following diagram summarizes what classes <tt class="docutils literal"><span class="pre">sympycore</span></tt> defines:</p>
 <pre class="literal-block">
 object
@@ -314,7 +453,7 @@ object
   int, long, float, complex
 </pre>
 <div class="section">
-<h2><a class="toc-backref" href="#id8" id="low-level-numbers" name="low-level-numbers">3.1&nbsp;&nbsp;&nbsp;Low-level numbers</a></h2>
+<h2><a class="toc-backref" href="#id9" id="low-level-numbers" name="low-level-numbers">3.1&nbsp;&nbsp;&nbsp;Low-level numbers</a></h2>
 <p>Many algebras define numbers as generalized repetitions of the algebra
 unit element. Sympycore uses and defines the following number types
 for purely numerical task, i.e. both operands and operation results
@@ -357,7 +496,7 @@ complex numbers <tt class="docutils literal"><span class="pre">mpqc</span></tt> 
 or <tt class="docutils literal"><span class="pre">long</span></tt> or <tt class="docutils literal"><span class="pre">mpq</span></tt> (or <tt class="docutils literal"><span class="pre">mpf</span></tt>) type.</p>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id9" id="id1" name="id1">3.2&nbsp;&nbsp;&nbsp;Constructing instances</a></h2>
+<h2><a class="toc-backref" href="#id10" id="id1" name="id1">3.2&nbsp;&nbsp;&nbsp;Constructing instances</a></h2>
 <p>There are two types of symbolic expressions: atomic and composites.
 Atomic expressions are symbols and numbers. Symbols can be considered
 as unspecified numbers. Composite expressions are unevaluated forms of
@@ -404,7 +543,7 @@ raising the exception.</li>
 </ol>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id10" id="verbatim-algebra" name="verbatim-algebra">3.3&nbsp;&nbsp;&nbsp;Verbatim algebra</a></h2>
+<h2><a class="toc-backref" href="#id11" id="verbatim-algebra" name="verbatim-algebra">3.3&nbsp;&nbsp;&nbsp;Verbatim algebra</a></h2>
 <p>SympyCore defines <tt class="docutils literal"><span class="pre">Verbatim</span></tt> class that represents verbatim algebra.
 Verbatim algebra contains expressions in unevaluated form. The
 verbatim algebra can be used to implement generic methods for
@@ -412,7 +551,7 @@ transforming symbolic expressions to strings, or to instances of other
 algebras.</p>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id11" id="logic-algebra" name="logic-algebra">3.4&nbsp;&nbsp;&nbsp;Logic algebra</a></h2>
+<h2><a class="toc-backref" href="#id12" id="logic-algebra" name="logic-algebra">3.4&nbsp;&nbsp;&nbsp;Logic algebra</a></h2>
 <p>SympyCore defines <tt class="docutils literal"><span class="pre">Logic</span></tt> class that represents n-ary predicate
 expressions. The following operations are defined by the <tt class="docutils literal"><span class="pre">Logic</span></tt>
 class:</p>
@@ -438,7 +577,7 @@ Operand algebra class is <tt class="docutils literal"><span class="pre">Calculus
 </ol>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id12" id="collecting-field" name="collecting-field">3.5&nbsp;&nbsp;&nbsp;Collecting field</a></h2>
+<h2><a class="toc-backref" href="#id13" id="collecting-field" name="collecting-field">3.5&nbsp;&nbsp;&nbsp;Collecting field</a></h2>
 <p>SympyCore defines <tt class="docutils literal"><span class="pre">CollectingField</span></tt> class to represent sums and
 products in <tt class="docutils literal"><span class="pre">{&lt;term&gt;:&lt;coefficent&gt;}</span></tt> and <tt class="docutils literal"><span class="pre">{&lt;base&gt;:&lt;exponent&gt;}</span></tt>
 forms, respectively. The class name contains prefix &quot;Collecting&quot;
@@ -472,7 +611,7 @@ must be instances of the algebra class.</li>
 </div>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id13" id="defining-functions-in-sympycore" name="defining-functions-in-sympycore">4&nbsp;&nbsp;&nbsp;Defining functions in SympyCore</a></h1>
+<h1><a class="toc-backref" href="#id14" id="defining-functions-in-sympycore" name="defining-functions-in-sympycore">4&nbsp;&nbsp;&nbsp;Defining functions in SympyCore</a></h1>
 <p>In general, unevaluated applied functions in <tt class="docutils literal"><span class="pre">sympycore</span></tt> are
 represented as a pair:</p>
 <pre class="literal-block">
@@ -503,9 +642,9 @@ class myfunc(DefinedFunction):
 </pre>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id14" id="how-does-it-work-in-sympycore" name="how-does-it-work-in-sympycore">5&nbsp;&nbsp;&nbsp;How does it work in SympyCore?</a></h1>
+<h1><a class="toc-backref" href="#id15" id="how-does-it-work-in-sympycore" name="how-does-it-work-in-sympycore">5&nbsp;&nbsp;&nbsp;How does it work in SympyCore?</a></h1>
 <div class="section">
-<h2><a class="toc-backref" href="#id15" id="how-strings-are-parsed-to-expressions" name="how-strings-are-parsed-to-expressions">5.1&nbsp;&nbsp;&nbsp;How strings are parsed to expressions?</a></h2>
+<h2><a class="toc-backref" href="#id16" id="how-strings-are-parsed-to-expressions" name="how-strings-are-parsed-to-expressions">5.1&nbsp;&nbsp;&nbsp;How strings are parsed to expressions?</a></h2>
 <p>Expressions represent elements of some algebra.  Therefore, to parse a
 string and to create an expression from it, one needs to specify to
 which algebra the expression should belong to. In sympycore, this is
@@ -518,7 +657,7 @@ Algebra('&lt;expr&gt;')
 reading the next section about the <tt class="docutils literal"><span class="pre">convert</span></tt> method.</p>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id16" id="how-arbitrary-python-objects-are-converted-to-expressions" name="how-arbitrary-python-objects-are-converted-to-expressions">5.2&nbsp;&nbsp;&nbsp;How arbitrary Python objects are converted to expressions?</a></h2>
+<h2><a class="toc-backref" href="#id17" id="how-arbitrary-python-objects-are-converted-to-expressions" name="how-arbitrary-python-objects-are-converted-to-expressions">5.2&nbsp;&nbsp;&nbsp;How arbitrary Python objects are converted to expressions?</a></h2>
 <p>Each algebra class has classmethod <tt class="docutils literal"><span class="pre">convert(&lt;obj&gt;,</span> <span class="pre">typeerror=True)</span></tt>
 that is used to convert arbitrary Python objects to Algebra instances.
 The following algorithm is used:</p>
@@ -540,7 +679,7 @@ most cases, <tt class="docutils literal"><span class="pre">Algebra.Number</span>
 <p>Continue reading the next section about the <tt class="docutils literal"><span class="pre">as_algebra</span></tt> method.</p>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id17" id="how-algebra-expressions-are-converted-to-other-algebras" name="how-algebra-expressions-are-converted-to-other-algebras">5.3&nbsp;&nbsp;&nbsp;How algebra expressions are converted to other algebras?</a></h2>
+<h2><a class="toc-backref" href="#id18" id="how-algebra-expressions-are-converted-to-other-algebras" name="how-algebra-expressions-are-converted-to-other-algebras">5.3&nbsp;&nbsp;&nbsp;How algebra expressions are converted to other algebras?</a></h2>
 <p>Each algebra class has instance method <tt class="docutils literal"><span class="pre">as_algebra(&lt;other</span> <span class="pre">algebra</span>
 <span class="pre">class&gt;)</span></tt> that is used to convert instances of one algebra class to
 instances of another algebra class. By default, the conversion is
@@ -556,7 +695,7 @@ expression of the other algebra, the <tt class="docutils literal"><span class="p
 method.</p>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id18" id="how-verbatim-expressions-are-converted-to-other-algebras" name="how-verbatim-expressions-are-converted-to-other-algebras">5.4&nbsp;&nbsp;&nbsp;How verbatim expressions are converted to other algebras?</a></h2>
+<h2><a class="toc-backref" href="#id19" id="how-verbatim-expressions-are-converted-to-other-algebras" name="how-verbatim-expressions-are-converted-to-other-algebras">5.4&nbsp;&nbsp;&nbsp;How verbatim expressions are converted to other algebras?</a></h2>
 <p>Verbatim expressions are converted to another algebras in <tt class="docutils literal"><span class="pre">&lt;Verbatim</span>
 <span class="pre">instance&gt;.as_algebra(&lt;Algebra</span> <span class="pre">class&gt;)</span></tt> instance method. <tt class="docutils literal"><span class="pre">Verbatim</span></tt>
 instance holds a pair <tt class="docutils literal"><span class="pre">(&lt;expression</span> <span class="pre">head&gt;,</span> <span class="pre">&lt;expression</span> <span class="pre">data&gt;)</span></tt> and

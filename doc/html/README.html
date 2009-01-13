@@ -315,27 +315,55 @@ ul.auto-toc {
 </blockquote>
 </div>
 <div class="section">
-<h1><a id="download-and-installation" name="download-and-installation">Download and installation</a></h1>
-<p>sympycore package requires Python 2.5 or newer.</p>
+<h1><a id="download" name="download">Download</a></h1>
 <p>The latest release can be downloaded from sympycore website.</p>
-<p>To install sympycore, unpack the archive file and run:</p>
-<pre class="literal-block">
-python setup.py install
-</pre>
 <p>The latest development code is available via SVN. To check it out,
 run:</p>
 <pre class="literal-block">
-svn checkout http://sympycore.googlecode.com/svn/trunk/ sympycore
+svn checkout http://sympycore.googlecode.com/svn/trunk/ sympycore-svn
+cd sympycore-svn
+</pre>
+</div>
+<div class="section">
+<h1><a id="installation" name="installation">Installation</a></h1>
+<p>To use sympycore, the following is required:</p>
+<blockquote>
+<ul class="simple">
+<li>Python 2.5 or newer</li>
+<li>optionally, a C/C++ compiler for compiling sympycore</li>
+<li>nose for running sympycore tests</li>
+</ul>
+</blockquote>
+<p>To install compiled sympycore, unpack the archive file, change to the
+sympycore source directory <tt class="docutils literal"><span class="pre">sympycore-?.?*</span></tt> (that contains setup.py
+file and sympycore directory), and run (requires C/C++ compiler):</p>
+<pre class="literal-block">
+python setup.py install
+</pre>
+<p>To install pure sympycore, copy sympycore source directory to Python
+path or just add it to PYTHONPATH or sys.path.</p>
+<p>To build and use compiled sympycore without installing it, run:</p>
+<pre class="literal-block">
+python setup.py build_ext --inplace
 </pre>
 </div>
 <div class="section">
 <h1><a id="testing" name="testing">Testing</a></h1>
-<p>Make sure that sympycore directory is in python path (e.g. it should
-be listed in sys.path or PYTHONPATH) and then run in the parent
-directory of the sympycore source one of the following commands:</p>
+<p>To test pure Python sympycore from source directory, run:</p>
 <pre class="literal-block">
-nosetests sympycore
-py.test sympycore
+python setup.py test
+</pre>
+<p>To test compiled sympycore from source directory, run:</p>
+<pre class="literal-block">
+python setup.py build_ext --inplace test
+</pre>
+<p>To test installed sympycore, run:</p>
+<pre class="literal-block">
+python -c 'from sympycore import test; test()'
+</pre>
+<p>To test sympycore test coverage, run:</p>
+<pre class="literal-block">
+python setup.py test --coverage
 </pre>
 </div>
 <div class="section">
@@ -354,7 +382,7 @@ Calculus('x + y')
 </pre>
 <p>See the following demo page for more examples:</p>
 <blockquote>
-<a class="reference" href="http://sympycore.googlecode.com/svn/trunk/doc/html/demo0_1.html">http://sympycore.googlecode.com/svn/trunk/doc/html/demo0_1.html</a></blockquote>
+<a class="reference" href="http://sympycore.googlecode.com/svn/trunk/doc/html/demo0_2.html">http://sympycore.googlecode.com/svn/trunk/doc/html/demo0_2.html</a></blockquote>
 <p>Additional documentation, including SympyCore User's Guide and API
 documentation, is available online in SympyCore website.</p>
 </div>

@@ -34,17 +34,30 @@ The fundamental idea behind the implementation of ``sympycore``
 classes is based on the following assertions: 
 
 * Any symbolic expression can be expressed as a pair of *expression
-  head* and *expression data*. The *expression head* contains
-  information how the *expression data* is interpreted. 
+  head* and *expression data*. The *expression head* defines
+  how the *expression data* is interpreted. 
 
-* The mathematical meaning of symbolic expressions depends on the
-  assumption to what *algebraic structure* the possible values of a
-  symbolic expression belong. The specified algebraic structure
-  defines the rules for how the symbolic expressions can be combined
-  in algebraic operations.
+* Symbolic expression represents an unevaluated element of an
+  *algebraic structure* under consideration. In the following we call
+  a algebraic structure as an algebra for brevity.  An algebra is
+  represented by a Python class (an *algebra class*) and the
+  instances of this class represent symbolic expressions.
 
-In the following we call a algebraic structure as an algebra for
-brevity.
+* An algebra may define *operations* between its elements
+  to form *composite* symbolic expressions. Each operation is
+  represented by the corresponding expression head. Since the same
+  operation may be defined for different algebras then the
+  same expression head (defining evaluation rules and other methods)
+  is used for symbolic expressions of different algebra classes.
+
+* Symbolic expressions can be constructed directly from expression
+  head and data parts, or indirectly from performing operations with
+  other symbolic operations. Direct construction, ``<Algebra
+  class>(<head>, <data>)``, results an unevaluated symbolic expression
+  instance while indirect construction, ``<expr1> <operation>
+  <expr2>``, evaluates the symbolic expression instance to a canonical
+  form. Direct construction does not have any argument validity checks for
+  efficiency and should be used internally by evaluation methods.
 
 Implementation of principles
 ----------------------------
@@ -53,10 +66,157 @@ The assertions of the fundamental idea is implemented as follows:
 
 * To hold the head and data parts of symbolic expressions, a class
   ``Expr`` is defined that instances will have an attribute ``pair``
-  holding the head and data pair.
+  holding the head and data pair.  In a way, the ``Expr`` class
+  represents an algebra with no mathematical properties - it just
+  holds some *head* and some *data*.
 
-* To define the algebraic rules for symbolic expressions, subclasses
-  of ``Expr`` implement the corresponding methods.
+* To define the algebra operations for symbolic expressions,
+  subclasses of ``Expr`` implement the corresponding methods.
+
+* The head parts of symbolic expressions are instances of
+  ``sympycore.heads.Head`` classes that implement the evaluation rules
+  of the corresponding algebra operations. Since head instances are
+  singletons then Python ``is`` operation can be used for comparing
+  expression heads.
+
+The following section gives an overview of pre-defined expression heads.
+
+Pre-defined expression heads
+----------------------------
+
+All head instances are available as attributes to the holder object
+``sympycore.core.heads``.
+
+Atomic heads
+++++++++++++
+
+SYMBOL
+
+  A symbolic expression with ``SYMBOL`` head represents any element of
+  the algebra. The corresponding expression data part can be any
+  Python object (usually it is a string). ``SYMBOL`` head defines no
+  interpretation rules for the data.
+
+NUMBER
+
+  A symbolic expression with ``NUMBER`` head represents a generalized
+  repetition operation of algebra elements. The data part can be any
+  Python object that supports Python numbers protocol, that is, the
+  objects type must define all basic arithmetic operations. Usually
+  the data part contains number instances such as integers, floats,
+  complex numbers or numbers defined by the
+  ``sympycore.arithmetic.numbers`` module: rational numbers and
+  arbitrary precision floating point numbers. The data part can also
+  contain symbolic expression of some other algebra (*coefficient
+  algebra*), then such expressions are considered as coefficients that
+  always commute with the elements of the given algebra.
+
+CALLABLE
+
+  A symbolic expression with ``CALLABLE`` head represents an element
+  of functions algebra. The data part must be Python callable object
+  that returns a symbolic expression representing an element of
+  functions values algebra. Symbolic expressions with ``CALLABLE``
+  head are usually used in connection with ``APPLY`` head to represent
+  unevaluated applied function expressions. In fact, if the callable
+  data part cannot evaluate its arguments then it should return 
+  ``Algebra(APPLY, (Algebra(CALLABLE, <callable>), <argument1>, ...))``.
+
+SPECIAL
+
+  A symbolic expression with ``SPECIAL`` head does not represent any
+  element of the given algebra. That said, the data part can hold any
+  Python object. In practice, data can be Python ``Ellipsis`` or
+  ``None`` objects. Also, data can hold extended number instances
+  (e.g. infinities) of the given algebra.
+
+Arithmetic heads
+++++++++++++++++
+
+POS
+
+  A symbolic expression with ``POS`` head represents unevaluated unary
+  positive sign operation. The data part must be a symbolic expression.
+  For example, ``Algebra(POS, a)`` represents ``+a``.
+  
+
+NEG
+
+  A symbolic expression with ``NEG`` head represents unevaluated unary
+  negative sign operation. The data part must be a symbolic
+  expression.
+  For example, ``Algebra(NEG, a)`` represents ``-a``.
+
+ADD
+
+  A symbolic expression with ``ADD`` head represents unevaluated n-ary
+  addition operation. The data part must be a Python list of symbolic
+  expression. For example, ``Algebra(ADD, [a, b, c])`` represents ``a
+  + b + c``.
+
+SUB
+
+  A symbolic expression with ``SUB`` head represents unevaluated n-ary
+  subtraction operation. The data part must be a Python list of symbolic
+  expression. For example, ``Algebra(SUB, [a, b, c])`` represents ``a
+  - b - c``.
+
+MUL
+
+  A symbolic expression with ``MUL`` head represents unevaluated n-ary
+  multiplication operation. The data part must be a Python list of symbolic
+  expression. For example, ``Algebra(MUL, [a, b, c])`` represents ``a
+  * b * c``.
+
+NCMUL
+
+  A symbolic expression with ``NCMUL`` head represents unevaluated n-ary
+  non-commutative multiplication operation. The data part must be a
+  Python list of symbolic expression that are not numbers. For
+  example, ``Algebra(NCMUL, [a, b, c])`` represents ``a * b * c``.
+
+DIV
+
+  A symbolic expression with ``DIV`` head represents unevaluated n-ary
+  division operation. The data part must be a Python list of symbolic
+  expression. For example, ``Algebra(DIV, [a, b, c])`` represents ``a
+  / b / c``.
+
+POW
+
+  A symbolic expression with ``DIV`` head represents unevaluated 
+  exponentiation operation. The data part must be a Python 2-tuple of
+  symbolic expressions. For example, ``Algebra(POW, (a, b))`` 
+  represents ``a ** b``.
+
+TERM_COEFF_DICT
+
+  A symbolic expression with ``TERM_COEFF_DICT`` head represents
+  unevaluated unordered addition operation. The data part must be a
+  Python dictionary of symbolic expression and coefficient pairs.
+  For example, ``Algebra(TERM_COEFF_DICT, {a:2, b:1})`` represents
+  ``2*a + b``.
+
+BASE_EXP_DICT
+
+  A symbolic expression with ``BASE_EXP_DICT`` head represents
+  unevaluated unordered multiplication operation. The data part must be a
+  Python dictionary of symbolic expression and exponent pairs.
+  For example, ``Algebra(BASE_EXP_DICT, {a:2, b:1})`` represents
+  ``a**2 * b``.
+
+EXP_COEFF_DICT
+
+  A symbolic expression with ``EXP_COEFF_DICT`` head represents
+  unevaluated unordered polynomial addition operation. The data part
+  must be a ``Pair`` instance containing a tuple of variable
+  expressions and a dictionary of exponent and coefficient pairs.
+  For example, ``Algbera(EXP_COEFF_DICT, Pair((x, sin(x)), {(0,1):2,
+  (2,3):5}))`` represents ``2*sin(x) + 5*x**2*sin(x)**3``.
+
+.. warning::
+
+  THE CONTENT BELOW NEEDS A REVISION.
 
 .. warning::
 
@@ -76,8 +236,7 @@ In ``sympycore``, any symbolic expression is defined as an instance of a
       head = property(lambda self: self.pair[0])
       data = property(lambda self: self.pair[1])
 
-In a way, the ``Expr`` class represents an algebra with no
-mathematical properties - it just holds some *head* and some *data*.
+
 
 To define an algebra with additional properties that define opertions
 between its elements, a Python class is derived from the ``Expr``
