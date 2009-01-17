@@ -30,10 +30,12 @@ packages = ['sympycore',
             'sympycore.calculus',
             'sympycore.calculus.functions',
             'sympycore.functions',
+            'sympycore.heads',
             'sympycore.logic',
             'sympycore.matrices',
             'sympycore.polynomials',
             'sympycore.physics',
+            'sympycore.ring',
             'sympycore.sets',
             ]
 
