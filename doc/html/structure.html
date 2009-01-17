@@ -118,16 +118,16 @@ div.warning p.admonition-title {
 <li><a class="reference" href="#fundamental-idea" id="id3" name="id3">2&nbsp;&nbsp;&nbsp;Fundamental idea</a><ul class="auto-toc">
 <li><a class="reference" href="#implementation-of-principles" id="id4" name="id4">2.1&nbsp;&nbsp;&nbsp;Implementation of principles</a></li>
 <li><a class="reference" href="#pre-defined-expression-heads" id="id5" name="id5">2.2&nbsp;&nbsp;&nbsp;Pre-defined expression heads</a></li>
-<li><a class="reference" href="#constructing-instances" id="id6" name="id6">2.3&nbsp;&nbsp;&nbsp;Constructing instances</a></li>
-<li><a class="reference" href="#various-representations" id="id7" name="id7">2.4&nbsp;&nbsp;&nbsp;Various representations</a></li>
 </ul>
 </li>
-<li><a class="reference" href="#classes-in-sympycore" id="id8" name="id8">3&nbsp;&nbsp;&nbsp;Classes in SympyCore</a><ul class="auto-toc">
-<li><a class="reference" href="#low-level-numbers" id="id9" name="id9">3.1&nbsp;&nbsp;&nbsp;Low-level numbers</a></li>
-<li><a class="reference" href="#id1" id="id10" name="id10">3.2&nbsp;&nbsp;&nbsp;Constructing instances</a></li>
-<li><a class="reference" href="#verbatim-algebra" id="id11" name="id11">3.3&nbsp;&nbsp;&nbsp;Verbatim algebra</a></li>
-<li><a class="reference" href="#logic-algebra" id="id12" name="id12">3.4&nbsp;&nbsp;&nbsp;Logic algebra</a></li>
-<li><a class="reference" href="#collecting-field" id="id13" name="id13">3.5&nbsp;&nbsp;&nbsp;Collecting field</a></li>
+<li><a class="reference" href="#classes-in-sympycore" id="id6" name="id6">3&nbsp;&nbsp;&nbsp;Classes in SympyCore</a><ul class="auto-toc">
+<li><a class="reference" href="#low-level-numbers" id="id7" name="id7">3.1&nbsp;&nbsp;&nbsp;Low-level numbers</a></li>
+<li><a class="reference" href="#constructing-instances" id="id8" name="id8">3.2&nbsp;&nbsp;&nbsp;Constructing instances</a></li>
+<li><a class="reference" href="#various-representations" id="id9" name="id9">3.3&nbsp;&nbsp;&nbsp;Various representations</a></li>
+<li><a class="reference" href="#id1" id="id10" name="id10">3.4&nbsp;&nbsp;&nbsp;Constructing instances</a></li>
+<li><a class="reference" href="#verbatim-algebra" id="id11" name="id11">3.5&nbsp;&nbsp;&nbsp;Verbatim algebra</a></li>
+<li><a class="reference" href="#logic-algebra" id="id12" name="id12">3.6&nbsp;&nbsp;&nbsp;Logic algebra</a></li>
+<li><a class="reference" href="#collecting-field" id="id13" name="id13">3.7&nbsp;&nbsp;&nbsp;Collecting field</a></li>
 </ul>
 </li>
 <li><a class="reference" href="#defining-functions-in-sympycore" id="id14" name="id14">4&nbsp;&nbsp;&nbsp;Defining functions in SympyCore</a></li>
@@ -223,23 +223,6 @@ arbitrary precision floating point numbers. The data part can also
 contain symbolic expression of some other algebra (<em>coefficient
 algebra</em>), then such expressions are considered as coefficients that
 always commute with the elements of the given algebra.</blockquote>
-<p>CALLABLE</p>
-<blockquote>
-A symbolic expression with <tt class="docutils literal"><span class="pre">CALLABLE</span></tt> head represents an element
-of functions algebra. The data part must be Python callable object
-that returns a symbolic expression representing an element of
-functions values algebra. Symbolic expressions with <tt class="docutils literal"><span class="pre">CALLABLE</span></tt>
-head are usually used in connection with <tt class="docutils literal"><span class="pre">APPLY</span></tt> head to represent
-unevaluated applied function expressions. In fact, if the callable
-data part cannot evaluate its arguments then it should return
-<tt class="docutils literal"><span class="pre">Algebra(APPLY,</span> <span class="pre">(Algebra(CALLABLE,</span> <span class="pre">&lt;callable&gt;),</span> <span class="pre">&lt;argument1&gt;,</span> <span class="pre">...))</span></tt>.</blockquote>
-<p>SPECIAL</p>
-<blockquote>
-A symbolic expression with <tt class="docutils literal"><span class="pre">SPECIAL</span></tt> head does not represent any
-element of the given algebra. That said, the data part can hold any
-Python object. In practice, data can be Python <tt class="docutils literal"><span class="pre">Ellipsis</span></tt> or
-<tt class="docutils literal"><span class="pre">None</span></tt> objects. Also, data can hold extended number instances
-(e.g. infinities) of the given algebra.</blockquote>
 </div>
 <div class="section">
 <h3><a id="arithmetic-heads" name="arithmetic-heads">2.2.2&nbsp;&nbsp;&nbsp;Arithmetic heads</a></h3>
@@ -286,15 +269,16 @@ expression. For example, <tt class="docutils literal"><span class="pre">Algebra(
 <span class="pre">/</span> <span class="pre">b</span> <span class="pre">/</span> <span class="pre">c</span></tt>.</blockquote>
 <p>POW</p>
 <blockquote>
-A symbolic expression with <tt class="docutils literal"><span class="pre">DIV</span></tt> head represents unevaluated
+A symbolic expression with <tt class="docutils literal"><span class="pre">POW</span></tt> head represents unevaluated
 exponentiation operation. The data part must be a Python 2-tuple of
-symbolic expressions. For example, <tt class="docutils literal"><span class="pre">Algebra(POW,</span> <span class="pre">(a,</span> <span class="pre">b))</span></tt>
-represents <tt class="docutils literal"><span class="pre">a</span> <span class="pre">**</span> <span class="pre">b</span></tt>.</blockquote>
+symbolic expressions representing base and exponent parts. For
+example, <tt class="docutils literal"><span class="pre">Algebra(POW,</span> <span class="pre">(a,</span> <span class="pre">b))</span></tt> represents <tt class="docutils literal"><span class="pre">a</span> <span class="pre">**</span> <span class="pre">b</span></tt>.</blockquote>
 <p>TERM_COEFF_DICT</p>
 <blockquote>
 A symbolic expression with <tt class="docutils literal"><span class="pre">TERM_COEFF_DICT</span></tt> head represents
 unevaluated unordered addition operation. The data part must be a
 Python dictionary of symbolic expression and coefficient pairs.
+Coefficients must support number operations.
 For example, <tt class="docutils literal"><span class="pre">Algebra(TERM_COEFF_DICT,</span> <span class="pre">{a:2,</span> <span class="pre">b:1})</span></tt> represents
 <tt class="docutils literal"><span class="pre">2*a</span> <span class="pre">+</span> <span class="pre">b</span></tt>.</blockquote>
 <p>BASE_EXP_DICT</p>
@@ -302,6 +286,7 @@ For example, <tt class="docutils literal"><span class="pre">Algebra(TERM_COEFF_D
 A symbolic expression with <tt class="docutils literal"><span class="pre">BASE_EXP_DICT</span></tt> head represents
 unevaluated unordered multiplication operation. The data part must be a
 Python dictionary of symbolic expression and exponent pairs.
+Exponent objects must support number operations.
 For example, <tt class="docutils literal"><span class="pre">Algebra(BASE_EXP_DICT,</span> <span class="pre">{a:2,</span> <span class="pre">b:1})</span></tt> represents
 <tt class="docutils literal"><span class="pre">a**2</span> <span class="pre">*</span> <span class="pre">b</span></tt>.</blockquote>
 <p>EXP_COEFF_DICT</p>
@@ -309,9 +294,220 @@ For example, <tt class="docutils literal"><span class="pre">Algebra(BASE_EXP_DIC
 A symbolic expression with <tt class="docutils literal"><span class="pre">EXP_COEFF_DICT</span></tt> head represents
 unevaluated unordered polynomial addition operation. The data part
 must be a <tt class="docutils literal"><span class="pre">Pair</span></tt> instance containing a tuple of variable
-expressions and a dictionary of exponent and coefficient pairs.
-For example, <tt class="docutils literal"><span class="pre">Algbera(EXP_COEFF_DICT,</span> <span class="pre">Pair((x,</span> <span class="pre">sin(x)),</span> <span class="pre">{(0,1):2,</span>
+expressions and a dictionary of integer exponents and coefficient
+pairs.  Coefficient objects must support number operations. For
+example, <tt class="docutils literal"><span class="pre">Algbera(EXP_COEFF_DICT,</span> <span class="pre">Pair((x,</span> <span class="pre">sin(x)),</span> <span class="pre">{(0,1):2,</span>
 <span class="pre">(2,3):5}))</span></tt> represents <tt class="docutils literal"><span class="pre">2*sin(x)</span> <span class="pre">+</span> <span class="pre">5*x**2*sin(x)**3</span></tt>.</blockquote>
+<p>LSHIFT, RSHIFT</p>
+<blockquote>
+Symbolic expressions with <tt class="docutils literal"><span class="pre">LSHIFT</span></tt> and <tt class="docutils literal"><span class="pre">RSHIFT</span></tt> heads represent
+unevaluated n-ary <em>left-shift</em> and <em>right-shift</em> operations. The
+data part must be a list of symbolic expressions.
+For example, <tt class="docutils literal"><span class="pre">Algebra(LSHIFT,</span> <span class="pre">[a,</span> <span class="pre">b,</span> <span class="pre">c])</span></tt> represents <tt class="docutils literal"><span class="pre">a&lt;&lt;b&lt;&lt;c</span></tt>.</blockquote>
+<p>INVERT, BOR, BXOR, BAND, FLOORDIV</p>
+<blockquote>
+Binary operations.</blockquote>
+</div>
+<div class="section">
+<h3><a id="logic-heads" name="logic-heads">2.2.3&nbsp;&nbsp;&nbsp;Logic heads</a></h3>
+<p>NOT</p>
+<blockquote>
+A symbolic expression with <tt class="docutils literal"><span class="pre">NOT</span></tt> head represents unevaluated unary
+logical <em>negation</em> operation. The data part must be a symbolic
+expression that is an instance of a <tt class="docutils literal"><span class="pre">Logic</span></tt> algebra class. For
+example, <tt class="docutils literal"><span class="pre">Logic(NOT,</span> <span class="pre">a)</span></tt> represents <tt class="docutils literal"><span class="pre">not</span> <span class="pre">a</span></tt>.</blockquote>
+<p>OR</p>
+<blockquote>
+A symbolic expression with <tt class="docutils literal"><span class="pre">OR</span></tt> head represents unevaluated n-ary
+logical <em>disjunction</em> operation. The data part must be a list of
+<tt class="docutils literal"><span class="pre">Logic</span></tt> instances. For example, <tt class="docutils literal"><span class="pre">Logic(OR,</span> <span class="pre">[a,</span> <span class="pre">b,</span> <span class="pre">c])</span></tt>
+represents <tt class="docutils literal"><span class="pre">a</span> <span class="pre">or</span> <span class="pre">b</span> <span class="pre">or</span> <span class="pre">c</span></tt>.</blockquote>
+<p>XOR</p>
+<blockquote>
+A symbolic expression with <tt class="docutils literal"><span class="pre">XOR</span></tt> head represents unevaluated n-ary
+logical <em>exclusive disjunction</em> operation. The data part must be a
+list of <tt class="docutils literal"><span class="pre">Logic</span></tt> instances. For example, <tt class="docutils literal"><span class="pre">Logic(XOR,</span> <span class="pre">[a,</span> <span class="pre">b,</span> <span class="pre">c])</span></tt>
+represents <tt class="docutils literal"><span class="pre">a</span> <span class="pre">xor</span> <span class="pre">b</span> <span class="pre">xor</span> <span class="pre">c</span></tt>.</blockquote>
+<p>AND</p>
+<blockquote>
+A symbolic expression with <tt class="docutils literal"><span class="pre">AND</span></tt> head represents unevaluated n-ary
+logical <em>conjunction</em> operation. The data part must be a list of
+<tt class="docutils literal"><span class="pre">Logic</span></tt> instances. For example, <tt class="docutils literal"><span class="pre">Logic(AND,</span> <span class="pre">[a,</span> <span class="pre">b,</span> <span class="pre">c])</span></tt>
+represents <tt class="docutils literal"><span class="pre">a</span> <span class="pre">and</span> <span class="pre">b</span> <span class="pre">and</span> <span class="pre">c</span></tt>.</blockquote>
+<p>IMPLIES</p>
+<blockquote>
+A symbolic expression with <tt class="docutils literal"><span class="pre">IMPLIES</span></tt> head represents unevaluated
+binary logical <em>conditional</em> operation (if-then). The data part must
+be a 2-tuple of <tt class="docutils literal"><span class="pre">Logic</span></tt> instances. For example, <tt class="docutils literal"><span class="pre">Logic(IMPLIES,</span>
+<span class="pre">(a,</span> <span class="pre">b))</span></tt> represents <tt class="docutils literal"><span class="pre">a</span> <span class="pre">implies</span> <span class="pre">b</span></tt>.</blockquote>
+<p>EQUIV</p>
+<blockquote>
+A symbolic expression with <tt class="docutils literal"><span class="pre">EQUIV</span></tt> head represents unevaluated
+binary logical <em>biconditional</em> operation (if-and-only-if). The data part must
+be a 2-tuple of <tt class="docutils literal"><span class="pre">Logic</span></tt> instances. For example, <tt class="docutils literal"><span class="pre">Logic(EQUIV,</span>
+<span class="pre">(a,</span> <span class="pre">b))</span></tt> represents <tt class="docutils literal"><span class="pre">a</span> <span class="pre">equiv</span> <span class="pre">b</span></tt>.</blockquote>
+</div>
+<div class="section">
+<h3><a id="relational-heads" name="relational-heads">2.2.4&nbsp;&nbsp;&nbsp;Relational heads</a></h3>
+<p>The symbolic expressions of relational operations are instances of the
+<tt class="docutils literal"><span class="pre">Logic</span></tt> algebra class. The data parts of relational operations are Python
+2-tuples of symbolic expressions.</p>
+<p>EQ, NE, LT, LE, GT, GE</p>
+<blockquote>
+Symbolic expressions with <tt class="docutils literal"><span class="pre">EQ</span></tt>, <tt class="docutils literal"><span class="pre">NE</span></tt>, <tt class="docutils literal"><span class="pre">LT</span></tt>, <tt class="docutils literal"><span class="pre">LE</span></tt>, <tt class="docutils literal"><span class="pre">GT</span></tt>, or
+<tt class="docutils literal"><span class="pre">GE</span></tt> heads represent unevaluated binary relational operations
+<em>equal</em>, <em>not-equal</em>, <em>less-than</em>, <em>less-equal</em>, <em>greater-than</em>, or
+<em>greater-equal</em>, respectively.  For example, <tt class="docutils literal"><span class="pre">Logic(LT,</span> <span class="pre">(a,</span> <span class="pre">b))</span></tt>
+represents <tt class="docutils literal"><span class="pre">a</span> <span class="pre">&lt;</span> <span class="pre">b</span></tt>.</blockquote>
+<p>IN, NOTIN</p>
+<blockquote>
+Symbolic expressions with <tt class="docutils literal"><span class="pre">IN</span></tt> or <tt class="docutils literal"><span class="pre">NOTIN</span></tt> heads represent
+unevaluated binary relational operations <em>in</em> or <em>not-in</em>,
+respectively. The left-hand-side operand should be an element of the
+right-hand-side operand which is a <tt class="docutils literal"><span class="pre">Set</span></tt> instance.</blockquote>
+<p>IS, ISNOT</p>
+<blockquote>
+Symbolic expressions with <tt class="docutils literal"><span class="pre">IN</span></tt> or <tt class="docutils literal"><span class="pre">NOTIN</span></tt> heads represent
+unevaluated binary relational operations <em>in</em> or <em>not-in</em>,
+respectively.</blockquote>
+</div>
+<div class="section">
+<h3><a id="container-heads" name="container-heads">2.2.5&nbsp;&nbsp;&nbsp;Container heads</a></h3>
+<p>TUPLE, LIST, DICT</p>
+<blockquote>
+Symbolic expressions with <tt class="docutils literal"><span class="pre">TUPLE</span></tt>, <tt class="docutils literal"><span class="pre">LIST</span></tt>, or <tt class="docutils literal"><span class="pre">DICT</span></tt> heads
+represent unevaluated tuple, list, or dict expressions,
+respectively. The data parts must be Python tuple, list, or dict
+instances, respectively, of symbolic expressions. For example,
+<tt class="docutils literal"><span class="pre">Algebra(TUPLE,</span> <span class="pre">(a,</span> <span class="pre">b,</span> <span class="pre">c))</span></tt> represents <tt class="docutils literal"><span class="pre">(a,b,c)</span></tt>.</blockquote>
+</div>
+<div class="section">
+<h3><a id="special-heads" name="special-heads">2.2.6&nbsp;&nbsp;&nbsp;Special heads</a></h3>
+<p>CALLABLE</p>
+<blockquote>
+A symbolic expression with <tt class="docutils literal"><span class="pre">CALLABLE</span></tt> head represents an element
+of functions algebra. The data part must be Python callable object
+that returns a symbolic expression representing an element of
+functions values algebra. Symbolic expressions with <tt class="docutils literal"><span class="pre">CALLABLE</span></tt>
+head are usually used in connection with <tt class="docutils literal"><span class="pre">APPLY</span></tt> head to represent
+unevaluated applied function expressions. In fact, if the callable
+data part cannot evaluate its arguments then it should return
+<tt class="docutils literal"><span class="pre">Algebra(APPLY,</span> <span class="pre">(FunctionAlgebra(CALLABLE,</span> <span class="pre">&lt;callable&gt;),</span> <span class="pre">&lt;argument1&gt;,</span> <span class="pre">...))</span></tt>.</blockquote>
+<p>SPECIAL</p>
+<blockquote>
+A symbolic expression with <tt class="docutils literal"><span class="pre">SPECIAL</span></tt> head does not represent any
+element of the given algebra. That said, the data part can hold any
+Python object. In practice, data can be Python <tt class="docutils literal"><span class="pre">Ellipsis</span></tt> or
+<tt class="docutils literal"><span class="pre">None</span></tt> objects. Also, data can hold extended number instances
+(e.g. infinities) of the given algebra.</blockquote>
+<p>APPLY</p>
+<blockquote>
+A symbolic expression with <tt class="docutils literal"><span class="pre">APPLY</span></tt> head represents an unevaluated
+applied function expression. The data part must be a tuple of
+symbolic expressions where the first element belongs to functions
+algebra and the rest of the elements are function arguments.
+For example, <tt class="docutils literal"><span class="pre">Algebra(APPLY,</span> <span class="pre">(f,</span> <span class="pre">x,</span> <span class="pre">y))</span></tt> represents <tt class="docutils literal"><span class="pre">f(x,</span> <span class="pre">y)</span></tt>.</blockquote>
+<p>KWARG</p>
+<blockquote>
+A symbolic expression with <tt class="docutils literal"><span class="pre">KWARG</span></tt> head represents a keyword
+argument to symbolic functions. The data part must be a 2-tuple of
+symbolic expressions. For example, <tt class="docutils literal"><span class="pre">Algebra(KWARG,</span> <span class="pre">(a,b))</span></tt>
+represents <tt class="docutils literal"><span class="pre">a=b</span></tt>.</blockquote>
+<p>SUBSCRIPT</p>
+<blockquote>
+A symbolic expression with <tt class="docutils literal"><span class="pre">SUBSCRIPT</span></tt> head represents an
+unevaluated applied subscript expression. The data part must be a
+tuple of symbolic expressions. For example, <tt class="docutils literal"><span class="pre">Algebra(SUBSCRIPT,</span>
+<span class="pre">(f,i,j))</span></tt> represents <tt class="docutils literal"><span class="pre">f[i,j]</span></tt>.</blockquote>
+<p>SLICE</p>
+<blockquote>
+A symbolic expression with <tt class="docutils literal"><span class="pre">SLICE</span></tt> head represents an
+unevaluated slice expression. The data part must be a
+3-tuple of symbolic expressions. For example, <tt class="docutils literal"><span class="pre">Algebra(SLICE,</span>
+<span class="pre">(i:Algebra(SPECIAL,</span> <span class="pre">None):k))</span></tt> represents <tt class="docutils literal"><span class="pre">i::k</span></tt>.</blockquote>
+<p>ATTR</p>
+<blockquote>
+A symbolic expression with <tt class="docutils literal"><span class="pre">SUBSCRIPT</span></tt> head represents an
+unevaluated applied attribute expression. The data part must be a
+2-tuple of symbolic expressions. For example, <tt class="docutils literal"><span class="pre">Algebra(ATTR,</span> <span class="pre">(f,</span>
+<span class="pre">a))</span></tt> represents <tt class="docutils literal"><span class="pre">f.a</span></tt>.</blockquote>
+<p>LAMBDA</p>
+<blockquote>
+A symbolic expression with <tt class="docutils literal"><span class="pre">SUBSCRIPT</span></tt> head represents a
+lambda expression. The data part must be a 2-tuple of a tuple
+(lambda arguments) and symbolic expression (lambda body). For
+example, <tt class="docutils literal"><span class="pre">Algebra(LAMBDA,</span> <span class="pre">((a,b),</span> <span class="pre">c))</span></tt> represents <tt class="docutils literal"><span class="pre">lambda</span> <span class="pre">a,</span> <span class="pre">b:</span>
+<span class="pre">c</span></tt>.</blockquote>
+</div>
+</div>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id6" id="classes-in-sympycore" name="classes-in-sympycore">3&nbsp;&nbsp;&nbsp;Classes in SympyCore</a></h1>
+<p>The following diagram summarizes what classes <tt class="docutils literal"><span class="pre">sympycore</span></tt> is going
+to define:</p>
+<pre class="literal-block">
+object
+  Expr
+    Pair
+    Algebra
+      Verbatim
+      Logic
+      Ring
+        CommutativeRing
+          Calculus
+          Unit
+        Matrix
+
+  Infinity
+
+  tuple
+    mpq
+  mpqc
+  mpf, mpc
+  int, long, float, complex
+</pre>
+<div class="section">
+<h2><a class="toc-backref" href="#id7" id="low-level-numbers" name="low-level-numbers">3.1&nbsp;&nbsp;&nbsp;Low-level numbers</a></h2>
+<p>Many algebras define numbers as generalized repetitions of the algebra
+unit element. Sympycore uses and defines the following number types
+for purely numerical tasks, i.e. both operands and operation results
+are numbers):</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="17%" />
+<col width="83%" />
+</colgroup>
+<tbody valign="top">
+<tr><td>int, long</td>
+<td>integers of arbitrary size</td>
+</tr>
+<tr><td>mpq</td>
+<td>fractions</td>
+</tr>
+<tr><td>mpf</td>
+<td>arbitrary precision floating point numbers</td>
+</tr>
+<tr><td>mpqc</td>
+<td>complex numbers with rational parts</td>
+</tr>
+<tr><td>mpc</td>
+<td>arbitrary precision complex floating point numbers</td>
+</tr>
+</tbody>
+</table>
+<p>Python <tt class="docutils literal"><span class="pre">float</span></tt> and <tt class="docutils literal"><span class="pre">complex</span></tt> instances are converted to <tt class="docutils literal"><span class="pre">mpf</span></tt>
+and <tt class="docutils literal"><span class="pre">mpc</span></tt> instances, respectively, when used in operations with
+symbolic expressions.</p>
+<p>These number types are called &quot;low-level&quot; numbers because some of
+their properties may be unusual for generic numbers (e.g. mpf is
+derived from Python tuple) but these properties are introduced to
+improve the efficiency of number operations.</p>
+<p>For example, <tt class="docutils literal"><span class="pre">mpq</span></tt> number is assumed to hold a normalized rational
+number that is not integer.  Operations between <tt class="docutils literal"><span class="pre">mpq</span></tt> instances that
+would produce integer result, will return <tt class="docutils literal"><span class="pre">int</span></tt> (or <tt class="docutils literal"><span class="pre">long</span></tt>)
+instance. Similarly, the real valued result of an operation between
+complex numbers <tt class="docutils literal"><span class="pre">mpqc</span></tt> (or <tt class="docutils literal"><span class="pre">mpc</span></tt>) will be an instance of <tt class="docutils literal"><span class="pre">int</span></tt>
+or <tt class="docutils literal"><span class="pre">long</span></tt> or <tt class="docutils literal"><span class="pre">mpq</span></tt> (or <tt class="docutils literal"><span class="pre">mpf</span></tt>) type.</p>
 <div class="warning">
 <p class="first admonition-title">Warning</p>
 <p class="last">THE CONTENT BELOW NEEDS A REVISION.</p>
@@ -360,9 +556,8 @@ class CommutativeRing(Expr):
          return CommutativeRing('*', (self, other))
 </pre>
 </div>
-</div>
 <div class="section">
-<h2><a class="toc-backref" href="#id6" id="constructing-instances" name="constructing-instances">2.3&nbsp;&nbsp;&nbsp;Constructing instances</a></h2>
+<h2><a class="toc-backref" href="#id8" id="constructing-instances" name="constructing-instances">3.2&nbsp;&nbsp;&nbsp;Constructing instances</a></h2>
 <p>For convenience, one can provide additional methods or functions that
 will simplify creating instances of the <tt class="docutils literal"><span class="pre">Expr</span></tt> based classes. For
 example, to construct a symbol of a commutative ring, one can define
@@ -392,7 +587,7 @@ algebras, the functions above are usually implemented as Python
 <tt class="docutils literal"><span class="pre">head</span></tt> parts may be changed to anything more appropiate.</p>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id7" id="various-representations" name="various-representations">2.4&nbsp;&nbsp;&nbsp;Various representations</a></h2>
+<h2><a class="toc-backref" href="#id9" id="various-representations" name="various-representations">3.3&nbsp;&nbsp;&nbsp;Various representations</a></h2>
 <p>Note that a fixed symbolic expression may have different but
 mathematically equivalent representations. For example, consider the
 following symbolic expression:</p>
@@ -416,87 +611,8 @@ x**3 * y**0 * 1 + x**0 * y**1 * 2
 expression, each representation has its pros and cons depending on
 applications.</p>
 </div>
-</div>
 <div class="section">
-<h1><a class="toc-backref" href="#id8" id="classes-in-sympycore" name="classes-in-sympycore">3&nbsp;&nbsp;&nbsp;Classes in SympyCore</a></h1>
-<p>The following diagram summarizes what classes <tt class="docutils literal"><span class="pre">sympycore</span></tt> defines:</p>
-<pre class="literal-block">
-object
-  Expr
-    Algebra
-      Verbatim
-      Logic
-      CommutativeRing
-        CollectingField
-          Calculus
-          Unit
-      PolynomialRing[&lt;variables&gt;, &lt;coefficient ring&gt;]
-      MatrixBase
-        MatrixDict
-      UnivariatePolynomial
-
-  Infinity
-    CalculusInfinity
-
-  Function
-    sign, exp, log, mod, sqrt
-    TrigonometricFunction
-      sin, cos, tan, cot
-
-  str
-    Constant
-
-  tuple
-    mpq
-  mpqc
-  mpf, mpc
-  int, long, float, complex
-</pre>
-<div class="section">
-<h2><a class="toc-backref" href="#id9" id="low-level-numbers" name="low-level-numbers">3.1&nbsp;&nbsp;&nbsp;Low-level numbers</a></h2>
-<p>Many algebras define numbers as generalized repetitions of the algebra
-unit element. Sympycore uses and defines the following number types
-for purely numerical task, i.e. both operands and operation results
-are numbers):</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="17%" />
-<col width="83%" />
-</colgroup>
-<tbody valign="top">
-<tr><td>int, long</td>
-<td>integers of arbitrary size</td>
-</tr>
-<tr><td>mpq</td>
-<td>fractions</td>
-</tr>
-<tr><td>mpf</td>
-<td>arbitrary precision floating point numbers</td>
-</tr>
-<tr><td>mpqc</td>
-<td>complex numbers with rational parts</td>
-</tr>
-<tr><td>mpc</td>
-<td>arbitrary precision complex floating point numbers</td>
-</tr>
-</tbody>
-</table>
-<p>Python <tt class="docutils literal"><span class="pre">float</span></tt> and <tt class="docutils literal"><span class="pre">complex</span></tt> instances are converted to <tt class="docutils literal"><span class="pre">mpf</span></tt>
-and <tt class="docutils literal"><span class="pre">mpc</span></tt> instances, respectively, when used in operations with
-symbolic expressions.</p>
-<p>These number types are called &quot;low-level&quot; numbers because some of
-their properties may be unusual for generic numbers but these
-properties are introduced to improve the efficiency of number
-operations.</p>
-<p>For example, <tt class="docutils literal"><span class="pre">mpq</span></tt> number is assumed to hold a normalized rational
-number that is not integer.  Operations between <tt class="docutils literal"><span class="pre">mpq</span></tt> instances that
-would produce integer result, will return <tt class="docutils literal"><span class="pre">int</span></tt> (or <tt class="docutils literal"><span class="pre">long</span></tt>)
-instance. Similarly, the real valued result of an operation between
-complex numbers <tt class="docutils literal"><span class="pre">mpqc</span></tt> (or <tt class="docutils literal"><span class="pre">mpc</span></tt>) will be an instance of <tt class="docutils literal"><span class="pre">int</span></tt>
-or <tt class="docutils literal"><span class="pre">long</span></tt> or <tt class="docutils literal"><span class="pre">mpq</span></tt> (or <tt class="docutils literal"><span class="pre">mpf</span></tt>) type.</p>
-</div>
-<div class="section">
-<h2><a class="toc-backref" href="#id10" id="id1" name="id1">3.2&nbsp;&nbsp;&nbsp;Constructing instances</a></h2>
+<h2><a class="toc-backref" href="#id10" id="id1" name="id1">3.4&nbsp;&nbsp;&nbsp;Constructing instances</a></h2>
 <p>There are two types of symbolic expressions: atomic and composites.
 Atomic expressions are symbols and numbers. Symbols can be considered
 as unspecified numbers. Composite expressions are unevaluated forms of
@@ -543,7 +659,7 @@ raising the exception.</li>
 </ol>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id11" id="verbatim-algebra" name="verbatim-algebra">3.3&nbsp;&nbsp;&nbsp;Verbatim algebra</a></h2>
+<h2><a class="toc-backref" href="#id11" id="verbatim-algebra" name="verbatim-algebra">3.5&nbsp;&nbsp;&nbsp;Verbatim algebra</a></h2>
 <p>SympyCore defines <tt class="docutils literal"><span class="pre">Verbatim</span></tt> class that represents verbatim algebra.
 Verbatim algebra contains expressions in unevaluated form. The
 verbatim algebra can be used to implement generic methods for
@@ -551,7 +667,7 @@ transforming symbolic expressions to strings, or to instances of other
 algebras.</p>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id12" id="logic-algebra" name="logic-algebra">3.4&nbsp;&nbsp;&nbsp;Logic algebra</a></h2>
+<h2><a class="toc-backref" href="#id12" id="logic-algebra" name="logic-algebra">3.6&nbsp;&nbsp;&nbsp;Logic algebra</a></h2>
 <p>SympyCore defines <tt class="docutils literal"><span class="pre">Logic</span></tt> class that represents n-ary predicate
 expressions. The following operations are defined by the <tt class="docutils literal"><span class="pre">Logic</span></tt>
 class:</p>
@@ -577,7 +693,7 @@ Operand algebra class is <tt class="docutils literal"><span class="pre">Calculus
 </ol>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id13" id="collecting-field" name="collecting-field">3.5&nbsp;&nbsp;&nbsp;Collecting field</a></h2>
+<h2><a class="toc-backref" href="#id13" id="collecting-field" name="collecting-field">3.7&nbsp;&nbsp;&nbsp;Collecting field</a></h2>
 <p>SympyCore defines <tt class="docutils literal"><span class="pre">CollectingField</span></tt> class to represent sums and
 products in <tt class="docutils literal"><span class="pre">{&lt;term&gt;:&lt;coefficent&gt;}</span></tt> and <tt class="docutils literal"><span class="pre">{&lt;base&gt;:&lt;exponent&gt;}</span></tt>
 forms, respectively. The class name contains prefix &quot;Collecting&quot;

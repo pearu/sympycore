@@ -111,25 +111,6 @@ NUMBER
   algebra*), then such expressions are considered as coefficients that
   always commute with the elements of the given algebra.
 
-CALLABLE
-
-  A symbolic expression with ``CALLABLE`` head represents an element
-  of functions algebra. The data part must be Python callable object
-  that returns a symbolic expression representing an element of
-  functions values algebra. Symbolic expressions with ``CALLABLE``
-  head are usually used in connection with ``APPLY`` head to represent
-  unevaluated applied function expressions. In fact, if the callable
-  data part cannot evaluate its arguments then it should return 
-  ``Algebra(APPLY, (Algebra(CALLABLE, <callable>), <argument1>, ...))``.
-
-SPECIAL
-
-  A symbolic expression with ``SPECIAL`` head does not represent any
-  element of the given algebra. That said, the data part can hold any
-  Python object. In practice, data can be Python ``Ellipsis`` or
-  ``None`` objects. Also, data can hold extended number instances
-  (e.g. infinities) of the given algebra.
-
 Arithmetic heads
 ++++++++++++++++
 
@@ -184,16 +165,17 @@ DIV
 
 POW
 
-  A symbolic expression with ``DIV`` head represents unevaluated 
+  A symbolic expression with ``POW`` head represents unevaluated
   exponentiation operation. The data part must be a Python 2-tuple of
-  symbolic expressions. For example, ``Algebra(POW, (a, b))`` 
-  represents ``a ** b``.
+  symbolic expressions representing base and exponent parts. For
+  example, ``Algebra(POW, (a, b))`` represents ``a ** b``.
 
 TERM_COEFF_DICT
 
   A symbolic expression with ``TERM_COEFF_DICT`` head represents
   unevaluated unordered addition operation. The data part must be a
   Python dictionary of symbolic expression and coefficient pairs.
+  Coefficients must support number operations.
   For example, ``Algebra(TERM_COEFF_DICT, {a:2, b:1})`` represents
   ``2*a + b``.
 
@@ -202,6 +184,7 @@ BASE_EXP_DICT
   A symbolic expression with ``BASE_EXP_DICT`` head represents
   unevaluated unordered multiplication operation. The data part must be a
   Python dictionary of symbolic expression and exponent pairs.
+  Exponent objects must support number operations.
   For example, ``Algebra(BASE_EXP_DICT, {a:2, b:1})`` represents
   ``a**2 * b``.
 
@@ -210,9 +193,234 @@ EXP_COEFF_DICT
   A symbolic expression with ``EXP_COEFF_DICT`` head represents
   unevaluated unordered polynomial addition operation. The data part
   must be a ``Pair`` instance containing a tuple of variable
-  expressions and a dictionary of exponent and coefficient pairs.
-  For example, ``Algbera(EXP_COEFF_DICT, Pair((x, sin(x)), {(0,1):2,
+  expressions and a dictionary of integer exponents and coefficient
+  pairs.  Coefficient objects must support number operations. For
+  example, ``Algbera(EXP_COEFF_DICT, Pair((x, sin(x)), {(0,1):2,
   (2,3):5}))`` represents ``2*sin(x) + 5*x**2*sin(x)**3``.
+
+LSHIFT, RSHIFT
+
+  Symbolic expressions with ``LSHIFT`` and ``RSHIFT`` heads represent
+  unevaluated n-ary *left-shift* and *right-shift* operations. The
+  data part must be a list of symbolic expressions.
+  For example, ``Algebra(LSHIFT, [a, b, c])`` represents ``a<<b<<c``.
+
+INVERT, BOR, BXOR, BAND, FLOORDIV
+
+  Binary operations.
+
+Logic heads
++++++++++++
+
+NOT
+
+  A symbolic expression with ``NOT`` head represents unevaluated unary
+  logical *negation* operation. The data part must be a symbolic
+  expression that is an instance of a ``Logic`` algebra class. For
+  example, ``Logic(NOT, a)`` represents ``not a``.
+
+OR
+
+  A symbolic expression with ``OR`` head represents unevaluated n-ary
+  logical *disjunction* operation. The data part must be a list of
+  ``Logic`` instances. For example, ``Logic(OR, [a, b, c])``
+  represents ``a or b or c``.
+
+XOR
+
+  A symbolic expression with ``XOR`` head represents unevaluated n-ary
+  logical *exclusive disjunction* operation. The data part must be a
+  list of ``Logic`` instances. For example, ``Logic(XOR, [a, b, c])``
+  represents ``a xor b xor c``.
+
+AND
+
+  A symbolic expression with ``AND`` head represents unevaluated n-ary
+  logical *conjunction* operation. The data part must be a list of
+  ``Logic`` instances. For example, ``Logic(AND, [a, b, c])``
+  represents ``a and b and c``.
+
+IMPLIES
+
+  A symbolic expression with ``IMPLIES`` head represents unevaluated
+  binary logical *conditional* operation (if-then). The data part must
+  be a 2-tuple of ``Logic`` instances. For example, ``Logic(IMPLIES,
+  (a, b))`` represents ``a implies b``.
+
+EQUIV
+
+  A symbolic expression with ``EQUIV`` head represents unevaluated
+  binary logical *biconditional* operation (if-and-only-if). The data part must
+  be a 2-tuple of ``Logic`` instances. For example, ``Logic(EQUIV,
+  (a, b))`` represents ``a equiv b``.
+
+Relational heads
+++++++++++++++++
+
+The symbolic expressions of relational operations are instances of the
+``Logic`` algebra class. The data parts of relational operations are Python
+2-tuples of symbolic expressions.
+
+EQ, NE, LT, LE, GT, GE
+
+  Symbolic expressions with ``EQ``, ``NE``, ``LT``, ``LE``, ``GT``, or
+  ``GE`` heads represent unevaluated binary relational operations
+  *equal*, *not-equal*, *less-than*, *less-equal*, *greater-than*, or
+  *greater-equal*, respectively.  For example, ``Logic(LT, (a, b))``
+  represents ``a < b``.
+
+IN, NOTIN
+
+  Symbolic expressions with ``IN`` or ``NOTIN`` heads represent
+  unevaluated binary relational operations *in* or *not-in*,
+  respectively. The left-hand-side operand should be an element of the
+  right-hand-side operand which is a ``Set`` instance.
+
+IS, ISNOT
+
+  Symbolic expressions with ``IN`` or ``NOTIN`` heads represent
+  unevaluated binary relational operations *in* or *not-in*,
+  respectively.
+
+Container heads
++++++++++++++++
+
+TUPLE, LIST, DICT
+
+  Symbolic expressions with ``TUPLE``, ``LIST``, or ``DICT`` heads
+  represent unevaluated tuple, list, or dict expressions,
+  respectively. The data parts must be Python tuple, list, or dict
+  instances, respectively, of symbolic expressions. For example,
+  ``Algebra(TUPLE, (a, b, c))`` represents ``(a,b,c)``.
+
+Special heads
++++++++++++++
+
+CALLABLE
+
+  A symbolic expression with ``CALLABLE`` head represents an element
+  of functions algebra. The data part must be Python callable object
+  that returns a symbolic expression representing an element of
+  functions values algebra. Symbolic expressions with ``CALLABLE``
+  head are usually used in connection with ``APPLY`` head to represent
+  unevaluated applied function expressions. In fact, if the callable
+  data part cannot evaluate its arguments then it should return 
+  ``Algebra(APPLY, (FunctionAlgebra(CALLABLE, <callable>), <argument1>, ...))``.
+
+SPECIAL
+
+  A symbolic expression with ``SPECIAL`` head does not represent any
+  element of the given algebra. That said, the data part can hold any
+  Python object. In practice, data can be Python ``Ellipsis`` or
+  ``None`` objects. Also, data can hold extended number instances
+  (e.g. infinities) of the given algebra.
+
+APPLY
+
+  A symbolic expression with ``APPLY`` head represents an unevaluated
+  applied function expression. The data part must be a tuple of
+  symbolic expressions where the first element belongs to functions
+  algebra and the rest of the elements are function arguments.
+  For example, ``Algebra(APPLY, (f, x, y))`` represents ``f(x, y)``.
+
+KWARG
+
+  A symbolic expression with ``KWARG`` head represents a keyword
+  argument to symbolic functions. The data part must be a 2-tuple of
+  symbolic expressions. For example, ``Algebra(KWARG, (a,b))``
+  represents ``a=b``.
+
+SUBSCRIPT
+
+  A symbolic expression with ``SUBSCRIPT`` head represents an
+  unevaluated applied subscript expression. The data part must be a
+  tuple of symbolic expressions. For example, ``Algebra(SUBSCRIPT,
+  (f,i,j))`` represents ``f[i,j]``.
+
+SLICE
+
+  A symbolic expression with ``SLICE`` head represents an
+  unevaluated slice expression. The data part must be a
+  3-tuple of symbolic expressions. For example, ``Algebra(SLICE,
+  (i:Algebra(SPECIAL, None):k))`` represents ``i::k``.
+
+ATTR
+
+  A symbolic expression with ``SUBSCRIPT`` head represents an
+  unevaluated applied attribute expression. The data part must be a
+  2-tuple of symbolic expressions. For example, ``Algebra(ATTR, (f,
+  a))`` represents ``f.a``.
+
+LAMBDA
+
+  A symbolic expression with ``SUBSCRIPT`` head represents a
+  lambda expression. The data part must be a 2-tuple of a tuple
+  (lambda arguments) and symbolic expression (lambda body). For
+  example, ``Algebra(LAMBDA, ((a,b), c))`` represents ``lambda a, b:
+  c``. 
+
+Classes in SympyCore
+====================
+
+The following diagram summarizes what classes ``sympycore`` is going
+to define::
+
+  object
+    Expr
+      Pair
+      Algebra
+        Verbatim
+        Logic
+	Ring
+          CommutativeRing
+            Calculus
+            Unit
+	  Matrix
+
+    Infinity
+
+    tuple
+      mpq
+    mpqc
+    mpf, mpc
+    int, long, float, complex
+
+Low-level numbers
+-----------------
+
+Many algebras define numbers as generalized repetitions of the algebra
+unit element. Sympycore uses and defines the following number types
+for purely numerical tasks, i.e. both operands and operation results
+are numbers):
+
++-----------+----------------------------------------------------+
+| int, long | integers of arbitrary size                         |
++-----------+----------------------------------------------------+
+| mpq       | fractions                                          |
++-----------+----------------------------------------------------+
+| mpf       | arbitrary precision floating point numbers         |
++-----------+----------------------------------------------------+
+| mpqc      | complex numbers with rational parts                |
++-----------+----------------------------------------------------+
+| mpc       | arbitrary precision complex floating point numbers |
++-----------+----------------------------------------------------+
+
+Python ``float`` and ``complex`` instances are converted to ``mpf``
+and ``mpc`` instances, respectively, when used in operations with
+symbolic expressions.
+
+These number types are called "low-level" numbers because some of
+their properties may be unusual for generic numbers (e.g. mpf is
+derived from Python tuple) but these properties are introduced to
+improve the efficiency of number operations.
+
+For example, ``mpq`` number is assumed to hold a normalized rational
+number that is not integer.  Operations between ``mpq`` instances that
+would produce integer result, will return ``int`` (or ``long``)
+instance. Similarly, the real valued result of an operation between
+complex numbers ``mpqc`` (or ``mpc``) will be an instance of ``int``
+or ``long`` or ``mpq`` (or ``mpf``) type.
+
 
 .. warning::
 
@@ -322,77 +530,6 @@ In general, there is no preferred representation for a symbolic
 expression, each representation has its pros and cons depending on
 applications.
 
-Classes in SympyCore
-====================
-
-The following diagram summarizes what classes ``sympycore`` defines::
-
-  object
-    Expr
-      Algebra
-        Verbatim
-        Logic
-        CommutativeRing
-          CollectingField
-            Calculus
-            Unit
-        PolynomialRing[<variables>, <coefficient ring>]
-        MatrixBase
-          MatrixDict
-        UnivariatePolynomial
-
-    Infinity
-      CalculusInfinity
-
-    Function
-      sign, exp, log, mod, sqrt
-      TrigonometricFunction
-        sin, cos, tan, cot
-
-    str
-      Constant
-
-    tuple
-      mpq
-    mpqc
-    mpf, mpc
-    int, long, float, complex
-
-Low-level numbers
------------------
-
-Many algebras define numbers as generalized repetitions of the algebra
-unit element. Sympycore uses and defines the following number types
-for purely numerical task, i.e. both operands and operation results
-are numbers):
-
-+-----------+----------------------------------------------------+
-| int, long | integers of arbitrary size                         |
-+-----------+----------------------------------------------------+
-| mpq       | fractions                                          |
-+-----------+----------------------------------------------------+
-| mpf       | arbitrary precision floating point numbers         |
-+-----------+----------------------------------------------------+
-| mpqc      | complex numbers with rational parts                |
-+-----------+----------------------------------------------------+
-| mpc       | arbitrary precision complex floating point numbers |
-+-----------+----------------------------------------------------+
-
-Python ``float`` and ``complex`` instances are converted to ``mpf``
-and ``mpc`` instances, respectively, when used in operations with
-symbolic expressions.
-
-These number types are called "low-level" numbers because some of
-their properties may be unusual for generic numbers but these
-properties are introduced to improve the efficiency of number
-operations.
-
-For example, ``mpq`` number is assumed to hold a normalized rational
-number that is not integer.  Operations between ``mpq`` instances that
-would produce integer result, will return ``int`` (or ``long``)
-instance. Similarly, the real valued result of an operation between
-complex numbers ``mpqc`` (or ``mpc``) will be an instance of ``int``
-or ``long`` or ``mpq`` (or ``mpf``) type.
 
 Constructing instances
 ----------------------
