@@ -9,7 +9,8 @@ __all__ = ['SYMBOL', 'NUMBER', 'SPECIAL', 'CALLABLE',
            'TUPLE', 'LIST', 'DICT',
            'SPARSE_POLY', 'DENSE_POLY',
            'EXP_COEFF_DICT',
-           'TERM_COEFF_DICT'
+           'TERM_COEFF_DICT',
+           'TERM_COEFF'
            ]
 
 from .symbol import SYMBOL
@@ -24,6 +25,7 @@ from .sub import SUB
 from .pow import POW
 from .ncmul import NCMUL
 from .term_coeff_dict import TERM_COEFF_DICT
+from .term_coeff import TERM_COEFF
 
 from .arithmetic import MUL, MOD, DIV, FLOORDIV, TERMS, FACTORS
 from .relational import EQ, NE, LT, GT, LE, GE

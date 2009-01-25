@@ -19,8 +19,11 @@ class NCMulHead(ArithmeticHead, Head):
     of non-commutative factors has length equal to 2 or larger.
     Algebra(NCMUL, Pair(c,[f])) should be normalized to Algebra(TERM_COEFF_DICT, {f:c})
     """
-    
+
     def __repr__(self): return 'NCMUL'
+
+    def base_exp(self, cls, expr):
+        return expr, 1
     
     def data_to_str_and_precedence(self, cls, (commutative_part, factor_list)):
         m = len(factor_list)
@@ -58,6 +61,8 @@ class NCMulHead(ArithmeticHead, Head):
             term, coeff = NUMBER.term_coeff(cls, compart)
         if coeff==1:
             return expr, 1
+        if term==1 and len(ncmul_list)==1:
+            return ncmul_list[0], coeff
         return cls(NCMUL, Pair(term, ncmul_list)), coeff
 
     def as_ncmul(self, cls, expr):
@@ -79,45 +84,70 @@ class NCMulHead(ArithmeticHead, Head):
         
         return None
 
+    def combine(self, cls, factors_list):
+        """ Combine factors in a list and return result.
+        """
+        lst = []
+        compart = 1
+        for factor in factors_list:
+            if not lst:
+                lst.append(factor)
+                continue
+            r = None
+            b2, e2 = factor.head.base_exp(cls, factor)
+            if b2.head is NCMUL:
+                c, l = b2.data
+                if len(l)<=len(lst) and lst[-len(l):]==l and c==1:
+                    # x*a*b*(a*b)**2 -> x*(a*b)**3
+                    r = b2 ** (e2 + 1)
+                    del lst[-len(l):]
+            if r is None:
+                b1, e1 = lst[-1].head.base_exp(cls, lst[-1])
+                if b1==b2:
+                    # x*a**3*a**2 -> x*a**5
+                    r = b2 ** (e1 + e2)
+                    del lst[-1]
+            if r is None:
+                lst.append(factor)
+                for i in range(2,len(lst)):
+                    b1, e1 = lst[-i-1].head.base_exp(cls, lst[-i-1]);
+                    if b1.head is NCMUL:
+                        c, l = b1.data
+                        if l == lst[-i:] and c==1:
+                            # x*(a*b)**2*a*b -> x*(a*b)**3
+                            r = b1 ** (e1 + 1)
+                            del lst[-i-1:]
+                            break
+                    if lst[-i:]==lst[-2*i:-i]:
+                        # x*a*b * a*b -> x*(a*b)**2
+                        r = cls(NCMUL, Pair(1, lst[-i:]))**2
+                        del lst[-2*i:]
+                        break
+            if r is not None:
+                if r.head is NUMBER:
+                    compart = compart * r
+                else:
+                    lst.append(r)            
+        if not lst:
+            return compart
+        if len(lst)==1 and compart==1:
+            return lst[0]
+        return cls(NCMUL, Pair(compart, lst))
+
+
     def ncmul(self, cls, lhs, rhs):
         head, data = rhs.pair
+        if head is NUMBER:
+            compart, factor_list = lhs.data
+            compart = compart * data
+            return cls(NCMUL, Pair(compart, factor_list))
         if head is not NCMUL:
             head, data = head.as_ncmul(cls, rhs).pair
         if head is NCMUL:
             compart1, factors_list1 = lhs.data
             compart2, factors_list2 = data
             compart = compart1 * compart2
-            factors = []
-            try_ncmul_combine = cls.try_ncmul_combine
-            for factor in factors_list1 + factors_list2:
-                if factors:
-                    while 1:
-                        c = try_ncmul_combine(factors[-1], factor)
-                        if c is not None:
-                            del factors[-1]
-                            h, d = c.pair
-                            if h is NUMBER: # TODO: or c is commutative:
-                                compart = compart * c
-                                break
-                            if h is NCMUL:
-                                c1, f_lst = d
-                                if c1 != 1:
-                                    compart = compart * c1
-                                factors.extend(f_lst[:-1])
-                                factor = f_lst[-1]
-                            else:
-                                factor = c
-                        if not factors or c is None:
-                            factors.append(factor)
-                            break
-                else:
-                    factors.append(factor)
-                continue
-            if not factors:
-                return cls(compart)
-            if len(factors)==1:
-                return cls(TERM_COEFF_DICT, {factors[0]: compart})
-            return cls(NCMUL, Pair(compart, factors))
+            return self.combine(cls, factors_list1 + factors_list2) * compart
         raise NotImplementedError(`self, lhs, rhs`)
 
     def pow(self, cls, base, exp):
@@ -143,7 +173,7 @@ class NCMulHead(ArithmeticHead, Head):
                 compart = NUMBER.pow(cls, compart, d)
                 first = factors_list[0]
                 last = factors_list[-1]
-                a = cls.try_ncmul_combine(last, first)
+                a = last * first
                 if a is not None and a.head is NUMBER: # todo: or a is commutative
                     compart = compart * NUMBER.pow(cls, a, d)
                     rest = factors_list[1:-1]

@@ -45,7 +45,7 @@ class PowHead(ArithmeticHead, BinaryHead):
                 return '1/' + s1 + '**' + s2, div_p
             e, e_p = NUMBER.data_to_str_and_precedence(cls, exp)
         else:
-            e, e_p = exp.head.data_to_str_and_precedence(cls, exp)
+            e, e_p = exp.head.data_to_str_and_precedence(cls, exp.data)
         s1 = '('+b+')' if b_p < pow_p else b
         s2 = '('+e+')' if e_p < pow_p else e
         return s1 + '**' + s2, pow_p

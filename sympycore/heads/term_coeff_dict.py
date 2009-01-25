@@ -30,44 +30,22 @@ class TermCoeffDictHead(ArithmeticHead):
 
     def data_to_str_and_precedence(self, cls, term_coeff_dict):
         NUMBER_data_to_str_and_precedence = NUMBER.data_to_str_and_precedence
-        neg_p = heads_precedence.NEG
-        add_p = heads_precedence.ADD
-        mul_p = heads_precedence.MUL
-        num_p = heads_precedence.NUMBER
         m = len(term_coeff_dict)
-        is_add = m>1
+        if not m:
+            return '0', heads_precedence.NUMBER
+        if m==1:
+            return TERM_COEFF.data_to_str_and_precedence(cls, dict_get_item(term_coeff_dict))
+        add_p = heads_precedence.ADD
         r = ''
-        one = cls(NUMBER, 1)
-        for term, coeff in term_coeff_dict.items():
+        for term_coeff in term_coeff_dict.items():
             factors = []
-            if term==one:
-                t, t_p = NUMBER_data_to_str_and_precedence(cls, coeff)
-            elif coeff==1:
-                t, t_p = term.head.data_to_str_and_precedence(cls, term.data)
-            elif coeff==-1:
-                t, t_p = term.head.data_to_str_and_precedence(cls, term.data)
-                t, t_p = ('-('+t+')' if t_p < neg_p else '-' + t), neg_p
+            t, t_p = TERM_COEFF.data_to_str_and_precedence(cls, term_coeff)
+            if not r:
+                r += '(' + t + ')' if t_p < add_p else t
+            elif t.startswith('-'):
+                r += ' - ' + t[1:]
             else:
-                t, t_p = term.head.data_to_str_and_precedence(cls, term.data)
-                c, c_p = NUMBER_data_to_str_and_precedence(cls, coeff)            
-                cs = ('('+c+')' if c_p < mul_p else c)
-                ts = ('('+t+')' if t_p < mul_p else t)
-                if ts.startswith('1/'):
-                    t = cs + ts[1:]
-                else:
-                    t = cs + '*' + ts
-                t_p = mul_p
-            if is_add:
-                if not r:
-                    r += '(' + t + ')' if t_p < add_p else t
-                elif t.startswith('-'):
-                    r += ' - ' + t[1:]
-                else:
-                    r += ' + (' + t + ')' if t_p < add_p else ' + ' + t
-            elif m:
-                return t, t_p
-            else:
-                return '0', num_p
+                r += ' + (' + t + ')' if t_p < add_p else ' + ' + t
         return r, add_p
 
     def as_add(self, cls, expr):
@@ -76,7 +54,7 @@ class TermCoeffDictHead(ArithmeticHead):
             add_list.append(term * coeff)
         return cls(ADD, add_list)
 
-    def add(self, cls, lhs, rhs):        
+    def add(self, cls, lhs, rhs):       
         d = lhs.data.copy()
         h2, d2 = rhs.pair
         if h2 is SYMBOL:
@@ -92,6 +70,7 @@ class TermCoeffDictHead(ArithmeticHead):
             t,c = dict_get_item(d)
             if t==1: return cls(NUMBER, c)
             if c==1: return t
+            return cls(TERM_COEFF, (t, c))
         return cls(TERM_COEFF_DICT, d)
 
     def sub(self, cls, lhs, rhs):
@@ -110,6 +89,7 @@ class TermCoeffDictHead(ArithmeticHead):
             t,c = dict_get_item(d)
             if t==1: return cls(NUMBER, c)
             if c==1: return t
+            return cls(TERM_COEFF, (t, c))
         return cls(TERM_COEFF_DICT, d)
 
     def pow(self, cls, base, exp):
@@ -121,7 +101,7 @@ class TermCoeffDictHead(ArithmeticHead):
             t,c = t**exp, c**exp
             if t==1: return cls(NUMBER, c)
             if c==1: return t
-            return cls(TERM_COEFF_DICT, {t:c})
+            return cls(TERM_COEFF, (t, c))
         return cls(POW, (base, exp))
 
     def neg(self, cls, expr):

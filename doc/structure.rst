@@ -82,13 +82,13 @@ The assertions of the fundamental idea is implemented as follows:
 The following section gives an overview of pre-defined expression heads.
 
 Pre-defined expression heads
-----------------------------
+============================
 
 All head instances are available as attributes to the holder object
 ``sympycore.core.heads``.
 
 Atomic heads
-++++++++++++
+------------
 
 SYMBOL
 
@@ -112,7 +112,7 @@ NUMBER
   always commute with the elements of the given algebra.
 
 Arithmetic heads
-++++++++++++++++
+----------------
 
 POS
 
@@ -209,8 +209,18 @@ INVERT, BOR, BXOR, BAND, FLOORDIV
 
   Binary operations.
 
+Comments
+++++++++
+
+It is possible to represent arithmetic operations with a subset of the
+above defined heads. For example, using only the heads ``ADD``,
+``MUL``, ``POW``, or alternatively, ``TERM_COEFF_DICT``,
+``BASE_EXP_DICT`` heads. Symbolic expressions with heads ``POS``,
+``NEG``, ``SUB``, and ``DIV`` can be represented as expressions with
+one or other group of heads.
+
 Logic heads
-+++++++++++
+-----------
 
 NOT
 
@@ -255,7 +265,7 @@ EQUIV
   (a, b))`` represents ``a equiv b``.
 
 Relational heads
-++++++++++++++++
+----------------
 
 The symbolic expressions of relational operations are instances of the
 ``Logic`` algebra class. The data parts of relational operations are Python
@@ -283,7 +293,7 @@ IS, ISNOT
   respectively.
 
 Container heads
-+++++++++++++++
+---------------
 
 TUPLE, LIST, DICT
 
@@ -294,7 +304,7 @@ TUPLE, LIST, DICT
   ``Algebra(TUPLE, (a, b, c))`` represents ``(a,b,c)``.
 
 Special heads
-+++++++++++++
+-------------
 
 CALLABLE
 
