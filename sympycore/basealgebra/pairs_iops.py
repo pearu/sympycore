@@ -9,9 +9,9 @@ DO NOT CHANGE THIS FILE DIRECTLY!!!
 
 from ..core import Expr
 from ..arithmetic.numbers import mpqc, mpf, mpq, mpc, try_power, inttypes_set, realtypes_set, complextypes_set, numbertypes_set
-from ..utils import NUMBER, TERMS, FACTORS
+from ..utils import NUMBER, TERMS
 from .pairs_ops import div
-
+from ..heads import BASE_EXP_DICT as FACTORS
 
 
 def return_terms(cls, pairs):

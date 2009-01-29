@@ -7,8 +7,9 @@ __docformat__ = "restructuredtext"
 __all__ = ['Calculus', 'I']
 
 from ..core import classes, defined_functions
-from ..utils import TERMS, str_PRODUCT, FACTORS, SYMBOL, NUMBER
+from ..utils import TERMS, str_PRODUCT, SYMBOL, NUMBER
 from ..heads import APPLY, CALLABLE
+from ..heads import BASE_EXP_DICT as FACTORS
 from ..basealgebra import Algebra, Verbatim
 from ..basealgebra.pairs import CollectingField
 
@@ -159,14 +160,14 @@ class Calculus(CollectingField):
             func = data[0]
             h, func_data = func.pair
             assert h is CALLABLE, `self, func` # todo: support symbolic functions
-            args = data[1:]
+            args = data[1]
             assert len (args)==1,`self, args` # todo: support multivariate functions
             v = args[0].evalf(n)
             h, d = v.pair
             if h is NUMBER:
                 return self.Number(getattr(mpmath, func_data.__name__.lower())(d))
             else:
-                return type(self)(APPLY, (func, v))
+                return type(self)(APPLY, (func, (v,)))
         convert = self.convert
         return self.func(*[convert(a).evalf(n) for a in self.args])
 

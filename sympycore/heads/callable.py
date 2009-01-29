@@ -2,6 +2,9 @@
 __all__ = ['CALLABLE']
 
 from .base import AtomicHead, heads, heads_precedence, Expr
+import re
+
+_is_atomic = re.compile(r'\A\w+\Z').match
 
 class CallableHead(AtomicHead):
     """
@@ -10,9 +13,9 @@ class CallableHead(AtomicHead):
     """
     def __repr__(self): return 'CALLABLE'
 
-    def data_to_str_and_precedence(self, cls, data):
-        if isinstance(data, Expr):
-            h, d = data.pair
+    def data_to_str_and_precedence(self, cls, func):
+        if isinstance(func, Expr):
+            h, d = func.pair
             return h.data_to_str_and_precedence(cls, d)
         if hasattr(func, '__name__'):
             s = func.__name__

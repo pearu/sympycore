@@ -30,21 +30,25 @@ class Head(object):
     """
 
     precedence_map = dict(
-        LAMBDA = 0.0,
-        KWARG = 0.01,
+        LAMBDA = 0.0, ASSIGN = 0.0,
+        ARG = 0.01, KWARG = 0.01, COLON = 0.01, COMMA = 0.01,
         OR = 0.02, AND = 0.03, NOT = 0.04,
         LT = 0.1, LE = 0.1, GT = 0.1, GE = 0.1, EQ = 0.09, NE = 0.09,
         IN = 0.1, NOTIN = 0.1, IS = 0.1, ISNOT = 0.1,
         BOR = 0.2, BXOR = 0.21, BAND = 0.22, 
         LSHIFT = 0.3, RSHIFT = 0.3,
-        ADD = 0.4, SUB = 0.4, TERMS = 0.45, 
+        ADD = 0.4, SUB = 0.4, TERMS = 0.45,
+        TERM_COEFF = 0.5,
         NCMUL = 0.5,
-        MUL = 0.5, DIV = 0.5, MOD = 0.5, FLOORDIV = 0.5,
-        FACTORS = 0.55,
+        MUL = 0.5,
+        DIV = 0.5, MOD = 0.5, FLOORDIV = 0.5,
+        FACTORS = 0.55, BASE_EXP_DICT = 0.55,
         POS = 0.6, NEG = 0.6, INVERT = 0.6,
         POW = 0.7, POWPOW = 0.71,
         ATTR = 0.81, SUBSCRIPT = 0.82, SLICE = 0.83, APPLY = 0.84, 
         TUPLE = 0.91, LIST = 0.92, DICT = 0.93,
+        CALLABLE = 0.85,
+        DOT = 0.9,
         SYMBOL = 1.0, NUMBER = 1.0, SPECIAL = 1.0
         )
 
@@ -82,7 +86,7 @@ class Head(object):
         # used by the pickler support to make HEAD instances unique
         return self._cache.get(self._key, self)
 
-    def data_to_str(self, cls, data, parent_precedence):
+    def _data_to_str(self, cls, data, parent_precedence):
         """ Convert expression data to Python string expression.
         """
         precedence = self.get_precedence_for_data(data)
@@ -128,6 +132,12 @@ class UnaryHead(Head):
             return '(' + r + ')'
         return r
 
+    def data_to_str_and_precedence(self, cls, operand):
+        u_p = getattr(heads_precedence, repr(self))
+        o, o_p = operand.head.data_to_str_and_precedence(cls, operand.data)
+        if o_p < u_p: o = '(' + o + ')'
+        return self.op_symbol + o, u_p
+    
 class BinaryHead(Head):
     """
     BinaryHead is base class for binary operation heads,
@@ -143,6 +153,14 @@ class BinaryHead(Head):
         if precedence < parent_precedence:
             return '(' + r + ')'
         return r
+
+    def data_to_str_and_precedence(self, cls, (lhs, rhs)):
+        rel_p = getattr(heads_precedence, repr(self))
+        l, l_p = lhs.head.data_to_str_and_precedence(cls, lhs.data)
+        r, r_p = rhs.head.data_to_str_and_precedence(cls, rhs.data)
+        if l_p < rel_p: l = '(' + l + ')'
+        if r_p < rel_p: r = '(' + r + ')'
+        return l + self.op_symbol + r, rel_p
 
 class NaryHead(Head):
     """
@@ -161,6 +179,14 @@ class NaryHead(Head):
             return '(' + r + ')'
         return r
 
+    def data_to_str_and_precedence(self, cls, operand_seq):
+        op_p = getattr(heads_precedence, repr(self))
+        l = []
+        for operand in operand_seq:
+            o, o_p = operand.head.data_to_str_and_precedence(cls, operand.data)
+            if o_p < op_p: o = '(' + o + ')'
+            l.append(o)
+        return self.op_symbol.join(l), op_p
 
 class ArithmeticHead(Head):
     """ Base class for heads representing arithmetic operations.
@@ -208,7 +234,12 @@ class ArithmeticHead(Head):
     def ncmul(self, cls, lhs, rhs):
         """ Return a non-commutative product of expressions: lhs * rhs.
         """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'add'))
+        raise NotImplementedError(not_implemented_error_msg % (self, 'ncmul'))
+
+    def mul(self, cls, lhs, rhs):
+        """ Return a product of expressions: lhs * rhs.
+        """
+        raise NotImplementedError(not_implemented_error_msg % (self, 'mul'))
 
     def pow(self, cls, base, exp):
         """ Return a power of expressions: base ** exp.

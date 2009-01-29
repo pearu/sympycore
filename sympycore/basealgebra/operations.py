@@ -3,7 +3,8 @@
 # Author: Pearu Peterson
 # Created: March 2008
 
-from ..utils import TERMS, FACTORS, NUMBER
+from ..utils import TERMS, NUMBER
+from ..heads import BASE_EXP_DICT as FACTORS
 from ..arithmetic.numbers import numbertypes_set, inttypes_set, mpq, try_power
 
 __all__ = ['multiply', 'negate', 'add', 'iadd', 'add_seq',

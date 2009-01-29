@@ -11,72 +11,10 @@ class SparsepolyHead(Head):
     """
 
     def __repr__(self): return 'SPARSE_POLY'
-    
-    def get_precedence_for_data(self, data,
-                                _p = Head.precedence_map['ADD'],
-                                _num_p = Head.precedence_map['NUMBER'],
-                                _sym_p = Head.precedence_map['SYMBOL'],
-                                _mul_p = Head.precedence_map['MUL'],
-                                ):
-        if not data:
-            return _num_p
-        if len(data)==1:
-            e, c = data.items()[0]
-            if c==1:
-                return _sym_p
-            return _mul_p
-        return _p
-    
-    def data_to_str(self, cls, data, parent_precedence,
-                    _p = Head.precedence_map['ADD'],
-                    _mul_p = Head.precedence_map['MUL'],
-                    _pow_p = Head.precedence_map['POW']
-                    ):
-        if not data:
-            return '0'
-        preference = self.get_precedence_for_data(data)
-        symbols = cls.variables
-        is_univariate = len(symbols)==1
-        terms = []
-        SYMBOL_data_to_str = heads.SYMBOL.data_to_str
-        NUMBER_data_to_str = heads.NUMBER.data_to_str
-        for exps in sorted(data.keys(), reverse=True):
-            coeff = data[exps]
-            if coeff==1:
-                p0 = _p
-                factors = []
-            else:
-                p0 = _mul_p
-                s = NUMBER_data_to_str(None, coeff, _mul_p)
-                factors = [s]
-            if is_univariate:
-                symbol = symbols[0]
-                if exps:
-                    if exps==1:
-                        s = SYMBOL_data_to_str(None, symbol, p0)
-                        factors.append(s)
-                    else:
-                        s = SYMBOL_data_to_str(None, symbol, _pow_p)
-                        factors.append('%s**%s' % (s, exps))
-                    
-            else:
-                for symbol,e in zip(symbols, exps):
-                    if e==1:
-                        s = SYMBOL_data_to_str(None, symbol, p0)
-                        factors.append(s)
-                    else:
-                        s = SYMBOL_data_to_str(None, symbol, _pow_p)
-                        factors.append('%s**%s' % (s, e))
-            if factors:
-                terms.append('*'.join(factors))
-            else:
-                terms.append('1')
-        r = ' + '.join(terms)
-        if preference < parent_precedence:
-            return '(' + r + ')'
-        return r
-    
 
+    def data_to_str_and_precedence(self, cls, data):
+        return heads.EXP_COEFF_DICT.data_to_str_and_precedence(cls, (cls.variables, data))
+    
 class DensepolyHead(Head):
     """
     DensepolyHead is a head for dense polynomials represented
@@ -84,6 +22,10 @@ class DensepolyHead(Head):
     """
     def __repr__(self): return 'DENSE_POLY'
 
+    def data_to_str_and_precedence(self, cls, data):
+        # temporary hack
+        return self.data_to_str(cls, data, 0.0), self.get_precedence_for_data(data)
+    
     def get_precedence_for_data(self, (symbol, data),
                                 _p = Head.precedence_map['ADD'],
                                 _num_p = Head.precedence_map['NUMBER'],

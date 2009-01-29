@@ -1,7 +1,7 @@
 
 __all__ = ['EQ', 'NE', 'LT', 'LE', 'GT', 'GE']
 
-from .base import Head, BinaryHead
+from .base import Head, BinaryHead, heads_precedence
 
 class EqHead(BinaryHead):
 

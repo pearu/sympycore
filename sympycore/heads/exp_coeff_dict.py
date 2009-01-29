@@ -31,6 +31,9 @@ class ExpCoeffDict(Head):
         for exps in sorted(exp_coeff_dict, reverse=True):
             factors_precedence = [NUMBER_data_to_str_and_precedence(None, exp_coeff_dict[exps])]
             f_append = factors_precedence.append
+            if not isinstance(exps, tuple):
+                # temporary hook for SPARSE_POLY head, remove if block when SPARSE_POLY is gone
+                exps = (exps,)
             for exp, vv_p in zip(exps, vars_precedence):
                 if exp:
                     if exp==1:
@@ -49,6 +52,7 @@ class ExpCoeffDict(Head):
                         t += '(' + f + ')' if f_p<t_p else f
                     else:
                         t += '*(' + f + ')' if f_p<t_p else '*' + f
+                if t.startswith('1*'): t = t[2:]
                 t_append((t, t_p))
             elif n==1:
                 t, t_p = tt_p = factors_precedence[0]
@@ -66,8 +70,8 @@ class ExpCoeffDict(Head):
                     r += ' + (' + t + ')' if t_p < add_p else ' + ' + t
             elif m:
                 return t, t_p
-            else:
-                return '0', num_p
+        if not r:
+            return '0', num_p
         return r, add_p
 
 EXP_COEFF_DICT = ExpCoeffDict()

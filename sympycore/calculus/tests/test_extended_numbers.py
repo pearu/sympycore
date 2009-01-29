@@ -19,7 +19,7 @@ def test_oo_product():
     assert str(oo * (1+x+y)) in ['oo*(1 + x + y)', 'oo*(y + 1 + x)'],  str(oo * (1+x+y))
     assert str(oo * (2*x))=='oo*(x)'
     assert str(oo / (2/x))=='oo*(x)'
-    assert str(oo / (2*x))=='oo*(x**(-1))'
+    assert str(oo / (2*x)) in ['oo*(x**(-1))','oo*(1/x)'],str(oo / (2*x))
     
 def test_oo_sum():
     assert str(oo + (x+y)) in ['oo + (x + y)','oo + (y + x)'], str(oo + (x+y))
@@ -49,7 +49,7 @@ def test_oo_symbol():
     assert str(oo - x)=='oo + (-x)'
     assert str(x - oo)=='-oo + (x)'
     assert str(oo * x)=='oo*(x)'
-    assert str(oo / x)=='oo*(x**(-1))'
+    assert str(oo / x) in ['oo*(x**(-1))','oo*(1/x)'], str(oo / x)
     assert str(x/oo)=='0'
     assert str(oo ** x) in ['(oo)**x', 'oo**x'],str(oo**x)
     assert str(x**oo) in ['x**(oo)', 'x**oo'], str(x**oo)

@@ -24,10 +24,14 @@ from .add import ADD
 from .sub import SUB
 from .pow import POW
 from .ncmul import NCMUL
+from .mul import MUL
 from .term_coeff_dict import TERM_COEFF_DICT
+from .term_coeff_dict import TERM_COEFF_DICT as TERMS
+from .base_exp_dict import BASE_EXP_DICT
+from .base_exp_dict import BASE_EXP_DICT as FACTORS
 from .term_coeff import TERM_COEFF
 
-from .arithmetic import MUL, MOD, DIV, FLOORDIV, TERMS, FACTORS
+from .arithmetic import MOD, DIV, FLOORDIV
 from .relational import EQ, NE, LT, GT, LE, GE
 from .binary import INVERT, BOR, BXOR, BAND, LSHIFT, RSHIFT
 from .functional import APPLY, SUBSCRIPT, SLICE, LAMBDA, ATTR, KWARG

@@ -1,82 +1,58 @@
 
 __all__ = ['TUPLE', 'LIST', 'DICT']
 
-from .base import Head
+from .base import Head, heads_precedence
 
-class TupleHead(Head):
+class ContainerHead(Head):
+
+    def data_to_str_and_precedence(self, cls, seq):
+        c_p = heads_precedence.COMMA
+        s_p = getattr(heads_precedence, repr(self))
+        l = []
+        for item in seq:
+            i, i_p = item.head.data_to_str_and_precedence(cls, item.data)
+            if i_p < c_p: i = '('+i+')'
+            l.append(i)
+        s1, s2 = self.parenthesis
+        if self is TUPLE and len(l)==1:
+            return s1 + l[0] + ',' + s2, s_p
+        return s1 + ', '.join(l) + s2, s_p
+
+class TupleHead(ContainerHead):
     """
     TupleHead represents n-tuple,
     data is n-tuple of expressions.
     """
+    parenthesis = '()'
 
-    def get_precedence_for_data(self, data,
-                                _p = Head.precedence_map['TUPLE']):
-        return _p
-    
-    def data_to_str(self, cls, data, parent_precedence,
-                    _p = Head.precedence_map['TUPLE']):
-        l = []
-        l_append = l.append
-        for t in data:
-            h, d = t.pair
-            s = h.data_to_str(cls, d, _p)
-            l_append(s)
-        if len(l)==1:
-            return '('+ l[0] +',)'
-        return '(' + (', '.join(l)) + ')'
-    
     def __repr__(self): return 'TUPLE'
 
-class ListHead(Head):
+class ListHead(ContainerHead):
     """
     ListHead represents n-list,
     data is n-tuple of expressions.
     """
-
-    def get_precedence_for_data(self, data,
-                                _p = Head.precedence_map['LIST']):
-        return _p
-
-    def data_to_str(self, cls, data, parent_precedence,
-                    _p = Head.precedence_map['LIST']):
-        l = []
-        l_append = l.append
-        for t in data:
-            h, d = t.pair
-            s = h.data_to_str(cls, d, _p)
-            l_append(s)
-        r = '[' + (', '.join(l)) + ']'
-        if _p < parent_precedence:
-            return '(' + r + ')'
-        return r
-
+    parenthesis = '[]'    
     def __repr__(self): return 'LIST'
 
-class DictHead(Head):
+class DictHead(ContainerHead):
     """
     DictHead represents n-dict,
     data is n-tuple of expression pairs.
     """
 
-    def get_precedence_for_data(self, data,
-                                _p = Head.precedence_map['DICT']):
-        return _p
-
-    def data_to_str(self, cls, data, parent_precedence,
-                    _p = Head.precedence_map['DICT']
-                    ):
+    def data_to_str_and_precedence(self, cls, seq2):
+        c_p = heads_precedence.COMMA
+        colon_p = heads_precedence.COLON
+        s_p = getattr(heads_precedence, repr(self))
         l = []
-        l_append = l.append
-        for k, v in data:
-            h, d = k.pair
-            s1 = h.data_to_str(cls, d, _p)
-            h, d = v.pair
-            s2 = h.data_to_str(cls, d, _p)
-            l_append(s1 + ':' + s2)
-        r = '{'  + (', '.join(l)) + '}'
-        if _p < parent_precedence:
-            return '(' + r + ')'
-        return r
+        for key, value in seq2:
+            k, k_p = key.head.data_to_str_and_precedence(cls, key.data)
+            if k_p < colon_p: k = '('+k+')'
+            v, v_p = value.head.data_to_str_and_precedence(cls, value.data)
+            if v_p < colon_p: v = '('+v+')'
+            l.append(k + ':' + v)
+        return '{' + ', '.join(l) + '}', heads_precedence.DICT
 
     def __repr__(self): return 'DICT'
 

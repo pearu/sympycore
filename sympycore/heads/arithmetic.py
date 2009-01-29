@@ -1,23 +1,11 @@
 
-__all__ = ['DIV', 'FLOORDIV', 'MUL', 'MOD', 'POW',
-           'TERMS', 'FACTORS']
+#obsolete, each head should be defined in a separate file
+
+__all__ = ['DIV', 'FLOORDIV', 'MOD', 'POW',
+           ]
 
 
 from .base import Head, UnaryHead, BinaryHead, NaryHead, Expr, heads
-
-
-
-class MulHead(NaryHead):
-
-    """
-    MulHead represents multiplication n-ary operation,
-    data is a n-tuple of expression operands.
-    """
-    precedence = Head.precedence_map['MUL']
-    op_mth = '__mul__'
-    op_rmth = '__rmul__'
-    op_symbol = '*'
-    def __repr__(self): return 'MUL'
 
 class ModHead(NaryHead):
 
@@ -137,9 +125,8 @@ class FactorsHead(Head):
     def __repr__(self): return 'FACTORS'
 
 
-TERMS = TermsHead()
-FACTORS = FactorsHead()
-MUL = MulHead()
+#TERMS = TermsHead()
+#FACTORS = FactorsHead()
 MOD = ModHead()
 DIV = DivHead()
 FLOORDIV = FloordivHead()

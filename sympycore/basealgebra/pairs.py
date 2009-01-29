@@ -11,8 +11,9 @@ __all__ = ['CollectingField']
 
 from ..core import classes, Expr
 from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_NUMBER
-from ..utils import ADD, SUB, MUL, DIV, TERMS, FACTORS, SYMBOL, NUMBER, APPLY, POW, TUPLE, NEG, POS
+from ..utils import ADD, SUB, MUL, DIV, TERMS, SYMBOL, NUMBER, APPLY, POW, TUPLE, NEG, POS
 from ..heads import CALLABLE
+from ..heads import BASE_EXP_DICT as FACTORS
 
 from .algebra import Algebra
 from .ring import CommutativeRing
@@ -43,7 +44,7 @@ class ApplyFunc(Expr):
     def __call__(self, *args):
         data = self.data
         cls = type(data)
-        return cls(APPLY, data.data[:1] + args)
+        return cls(APPLY, (data.data[0], args))
 
 class CollectingField(CommutativeRing):
     """ Implementation of a commutative ring where sums and products
@@ -178,100 +179,6 @@ class CollectingField(CommutativeRing):
             return str_SYMBOL, obj.__name__
         return str_SYMBOL, str(obj)
 
-    def to_str_data(self, sort=True):
-        raise
-        head, data = self.pair
-        one = self.one
-        cls = type(self)
-        if head is NUMBER:
-            return cls.coefficient_to_str_data(data, sort)
-        if head is TERMS:
-            pos_dict = {}
-            neg_dict = {}
-            for t, c in data.iteritems():
-                if isinstance(c, realtypes) and c<0:
-                    d = neg_dict
-                    c = -c
-                else:
-                    d = pos_dict
-                h1, s1 = cls.coefficient_to_str_data(c, sort)
-                h2, s2 = t.to_str_data(sort)
-                if t is one:
-                    h, s = h1, s1
-                elif c==1:
-                    h, s = h2, s2
-                else:
-                    if h1 > str_PRODUCT:
-                        s1 = '(%s)' % (s1)
-                    if h2 > str_PRODUCT:
-                        s2 = '(%s)' % (s2)
-                    s = '%s*%s' % (s1,s2)
-                    h = str_PRODUCT
-                l = d.get(h)
-                if l is None:
-                    l = d[h] = []
-                l.append(s)
-            if sort:
-                r1 = []
-                for k in sorted(pos_dict):
-                    r1 += sorted(pos_dict[k])
-                r2 = []
-                for k in sorted(neg_dict):
-                    r2 += sorted(neg_dict[k])
-            else:
-                r1 = reduce(lambda x,y:x+y, pos_dict.values(),[])
-                r2 = reduce(lambda x,y:x+y, neg_dict.values(),[])
-            if r1:
-                if r2:
-                    return str_SUM, (' + '.join(r1)) + ' - ' + (' - '.join(r2))
-                if len(r1)>1:
-                    return str_SUM, (' + '.join(r1))
-                h,l = pos_dict.items()[0]
-                return h, l[0]
-            return str_SUM, '-' + (' - '.join(r2))
-        if head is FACTORS:
-            d = {}
-            for t, c in data.iteritems():
-                h1, s1 = t.to_str_data(sort)
-                h2, s2 = cls.exponent_to_str_data(c, sort)
-                if c==1:
-                    if h1 > str_POWER:
-                        s1 = '(%s)' % (s1)
-                    h, s = h1, s1
-                else:
-                    if h1 >= str_POWER:
-                        s1 = '(%s)' % (s1)
-                    if h2 >= str_POWER:
-                        s2 = '(%s)' % (s2)
-                    s = '%s**%s' % (s1, s2)
-                    h = str_POWER
-                l = d.get(h)
-                if l is None:
-                    l = d[h] = []
-                l.append(s)
-            if sort:
-                r1 = []
-                for k in sorted(d):
-                    r1 += sorted(d[k])
-            else:
-                r1 = reduce(lambda x,y:x+y, d.values(),[])
-            if len(r1)>1:
-                return str_PRODUCT, '*'.join(r1)
-            h, l = d.items()[0]
-            return h, l[0]
-        if head is APPLY:
-            func = data[0]
-            args = data[1:]
-            h1, s1 = func.to_str_data(sort)
-            if h1 > str_APPLY:
-                s1 = '(%s)' % (s1)
-            s2 = ', '.join([a.to_str_data(sort)[1] for a in args])
-            return str_APPLY, '%s(%s)' % (s1, s2)
-        if callable(data):
-            return str_SYMBOL, data.__name__
-        assert not isinstance(data, dict),`head, data, TERMS, head is TERMS`
-        return str_SYMBOL, str(data)
-
     @property
     def func(self):
         """ Return callable func such that ``self.func(**self.args) == self``
@@ -318,7 +225,7 @@ class CollectingField(CommutativeRing):
                 return data
             return data,
         elif head is APPLY:
-            return data[1:]
+            return data[1]
         raise NotImplementedError(`self, head, data`)
 
     @property
@@ -438,7 +345,7 @@ class CollectingField(CommutativeRing):
                 args = tuple([a.as_verbatim() for a in args])
             else:
                 args = data.as_verbatim()
-            r = Verbatim(APPLY, (head,)+args)
+            r = Verbatim(APPLY, (head,args))
         else:
             if hasattr(data, 'as_verbatim'):
                 r = data.as_verbatim()
@@ -671,14 +578,13 @@ class CollectingField(CommutativeRing):
 
         elif head is APPLY:
             func = data[0] # todo: subs functional expressions
-            args = data[1:]
+            args = data[1]
             new_args = [a._subs(subexpr, newexpr) for a in args]
             h, d = func.pair
             if h is CALLABLE:
                 return d(*new_args)
             else:
-                new_args.insert(0, func)
-                return cls(APPLY, tuple(new_args))
+                return cls(APPLY, (func, tuple(new_args)))
         elif callable(head):
             args = data
             if type(args) is tuple:

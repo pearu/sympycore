@@ -52,7 +52,7 @@ def diff_callable(f, arg, xdata, order):
         h, d = arg[0].pair
         assert h is CALLABLE,`f, arg` # todo: support for symbolic functions
         f = d
-        arg = arg[1:]
+        arg = arg[1]
         if len(arg)==1:
             arg = arg[0]
         else:

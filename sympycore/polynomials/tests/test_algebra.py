@@ -5,7 +5,7 @@ P = PolynomialRing
 
 def test_default_ring():
     r = repr(P.convert(0))
-    assert r=="PolynomialRing('0')"
+    assert r=="PolynomialRing('0')", r
     assert P.zero==P.convert(0)
     assert str(0)=='0'
     assert `P.convert(2)`=="PolynomialRing('2')",repr(P.convert(2))
@@ -35,7 +35,7 @@ def test_univariate():
     X = PolynomialRing['x']
     C = X.convert
     x = C([0,1])
-    assert `x`=="PolynomialRing[x, Calculus]('x')"
+    assert `x`=="PolynomialRing[x, Calculus]('x')",`x`
     assert C([1, 2, 3]) == 3*x**2 + 2*x + 1
     assert C([1, 2, 3]).degree == 2
     assert C([1, 2, 3]).ldegree == 0

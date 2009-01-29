@@ -7,7 +7,8 @@ DO NOT CHANGE THIS FILE DIRECTLY!!!
 """
 
 from ..core import Expr
-from ..utils import NUMBER, SYMBOL, TERMS, FACTORS
+from ..utils import NUMBER, SYMBOL, TERMS
+from ..heads import BASE_EXP_DICT as FACTORS
 from ..arithmetic.numbers import (normalized_fraction, mpq, try_power,
   numbertypes, inttypes_set, numbertypes_set)
 from ..arithmetic.infinity import Infinity

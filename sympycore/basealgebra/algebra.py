@@ -84,6 +84,8 @@ class Algebra(Expr):
     exptypes = (int, long)
 
     def __str__(self):
+        h, d = self.pair
+        return h.data_to_str_and_precedence(type(self), d)[0]
         s = self._str_value
         if s is None:
             head, data = self.pair
@@ -291,14 +293,16 @@ class Algebra(Expr):
     @classmethod
     def Apply(cls, func, *args, **kwargs):
         convert= cls.convert
-        if callable(func):
-            new_args = [cls(CALLABLE, func)]
+        if isinstance(func, Expr):
+            pass
+        elif callable(func):
+            func = cls(CALLABLE, func)
         else:
-            new_args = [cls(SYMBOL, func)]
-        new_args += map(convert, args)
+            func = cls(SYMBOL, func)
+        new_args = map(convert, args)
         for k, v in kwargs.items():
             new_args.append(cls(KWARG, (convert(k), convert(v))))
-        return cls(APPLY, tuple(new_args))
+        return cls(APPLY, (func, tuple(new_args)))
 
     @property
     def symbols(self):

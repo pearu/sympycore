@@ -13,10 +13,10 @@ import compiler
 from compiler import ast
 
 from .algebra import Algebra
-from ..utils import (OR, AND, NOT, LT, LE, GT, GE, EQ, NE, BAND, BOR, BXOR,
+from ..heads import (OR, AND, NOT, LT, LE, GT, GE, EQ, NE, BAND, BOR, BXOR,
                      INVERT, POS, NEG, ADD, SUB, MOD, MUL, DIV, FLOORDIV, POW,
                      LSHIFT, RSHIFT, IS, ISNOT, LIST, SLICE,
-                     NUMBER, SYMBOL, APPLY, TUPLE, LAMBDA, TERMS, FACTORS,
+                     NUMBER, SYMBOL, APPLY, TUPLE, LAMBDA, TERMS, BASE_EXP_DICT,
                      IN, NOTIN, SUBSCRIPT, SPECIAL, DICT, ATTR, KWARG)
 from ..heads import CALLABLE
 from ..core import classes, Expr, objects
@@ -104,7 +104,7 @@ class Verbatim(Algebra):
             return getattr(cls, n)(*[r.as_algebra(cls.get_operand_algebra(head, i)) for i,r in enumerate(rest)])
         if head is APPLY:
             func = rest[0]
-            args = rest[1:]
+            args = rest[1]
             fcls = objects.get_function_ring((cls,)*len(args), cls)
             f = func.as_algebra(fcls)
             return f(*[a.as_algebra(cls) for a in args])
@@ -175,21 +175,21 @@ def %s(self, other):
 
     def __divmod__(self, other):
         other = self.convert(other)
-        return Verbatim(APPLY, (Verbatim(CALLABLE, divmod), self, other))
+        return Verbatim(APPLY, (Verbatim(CALLABLE, divmod), (self, other)))
 
     def __call__(self, *args, **kwargs):
         convert = self.convert
         args = map(convert, args)
         for k, v in kwargs.items():
             args.append(Verbatim(KWARG, (convert(k), convert(v))))
-        return Verbatim(APPLY, (self,)+tuple(args))
+        return Verbatim(APPLY, (self, tuple(args)))
 
     def __getitem__(self, key):
         if type(key) is tuple:
             key = tuple(map(self.convert, key))
-            return Verbatim(SUBSCRIPT, (self,)+key)
+            return Verbatim(SUBSCRIPT, (self, key))
         key = self.convert(key)
-        return Verbatim(SUBSCRIPT, (self, key))
+        return Verbatim(SUBSCRIPT, (self, (key,)))
 
     def __getattr__(self, attr):
         # warning: with this feature hasattr() may return True when not desired.
@@ -242,7 +242,7 @@ class VerbatimWalker:
             stack.append(obj)
         else:
             stack[-1][1].append(obj)
-    def end(self):
+    def end(self, tuple_head = None):
         head, lst = self.stack.pop()
         if self.stack:
             last = self.stack[-1]
@@ -250,12 +250,14 @@ class VerbatimWalker:
                 # apply associativity:
                 last[1].extend(lst)
                 return
-        if head in unary_lst:
+        if head is tuple_head:
+            self.append(tuple(lst))
+        elif head in unary_lst:
             assert len(lst)==1,`lst`
             self.append(Verbatim(head, lst[0]))
         else:
             self.append(Verbatim(head, tuple(lst)))
-        
+    
     # for atomic instance:
     def add(self, *args):
         self.append(Verbatim(*args))
@@ -286,6 +288,14 @@ def visit%s(self, node):
 
     # visitNode methods:
 
+    def visitSubscript(self, node):
+        self.start(SUBSCRIPT)
+        self.visit(node.expr)
+        self.start(TUPLE)
+        map(self.visit, node.subs)
+        self.end(tuple_head = TUPLE)
+        self.end()
+
     def visitName(self, node):
         self.add(SYMBOL, node.name)
 
@@ -309,7 +319,7 @@ def visit%s(self, node):
         self.visit(n)
 
     def visitLambda(self, node):
-        assert not (node.kwargs or node.varargs),`node` # parsing `lambda *args, **kwargs: ..` not supported
+        assert not (node.kwargs or node.varargs),`node.kwargs, node.varargs` # parsing `lambda *args, **kwargs: ..` not supported
         self.start(LAMBDA)
         self.start(TUPLE)
         for n,d in zip(node.argnames, (len(node.argnames) - len(node.defaults))*[None] + list(node.defaults)):
@@ -317,7 +327,7 @@ def visit%s(self, node):
                 self.visit(ast.Name(n))
             else:
                 self.visit(ast.Keyword(n, d))
-        self.end()
+        self.end(tuple_head=TUPLE)
         self.visit(node.code)
         self.end()
 
@@ -335,8 +345,10 @@ def visit%s(self, node):
             return
         self.start(APPLY)
         self.visit(func)
+        self.start(TUPLE)
         for child in node.args:
             self.visit(child)
+        self.end(tuple_head = TUPLE)
         self.end()
 
     def visitSlice(self, node):
@@ -361,11 +373,13 @@ def visit%s(self, node):
     def visitDict(self, node):
         self.start(DICT)
         for k,v in node.items:
+            self.start(TUPLE)
             self.visit(k)
             self.visit(v)
+            self.end(tuple_head = TUPLE)
             # collect key and value to a 2-tuple:
-            self.stack[-1][1][-2] = tuple(self.stack[-1][1][-2:])
-            del self.stack[-1][1][-1]
+            #self.stack[-1][1][-2] = tuple(self.stack[-1][1][-2:])
+            #del self.stack[-1][1][-1]
         self.end()
 
     def visitGetattr(self, node):

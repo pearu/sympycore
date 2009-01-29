@@ -7,7 +7,8 @@ __docformat__ = "restructuredtext"
 
 from ..core import Expr
 from ..arithmetic.number_theory import multinomial_coefficients
-from ..utils import NUMBER, TERMS, FACTORS
+from ..utils import NUMBER, TERMS
+from ..heads import BASE_EXP_DICT as FACTORS
 from .pairs_iops import inplace_add2, return_terms, return_factors
 from .pairs_ops import expand_mul_method
 

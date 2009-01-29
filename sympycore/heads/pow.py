@@ -33,8 +33,9 @@ class PowHead(ArithmeticHead, BinaryHead):
             h, d = exp.pair
             if h is NUMBER and isinstance(d, numbertypes):
                 exp = d
-
         if isinstance(exp, numbertypes):
+            if exp==1:
+                return b, b_p
             if exp < 0:
                 if exp==-1:
                     s1 = '('+b+')' if b_p <= pow_p else b
@@ -45,8 +46,11 @@ class PowHead(ArithmeticHead, BinaryHead):
                 return '1/' + s1 + '**' + s2, div_p
             e, e_p = NUMBER.data_to_str_and_precedence(cls, exp)
         else:
-            e, e_p = exp.head.data_to_str_and_precedence(cls, exp.data)
-        s1 = '('+b+')' if b_p < pow_p else b
+            if isinstance(exp, Expr):
+                e, e_p = exp.head.data_to_str_and_precedence(cls, exp.data)
+            else:
+                e, e_p = str(exp), 0.0
+        s1 = '('+b+')' if b_p <= pow_p else b
         s2 = '('+e+')' if e_p < pow_p else e
         return s1 + '**' + s2, pow_p
 
