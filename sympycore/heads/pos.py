@@ -1,9 +1,13 @@
 
 __all__ = ['POS']
 
-from .base import UnaryHead, heads_precedence, ArithmeticHead
+from .base import ArithmeticHead
 
-class PosHead(ArithmeticHead, UnaryHead):
+def init_module(m):
+    from .base import heads
+    for n,h in heads.iterNameValue(): setattr(m, n, h)
+
+class PosHead(ArithmeticHead):
 
     """
     PosHead represents positive unary operation where operand (data)
@@ -11,17 +15,10 @@ class PosHead(ArithmeticHead, UnaryHead):
     """
 
     op_mth = '__pos__'
-    
-    op_symbol = '+' # obsolete
-    precedence = UnaryHead.precedence_map['POS'] # obsolete
-    
+        
     def __repr__(self): return 'POS'
 
-    def data_to_str_and_precedence(self, cls, data):
-        h, d = data.pair
-        s, s_p = h.data_to_str_and_precedence(cls, d)
-        if s_p < heads_precedence.POS:
-            return '+(' + s + ')', heads_precedence.POS
-        return '+' + s, heads_precedence.POS
+    def data_to_str_and_precedence(self, cls, expr):
+        return expr.head.data_to_str_and_precedence(cls, expr.data)
 
 POS = PosHead()

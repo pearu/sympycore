@@ -105,12 +105,11 @@ This is Python version of Expr type.
         """
         h = self._hash
         if h is None:
-            pair = self.pair
-            obj = self.as_lowlevel()
+            head, data = pair = self.pair
+            obj = head.pair_to_lowlevel(pair) if head is not None else pair
             if obj is not pair:
                 h = hash(obj)
             else:
-                head, data = pair = self.pair
                 tdata = type(data)
                 if tdata is dict:
                     h = hash((head, frozenset(data.iteritems())))
@@ -183,31 +182,21 @@ This is Python version of Expr type.
             raise NotImplementedError('pickle state version %s' % (version))
         return  _reconstruct, (version, state)
 
-
-    def as_lowlevel(self):
-        """ Return self as low-level object instance that will be
-        used in comparison and in hash computation.
-
-        By default. as_lowlevel returns ``data`` part if the ``head``
-        part is ``SYMBOL``, ``NUMBER``, ``SPECIAL``. Otherwise it
-        returns ``pair`` tuple. Note that returning a copy of the
-        tuple will disable using ``frozenset`` hash algorithm for
-        dictionaries or ``tuple`` hash for lists.
-        """
-        head, data = pair = self.pair
-        assert NUMBER is not None
-        if head is NUMBER or head is SYMBOL or head is SPECIAL:
-            return data
-        return pair
-
     def __nonzero__(self):
-        return not not self.data
+        # Note that `not cls(MUL, [])` would return True while `cls(MUL, [])==1`.
+        # So, must use pair_to_lowlevel:
+        head, data = pair = self.pair
+        obj = head.pair_to_lowlevel(pair) if head is not None else pair
+        if obj is not pair:
+            return not not obj
+        return not not data
 
     def __eq__(self, other):
         pair = self.pair
         tother = type(other)
         if tother is not type(self):
-            obj = self.as_lowlevel()
+            head, data = pair
+            obj = head.pair_to_lowlevel(pair) if head is not None else pair
             if obj is not pair or type(obj) is tother:
                 return obj == other
             return False # because types are different
@@ -220,7 +209,8 @@ This is Python version of Expr type.
         pair = self.pair
         tother = type(other)
         if tother is not type(self):
-            obj = self.as_lowlevel()
+            head, data = pair
+            obj = head.pair_to_lowlevel(pair) if head is not None else pair
             if obj is not pair or type(obj) is tother:
                 return obj < other
             return NotImplemented # because types are different
@@ -230,7 +220,8 @@ This is Python version of Expr type.
         pair = self.pair
         tother = type(other)
         if tother is not type(self):
-            obj = self.as_lowlevel()
+            head, data = pair
+            obj = head.pair_to_lowlevel(pair) if head is not None else pair
             if obj is not pair or type(obj) is tother:
                 return obj <= other
             return NotImplemented # because types are different
@@ -240,7 +231,8 @@ This is Python version of Expr type.
         pair = self.pair
         tother = type(other)
         if tother is not type(self):
-            obj = self.as_lowlevel()
+            head, data = pair
+            obj = head.pair_to_lowlevel(pair) if head is not None else pair
             if obj is not pair or type(obj) is tother:
                 return obj > other
             return NotImplemented # because types are different
@@ -250,7 +242,8 @@ This is Python version of Expr type.
         pair = self.pair
         tother = type(other)
         if tother is not type(self):
-            obj = self.as_lowlevel()
+            head, data = pair
+            obj = head.pair_to_lowlevel(pair) if head is not None else pair
             if obj is not pair or type(obj) is tother:
                 return obj >= other
             return NotImplemented # because types are different

@@ -27,19 +27,18 @@ class MulHead(ArithmeticHead, Head):
 
     def base_exp(self, cls, expr):
         return expr, 1
-    
-    def data_to_str_and_precedence(self, cls, factors_list):
-        m = len(factors_list)
+
+    def data_to_str_and_precedence(self, cls, operands):
+        m = len(operands)
         if m==0:
             return '1', heads_precedence.NUMBER
         if m==1:
-            h, d = factors_list[0].pair
-            return h.data_to_str_and_precedence(cls, d)
+            op = operands[0]
+            return op.head.data_to_str_and_precedence(cls, op.data)
         mul_p = heads_precedence.MUL
         r = ''
-        for factor in factors_list:
-            h, d = factor.pair
-            f, f_p = h.data_to_str_and_precedence(cls, d)
+        for op in operands:
+            f, f_p = op.head.data_to_str_and_precedence(cls, op.data)
             if not r or r=='-':
                 r += '('+f+')' if f_p<mul_p else f
             elif f.startswith('1/'):
@@ -47,6 +46,15 @@ class MulHead(ArithmeticHead, Head):
             else:
                 r += '*('+f+')' if f_p<mul_p else '*'+f
         return r, mul_p
+
+    def pair_to_lowlevel(self, pair):
+        head, data = pair
+        m = len(data)
+        if m==0: return 1
+        if m==1:
+            h, d = p = data[0].pair
+            return h.pair_to_lowlevel(p)
+        return pair
 
     def term_coeff(self, cls, expr):
         return expr, 1

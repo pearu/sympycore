@@ -180,7 +180,9 @@ class PolynomialRing(CommutativeRing):
         return cls.handle_get_operand_algebra_failure(head, index)
     
     def __eq__(self, other):
-        return type(other)==type(self) and self.pair == other.pair
+        if type(other)==type(self):
+            return self.pair == other.pair
+        return CommutativeRing.__eq__(self, other)
 
     @classmethod
     def Symbol(cls, obj):

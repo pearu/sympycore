@@ -37,12 +37,13 @@ class Head(object):
         IN = 0.1, NOTIN = 0.1, IS = 0.1, ISNOT = 0.1,
         BOR = 0.2, BXOR = 0.21, BAND = 0.22, 
         LSHIFT = 0.3, RSHIFT = 0.3,
-        ADD = 0.4, SUB = 0.4, TERMS = 0.45,
-        TERM_COEFF = 0.5,
-        NCMUL = 0.5,
-        MUL = 0.5,
-        DIV = 0.5, MOD = 0.5, FLOORDIV = 0.5,
-        FACTORS = 0.55, BASE_EXP_DICT = 0.55,
+        
+        ADD = 0.4, SUB = 0.4, TERM_COEFF_DICT = 0.4,
+
+        TERM_COEFF = 0.5, NCMUL = 0.5, MUL = 0.5, DIV = 0.5,
+        MOD = 0.5, FLOORDIV = 0.5,
+        FACTORS = 0.5, BASE_EXP_DICT = 0.5,
+
         POS = 0.6, NEG = 0.6, INVERT = 0.6,
         POW = 0.7, POWPOW = 0.71,
         ATTR = 0.81, SUBSCRIPT = 0.82, SLICE = 0.83, APPLY = 0.84, 
@@ -86,23 +87,15 @@ class Head(object):
         # used by the pickler support to make HEAD instances unique
         return self._cache.get(self._key, self)
 
-    def _data_to_str(self, cls, data, parent_precedence):
-        """ Convert expression data to Python string expression.
-        """
-        precedence = self.get_precedence_for_data(data)
-        if precedence < parent_precedence:
-            return '(%s)' % (data,)
-        return '%s' % (data,)
-
-    def get_precedence_for_data(self, data):
-        """
-        Return the precedence order corresponding to given data.
-        """
-        return 1.0
-
     def data_to_str_and_precedence(self, cls, data):
         return '%s(%r, %r)' % (cls.__name__, self, data), 1.0
 
+    def pair_to_lowlevel(self, pair):
+        """
+        Return a low-level representation of expression pair.  It is
+        used in object comparison and hash computation methods.
+        """
+        return pair
 
 class AtomicHead(Head):
     """
@@ -124,14 +117,9 @@ class UnaryHead(Head):
     data is an expression operand.
     """
 
-    def data_to_str(self, cls, data, parent_precedence):
-        precedence = self.get_precedence_for_data(data)
-        h, d = data.pair
-        r = self.op_symbol + h.data_to_str(cls, d, precedence)
-        if precedence < parent_precedence:
-            return '(' + r + ')'
-        return r
-
+    # Derived class must define a string member:
+    op_symbol = None
+    
     def data_to_str_and_precedence(self, cls, operand):
         u_p = getattr(heads_precedence, repr(self))
         o, o_p = operand.head.data_to_str_and_precedence(cls, operand.data)
@@ -143,17 +131,6 @@ class BinaryHead(Head):
     BinaryHead is base class for binary operation heads,
     data is a 2-tuple of expression operands.
     """
-    def data_to_str(self, cls, (lhs, rhs), parent_precedence):
-        precedence = self.get_precedence_for_data((lhs, rhs))
-        h,d = lhs.pair
-        s1 = h.data_to_str(cls, d, precedence)
-        h,d = rhs.pair
-        s2 = h.data_to_str(cls, d, precedence)
-        r = s1 + self.op_symbol + s2
-        if precedence < parent_precedence:
-            return '(' + r + ')'
-        return r
-
     def data_to_str_and_precedence(self, cls, (lhs, rhs)):
         rel_p = getattr(heads_precedence, repr(self))
         l, l_p = lhs.head.data_to_str_and_precedence(cls, lhs.data)
@@ -167,18 +144,6 @@ class NaryHead(Head):
     NaryHead is base class for n-ary operation heads,
     data is a n-tuple of expression operands.
     """
-    def data_to_str(self, cls, data, parent_precedence):
-        precedence = self.get_precedence_for_data(data)
-        l = []
-        l_append = l.append
-        for t in data:
-            h, d = t.pair
-            l_append(h.data_to_str(cls, d, precedence))
-        r = self.op_symbol.join(l)
-        if precedence < parent_precedence:
-            return '(' + r + ')'
-        return r
-
     def data_to_str_and_precedence(self, cls, operand_seq):
         op_p = getattr(heads_precedence, repr(self))
         l = []

@@ -1,39 +1,36 @@
 __all__ = ['SUB']
 
-from .base import NaryHead, Head, heads_precedence, ArithmeticHead
+from .base import heads_precedence, ArithmeticHead
 
-class SubHead(ArithmeticHead, NaryHead):
+class SubHead(ArithmeticHead):
 
     """
     SubHead represents subtraction n-ary operation where operands is
     given as a n-tuple of expressions.
     """
-    precedence = Head.precedence_map['SUB']
     op_mth = '__sub__'
     op_rmth = '__rsub__'
-    op_symbol = ' - '
-    def __repr__(self): return 'SUB'
 
-    def data_to_str_and_precedence(self, cls, sub_list):
-        num_p = heads_precedence.NUMBER
-        m = len(sub_list)
-        if not m:
-            return '0', num_p
-        add_p = heads_precedence.ADD
+    def __repr__(self): return 'SUB'
+    
+    def data_to_str_and_precedence(self, cls, operands):
+        m = len(operands)
+        if m==0:
+            return '0', heads_precedence.NUMBER
+        if m==1:
+            op = operands[0]
+            return op.head.data_to_str_and_precedence(cls, op.data)
+        sub_p = heads_precedence.SUB
         r = ''
-        for term in sub_list:
-            h, d = term.pair
-            t,t_p = h.data_to_str_and_precedence(cls, d)
-            if m>1:
-                if not r:
-                    r += '(' + t + ')' if t_p < add_p else t
-                elif t.startswith('-'):
-                    r += ' + ' + t[1:]
-                else:
-                    r += ' - (' + t + ')' if t_p < add_p else ' - ' + t
+        for op in operands:
+            t,t_p = op.head.data_to_str_and_precedence(cls, op.data)
+            if not r:
+                r += '(' + t + ')' if t_p < sub_p else t
+            elif t.startswith('-') and t_p > sub_p:
+                r += ' + ' + t[1:]
             else:
-                return t, t_p
-        return r, add_p
+                r += ' - (' + t + ')' if t_p <= sub_p else ' - ' + t
+        return r, sub_p
 
 
 SUB = SubHead()

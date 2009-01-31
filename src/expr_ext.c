@@ -66,10 +66,10 @@ static PyObject* NUMBER;
 static PyObject* SYMBOL;
 static PyObject* SPECIAL;
 static PyObject* Expr_as_lowlevel(Expr *self);
-static PyObject* str_as_lowlevel;
 static PyObject* str_convert;
 static PyObject* str_handle_numeric_item;
 static PyObject* str_getinitargs;
+static PyObject* str_pair_to_lowlevel;
 
 #define Expr_Check(op) PyObject_TypeCheck(op, &ExprType)
 #define Expr_CheckExact(op) ((op)->ob_type == &ExprType)
@@ -253,6 +253,8 @@ list_hash(PyObject *o)
   hash(expr) := hash(expr.as_lowlevel())
   if expr.pair is expr.as_lowlevel() and type(expr.data) is dict:
       hash(expr) := hash((expr.head, frozenset(expr.data.items())))
+  elif expr.pair is expr.as_lowlevel() and type(expr.data) is list:
+      hash(expr) := hash((expr.head, tuple(expr.data)))
   else:
       hash(expr) := hash(expr.as_lowlevel())
  */
@@ -263,7 +265,7 @@ Expr_hash(PyObject *self)
   PyObject *obj = NULL;
   if (o->hash!=-1)
     return o->hash;
-  obj = PyObject_CallMethodObjArgs(self, str_as_lowlevel, NULL);
+  obj = Expr_as_lowlevel((Expr*)self);
   if (obj==NULL)
     return -1;
   if (obj==o->pair)
@@ -413,11 +415,8 @@ static PyObject *
 Expr_as_lowlevel(Expr *self)
 {
   PyObject *head = PyTuple_GET_ITEM(self->pair, 0);
-  if (head==NUMBER || head==SYMBOL || head==SPECIAL) {
-    PyObject *data = PyTuple_GET_ITEM(self->pair, 1);
-    Py_INCREF(data);
-    return data;
-  }
+  if (head!=Py_None)
+    return PyObject_CallMethodObjArgs(head, str_pair_to_lowlevel, self->pair, NULL);
   Py_INCREF(self->pair);
   return self->pair;
 }
@@ -427,8 +426,25 @@ Expr_as_lowlevel(Expr *self)
 */
 static PyObject*
 Expr_nonzero(Expr *self) {
-  PyObject* data = PyTuple_GET_ITEM(self->pair, 1);
-  if (PyObject_IsTrue(data))
+  PyObject *head = PyTuple_GET_ITEM(self->pair, 0);
+  PyObject *obj = NULL;
+  if (head!=Py_None)
+    {
+      obj = PyObject_CallMethodObjArgs(head, str_pair_to_lowlevel, self->pair, NULL);
+      if (obj != self->pair)
+	{
+	  if (PyObject_IsTrue(obj))
+	    {
+	      Py_DECREF(obj);
+	      Py_RETURN_TRUE;
+	    }
+	  Py_DECREF(obj);
+	  Py_RETURN_FALSE;
+	}
+      Py_DECREF(obj);
+    }
+  obj = PyTuple_GET_ITEM(self->pair, 1);
+  if (PyObject_IsTrue(obj))
     Py_RETURN_TRUE;
   Py_RETURN_FALSE;
 }
@@ -516,7 +532,7 @@ Expr_richcompare(PyObject *v, PyObject *w, int op)
   } 
   if (!Expr_Check(v)) {
     if (Expr_Check(w)) {
-      PyObject* obj = PyObject_CallMethodObjArgs(w, str_as_lowlevel, NULL);
+      PyObject* obj = Expr_as_lowlevel((Expr*)w);
       int r;
       if (obj==NULL)
 	return NULL;
@@ -539,7 +555,7 @@ Expr_richcompare(PyObject *v, PyObject *w, int op)
     return Py_NotImplemented;
   }
   if (v->ob_type != w->ob_type) {
-    PyObject* obj = PyObject_CallMethodObjArgs(v, str_as_lowlevel, NULL);
+    PyObject* obj = Expr_as_lowlevel((Expr*)v);
     int r;
     if (obj==NULL)
       return NULL;
@@ -1229,7 +1245,6 @@ static PyMethodDef Expr_methods[] = {
   {"__nonzero__", (PyCFunction)Expr_nonzero, METH_VARARGS, NULL},
   {"__nonzero2__", (PyCFunction)Expr_nonzero2, METH_VARARGS, NULL},
   {"_sethash", (PyCFunction)Expr_sethash, METH_VARARGS, NULL},
-  {"as_lowlevel", (PyCFunction)Expr_as_lowlevel, METH_VARARGS, NULL},
   {"_add_item", (PyCFunction)Expr_dict_add_item, METH_VARARGS, NULL},
   {"_sub_item", (PyCFunction)Expr_dict_sub_item, METH_VARARGS, NULL},
   {"_add_dict", (PyCFunction)Expr_dict_add_dict, METH_VARARGS, NULL},
@@ -1365,9 +1380,6 @@ initexpr_ext(void)
   if (PyType_Ready(&PairType) < 0)
     return;
 
-  str_as_lowlevel = PyString_FromString("as_lowlevel");
-  if (str_as_lowlevel==NULL)
-    return;
   str_convert = PyString_FromString("convert");
   if (str_convert==NULL)
     return;
@@ -1376,6 +1388,9 @@ initexpr_ext(void)
     return;
   str_getinitargs = PyString_FromString("__getinitargs__");
   if (str_getinitargs==NULL)
+    return;
+  str_pair_to_lowlevel = PyString_FromString("pair_to_lowlevel");
+  if (str_pair_to_lowlevel==NULL)
     return;
   m = Py_InitModule3("expr_ext", module_methods, "Provides extension type Expr.");
   

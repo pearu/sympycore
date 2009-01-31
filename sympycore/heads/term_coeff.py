@@ -1,7 +1,7 @@
 
 __all__ = ['TERM_COEFF']
 
-from .base import heads, heads_precedence, ArithmeticHead, Pair
+from .base import heads_precedence, ArithmeticHead
 
 def init_module(m):
     from .base import heads
@@ -15,10 +15,6 @@ class TermCoeff(ArithmeticHead):
 
     def __repr__(self): return 'TERM_COEFF'
 
-    def as_ncmul(self, cls, expr):
-        t, c = expr.data
-        return cls(NCMUL, Pair(c, [t]))
-    
     def data_to_str_and_precedence(self, cls, (term, coeff)):
         neg_p = heads_precedence.NEG
         mul_p = heads_precedence.MUL
@@ -32,13 +28,14 @@ class TermCoeff(ArithmeticHead):
         else:
             t, t_p = term.head.data_to_str_and_precedence(cls, term.data)
             c, c_p = NUMBER.data_to_str_and_precedence(cls, coeff)            
-            cs = ('('+c+')' if c_p < mul_p else c)
-            ts = ('('+t+')' if t_p < mul_p else t)
-            if ts.startswith('1/'):
-                t = cs + ts[1:]
-            else:
-                t = cs + '*' + ts
+            cs = '('+c+')' if c_p < mul_p else c
+            ts = '('+t+')' if t_p < mul_p else t
+            t = cs + (ts[1:] if ts.startswith('1/') else '*' + ts)
             t_p = mul_p
         return t, t_p
+
+    def as_ncmul(self, cls, expr):
+        t, c = expr.data
+        return cls(NCMUL, Pair(c, [t]))
 
 TERM_COEFF = TermCoeff()

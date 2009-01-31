@@ -18,6 +18,10 @@ class TermCoeffDictHead(ArithmeticHead):
 
     def __repr__(self): return 'TERM_COEFF_DICT'
 
+    def data_to_str_and_precedence(self, cls, term_coeff_dict):
+        return ADD.data_to_str_and_precedence(cls,
+                                              map(lambda p: cls(TERM_COEFF, p),
+                                                  term_coeff_dict.items()))
     def term_coeff(self, cls, expr):
         term_coeff_dict = expr.data
         if len(term_coeff_dict)==1:
@@ -28,25 +32,7 @@ class TermCoeffDictHead(ArithmeticHead):
         t, c = self.term_coeff(cls, expr)
         return cls(NCMUL, Pair(c, [t]))
 
-    def data_to_str_and_precedence(self, cls, term_coeff_dict):
-        NUMBER_data_to_str_and_precedence = NUMBER.data_to_str_and_precedence
-        m = len(term_coeff_dict)
-        if not m:
-            return '0', heads_precedence.NUMBER
-        if m==1:
-            return TERM_COEFF.data_to_str_and_precedence(cls, dict_get_item(term_coeff_dict))
-        add_p = heads_precedence.ADD
-        r = ''
-        for term_coeff in term_coeff_dict.items():
-            factors = []
-            t, t_p = TERM_COEFF.data_to_str_and_precedence(cls, term_coeff)
-            if not r:
-                r += '(' + t + ')' if t_p < add_p else t
-            elif t.startswith('-'):
-                r += ' - ' + t[1:]
-            else:
-                r += ' + (' + t + ')' if t_p < add_p else ' + ' + t
-        return r, add_p
+
 
     def as_add(self, cls, expr):
         add_list = []

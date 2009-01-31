@@ -26,8 +26,10 @@ class PowHead(ArithmeticHead, BinaryHead):
         div_p = heads_precedence.DIV
         if isinstance(base, Expr):
             b, b_p = base.head.data_to_str_and_precedence(cls, base.data)
-        else:
+        elif isinstance(base, numbertypes):
             b, b_p = NUMBER.data_to_str_and_precedence(cls, base)
+        else:
+            b, b_p = SYMBOL.data_to_str_and_precedence(cls, base)
 
         if isinstance(exp, Expr):
             h, d = exp.pair
@@ -53,6 +55,15 @@ class PowHead(ArithmeticHead, BinaryHead):
         s1 = '('+b+')' if b_p <= pow_p else b
         s2 = '('+e+')' if e_p < pow_p else e
         return s1 + '**' + s2, pow_p
+
+    def pair_to_lowlevel(self, pair):
+        head, (base, exp) = pair
+        if exp==0:
+            return 1
+        if exp==1:
+            h, d = p = base.pair
+            return h.pair_to_lowlevel(p)
+        return pair
 
     def as_ncmul(self, cls, expr):
         return cls(NCMUL, Pair(1, [expr])) # todo: check expr commutativity

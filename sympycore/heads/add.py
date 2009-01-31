@@ -11,53 +11,33 @@ class AddHead(ArithmeticHead):
 
     """
     AddHead represents addition n-ary operation where operands is
-    given as a n-tuple of expressions. For example, expression 'a +
+    given as a n-sequence of expressions. For example, expression 'a +
     2*b' is 'Expr(ADD, (a, 2*b))' where ADD=AddHead()
     """
+
     op_mth = '__add__'
     op_rmth = '__radd__'
+    
     def __repr__(self): return 'ADD'
 
-    def data_to_str_and_precedence(self, cls, terms_list):
-        num_p = heads_precedence.NUMBER
-        m = len(terms_list)
-        if not m:
-            return '0', num_p
+    def data_to_str_and_precedence(self, cls, operands):
+        m = len(operands)
+        if m==0:
+            return '0', heads_precedence.NUMBER
+        if m==1:
+            op = operands[0]
+            return op.head.data_to_str_and_precedence(cls, op.data)
         add_p = heads_precedence.ADD
         r = ''
-        for term in terms_list:
-            h, d = term.pair
-            t,t_p = h.data_to_str_and_precedence(cls, d)
-            if m>1:
-                if not r:
-                    r += '(' + t + ')' if t_p < add_p else t
-                elif t.startswith('-'):
-                    r += ' - ' + t[1:]
-                else:
-                    r += ' + (' + t + ')' if t_p < add_p else ' + ' + t
+        for op in operands:
+            t,t_p = op.head.data_to_str_and_precedence(cls, op.data)
+            if not r:
+                r += '(' + t + ')' if t_p < add_p else t
+            elif t.startswith('-'):
+                r += ' - ' + t[1:]
             else:
-                return t, t_p
+                r += ' + (' + t + ')' if t_p < add_p else ' + ' + t
         return r, add_p
-
-    def get_precedence_for_data(self, data): # obsolete
-        return heads_precedence.ADD
-
-    def data_to_str(self, cls, data, parent_precedence): #obsolete
-        r = ''
-        add_p = heads_precedence.ADD
-        for t in data:
-            h, d = t.pair
-            s = h.data_to_str(cls, d, add_p)
-            if h is NEG or h is POS:
-                r += s
-            else:
-                if r:
-                    r += ' + ' + s
-                else:
-                    r += s
-        if add_p < parent_precedence:
-            return '(' + r + ')'
-        return r
 
     def term_coeff(self, cls, expr):
         term_list = expr.data

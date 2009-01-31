@@ -1,6 +1,6 @@
 from __future__ import with_statement
 
-from sympycore import Verbatim, utils, SymbolicEquality
+from sympycore import Verbatim, SymbolicEquality, heads
 
 def test_basic():
     a = Verbatim('a')
@@ -9,14 +9,14 @@ def test_basic():
 
     assert repr(a) == "Verbatim(SYMBOL, 'a')"
     
-    assert Verbatim.convert('1') == Verbatim(utils.NUMBER, 1)
-    assert Verbatim.convert(1) == Verbatim(utils.SYMBOL, 1)
-    assert Verbatim.convert(None) == Verbatim(utils.SPECIAL, None)
-    assert Verbatim.convert(Ellipsis) == Verbatim(utils.SPECIAL, Ellipsis)
-    assert Verbatim.convert(['a']) == Verbatim(utils.LIST, (Verbatim(utils.SYMBOL, 'a'), )),`Verbatim.convert(['a'])`
-    assert Verbatim.convert(('a','1')) == Verbatim(utils.TUPLE, (Verbatim(utils.SYMBOL, 'a'), Verbatim(utils.NUMBER, 1))),`Verbatim.convert(('a',1))`
-    assert str(Verbatim(utils.SPECIAL, None))=='None'
-    assert str(Verbatim(utils.SPECIAL, Ellipsis)) in ['...', 'Ellipsis'],`str(Verbatim(utils.SPECIAL, Ellipsis))`
+    assert Verbatim.convert('1') == Verbatim(heads.NUMBER, 1)
+    assert Verbatim.convert(1) == Verbatim(heads.SYMBOL, 1)
+    assert Verbatim.convert(None) == Verbatim(heads.SPECIAL, None)
+    assert Verbatim.convert(Ellipsis) == Verbatim(heads.SPECIAL, Ellipsis)
+    assert Verbatim.convert(['a']) == Verbatim(heads.LIST, (Verbatim(heads.SYMBOL, 'a'), )),`Verbatim.convert(['a'])`
+    assert Verbatim.convert(('a','1')) == Verbatim(heads.TUPLE, (Verbatim(heads.SYMBOL, 'a'), Verbatim(heads.NUMBER, 1))),`Verbatim.convert(('a',1))`
+    assert str(Verbatim(heads.SPECIAL, None))=='None'
+    assert str(Verbatim(heads.SPECIAL, Ellipsis)) in ['...', 'Ellipsis'],`str(Verbatim(heads.SPECIAL, Ellipsis))`
 
 def test_operations():
     a = Verbatim('a')
@@ -25,7 +25,7 @@ def test_operations():
     d = Verbatim('d')
     assert +a == Verbatim('+a'),`+a,Verbatim('+a')`
 
-    assert str(+a)=='+a',`str(+a)`
+    assert str(+a) in ['+a','a'],`str(+a)`
     assert repr(+a) == "Verbatim(POS, Verbatim(SYMBOL, 'a'))",repr(+a)
     assert repr(-a) == "Verbatim(NEG, Verbatim(SYMBOL, 'a'))",repr(-a)
     assert repr(~a) == "Verbatim(INVERT, Verbatim(SYMBOL, 'a'))",repr(~a)
@@ -97,7 +97,7 @@ def test_operations():
 
     #assert repr(Verbatim('a if b else c'))=='',repr(Verbatim('a if b else c'))
     
-    assert str(+a) == "+a",str(+a)
+    assert str(+a) in ["+a","a"],str(+a)
     assert str(-a) == "-a",str(-a)
     assert str(~a) == "~a",str(~a)
     assert str(a+b)== "a + b", str(a+b)
@@ -191,36 +191,70 @@ def test_operations():
     assert Verbatim('a[b,c]') == a[b,c], `Verbatim('a[b,c]'),a[b,c]`
     assert Verbatim('a[b:c,d]') == a[b:c,d], `Verbatim('a[b:c,d]'),a[b:c,d]`
 
-    assert Verbatim('a and b') == Verbatim(utils.AND, (a, b))
-    assert Verbatim('a or b') == Verbatim(utils.OR, (a, b))
-    assert Verbatim('not a') == Verbatim(utils.NOT, a)
-    assert Verbatim('a in b') == Verbatim(utils.IN, (a, b))
-    assert Verbatim('a not in b') == Verbatim(utils.NOTIN, (a, b))
-    assert Verbatim('a is b') == Verbatim(utils.IS, (a, b))
-    assert Verbatim('a is not b') == Verbatim(utils.ISNOT, (a, b))
-    assert Verbatim('a and b and c') == Verbatim(utils.AND, (a, b, c))
-    assert Verbatim('()') == Verbatim(utils.TUPLE, ())
-    assert Verbatim('(a,)') == Verbatim(utils.TUPLE, (a, ))
-    assert Verbatim('(a,b)') == Verbatim(utils.TUPLE, (a, b))
-    assert Verbatim('[]') == Verbatim(utils.LIST, ())
-    assert Verbatim('[a]') == Verbatim(utils.LIST, (a,))
-    assert Verbatim('[a,b]') == Verbatim(utils.LIST, (a,b))
-    assert Verbatim('lambda :a') == Verbatim(utils.LAMBDA, ((), a))
-    assert Verbatim('lambda b:a') == Verbatim(utils.LAMBDA, ((b,), a))
-    assert Verbatim('a==b')==Verbatim(utils.EQ, (a, b)), Verbatim('a == b')
-    assert Verbatim('a!=b')==Verbatim(utils.NE, (a, b)), Verbatim('a != b')
-    assert Verbatim('a<b')==Verbatim(utils.LT, (a, b)), Verbatim('a < b')
-    assert Verbatim('a<=b')==Verbatim(utils.LE, (a, b)), Verbatim('a <= b')
-    assert Verbatim('a>b')==Verbatim(utils.GT, (a, b)), Verbatim('a > b')
-    assert Verbatim('a>=b')==Verbatim(utils.GE, (a, b)), Verbatim('a >= b')
-    assert Verbatim('a[b]')==Verbatim(utils.SUBSCRIPT, (a, (b,))), Verbatim('a[b]')
-    assert Verbatim('a[b,c]')==Verbatim(utils.SUBSCRIPT, (a, (b, c))), Verbatim('a[b,c]')
-    assert Verbatim('a[b:c]')==Verbatim(utils.SUBSCRIPT, (a, (Verbatim(utils.SLICE, (b,c,Verbatim(utils.SPECIAL, None))),))), `Verbatim('a[b:c]')`
-    assert Verbatim('a[b:c,d]')==Verbatim(utils.SUBSCRIPT, (a, (Verbatim(utils.SLICE, (b,c,Verbatim(utils.SPECIAL, None))), d))), `Verbatim('a[b:c,d]')`
-    assert Verbatim('a[...]')==Verbatim(utils.SUBSCRIPT, (Verbatim(utils.SYMBOL, 'a'), (Verbatim(utils.SPECIAL, Ellipsis),))), `Verbatim('a[...]')`
-    assert Verbatim('{a:b}')==Verbatim(utils.DICT, ((a, b),))
+    assert Verbatim('a and b') == Verbatim(heads.AND, (a, b))
+    assert Verbatim('a or b') == Verbatim(heads.OR, (a, b))
+    assert Verbatim('not a') == Verbatim(heads.NOT, a)
+    assert Verbatim('a in b') == Verbatim(heads.IN, (a, b))
+    assert Verbatim('a not in b') == Verbatim(heads.NOTIN, (a, b))
+    assert Verbatim('a is b') == Verbatim(heads.IS, (a, b))
+    assert Verbatim('a is not b') == Verbatim(heads.ISNOT, (a, b))
+    assert Verbatim('a and b and c') == Verbatim(heads.AND, (a, b, c))
+    assert Verbatim('()') == Verbatim(heads.TUPLE, ())
+    assert Verbatim('(a,)') == Verbatim(heads.TUPLE, (a, ))
+    assert Verbatim('(a,b)') == Verbatim(heads.TUPLE, (a, b))
+    assert Verbatim('[]') == Verbatim(heads.LIST, ())
+    assert Verbatim('[a]') == Verbatim(heads.LIST, (a,))
+    assert Verbatim('[a,b]') == Verbatim(heads.LIST, (a,b))
+    assert Verbatim('lambda :a') == Verbatim(heads.LAMBDA, ((), a))
+    assert Verbatim('lambda b:a') == Verbatim(heads.LAMBDA, ((b,), a))
+    assert Verbatim('a==b')==Verbatim(heads.EQ, (a, b)), Verbatim('a == b')
+    assert Verbatim('a!=b')==Verbatim(heads.NE, (a, b)), Verbatim('a != b')
+    assert Verbatim('a<b')==Verbatim(heads.LT, (a, b)), Verbatim('a < b')
+    assert Verbatim('a<=b')==Verbatim(heads.LE, (a, b)), Verbatim('a <= b')
+    assert Verbatim('a>b')==Verbatim(heads.GT, (a, b)), Verbatim('a > b')
+    assert Verbatim('a>=b')==Verbatim(heads.GE, (a, b)), Verbatim('a >= b')
+    assert Verbatim('a[b]')==Verbatim(heads.SUBSCRIPT, (a, (b,))), Verbatim('a[b]')
+    assert Verbatim('a[b,c]')==Verbatim(heads.SUBSCRIPT, (a, (b, c))), Verbatim('a[b,c]')
+    assert Verbatim('a[b:c]')==Verbatim(heads.SUBSCRIPT, (a, (Verbatim(heads.SLICE, (b,c,Verbatim(heads.SPECIAL, None))),))), `Verbatim('a[b:c]')`
+    assert Verbatim('a[b:c,d]')==Verbatim(heads.SUBSCRIPT, (a, (Verbatim(heads.SLICE, (b,c,Verbatim(heads.SPECIAL, None))), d))), `Verbatim('a[b:c,d]')`
+    assert Verbatim('a[...]')==Verbatim(heads.SUBSCRIPT, (Verbatim(heads.SYMBOL, 'a'), (Verbatim(heads.SPECIAL, Ellipsis),))), `Verbatim('a[...]')`
+    assert Verbatim('{a:b}')==Verbatim(heads.DICT, ((a, b),))
     assert Verbatim('a.b')==a.b
     assert Verbatim('a(b=c)')==a(b=c)
     assert Verbatim('a(b,c=d)')==a(b,c=d)
 
+def test_trivial_operations():
+    a = Verbatim('a')
+    b = Verbatim('b')
+    assert str(Verbatim(heads.ADD, []))=='0'
+    assert str(Verbatim(heads.ADD, [a]))=='a'
+    assert str(Verbatim(heads.SUB, []))=='0'
+    assert str(Verbatim(heads.SUB, [a]))=='a'
     
+def test_mixed_operations():
+    a = Verbatim('a')
+    b = Verbatim('b')
+    c = Verbatim('c')
+    d = Verbatim('d')
+    m2 = Verbatim(heads.NUMBER, -2)
+    
+    assert str(a-(b+c))=='a - (b + c)',str(a-(b+c))
+    assert str(a-b-c)=='a - b - c',str(a-b-c)
+    assert str(a-(b-c))=='a - (b - c)',str(a-(b-c))
+    assert str(a-(-b)) in ['a - -b','a + b'],str(a-(-b))
+    assert str(a+(-b))=='a - b',str(a+(-b))
+    assert str(a+(+b))=='a + b',str(a+(+b))
+    assert str(a-(+b))=='a - b',str(a-(+b))
+    assert str(a-(+b+c)) in ['a - (+b + c)','a - (b + c)'],str(a-(+b+c))
+    assert str(a+(m2*b))=='a - 2*b',str(a+(m2*b))
+    assert str(a-(-b+c))=='a - (-b + c)',str(a-(-b+c))
+    assert str(a+(-b+c))=='a - b + c',str(a+(-b+c))
+    assert str(a-(m2*b))=='a + 2*b',str(a-(m2*b))
+    assert str(a-(b*c))=='a - b*c',str(a-(b*c))
+    assert str(a+(b*c))=='a + b*c',str(a+(b*c))
+
+    assert str(+(a+b)) in ['+a + b','a + b', '+(a + b)'],str(+(a+b))
+    assert str(+(a-b)) in ['+a - b','a - b', '+(a - b)'],str(+(a-b))
+    assert str(-(a+b)) in '-(a + b)',str(-(a+b))
+    assert str(-(-a)) in ['a','--a'],str(-(-a))
+    assert str(-(+a))=='-a',str(-(+a))

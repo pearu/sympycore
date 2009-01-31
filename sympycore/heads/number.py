@@ -51,6 +51,9 @@ class NumberHead(AtomicHead):
             return h.data_to_str_and_precedence(cls, d)
         return str(data), 0.0 # force parenthesis
 
+    def pair_to_lowlevel(self, (head, data)):
+        return data
+
     def term_coeff(self, cls, expr):
         if isinstance(expr, Expr):
             return cls(NUMBER, 1), expr.data
