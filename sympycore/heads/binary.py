@@ -8,7 +8,6 @@ class InvertHead(UnaryHead):
     InvertHead is unary invert operation, data is expression operand.
     """
     op_mth = '__invert__'
-    precedence = Head.precedence_map['INVERT']
     op_symbol = '~'
     def __repr__(self): return 'INVERT'
 
@@ -18,7 +17,6 @@ class BorHead(NaryHead):
     data is n-tuple of expression operands.
     """
     op_mth = '__or__'
-    precedence = Head.precedence_map['BOR']
     op_symbol = '|'
     def __repr__(self): return 'BOR'
 
@@ -28,7 +26,6 @@ class BxorHead(NaryHead):
     data is n-tuple of expression operands.
     """
     op_mth = '__xor__'
-    precedence = Head.precedence_map['BXOR']
     op_symbol = '^'
     def __repr__(self): return 'BXOR'
 
@@ -38,7 +35,6 @@ class BandHead(NaryHead):
     data is n-tuple of expression operands.
     """
     op_mth = '__and__'
-    precedence = Head.precedence_map['BAND']
     op_symbol = '&'
     def __repr__(self): return 'BAND'
 
@@ -48,7 +44,6 @@ class LshiftHead(NaryHead):
     data is n-tuple of expression operands.
     """
     op_mth = '__lshift__'
-    precedence = Head.precedence_map['LSHIFT']
     op_symbol = '<<'
     def __repr__(self): return 'LSHIFT'
 
@@ -58,7 +53,6 @@ class RshiftHead(NaryHead):
     data is n-tuple of expression operands.
     """
     op_mth = '__rshift__'
-    precedence = Head.precedence_map['RSHIFT']
     op_symbol = '>>'
     def __repr__(self): return 'RSHIFT'
 

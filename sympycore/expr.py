@@ -195,7 +195,7 @@ This is Python version of Expr type.
         """ Return self as low-level object instance that will be used
         in comparison and in hash computation.
 
-        By default, as_lowlevel uses heads to_lowlevel(data, pair)
+        By default, as_lowlevel uses heads to_lowlevel(cls, data, pair)
         method but since as_lowlevel is a most frequently called
         method then for some heads the corresponding code is copied
         here. The default return value is a pair tuple for composite
@@ -209,28 +209,25 @@ This is Python version of Expr type.
         head, data = pair = self.pair
         if head is NUMBER or head is SYMBOL or head is SPECIAL:
             return data
-        if head is MUL:
+        elif head is MUL or head is DIV:
             n = len(data)
             if n==0:
                 return 1
             if n==1:
                 return data[0]
-            return pair
-        if head is ADD:
+        elif head is ADD or head is SUB:
             n = len(data)
             if n==0:
                 return 0
             if n==1:
                 return data[0]
-            return pair
-        if head is POW:
+        elif head is POW:
             base, exp = data
             if exp==0 or base==1:
                 return 1
             if exp==1:
                 return base
-            return pair
-        if head is TERM_COEFF:
+        elif head is TERM_COEFF:
             term, coeff = data
             if coeff==0:
                 return 0
@@ -238,23 +235,21 @@ This is Python version of Expr type.
                 return term
             if term==1:
                 return coeff
-            return pair
-        if head is TERM_COEFF_DICT:
+        elif head is TERM_COEFF_DICT:
             n = len(data)
             if n==0:
                 return 0
             if n==1:
                 return type(self)(TERM_COEFF, dict_get_item(data))
-            return pair
-        if head is BASE_EXP_DICT:
+        elif head is BASE_EXP_DICT:
             n = len(data)
             if n==0:
                 return 1
             if n==1:
                 return type(self)(POW, dict_get_item(data))
-            return pair
-
-        return head.to_lowlevel(data, pair)
+        else:
+            return head.to_lowlevel(type(self), data, pair)
+        return pair
 
     for _item in dict(__eq__ = '==', __ne__ = '!=',
                       __lt__ = '<', __le__ = '<=',

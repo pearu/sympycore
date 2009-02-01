@@ -21,4 +21,7 @@ class PosHead(ArithmeticHead):
     def data_to_str_and_precedence(self, cls, expr):
         return expr.head.data_to_str_and_precedence(cls, expr.data)
 
+    def to_lowlevel(self, cls, data, pair):
+        return data
+
 POS = PosHead()

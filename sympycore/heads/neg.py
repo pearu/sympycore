@@ -4,6 +4,8 @@ __all__ = ['NEG']
 from .base import heads_precedence, ArithmeticHead
 
 def init_module(m):
+    from ..arithmetic import numbers as n
+    m.numbertypes = n.numbertypes
     from .base import heads
     for n,h in heads.iterNameValue(): setattr(m, n, h)
 
@@ -27,5 +29,10 @@ class NegHead(ArithmeticHead):
         if s_p < neg_p:
             return '-(' + s + ')', neg_p
         return '-' + s, neg_p
+
+    def to_lowlevel(self, cls, data, pair):
+        if isinstance(data, numbertypes):
+            return -data
+        return cls(TERM_COEFF, (data, -1))
 
 NEG = NegHead()

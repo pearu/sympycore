@@ -90,7 +90,7 @@ class Head(object):
     def data_to_str_and_precedence(self, cls, data):
         return '%s(%r, %r)' % (cls.__name__, self, data), 1.0
 
-    def to_lowlevel(self, data, pair):
+    def to_lowlevel(self, cls, data, pair):
         """
         Return a low-level representation of expression pair.  It is
         used in object comparison and hash computation methods.
@@ -155,62 +155,62 @@ class ArithmeticHead(Head):
           coefficent is a number instance
 
         """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'term_coeff'))
+        raise NotImplementedError(not_implemented_error_msg % (self, 'term_coeff')) #pragma NO COVER
 
     def as_add(self, cls, expr):
         """ Return expr as ADD expression.
         """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'as_add'))
+        raise NotImplementedError(not_implemented_error_msg % (self, 'as_add')) #pragma NO COVER
 
     def as_term_coeff_dict(self, cls, expr):
         """ Return expr as TERM_COEFF_DICT expression.
         """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'as_term_coeff_dict'))
+        raise NotImplementedError(not_implemented_error_msg % (self, 'as_term_coeff_dict')) #pragma NO COVER
     
     def as_ncmul(self, cls, expr):
         """ Return expr as NCMUL expression.
         """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'as_ncmul'))
+        raise NotImplementedError(not_implemented_error_msg % (self, 'as_ncmul')) #pragma NO COVER
 
     def neg(self, cls, expr):
         """ Return negated expression: -expr.
         """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'neg'))
+        raise NotImplementedError(not_implemented_error_msg % (self, 'neg')) #pragma NO COVER
 
     def add(self, cls, lhs, rhs):
         """ Return a sum of expressions: lhs + rhs.
         """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'add'))
+        raise NotImplementedError(not_implemented_error_msg % (self, 'add')) #pragma NO COVER
 
     def sub(self, cls, lhs, rhs):
         """ Return a subtract of expressions: lhs + rhs.
         """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'sub'))
+        raise NotImplementedError(not_implemented_error_msg % (self, 'sub')) #pragma NO COVER
 
     def ncmul(self, cls, lhs, rhs):
         """ Return a non-commutative product of expressions: lhs * rhs.
         """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'ncmul'))
+        raise NotImplementedError(not_implemented_error_msg % (self, 'ncmul')) #pragma NO COVER
 
     def mul(self, cls, lhs, rhs):
         """ Return a product of expressions: lhs * rhs.
         """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'mul'))
+        raise NotImplementedError(not_implemented_error_msg % (self, 'mul')) #pragma NO COVER
 
     def pow(self, cls, base, exp):
         """ Return a power of expressions: base ** exp.
         """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'pow'))
+        raise NotImplementedError(not_implemented_error_msg % (self, 'pow')) #pragma NO COVER
 
     def expand(self, cls, expr):
         """ Return expanded expression: open parenthesis of arithmetic operations.
         """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'expand'))
+        raise NotImplementedError(not_implemented_error_msg % (self, 'expand')) #pragma NO COVER
 
     def expand_intpow(self, cls, expr, intexp):
         """ Return expanded expr ** intexp where intexp is integer.
         """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'expand_intpow'))
+        raise NotImplementedError(not_implemented_error_msg % (self, 'expand_intpow')) #pragma NO COVER
     
 for k, v in Head.precedence_map.items():
     setattr(heads_precedence, k, v)

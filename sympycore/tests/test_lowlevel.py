@@ -67,6 +67,16 @@ def test_equality_symbol():
 
     assert MyExpr(SYMBOL, 'x')==AExpr(SYMBOL, 'x')
 
+def test_pos():
+    x, y, z = map(Symbol,'xyz')
+    assert MyExpr(heads.POS,x)==x
+    assert hash(MyExpr(heads.POS,x))==hash(x)
+    
+def test_neg():
+    x, y, z = map(Symbol,'xyz')
+    assert MyExpr(heads.NEG, 2)==-2
+    assert hash(MyExpr(heads.NEG, 2))==hash(-2)
+    
 def test_equality_add():
     x, y, z = map(Symbol,'xyz')
     assert x + y == y + x
@@ -81,6 +91,9 @@ def test_equality_add():
     assert MyExpr(ADD,[])==0
     assert MyExpr(ADD,[x])==x
     assert (not not MyExpr(ADD,[])) == False
+
+    assert hash(MyExpr(ADD,[]))==hash(0)
+    assert hash(MyExpr(ADD,[x]))==hash(x)
 
     x1 = AExpr(SYMBOL, 'x')
     y1 = AExpr(SYMBOL, 'y')
@@ -98,13 +111,21 @@ def test_equality_mul():
     assert (not not MyExpr(MUL,[])) == True
     assert MyExpr(MUL,[])==1
     assert MyExpr(MUL,[x])==x
+    assert hash(MyExpr(MUL,[]))==hash(1)
+    assert hash(MyExpr(MUL,[x]))==hash(x)
 
 def test_equality_term_coeff():
     x, y, z = map(Symbol,'xyz')
     assert MyExpr(TERM_COEFF, (x, 0))==0
     assert MyExpr(TERM_COEFF, (x, 1))==x
     assert MyExpr(TERM_COEFF, (1, 2))==2
+    assert MyExpr(TERM_COEFF, (x, -1))==MyExpr(heads.NEG, x)
+    assert hash(MyExpr(TERM_COEFF, (x, 0)))==hash(0)
+    assert hash(MyExpr(TERM_COEFF, (x, 1)))==hash(x)
+    assert hash(MyExpr(TERM_COEFF, (1, 2)))==hash(2)
+    assert hash(MyExpr(TERM_COEFF, (x, -1)))==hash(MyExpr(heads.NEG, x))
 
+    
 def test_equality_term_coeff_dict():
     x, y, z = map(Symbol,'xyz')
     assert MyExpr(heads.TERM_COEFF_DICT, {})==0
@@ -113,11 +134,21 @@ def test_equality_term_coeff_dict():
     assert MyExpr(heads.TERM_COEFF_DICT, {x:2})==MyExpr(TERM_COEFF, (x, 2))
     assert MyExpr(heads.TERM_COEFF_DICT, {1:2})==2
 
+    assert hash(MyExpr(heads.TERM_COEFF_DICT, {}))==hash(0)
+    assert hash(MyExpr(heads.TERM_COEFF_DICT, {x:0}))==hash(0)
+    assert hash(MyExpr(heads.TERM_COEFF_DICT, {x:1}))==hash(x)
+    assert hash(MyExpr(heads.TERM_COEFF_DICT, {x:2}))==hash(MyExpr(TERM_COEFF, (x, 2)))
+    assert hash(MyExpr(heads.TERM_COEFF_DICT, {1:2}))==hash(2)
+
 def test_equality_pow():
     x, y, z = map(Symbol,'xyz')
     assert MyExpr(heads.POW, (x, 0))==1
     assert MyExpr(heads.POW, (x, 1))==x
     assert MyExpr(heads.POW, (1, x))==1
+
+    assert hash(MyExpr(heads.POW, (x, 0)))==hash(1)
+    assert hash(MyExpr(heads.POW, (x, 1)))==hash(x)
+    assert hash(MyExpr(heads.POW, (1, x)))==hash(1)
 
 def test_equality_base_exp_dict():
     x, y, z = map(Symbol,'xyz')
@@ -126,6 +157,12 @@ def test_equality_base_exp_dict():
     assert MyExpr(heads.BASE_EXP_DICT, {x:1})==x
     assert MyExpr(heads.BASE_EXP_DICT, {x:2})==MyExpr(heads.POW, (x, 2))
     assert MyExpr(heads.BASE_EXP_DICT, {1:2})==1
+
+    assert hash(MyExpr(heads.BASE_EXP_DICT, {}))==hash(1)
+    assert hash(MyExpr(heads.BASE_EXP_DICT, {x:0}))==hash(1)
+    assert hash(MyExpr(heads.BASE_EXP_DICT, {x:1}))==hash(x)
+    assert hash(MyExpr(heads.BASE_EXP_DICT, {x:2}))==hash(MyExpr(heads.POW, (x, 2)))
+    assert hash(MyExpr(heads.BASE_EXP_DICT, {1:2}))==hash(1)
 
 def test_hash_number():
     assert hash(Number(1))==hash(1)

@@ -24,16 +24,4 @@ class SpecialHead(AtomicHead):
             return s, heads_precedence.SYMBOL
         return s, 0.0 # force parenthesis
 
-    def to_lowlevel(self, data, pair):
-        return data
-
-    def get_precedence_for_data(self, data, # obsolete
-                                _p = heads_precedence.SPECIAL):
-        return _p
-    
-    def data_to_str(self, cls, data, parent_precedence): # obsolete
-        if data is Ellipsis:
-            return '...'
-        return AtomicHead.data_to_str(self, cls, data, parent_precedence)
-
 SPECIAL = SpecialHead()

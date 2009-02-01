@@ -10,15 +10,13 @@ def init_module(m):
     from .base import heads
     for n,h in heads.iterNameValue(): setattr(m, n, h)
 
-class PowHead(ArithmeticHead, BinaryHead):
+class PowHead(ArithmeticHead):
     """ PowHead represents exponentiation operation, data is a 2-tuple
     of base and exponent expressions. Both can be number instances or
     algebra instances.
     """
-    precedence = Head.precedence_map['POW'] # obsolete
     op_mth = '__pow__'
     op_rmth = '__rpow__'
-    op_symbol = '**' #obsolete
     def __repr__(self): return 'POW'
 
     def data_to_str_and_precedence(self, cls, (base, exp)):

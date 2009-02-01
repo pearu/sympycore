@@ -29,16 +29,6 @@ class SymbolHead(AtomicHead):
             return s, heads_precedence.SYMBOL
         return s, 0.0 # force parenthesis
 
-    def to_lowlevel(self, data, pair):
-        return data
-
-    def get_precedence_for_data(self, data, # obsolete
-                                _p = heads_precedence.SYMBOL):
-        if isinstance(data, Expr):
-            h, d = data.pair
-            return h.get_precedence_for_data(d)
-        return _p
-
     def term_coeff(self, cls, expr):
         return expr, 1
 

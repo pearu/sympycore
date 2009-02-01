@@ -19,15 +19,8 @@ class SparsepolyHead(Head):
     def data_to_str_and_precedence(self, cls, data):
         return heads.EXP_COEFF_DICT.data_to_str_and_precedence(cls, (cls.variables, data))
 
-    def to_lowlevel(self, data, pair):
-        n = len(data)
-        if n==0:
-            return 0
-        if n==1:
-            exp, coeff = data.items()[0]
-            if exp==0:
-                return coeff
-        return pair
+    def to_lowlevel(self, cls, data, pair):
+        return heads.EXP_COEFF_DICT.to_lowlevel(cls, data, pair)
     
 class DensepolyHead(Head):
     """

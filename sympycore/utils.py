@@ -73,7 +73,7 @@ class MATRIX(HEAD):
                        MATRIX_DICT_D, MATRIX_DICT_DT
     """
 
-    def to_lowlevel(self, data, pair):
+    def to_lowlevel(self, cls, data, pair):
         return pair
     
     def init(self, rows, cols, storage):

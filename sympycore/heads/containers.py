@@ -3,6 +3,10 @@ __all__ = ['TUPLE', 'LIST', 'DICT']
 
 from .base import Head, heads_precedence
 
+def init_module(m):
+    from .base import heads
+    for n,h in heads.iterNameValue(): setattr(m, n, h)
+
 class ContainerHead(Head):
 
     def data_to_str_and_precedence(self, cls, seq):

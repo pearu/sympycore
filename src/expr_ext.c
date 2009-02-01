@@ -69,7 +69,9 @@ static PyObject* NUMBER;
 static PyObject* SYMBOL;
 static PyObject* SPECIAL;
 static PyObject* ADD;
+static PyObject* SUB;
 static PyObject* MUL;
+static PyObject* DIV;
 static PyObject* POW;
 static PyObject* TERM_COEFF;
 static PyObject* TERM_COEFF_DICT;
@@ -484,7 +486,7 @@ Expr_as_lowlevel(Expr *self)
       Py_INCREF(data);
       return data;
     }
-  else if (head==MUL)
+  else if (head==MUL || head==DIV)
     {
       size_t n = PyObject_Length(data);
       if (n==0)
@@ -492,7 +494,7 @@ Expr_as_lowlevel(Expr *self)
       if (n==1)
 	return PySequence_GetItem(data, 0);
     }
-  else if (head==ADD)
+  else if (head==ADD || head==SUB)
     {
       size_t n = PyObject_Length(data);
       if (n==0)
@@ -549,7 +551,7 @@ Expr_as_lowlevel(Expr *self)
 	}
     }
   else 
-    return PyObject_CallMethodObjArgs(head, str_to_lowlevel, data, self->pair, NULL);
+    return PyObject_CallMethodObjArgs(head, str_to_lowlevel, self->ob_type, data, self->pair, NULL);
   Py_INCREF(self->pair);
   return self->pair;
 }
@@ -1358,7 +1360,9 @@ static PyObject *init_module(PyObject *self, PyObject *args)
       INIT_HEAD(SYMBOL, "SYMBOL");
       INIT_HEAD(SPECIAL, "SPECIAL");
       INIT_HEAD(ADD, "ADD");
+      INIT_HEAD(SUB, "SUB");
       INIT_HEAD(MUL, "MUL");
+      INIT_HEAD(DIV, "DIV");
       INIT_HEAD(POW, "POW");
       INIT_HEAD(TERM_COEFF, "TERM_COEFF");
       INIT_HEAD(TERM_COEFF_DICT, "TERM_COEFF_DICT");
@@ -1513,7 +1517,7 @@ initexpr_ext(void)
 {
   PyObject* m = NULL;
   NUMBER = SYMBOL = SPECIAL = ADD = MUL = POW = TERM_COEFF_DICT =
-    TERM_COEFF = BASE_EXP_DICT = NULL;
+    TERM_COEFF = BASE_EXP_DICT = SUB = DIV = NULL;
 
   if (PyType_Ready(&ExprType) < 0)
     return;
