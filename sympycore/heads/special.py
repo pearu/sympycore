@@ -24,7 +24,7 @@ class SpecialHead(AtomicHead):
             return s, heads_precedence.SYMBOL
         return s, 0.0 # force parenthesis
 
-    def pair_to_lowlevel(self, (head, data)):
+    def to_lowlevel(self, data, pair):
         return data
 
     def get_precedence_for_data(self, data, # obsolete

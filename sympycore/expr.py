@@ -106,7 +106,7 @@ This is Python version of Expr type.
         h = self._hash
         if h is None:
             head, data = pair = self.pair
-            obj = head.pair_to_lowlevel(pair) if head is not None else pair
+            obj = head.to_lowlevel(data, pair)
             if obj is not pair:
                 h = hash(obj)
             else:
@@ -184,70 +184,26 @@ This is Python version of Expr type.
 
     def __nonzero__(self):
         # Note that `not cls(MUL, [])` would return True while `cls(MUL, [])==1`.
-        # So, must use pair_to_lowlevel:
+        # So, must use to_lowlevel:
         head, data = pair = self.pair
-        obj = head.pair_to_lowlevel(pair) if head is not None else pair
+        obj = head.to_lowlevel(data, pair)
         if obj is not pair:
             return not not obj
         return not not data
 
-    def __eq__(self, other):
-        pair = self.pair
-        tother = type(other)
-        if tother is not type(self):
-            head, data = pair
-            obj = head.pair_to_lowlevel(pair) if head is not None else pair
-            if obj is not pair or type(obj) is tother:
-                return obj == other
-            return False # because types are different
-        return pair==other.pair
-
-    def __ne__(self, other):
-        return not (self==other)
-
-    def __lt__(self, other):
-        pair = self.pair
-        tother = type(other)
-        if tother is not type(self):
-            head, data = pair
-            obj = head.pair_to_lowlevel(pair) if head is not None else pair
-            if obj is not pair or type(obj) is tother:
-                return obj < other
-            return NotImplemented # because types are different
-        return pair < other.pair
-
-    def __le__(self, other):
-        pair = self.pair
-        tother = type(other)
-        if tother is not type(self):
-            head, data = pair
-            obj = head.pair_to_lowlevel(pair) if head is not None else pair
-            if obj is not pair or type(obj) is tother:
-                return obj <= other
-            return NotImplemented # because types are different
-        return pair <= other.pair
-
-    def __gt__(self, other):
-        pair = self.pair
-        tother = type(other)
-        if tother is not type(self):
-            head, data = pair
-            obj = head.pair_to_lowlevel(pair) if head is not None else pair
-            if obj is not pair or type(obj) is tother:
-                return obj > other
-            return NotImplemented # because types are different
-        return pair > other.pair
-
-    def __ge__(self, other):
-        pair = self.pair
-        tother = type(other)
-        if tother is not type(self):
-            head, data = pair
-            obj = head.pair_to_lowlevel(pair) if head is not None else pair
-            if obj is not pair or type(obj) is tother:
-                return obj >= other
-            return NotImplemented # because types are different
-        return pair >= other.pair
+    for _item in dict(__eq__ = '==', __ne__ = '!=',
+                      __lt__ = '<', __le__ = '<=',
+                      __gt__ = '>', __ge__ = '>=',
+                      ).items():
+        exec '''
+def %s(self, other):
+    if type(self) is type(other):
+        head, data = pair = other.pair
+        other = head.to_lowlevel(data, pair)
+    head, data = pair = self.pair
+    self = head.to_lowlevel(data, pair)
+    return self %s other
+''' % _item
 
     def _add_item(self, key, value):
         # value must be non-zero
@@ -397,6 +353,10 @@ This is Python version of Expr type.
         return self
 
 class Pair(Expr):
+
+    def __eq__(self, other):
+        return self.pair == other
+
     def __len__(self):
         return 2
     def __getitem__(self, index):

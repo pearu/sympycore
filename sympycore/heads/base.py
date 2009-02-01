@@ -1,5 +1,5 @@
 
-__all__ = ['Head', 'UnaryHead', 'BinaryHead', 'NaryHead']
+__all__ = ['Head', 'UnaryHead', 'BinaryHead', 'NaryHead', 'HEAD']
 
 not_implemented_error_msg = '%s.%s() method, report to http://code.google.com/p/sympycore/issues/'
 
@@ -90,7 +90,7 @@ class Head(object):
     def data_to_str_and_precedence(self, cls, data):
         return '%s(%r, %r)' % (cls.__name__, self, data), 1.0
 
-    def pair_to_lowlevel(self, pair):
+    def to_lowlevel(self, data, pair):
         """
         Return a low-level representation of expression pair.  It is
         used in object comparison and hash computation methods.
@@ -101,15 +101,6 @@ class AtomicHead(Head):
     """
     AtomicHead is a base class to atomic expression heads.
     """
-
-    def data_to_str(self, cls, data, parent_precedence):
-        if isinstance(data, Expr):
-            h, d = data.pair
-            return h.data_to_str(cls, d, parent_precedence)
-        s = '%s' % (data,)
-        if self.get_precedence_for_data(data) < parent_precedence:
-            return '(' + s + ')'
-        return s
 
 class UnaryHead(Head):
     """
@@ -223,3 +214,5 @@ class ArithmeticHead(Head):
     
 for k, v in Head.precedence_map.items():
     setattr(heads_precedence, k, v)
+
+HEAD = Head()

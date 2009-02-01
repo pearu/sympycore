@@ -65,11 +65,17 @@ static PyTypeObject PairType;
 static PyObject* NUMBER;
 static PyObject* SYMBOL;
 static PyObject* SPECIAL;
+static PyObject* ADD;
+static PyObject* MUL;
+static PyObject* POW;
+static PyObject* TERM_COEFF_DICT;
+static PyObject* BASE_EXP_DICT;
+
 static PyObject* Expr_as_lowlevel(Expr *self);
 static PyObject* str_convert;
 static PyObject* str_handle_numeric_item;
 static PyObject* str_getinitargs;
-static PyObject* str_pair_to_lowlevel;
+static PyObject* str_to_lowlevel;
 
 #define Expr_Check(op) PyObject_TypeCheck(op, &ExprType)
 #define Expr_CheckExact(op) ((op)->ob_type == &ExprType)
@@ -410,15 +416,55 @@ Expr_reduce(Expr *self)
   return ret;
 }
 
-/* Pickle support */
+/* Return expression lowlevel representation that will be used in
+   hash calculation and comparison operations. */
 static PyObject *
 Expr_as_lowlevel(Expr *self)
 {
   PyObject *head = PyTuple_GET_ITEM(self->pair, 0);
-  if (head!=Py_None)
-    return PyObject_CallMethodObjArgs(head, str_pair_to_lowlevel, self->pair, NULL);
-  Py_INCREF(self->pair);
-  return self->pair;
+  PyObject *data = PyTuple_GET_ITEM(self->pair, 1);
+  if (head==SYMBOL || head==NUMBER || head==SPECIAL)
+    {
+      Py_INCREF(data);
+      return data;
+    }
+  if (head==MUL)
+    {
+      size_t n = PyObject_Length(data);
+      if (n==0)
+	return PyInt_FromLong(1);
+      if (n==1)
+	return PySequence_GetItem(data, 0);
+      Py_INCREF(self->pair);
+      return self->pair;
+    }
+  if (head==ADD)
+    {
+      size_t n = PyObject_Length(data);
+      if (n==0)
+	return PyInt_FromLong(0);
+      if (n==1)
+	return PySequence_GetItem(data, 0);
+      Py_INCREF(self->pair);
+      return self->pair;
+    }
+  if (head==TERM_COEFF_DICT)
+    {
+      size_t n = PyObject_Length(data);
+      if (n==0)
+	return PyInt_FromLong(0);
+      Py_INCREF(self->pair);
+      return self->pair;
+    }
+  if (head==BASE_EXP_DICT)
+    {
+      size_t n = PyObject_Length(data);
+      if (n==0)
+	return PyInt_FromLong(1);
+      Py_INCREF(self->pair);
+      return self->pair;
+    }
+  return PyObject_CallMethodObjArgs(head, str_to_lowlevel, data, self->pair, NULL);
 }
 
 /* <Expr>.__nonzero__() == <Expr>.data.__nonzero__() 
@@ -426,23 +472,18 @@ Expr_as_lowlevel(Expr *self)
 */
 static PyObject*
 Expr_nonzero(Expr *self) {
-  PyObject *head = PyTuple_GET_ITEM(self->pair, 0);
-  PyObject *obj = NULL;
-  if (head!=Py_None)
+  PyObject *obj = Expr_as_lowlevel(self);
+  if (obj != self->pair)
     {
-      obj = PyObject_CallMethodObjArgs(head, str_pair_to_lowlevel, self->pair, NULL);
-      if (obj != self->pair)
+      if (PyObject_IsTrue(obj))
 	{
-	  if (PyObject_IsTrue(obj))
-	    {
-	      Py_DECREF(obj);
-	      Py_RETURN_TRUE;
-	    }
 	  Py_DECREF(obj);
-	  Py_RETURN_FALSE;
+	  Py_RETURN_TRUE;
 	}
       Py_DECREF(obj);
+      Py_RETURN_FALSE;
     }
+  Py_DECREF(obj);
   obj = PyTuple_GET_ITEM(self->pair, 1);
   if (PyObject_IsTrue(obj))
     Py_RETURN_TRUE;
@@ -464,9 +505,9 @@ Expr_nonzero2(Expr *self) {
  */
 static int
 check_comparable_types(PyObject *v, PyObject *w) {
-  if (v->ob_type == w->ob_type)
+  if (v->ob_type == w->ob_type)// || Expr_Check(v) || Expr_Check(w))
     return 1;
-  if (PyInt_CheckExact(v))
+  else if (PyInt_CheckExact(v))
     return (PyLong_CheckExact(w) || PyFloat_CheckExact(w) || PyComplex_CheckExact(w));
   else if (PyLong_CheckExact(v))
     return (PyInt_CheckExact(w) || PyFloat_CheckExact(w) || PyComplex_CheckExact(w));
@@ -481,101 +522,89 @@ check_comparable_types(PyObject *v, PyObject *w) {
   return 0;
 }
 
+#define RICHCOMPARE_RETURN_WHEN_IDENTICAL \
+    { \
+      switch (op) \
+	{ \
+	case Py_LE:; case Py_GE:; case Py_EQ: Py_RETURN_TRUE; \
+	case Py_LT:; case Py_GT:; case Py_NE: Py_RETURN_FALSE; \
+	default: return NULL; \
+	} \
+    }
+
+#define RICHCOMPARE_CALL(OBJ1, OBJ2)		\
+  if (OBJ1 == OBJ2) \
+    { \
+      switch (op)				\
+	{					     \
+	case Py_LE:; case Py_GE:; case Py_EQ: r = 1; break;	\
+	case Py_LT:; case Py_GT:; case Py_NE: r = 0; break;	\
+	default: r = -1;			     \
+	} \
+    }						\
+  else if (Expr_Check(OBJ1) || Expr_Check(OBJ2))	\
+    r = PyObject_RichCompareBool(OBJ1, OBJ2, op);	\
+  else						\
+    { \
+      switch (op)				\
+	{								\
+	case Py_EQ: r = (check_comparable_types(OBJ1, OBJ2)) ? PyObject_RichCompareBool(OBJ1, OBJ2, op) : 0; break; \
+	case Py_NE: r = (check_comparable_types(OBJ1, OBJ2)) ? PyObject_RichCompareBool(OBJ1, OBJ2, op) : 1; break;  \
+	default: r = PyObject_RichCompareBool(OBJ1, OBJ2, op);		\
+	}								\
+    }
+
 static PyObject *
 Expr_richcompare(PyObject *v, PyObject *w, int op)
 {
   Expr *ve = (Expr *)v;
   Expr *we = (Expr *)w;
-  if (Expr_Check(v) && v->ob_type == w->ob_type) {
-    /* shortcut EQ and NE for speed: heads are singletons and data
-       types are not comparable. */
-    PyObject* vh = PyTuple_GET_ITEM(ve->pair, 0);
-    PyObject* wh = PyTuple_GET_ITEM(we->pair, 0);
-    PyObject* vd = PyTuple_GET_ITEM(ve->pair, 1);
-    PyObject* wd = PyTuple_GET_ITEM(we->pair, 1);
-    switch(op) {
-    case Py_EQ:
-      if (vh==wh) {
-	if (vd==wd) {
-	  Py_RETURN_TRUE;
+  int r = -1;
+  if (v==w)
+    RICHCOMPARE_RETURN_WHEN_IDENTICAL;
+  if (Expr_Check(v))
+    { 
+      PyObject* vh = PyTuple_GET_ITEM(ve->pair, 0);
+      PyObject* vd = PyTuple_GET_ITEM(ve->pair, 1);
+      if (v->ob_type == w->ob_type)
+	{
+	  PyObject* wh = PyTuple_GET_ITEM(we->pair, 0);
+	  PyObject* wd = PyTuple_GET_ITEM(we->pair, 1);
+
+	  if (vh==wh && vd==wd)
+	    RICHCOMPARE_RETURN_WHEN_IDENTICAL;
+	  PyObject* obj1 = Expr_as_lowlevel(ve);
+	  if (obj1==NULL)
+	    return NULL;
+	  PyObject* obj2 = Expr_as_lowlevel(we);
+	  if (obj2!=NULL)
+	    {
+	      RICHCOMPARE_CALL(obj1, obj2);
+	      Py_DECREF(obj2);      
+	    }
+	  Py_DECREF(obj1);      
 	}
-	if (check_comparable_types(vd, wd)) {
-	  int r = PyObject_RichCompareBool(vd, wd, op);
-	  if (r==-1) return NULL;
-	  if (r) Py_RETURN_TRUE;
-	  Py_RETURN_FALSE;
+      else
+	{
+	  PyObject* obj1 = Expr_as_lowlevel(ve);
+	  if (obj1==NULL)
+	    return NULL;
+	  RICHCOMPARE_CALL(obj1, w);
+	  Py_DECREF(obj1);      
 	}
-	Py_RETURN_FALSE;
-      }
-      if (check_comparable_types(vd, wd))
-	break;
-      Py_RETURN_FALSE;
-    case Py_NE:
-      if (vh==wh) {
-      	if (vd==wd) {
-	  Py_RETURN_FALSE;
-	}
-	if (check_comparable_types(vd, wd)) {
-	  int r = PyObject_RichCompareBool(vd, wd, op);
-	  if (r==-1) return NULL;
-	  if (r) Py_RETURN_TRUE;
-	  Py_RETURN_FALSE;
-	}
-	Py_RETURN_TRUE;
-      }
-      if (check_comparable_types(vd, wd))
-	break;
-      Py_RETURN_TRUE;
     }
-    /* do full comparison on pair tuples */
-    return PyObject_RichCompare(ve->pair, we->pair, op);
-  } 
-  if (!Expr_Check(v)) {
-    if (Expr_Check(w)) {
-      PyObject* obj = Expr_as_lowlevel((Expr*)w);
-      int r;
-      if (obj==NULL)
+  else if (Expr_Check(w))
+    { 
+      PyObject* obj2 = Expr_as_lowlevel(we);
+      if (obj2==NULL)
 	return NULL;
-      switch(op) {
-      case Py_EQ:
-	r = (check_comparable_types(v, obj)) ? PyObject_RichCompareBool(v, obj, op) : 0;
-	break;
-      case Py_NE:
-	r = (check_comparable_types(v, obj)) ? PyObject_RichCompareBool(v, obj, op) : 1;
-	break;
-      default:
-	r = PyObject_RichCompareBool(v, obj, op);
-      }
-      Py_DECREF(obj);
-      if (r==-1) return NULL;
-      if (r) Py_RETURN_TRUE;
-      Py_RETURN_FALSE;
+      RICHCOMPARE_CALL(v, obj2);
+      Py_DECREF(obj2);
     }
-    Py_INCREF(Py_NotImplemented);
-    return Py_NotImplemented;
-  }
-  if (v->ob_type != w->ob_type) {
-    PyObject* obj = Expr_as_lowlevel((Expr*)v);
-    int r;
-    if (obj==NULL)
-      return NULL;
-      switch(op) {
-      case Py_EQ:
-	r = (check_comparable_types(obj, w)) ? PyObject_RichCompareBool(obj, w, op) : 0;
-	break;
-      case Py_NE:
-	r = (check_comparable_types(obj, w)) ? PyObject_RichCompareBool(obj, w, op) : 1;
-	break;  
-      default:
-	r = PyObject_RichCompareBool(obj, w, op);
-      }
-    Py_DECREF(obj);
-    if (r==-1) return NULL;
-    if (r) Py_RETURN_TRUE;
-    Py_RETURN_FALSE;
-  }
-  Py_INCREF(Py_NotImplemented);
-  return Py_NotImplemented;
+
+  if (r==-1) return NULL;
+  if (r) Py_RETURN_TRUE;
+  Py_RETURN_FALSE;
 }
 
 #define CHECK_MTH_ARGS(MTHNAME, NOFARGS) \
@@ -1184,6 +1213,29 @@ Expr_dict_sub_item(Expr *self, PyObject *args) {
   return Py_None;
 }
 
+static PyObject *
+Pair_richcompare(PyObject *v, PyObject *w, int op)
+{
+  int r = -1;
+  if (Expr_Check(v))
+    { 
+      r = PyObject_RichCompareBool(((Expr*)v)->pair, w, op);
+      if (r==-1) return NULL;
+      if (r) Py_RETURN_TRUE;
+      Py_RETURN_FALSE;
+    }
+  if (Expr_Check(w))
+    { 
+      r = PyObject_RichCompareBool(v, ((Expr*)w)->pair, op);
+      if (r==-1) return NULL;
+      if (r) Py_RETURN_TRUE;
+      Py_RETURN_FALSE;
+    }
+  Py_INCREF(Py_NotImplemented);
+  return Py_NotImplemented;
+}
+
+
 static Py_ssize_t
 Pairlength(Expr *self)
 {
@@ -1201,6 +1253,13 @@ Pairitem(register Expr *self, register Py_ssize_t i)
   return ((PyTupleObject*)(self->pair))->ob_item[i];
 }
 
+#define INIT_HEAD(HEAD, HEAD_STR) \
+      HEAD = PyObject_GetAttrString(m, HEAD_STR); \
+      if (HEAD==NULL) { \
+	Py_DECREF(m); \
+	return NULL; \
+      }
+
 static PyObject *init_module(PyObject *self, PyObject *args)
 {
   if (NUMBER==NULL)
@@ -1208,21 +1267,14 @@ static PyObject *init_module(PyObject *self, PyObject *args)
       PyObject* m = PyImport_ImportModule("sympycore.heads");
       if (m == NULL)
 	return NULL;
-      NUMBER = PyObject_GetAttrString(m, "NUMBER");
-      if (NUMBER==NULL) {
-	Py_DECREF(m);
-	return NULL;
-      }
-      SYMBOL = PyObject_GetAttrString(m, "SYMBOL");
-      if (SYMBOL==NULL) {
-	Py_DECREF(m);
-	return NULL;
-      }
-      SPECIAL = PyObject_GetAttrString(m, "SPECIAL");
-      if (SPECIAL==NULL) {
-	Py_DECREF(m);
-	return NULL;
-      }
+      INIT_HEAD(NUMBER, "NUMBER");
+      INIT_HEAD(SYMBOL, "SYMBOL");
+      INIT_HEAD(SPECIAL, "SPECIAL");
+      INIT_HEAD(ADD, "ADD");
+      INIT_HEAD(MUL, "MUL");
+      INIT_HEAD(POW, "POW");
+      INIT_HEAD(TERM_COEFF_DICT, "TERM_COEFF_DICT");
+      INIT_HEAD(BASE_EXP_DICT, "BASE_EXP_DICT");
       Py_DECREF(m);
     }
   return Py_BuildValue("");
@@ -1335,7 +1387,7 @@ static PyTypeObject PairType = {
   0,                         /* tp_doc */
   0,                         /* tp_traverse */
   0,                         /* tp_clear */
-  0,	                     /* tp_richcompare */
+  Pair_richcompare,	     /* tp_richcompare */
   0,	                     /* tp_weaklistoffset */
   0,	                     /* tp_iter */
   0,	                     /* tp_iternext */
@@ -1371,7 +1423,7 @@ PyMODINIT_FUNC
 initexpr_ext(void) 
 {
   PyObject* m = NULL;
-  NUMBER = SYMBOL = SPECIAL = NULL;
+  NUMBER = SYMBOL = SPECIAL = ADD = MUL = POW = TERM_COEFF_DICT = BASE_EXP_DICT = NULL;
 
   if (PyType_Ready(&ExprType) < 0)
     return;
@@ -1389,8 +1441,8 @@ initexpr_ext(void)
   str_getinitargs = PyString_FromString("__getinitargs__");
   if (str_getinitargs==NULL)
     return;
-  str_pair_to_lowlevel = PyString_FromString("pair_to_lowlevel");
-  if (str_pair_to_lowlevel==NULL)
+  str_to_lowlevel = PyString_FromString("to_lowlevel");
+  if (str_to_lowlevel==NULL)
     return;
   m = Py_InitModule3("expr_ext", module_methods, "Provides extension type Expr.");
   

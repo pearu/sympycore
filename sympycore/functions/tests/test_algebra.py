@@ -15,8 +15,8 @@ def test_defined():
     f = Function(Sin)
     g = Function('g')
     assert str(f(x))=='Sin(x)'
-    assert str(f+g)=='Sin + g', str(f+g)
-    assert str((f+g)(x))=='Sin(x) + g(x)'
-    assert str((f+g)(x, evaluate=False))=='(Sin + g)(x)'
+    assert str(f+g) in ['Sin + g','g + Sin'], str(f+g)
+    assert str((f+g)(x)) in ['Sin(x) + g(x)','g(x) + Sin(x)'],str((f+g)(x))
+    assert str((f+g)(x, evaluate=False)) in ['(Sin + g)(x)','(g + Sin)(x)'],str((f+g)(x, evaluate=False))
 
 

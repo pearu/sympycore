@@ -25,6 +25,8 @@ class TermCoeff(ArithmeticHead):
         elif coeff==-1:
             t, t_p = term.head.data_to_str_and_precedence(cls, term.data)
             t, t_p = ('-('+t+')' if t_p < neg_p else '-' + t), neg_p
+        elif coeff==0:
+            t, t_p = '0', heads_precedence.NUMBER
         else:
             t, t_p = term.head.data_to_str_and_precedence(cls, term.data)
             c, c_p = NUMBER.data_to_str_and_precedence(cls, coeff)            

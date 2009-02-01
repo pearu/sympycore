@@ -1,6 +1,6 @@
 
 from sympycore.core import Expr, Pair
-from sympycore.utils import NUMBER, SYMBOL, TERMS, FACTORS, MUL
+from sympycore.heads import NUMBER, SYMBOL, TERMS, FACTORS, MUL, ADD
 
 class MyExpr(Expr):
 
@@ -20,6 +20,10 @@ class MyExpr(Expr):
         return Add(self, self.convert(other))
 
     __radd__ = __add__
+
+class AExpr(Expr):
+
+    pass
 
 def Number(n):
     return MyExpr(NUMBER, n)
@@ -61,6 +65,8 @@ def test_equality_symbol():
     assert Symbol('x')!='y'
     assert 'x'!=Symbol('y')
 
+    assert MyExpr(SYMBOL, 'x')==AExpr(SYMBOL, 'x')
+
 def test_equality_add():
     x, y, z = map(Symbol,'xyz')
     assert x + y == y + x
@@ -72,6 +78,27 @@ def test_equality_add():
     assert x + y != 'x'
     assert x + y != 1
 
+    assert MyExpr(ADD,[])==0
+    assert MyExpr(ADD,[x])==x
+    assert (not not MyExpr(ADD,[])) == False
+
+    x1 = AExpr(SYMBOL, 'x')
+    y1 = AExpr(SYMBOL, 'y')
+
+    assert AExpr(ADD,[x1])==MyExpr(ADD,[x])
+    assert AExpr(ADD,[x1,y1])==MyExpr(ADD,[x,y])
+    assert not (AExpr(ADD,[x1,y1])<MyExpr(ADD,[x,y]))
+    assert not (AExpr(ADD,[x1,y1])>MyExpr(ADD,[x,y]))
+
+    assert (AExpr(ADD,[x1,y1])<=MyExpr(ADD,[x,y]))
+    assert (AExpr(ADD,[x1,y1])>=MyExpr(ADD,[x,y]))
+
+def test_equality_mul():
+    x, y, z = map(Symbol,'xyz')
+    assert (not not MyExpr(MUL,[])) == True
+    assert MyExpr(MUL,[])==1
+    assert MyExpr(MUL,[x])==x
+
 def test_hash_number():
     assert hash(Number(1))==hash(1)
     assert hash(Number(-1))==hash(-1)
@@ -79,7 +106,7 @@ def test_hash_number():
     assert hash(Number(-1212424))==hash(-1212424)
 
 def test_hash_symbol():
-    assert hash(Symbol('x'))==hash('x')
+    assert hash(Symbol('x'))==hash('x'),`hash(Symbol('x')),hash('x')`
     assert hash(Symbol('y'))==hash('y')
 
 def test_hash_dict_data():

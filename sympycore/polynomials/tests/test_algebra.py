@@ -49,7 +49,7 @@ def test_univariate():
     assert (x-1)*(x+1) == x**2 - 1
     assert (x-1)*(x+1) / (x-1) == (x+1)
     assert (x**3 + x).diff() == 3*x**2 + 1
-    assert str(C([3, 0, 1])) == 'x**2 + 3'
+    assert str(C([3, 0, 1])) == 'x**2 + 3',str(C([3, 0, 1]))
     assert str(C([0])) == '0'
     assert str(C([1, 1])) == 'x + 1'
     assert str((5 + 3*x) / 5) == '3/5*x + 1', repr((5 + 3*x) / 5)

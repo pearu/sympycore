@@ -36,6 +36,8 @@ class PowHead(ArithmeticHead, BinaryHead):
             if h is NUMBER and isinstance(d, numbertypes):
                 exp = d
         if isinstance(exp, numbertypes):
+            if exp==0:
+                return '1', heads_precedence.NUMBER
             if exp==1:
                 return b, b_p
             if exp < 0:
@@ -56,13 +58,11 @@ class PowHead(ArithmeticHead, BinaryHead):
         s2 = '('+e+')' if e_p < pow_p else e
         return s1 + '**' + s2, pow_p
 
-    def pair_to_lowlevel(self, pair):
-        head, (base, exp) = pair
+    def to_lowlevel(self, (base, exp), pair):
         if exp==0:
             return 1
         if exp==1:
-            h, d = p = base.pair
-            return h.pair_to_lowlevel(p)
+            return base
         return pair
 
     def as_ncmul(self, cls, expr):

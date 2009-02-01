@@ -24,8 +24,8 @@ def test_add():
     x,y,z = map(Ring, 'xyz')
     assert str(x + y) in ['x + y', 'y + x'], str(x+y)
     assert repr(x + y) in ["Ring('x + y')", "Ring('y + x')"], repr(x+y)
-    assert str(x + y + z) in ['x + y + z', 'y + x + z'], str(x + y + z)
-    assert str(x + y + 1) in ['x + y + 1', 'y + x + 1'], str(x + y + 1)
+    assert str(x + y + z) in ['x + y + z', 'y + x + z','x + z + y'], str(x + y + z)
+    assert str(x + y + 1) in ['x + y + 1', 'y + x + 1','x + 1 + y'], str(x + y + 1)
     assert str(x + y + y) in ['x + 2*y', '2*y + x'], str(x + y + y)
     assert str(x + y + x) in ['2*x + y', 'y + 2*x'], str(x + y + x)
     assert str(x + 1 + 2)=='x + 3', str(x + 1 + 2)
@@ -38,9 +38,9 @@ def test_add():
 def test_sub():
     x,y,z = map(Ring, 'xyz')
     assert str(x-y) in ['x - y','-y + x'], str(x-y)
-    assert str(x-y-z) in ['x - y - z', '-y + x - z'], str(x-y-z)
-    assert str(x-(y+z)) in ['x - y - z', '-y + x - z'], str(x-(y+z))
-    assert str((x-y)-z) in ['x - y - z', '-y + x - z'], str((x-y)-z)
+    assert str(x-y-z) in ['x - y - z', '-y + x - z', 'x - z - y'], str(x-y-z)
+    assert str(x-(y+z)) in ['x - y - z', '-y + x - z','x - z - y'], str(x-(y+z))
+    assert str((x-y)-z) in ['x - y - z', '-y + x - z','x - z - y'], str((x-y)-z)
 
 def test_ncmul():
     x,y,z = map(Ring, 'xyz')

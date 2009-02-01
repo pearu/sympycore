@@ -12,7 +12,7 @@ __all__ = ['CollectingField']
 from ..core import classes, Expr
 from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_NUMBER
 from ..utils import ADD, SUB, MUL, DIV, TERMS, SYMBOL, NUMBER, APPLY, POW, TUPLE, NEG, POS
-from ..heads import CALLABLE
+from ..heads import CALLABLE, HEAD
 from ..heads import BASE_EXP_DICT as FACTORS
 
 from .algebra import Algebra
@@ -185,7 +185,7 @@ class CollectingField(CommutativeRing):
         """
         head, data = self.pair
         if head is SYMBOL or head is NUMBER or head is CALLABLE:
-            return ConstantFunc(None, self)
+            return ConstantFunc(HEAD, self)
         elif head is TERMS:
             if len(data)==1:
                 return self.Mul

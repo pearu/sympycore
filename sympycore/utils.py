@@ -43,7 +43,7 @@ str_NUMBER = -6
 # The following constants are used by Verbatim and
 # CollectingField classes.
 
-from heads import *
+
 
 #POLY = HEAD('POLY')
 #DENSE_POLY = HEAD('DENSE_POLY')
@@ -72,7 +72,8 @@ class MATRIX(HEAD):
                        MATRIX_DICT, MATRIX_DICT_T, MATRIX_DICT_A, MATRIX_DICT_TA,
                        MATRIX_DICT_D, MATRIX_DICT_DT
     """
-    def pair_to_lowlevel(self, pair):
+
+    def to_lowlevel(self, data, pair):
         return pair
     
     def init(self, rows, cols, storage):
@@ -119,3 +120,4 @@ class MATRIX(HEAD):
             raise NotImplementedError(`storage`) #pragma NO COVER
 
 
+from heads import *

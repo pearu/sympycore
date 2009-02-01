@@ -1,5 +1,5 @@
 
-__all__ = ['SYMBOL', 'NUMBER', 'SPECIAL', 'CALLABLE',
+__all__ = ['HEAD', 'SYMBOL', 'NUMBER', 'SPECIAL', 'CALLABLE',
            'ADD', 'SUB', 'MUL', 'MOD', 'DIV', 'FLOORDIV', 'POW', 'POS', 'NEG',
            'POW', 'TERMS', 'FACTORS',
            'EQ', 'NE', 'LT', 'GT', 'LE', 'GE',
@@ -10,8 +10,10 @@ __all__ = ['SYMBOL', 'NUMBER', 'SPECIAL', 'CALLABLE',
            'SPARSE_POLY', 'DENSE_POLY',
            'EXP_COEFF_DICT',
            'TERM_COEFF_DICT',
-           'TERM_COEFF'
+           'TERM_COEFF',
            ]
+
+from .base import HEAD
 
 from .symbol import SYMBOL
 from .special import SPECIAL

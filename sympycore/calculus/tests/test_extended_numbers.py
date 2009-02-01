@@ -16,16 +16,20 @@ x,y,z = map(Calculus.Symbol, 'xyz')
 
 def test_oo_product():
     assert str(oo * (x+y)) in ['oo*(x + y)', 'oo*(y + x)'], str(oo * (x+y))
-    assert str(oo * (1+x+y)) in ['oo*(1 + x + y)', 'oo*(y + 1 + x)'],  str(oo * (1+x+y))
+    assert str(oo * (1+x+y)) in ['oo*(1 + x + y)', 'oo*(y + 1 + x)',
+                                 'oo*(x + 1 + y)'],  str(oo * (1+x+y))
     assert str(oo * (2*x))=='oo*(x)'
     assert str(oo / (2/x))=='oo*(x)'
     assert str(oo / (2*x)) in ['oo*(x**(-1))','oo*(1/x)'],str(oo / (2*x))
     
 def test_oo_sum():
     assert str(oo + (x+y)) in ['oo + (x + y)','oo + (y + x)'], str(oo + (x+y))
-    assert str(oo + (2+x+y)) in ['oo + (2 + x + y)', 'oo + (y + 2 + x)'], str(oo + (2+x+y))
-    assert str((2+x+y) + oo) in ['oo + (2 + x + y)', 'oo + (y + 2 + x)'], str((2+x+y) + oo)
-    assert str(oo - (2+x+y)) in ['oo + (-2 - x - y)', 'oo + (-y - 2 - x)'], str(oo - (2+x+y))
+    assert str(oo + (2+x+y)) in ['oo + (2 + x + y)', 'oo + (y + 2 + x)',
+                                 'oo + (x + 2 + y)'], str(oo + (2+x+y))
+    assert str((2+x+y) + oo) in ['oo + (2 + x + y)', 'oo + (y + 2 + x)',
+                                 'oo + (x + 2 + y)'], str((2+x+y) + oo)
+    assert str(oo - (2+x+y)) in ['oo + (-2 - x - y)', 'oo + (-y - 2 - x)',
+                                 'oo + (-x - 2 - y)'], str(oo - (2+x+y))
 
     assert str((oo+y) + (x+y)) in ['oo + (y) + (x + y)', 'oo + (y) + (y + x)'], str((oo+y) + (x+y))
     assert str((x+y) + (oo+y)) in ['oo + (y) + (x + y)','oo + (y) + (y + x)'],  str((x+y) + (oo+y))

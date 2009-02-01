@@ -22,6 +22,13 @@ class TermCoeffDictHead(ArithmeticHead):
         return ADD.data_to_str_and_precedence(cls,
                                               map(lambda p: cls(TERM_COEFF, p),
                                                   term_coeff_dict.items()))
+
+    def to_lowlevel(self, data, pair):
+        m = len(data)
+        if m==0:
+            return 0
+        return pair
+
     def term_coeff(self, cls, expr):
         term_coeff_dict = expr.data
         if len(term_coeff_dict)==1:
@@ -31,8 +38,6 @@ class TermCoeffDictHead(ArithmeticHead):
     def as_ncmul(self, cls, expr):
         t, c = self.term_coeff(cls, expr)
         return cls(NCMUL, Pair(c, [t]))
-
-
 
     def as_add(self, cls, expr):
         add_list = []
