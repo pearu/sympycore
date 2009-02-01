@@ -62,12 +62,16 @@ typedef struct {
 static PyTypeObject ExprType;
 static PyTypeObject PairType;
 
+static PyObject* zero;
+static PyObject* one;
+
 static PyObject* NUMBER;
 static PyObject* SYMBOL;
 static PyObject* SPECIAL;
 static PyObject* ADD;
 static PyObject* MUL;
 static PyObject* POW;
+static PyObject* TERM_COEFF;
 static PyObject* TERM_COEFF_DICT;
 static PyObject* BASE_EXP_DICT;
 
@@ -416,6 +420,57 @@ Expr_reduce(Expr *self)
   return ret;
 }
 
+#define RETURN_ZERO \
+  { \
+    Py_INCREF(zero); \
+    return zero; \
+  }
+
+#define RETURN_ONE \
+  { \
+    Py_INCREF(one); \
+    return one; \
+  }
+
+#define TERM_COEFF_LOWLEVEL(TERM, COEFF) \
+  {								\
+    int r = PyObject_RichCompareBool(COEFF, zero, Py_EQ);	\
+    if (r==-1) return NULL;					\
+    if (r)							\
+      RETURN_ZERO;						\
+    r = PyObject_RichCompareBool(COEFF, one, Py_EQ);		\
+    if (r==-1) return NULL;					\
+    if (r)							\
+      {								\
+	Py_INCREF(TERM);					\
+	return TERM;						\
+      }								\
+    r = PyObject_RichCompareBool(TERM, one, Py_EQ);		\
+    if (r==-1) return NULL;					\
+    if (r)							\
+      {								\
+	Py_INCREF(COEFF);					\
+	return COEFF;						\
+      }								\
+  }
+
+#define POW_LOWLEVEL(BASE, EXP) \
+  {								\
+    int r = PyObject_RichCompareBool(EXP, one, Py_EQ);		\
+    if (r==-1) return NULL;					\
+    if (r)							\
+      {								\
+	Py_INCREF(BASE);					\
+	return BASE;						\
+      }								\
+    r = PyObject_RichCompareBool(EXP, zero, Py_EQ);		\
+    if (!r)							\
+      r = PyObject_RichCompareBool(BASE, one, Py_EQ);		\
+    if (r==-1) return NULL;					\
+    if (r)							\
+      RETURN_ONE;						\
+  }
+
 /* Return expression lowlevel representation that will be used in
    hash calculation and comparison operations. */
 static PyObject *
@@ -423,48 +478,80 @@ Expr_as_lowlevel(Expr *self)
 {
   PyObject *head = PyTuple_GET_ITEM(self->pair, 0);
   PyObject *data = PyTuple_GET_ITEM(self->pair, 1);
+  
   if (head==SYMBOL || head==NUMBER || head==SPECIAL)
     {
       Py_INCREF(data);
       return data;
     }
-  if (head==MUL)
+  else if (head==MUL)
     {
       size_t n = PyObject_Length(data);
       if (n==0)
-	return PyInt_FromLong(1);
+	RETURN_ONE;
       if (n==1)
 	return PySequence_GetItem(data, 0);
-      Py_INCREF(self->pair);
-      return self->pair;
     }
-  if (head==ADD)
+  else if (head==ADD)
     {
       size_t n = PyObject_Length(data);
       if (n==0)
-	return PyInt_FromLong(0);
+	RETURN_ZERO;
       if (n==1)
 	return PySequence_GetItem(data, 0);
-      Py_INCREF(self->pair);
-      return self->pair;
     }
-  if (head==TERM_COEFF_DICT)
+  else if (head==POW)
+    {
+      PyObject* base = PySequence_GetItem(data, 0);
+      PyObject* exp = PySequence_GetItem(data, 1);
+      POW_LOWLEVEL(base, exp);
+    }
+  else if (head==TERM_COEFF)
+    {
+      PyObject* term = PySequence_GetItem(data, 0);
+      PyObject* coeff = PySequence_GetItem(data, 1);
+      TERM_COEFF_LOWLEVEL(term, coeff);
+    }
+  else if (head==TERM_COEFF_DICT)
     {
       size_t n = PyObject_Length(data);
       if (n==0)
-	return PyInt_FromLong(0);
-      Py_INCREF(self->pair);
-      return self->pair;
+	RETURN_ZERO;
+      if (n==1)
+	{
+	  PyObject *key = NULL;
+	  PyObject *value = NULL;
+	  Py_ssize_t pos = 0;
+	  if (!PyDict_Next(data, &pos, &key, &value))
+	    return NULL;
+	  TERM_COEFF_LOWLEVEL(key, value);
+	  PyObject* item = PyTuple_Pack(2, key, value);
+	  if (item==NULL) return NULL;
+	  return PyTuple_Pack(2, TERM_COEFF, item);
+	}
     }
-  if (head==BASE_EXP_DICT)
+  else if (head==BASE_EXP_DICT)
     {
       size_t n = PyObject_Length(data);
       if (n==0)
-	return PyInt_FromLong(1);
-      Py_INCREF(self->pair);
-      return self->pair;
+	RETURN_ONE;
+      if (n==1)
+	{
+	  PyObject *key = NULL;
+	  PyObject *value = NULL;
+	  Py_ssize_t pos = 0;
+	  if (!PyDict_Next(data, &pos, &key, &value))
+	    return NULL;  
+	  POW_LOWLEVEL(key, value);
+	  PyObject* item = PyTuple_Pack(2, key, value);
+	  if (item==NULL) return NULL;
+	  return PyTuple_Pack(2, POW, item);
+	}
     }
-  return PyObject_CallMethodObjArgs(head, str_to_lowlevel, data, self->pair, NULL);
+  else 
+    return PyObject_CallMethodObjArgs(head, str_to_lowlevel, data, self->pair, NULL);
+  Py_INCREF(self->pair);
+  return self->pair;
 }
 
 /* <Expr>.__nonzero__() == <Expr>.data.__nonzero__() 
@@ -1273,6 +1360,7 @@ static PyObject *init_module(PyObject *self, PyObject *args)
       INIT_HEAD(ADD, "ADD");
       INIT_HEAD(MUL, "MUL");
       INIT_HEAD(POW, "POW");
+      INIT_HEAD(TERM_COEFF, "TERM_COEFF");
       INIT_HEAD(TERM_COEFF_DICT, "TERM_COEFF_DICT");
       INIT_HEAD(BASE_EXP_DICT, "BASE_EXP_DICT");
       Py_DECREF(m);
@@ -1293,6 +1381,7 @@ static PyGetSetDef Expr_getseters[] = {
 };
 
 static PyMethodDef Expr_methods[] = {
+  {"as_lowlevel", (PyCFunction)Expr_as_lowlevel, METH_VARARGS, NULL},
   {"__reduce__", (PyCFunction)Expr_reduce, METH_VARARGS, NULL},
   {"__nonzero__", (PyCFunction)Expr_nonzero, METH_VARARGS, NULL},
   {"__nonzero2__", (PyCFunction)Expr_nonzero2, METH_VARARGS, NULL},
@@ -1423,7 +1512,8 @@ PyMODINIT_FUNC
 initexpr_ext(void) 
 {
   PyObject* m = NULL;
-  NUMBER = SYMBOL = SPECIAL = ADD = MUL = POW = TERM_COEFF_DICT = BASE_EXP_DICT = NULL;
+  NUMBER = SYMBOL = SPECIAL = ADD = MUL = POW = TERM_COEFF_DICT =
+    TERM_COEFF = BASE_EXP_DICT = NULL;
 
   if (PyType_Ready(&ExprType) < 0)
     return;
@@ -1431,6 +1521,11 @@ initexpr_ext(void)
   PairType.tp_base = &ExprType;
   if (PyType_Ready(&PairType) < 0)
     return;
+
+  zero = PyInt_FromLong(0);
+  if (zero==NULL) return;
+  one = PyInt_FromLong(1);
+  if (one==NULL) return;
 
   str_convert = PyString_FromString("convert");
   if (str_convert==NULL)

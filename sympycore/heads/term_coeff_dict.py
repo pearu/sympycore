@@ -23,12 +23,6 @@ class TermCoeffDictHead(ArithmeticHead):
                                               map(lambda p: cls(TERM_COEFF, p),
                                                   term_coeff_dict.items()))
 
-    def to_lowlevel(self, data, pair):
-        m = len(data)
-        if m==0:
-            return 0
-        return pair
-
     def term_coeff(self, cls, expr):
         term_coeff_dict = expr.data
         if len(term_coeff_dict)==1:

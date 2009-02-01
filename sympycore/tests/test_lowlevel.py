@@ -1,6 +1,6 @@
 
-from sympycore.core import Expr, Pair
-from sympycore.heads import NUMBER, SYMBOL, TERMS, FACTORS, MUL, ADD
+from sympycore.core import Expr, Pair, heads
+from sympycore.heads import NUMBER, SYMBOL, TERMS, FACTORS, MUL, ADD, TERM_COEFF
 
 class MyExpr(Expr):
 
@@ -98,6 +98,34 @@ def test_equality_mul():
     assert (not not MyExpr(MUL,[])) == True
     assert MyExpr(MUL,[])==1
     assert MyExpr(MUL,[x])==x
+
+def test_equality_term_coeff():
+    x, y, z = map(Symbol,'xyz')
+    assert MyExpr(TERM_COEFF, (x, 0))==0
+    assert MyExpr(TERM_COEFF, (x, 1))==x
+    assert MyExpr(TERM_COEFF, (1, 2))==2
+
+def test_equality_term_coeff_dict():
+    x, y, z = map(Symbol,'xyz')
+    assert MyExpr(heads.TERM_COEFF_DICT, {})==0
+    assert MyExpr(heads.TERM_COEFF_DICT, {x:0})==0
+    assert MyExpr(heads.TERM_COEFF_DICT, {x:1})==x
+    assert MyExpr(heads.TERM_COEFF_DICT, {x:2})==MyExpr(TERM_COEFF, (x, 2))
+    assert MyExpr(heads.TERM_COEFF_DICT, {1:2})==2
+
+def test_equality_pow():
+    x, y, z = map(Symbol,'xyz')
+    assert MyExpr(heads.POW, (x, 0))==1
+    assert MyExpr(heads.POW, (x, 1))==x
+    assert MyExpr(heads.POW, (1, x))==1
+
+def test_equality_base_exp_dict():
+    x, y, z = map(Symbol,'xyz')
+    assert MyExpr(heads.BASE_EXP_DICT, {})==1
+    assert MyExpr(heads.BASE_EXP_DICT, {x:0})==1
+    assert MyExpr(heads.BASE_EXP_DICT, {x:1})==x
+    assert MyExpr(heads.BASE_EXP_DICT, {x:2})==MyExpr(heads.POW, (x, 2))
+    assert MyExpr(heads.BASE_EXP_DICT, {1:2})==1
 
 def test_hash_number():
     assert hash(Number(1))==hash(1)

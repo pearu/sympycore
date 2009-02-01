@@ -47,14 +47,6 @@ class MulHead(ArithmeticHead, Head):
                 r += '*('+f+')' if f_p<mul_p else '*'+f
         return r, mul_p
 
-    def to_lowlevel(self, data, pair):
-        m = len(data)
-        if m==0:
-            return 1
-        if m==1:
-            return data[0]
-        return pair
-
     def term_coeff(self, cls, expr):
         return expr, 1
 

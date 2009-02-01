@@ -22,10 +22,4 @@ class BaseExpDictHead(ArithmeticHead):
         factors = [cls(POW, p) for p in base_exp_dict.items()]
         return MUL.data_to_str_and_precedence(cls, factors)
 
-    def to_lowlevel(self, data, pair):
-        m = len(data)
-        if m==0:
-            return 1
-        return pair
-
 BASE_EXP_DICT = BaseExpDictHead()

@@ -58,13 +58,6 @@ class PowHead(ArithmeticHead, BinaryHead):
         s2 = '('+e+')' if e_p < pow_p else e
         return s1 + '**' + s2, pow_p
 
-    def to_lowlevel(self, (base, exp), pair):
-        if exp==0:
-            return 1
-        if exp==1:
-            return base
-        return pair
-
     def as_ncmul(self, cls, expr):
         return cls(NCMUL, Pair(1, [expr])) # todo: check expr commutativity
 

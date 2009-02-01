@@ -105,11 +105,12 @@ This is Python version of Expr type.
         """
         h = self._hash
         if h is None:
-            head, data = pair = self.pair
-            obj = head.to_lowlevel(data, pair)
+            pair = self.pair
+            obj = self.as_lowlevel()
             if obj is not pair:
                 h = hash(obj)
             else:
+                head, data = pair
                 tdata = type(data)
                 if tdata is dict:
                     h = hash((head, frozenset(data.iteritems())))
@@ -184,12 +185,76 @@ This is Python version of Expr type.
 
     def __nonzero__(self):
         # Note that `not cls(MUL, [])` would return True while `cls(MUL, [])==1`.
-        # So, must use to_lowlevel:
-        head, data = pair = self.pair
-        obj = head.to_lowlevel(data, pair)
-        if obj is not pair:
+        # So, must use as_lowlevel:
+        obj = self.as_lowlevel()
+        if obj is not self.pair:
             return not not obj
-        return not not data
+        return not not self.data
+
+    def as_lowlevel(self):
+        """ Return self as low-level object instance that will be used
+        in comparison and in hash computation.
+
+        By default, as_lowlevel uses heads to_lowlevel(data, pair)
+        method but since as_lowlevel is a most frequently called
+        method then for some heads the corresponding code is copied
+        here. The default return value is a pair tuple for composite
+        objects and data part for atomic objects. The as_lowlevel
+        method may also return an Expr instance but not self
+        (otherwise infinite recurrsion will occur).
+
+        See __hash__, __nonzero__ method for more details how the
+        results of as_lowlevel method are interpreted.
+        """
+        head, data = pair = self.pair
+        if head is NUMBER or head is SYMBOL or head is SPECIAL:
+            return data
+        if head is MUL:
+            n = len(data)
+            if n==0:
+                return 1
+            if n==1:
+                return data[0]
+            return pair
+        if head is ADD:
+            n = len(data)
+            if n==0:
+                return 0
+            if n==1:
+                return data[0]
+            return pair
+        if head is POW:
+            base, exp = data
+            if exp==0 or base==1:
+                return 1
+            if exp==1:
+                return base
+            return pair
+        if head is TERM_COEFF:
+            term, coeff = data
+            if coeff==0:
+                return 0
+            if coeff==1:
+                return term
+            if term==1:
+                return coeff
+            return pair
+        if head is TERM_COEFF_DICT:
+            n = len(data)
+            if n==0:
+                return 0
+            if n==1:
+                return type(self)(TERM_COEFF, dict_get_item(data))
+            return pair
+        if head is BASE_EXP_DICT:
+            n = len(data)
+            if n==0:
+                return 1
+            if n==1:
+                return type(self)(POW, dict_get_item(data))
+            return pair
+
+        return head.to_lowlevel(data, pair)
 
     for _item in dict(__eq__ = '==', __ne__ = '!=',
                       __lt__ = '<', __le__ = '<=',
@@ -198,11 +263,8 @@ This is Python version of Expr type.
         exec '''
 def %s(self, other):
     if type(self) is type(other):
-        head, data = pair = other.pair
-        other = head.to_lowlevel(data, pair)
-    head, data = pair = self.pair
-    self = head.to_lowlevel(data, pair)
-    return self %s other
+        other = other.as_lowlevel()
+    return self.as_lowlevel() %s other
 ''' % _item
 
     def _add_item(self, key, value):

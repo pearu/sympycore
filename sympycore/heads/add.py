@@ -39,14 +39,6 @@ class AddHead(ArithmeticHead):
                 r += ' + (' + t + ')' if t_p < add_p else ' + ' + t
         return r, add_p
 
-    def to_lowlevel(self, data, pair):
-        m = len(data)
-        if m==0:
-            return 0
-        if m==1:
-            return data[0]
-        return pair
-
     def term_coeff(self, cls, expr):
         term_list = expr.data
         if not term_list:

@@ -572,19 +572,23 @@ def test_expand():
     assert str(((x+y)**2).expand()) in ['2*x*y + x**2 + y**2',
                                         'x**2 + y**2 + 2*x*y',
                                         'x**2 + y**2 + 2*y*x',
-                                        'x**2 + 2*x*y + y**2'], str(((x+y)**2).expand())
+                                        'x**2 + 2*x*y + y**2',
+                                        '2*y*x + x**2 + y**2'], str(((x+y)**2).expand())
     assert ((x-y)**2).expand()==x**2+y**2-2*x*y
     assert ((x+y)**3).expand()==x**3+y**3+3*x**2*y+3*x*y**2
     assert ((x-y)**3).expand()==x**3-y**3-3*x**2*y+3*x*y**2
     assert ((x+y)**3).expand()==-((-x-y)**3).expand()
-    assert str((x*(x+y)).expand()) in ['x*y + x**2','x**2 + x*y', 'x**2 + y*x'],str((x*(x+y)).expand())
-    assert str(((x+y)*x).expand()) in ['x*y + x**2','x**2 + x*y', 'x**2 + y*x'],str(((x+y)*x).expand())
+    assert str((x*(x+y)).expand()) in ['x*y + x**2','x**2 + x*y', 'x**2 + y*x',
+                                       'y*x + x**2'],str((x*(x+y)).expand())
+    assert str(((x+y)*x).expand()) in ['x*y + x**2','x**2 + x*y', 'x**2 + y*x',
+                                       'y*x + x**2'],str(((x+y)*x).expand())
     
     assert str(((x+y+z)**2).expand()) in ['2*x*y + 2*x*z + 2*y*z + x**2 + y**2 + z**2',
                                           'x**2 + y**2 + z**2 + 2*x*y + 2*x*z + 2*y*z',
                                           'x**2 + y**2 + z**2 + 2*y*x + 2*x*z + 2*y*z',
                                           '2*y*z + z**2 + x**2 + 2*y*x + y**2 + 2*x*z',
-                                          'z**2 + 2*x*z + 2*x*y + 2*z*y + y**2 + x**2'],  str(((x+y+z)**2).expand())
+                                          'z**2 + 2*x*z + 2*x*y + 2*z*y + y**2 + x**2',
+                                          '2*y*z + z**2 + y**2 + 2*y*x + x**2 + 2*x*z'],  str(((x+y+z)**2).expand())
     r = ' + '.join(sorted(str(((x+y+z)**3).expand()).split(' + ')))
     assert r in ['3*x*y**2 + 3*x*z**2 + 3*y*x**2 + 3*y*z**2 + 3*z*x**2 + 3*z*y**2 + 6*x*y*z + x**3 + y**3 + z**3',
                  '3*x**2*z + 3*x*z**2 + 3*y**2*x + 3*y**2*z + 3*y*x**2 + 3*y*z**2 + 6*y*x*z + x**3 + y**3 + z**3',
@@ -593,11 +597,13 @@ def test_expand():
 
     assert str(((2*x+y)**2).expand()) in ['4*x**2 + 4*x*y + y**2',
                                           'y**2 + 4*x**2 + 4*x*y',
-                                          '4*x**2 + y**2 + 4*y*x'], str(((2*x+y)**2).expand())
+                                          '4*x**2 + y**2 + 4*y*x',
+                                          '4*y*x + 4*x**2 + y**2'], str(((2*x+y)**2).expand())
     assert str(((2*x-y)**2).expand()) in ['4*x**2 + y**2 - 4*x*y',
                                           'y**2 + 4*x**2 - 4*x*y',
                                           '4*x**2 + y**2 - 4*y*x',
-                                          '4*x**2 - 4*x*y + y**2'],\
+                                          '4*x**2 - 4*x*y + y**2',
+                                          '-4*y*x + 4*x**2 + y**2'],\
                                           str(((2*x-y)**2).expand())
     assert str(((x+y)**2-x**2-y**2).expand()) in ['2*x*y','2*y*x'],  str(((x+y)**2-x**2-y**2).expand())
     assert str((((x+y)**2-x**2-y**2)*(x*y)).expand()) in ['2*x**2*y**2','2*y**2*x**2'], str((((x+y)**2-x**2-y**2)*(x*y)).expand())
@@ -619,9 +625,11 @@ def test_expand():
     assert str((two_y).expand())=='2*y'
     assert str((two_y*x).expand()) in ['2*x*y','2*y*x'],str((two_y*x).expand())
     assert str((two_y*(2*x)).expand()) in ['4*x*y','4*y*x'], str((two_y*(2*x)).expand())
-    assert str((two_y*(x+y)).expand()) in ['2*y**2 + 2*x*y','2*x*y + 2*y**2','2*y**2 + 2*y*x'],str((two_y*(x+y)).expand())
+    assert str((two_y*(x+y)).expand()) in ['2*y**2 + 2*x*y','2*x*y + 2*y**2',
+                                           '2*y**2 + 2*y*x','2*y*x + 2*y**2'],str((two_y*(x+y)).expand())
     assert str((x*two_y).expand()) in ['2*x*y','2*y*x'], str((x*two_y).expand())
-    assert str(((x-y)*two_y).expand()) in ['2*x*y - 2*y**2','-2*y**2 + 2*y*x'],str(((x-y)*two_y).expand())
+    assert str(((x-y)*two_y).expand()) in ['2*x*y - 2*y**2','-2*y**2 + 2*y*x',
+                                           '2*y*x - 2*y**2'],str(((x-y)*two_y).expand())
 
     x2 = ((x+y)**2-x**2-y**2)/y*x/2
     assert str((x2).expand())=='x**2'
@@ -634,16 +642,19 @@ def test_expand():
                                              'x**2 + y**2 + 2*x*y + x*z + y*z',
                                              'x**2 + y**2 + 2*y*x + x*z + y*z',
                                              'x**2 + y**2 + y*z + 2*y*x + x*z',
-                                             'x**2 + x*z + 2*x*y + z*y + y**2'],str(((x+y)*(x+y+z)).expand())
+                                             'x**2 + x*z + 2*x*y + z*y + y**2',
+                                             'y*z + 2*y*x + x**2 + y**2 + x*z'],str(((x+y)*(x+y+z)).expand())
     assert str(((x+y+z)*(x+y)).expand()) in ['x*z + y*z + 2*x*y + x**2 + y**2',
                                              'x**2 + y**2 + 2*x*y + x*z + y*z',
                                              'x**2 + y**2 + 2*y*x + x*z + y*z',
                                              'x**2 + y**2 + y*z + 2*y*x + x*z',
-                                             'x**2 + x*z + 2*x*y + z*y + y**2'], str(((x+y+z)*(x+y)).expand())
+                                             'x**2 + x*z + 2*x*y + z*y + y**2',
+                                             'y*z + 2*y*x + x**2 + y**2 + x*z'], str(((x+y+z)*(x+y)).expand())
     assert str(((1/x+x)*x).expand()) in ['1 + x**2', 'x**2 + 1'], str(((1/x+x)*x).expand())
     assert str((x**2*(1/x+x)**2).expand()) in ['1 + 2*x**2 + x**4',
                                                '1 + x**4 + 2*x**2',
-                                               'x**4 + 1 + 2*x**2'],str((x**2*(1/x+x)**2).expand())
+                                               'x**4 + 1 + 2*x**2',
+                                               'x**4 + 2*x**2 + 1'],str((x**2*(1/x+x)**2).expand())
 
     r = ' + '.join(sorted(str(((1+x+y)**3).expand()).split(' + ')))
 
