@@ -50,9 +50,6 @@ class MulHead(ArithmeticHead, Head):
     def term_coeff(self, cls, expr):
         return expr, 1
 
-    def as_mul(self, cls, expr):
-        return expr
-
     def combine(self, cls, factors_list):
         """ Combine factors in a list and return result.
         """
@@ -65,8 +62,8 @@ class MulHead(ArithmeticHead, Head):
             r = None
             b2, e2 = factor.head.base_exp(cls, factor)
             if b2.head is MUL:
-                c, l = b2.data
-                if len(l)<=len(lst) and lst[-len(l):]==l and c==1:
+                l = b2.data
+                if len(l)<=len(lst) and lst[-len(l):]==l:
                     # x*a*b*(a*b)**2 -> x*(a*b)**3
                     r = b2 ** (e2 + 1)
                     del lst[-len(l):]
@@ -106,16 +103,15 @@ class MulHead(ArithmeticHead, Head):
     def non_commutative_mul(self, cls, lhs, rhs):
         head, data = rhs.pair
         if head is NUMBER:
-            if data==1:
-                return lhs
-            if data==0:
-                return rhs
-            return cls(TERM_COEFF, (lhs, rhs))
-        if head is not MUL:
-            head, data = head.as_mul(cls, rhs).pair
+            return TERM_COEFF.new(cls, lhs, data)
+        if head is SYMBOL or head is POW:
+            return self.combine(cls, lhs.data + [rhs])
+        if head is TERM_COEFF:
+            term, coeff = data
+            return (lhs * term) * coeff
         if head is MUL:
-            return self.combine(cls, factors_list1 + factors_list2)
-        raise NotImplementedError(`self, lhs, rhs`)
+            return self.combine(cls, lhs.data + rhs.data)
+        raise NotImplementedError(`self, cls, lhs.pair, rhs.pair`)
 
     def pow(self, cls, base, exp):
         if exp==0:
@@ -123,7 +119,7 @@ class MulHead(ArithmeticHead, Head):
         if exp==1:
             return base
         if exp==-1:
-            factors_list = [factor**-1 for factor in factors_list]
+            factors_list = [factor**-1 for factor in base.data]
             factors_list.reverse()
             return cls(MUL, factors_list)
         term, coeff = self.term_coeff(cls, base)

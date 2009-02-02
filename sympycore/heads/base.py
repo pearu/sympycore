@@ -167,11 +167,6 @@ class ArithmeticHead(Head):
         """
         raise NotImplementedError(not_implemented_error_msg % (self, 'as_term_coeff_dict')) #pragma NO COVER
     
-    def as_ncmul(self, cls, expr):
-        """ Return expr as NCMUL expression.
-        """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'as_ncmul')) #pragma NO COVER
-
     def neg(self, cls, expr):
         """ Return negated expression: -expr.
         """
@@ -187,10 +182,10 @@ class ArithmeticHead(Head):
         """
         raise NotImplementedError(not_implemented_error_msg % (self, 'sub')) #pragma NO COVER
 
-    def ncmul(self, cls, lhs, rhs):
+    def non_commutative_mul(self, cls, lhs, rhs):
         """ Return a non-commutative product of expressions: lhs * rhs.
         """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'ncmul')) #pragma NO COVER
+        raise NotImplementedError(not_implemented_error_msg % (self, 'non_commutative_mul')) #pragma NO COVER
 
     def mul(self, cls, lhs, rhs):
         """ Return a product of expressions: lhs * rhs.

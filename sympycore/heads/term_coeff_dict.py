@@ -29,10 +29,6 @@ class TermCoeffDictHead(ArithmeticHead):
             return dict_get_item(term_coeff_dict)
         return expr, 1
 
-    def as_ncmul(self, cls, expr):
-        t, c = self.term_coeff(cls, expr)
-        return cls(NCMUL, Pair(c, [t]))
-
     def as_add(self, cls, expr):
         add_list = []
         for term, coeff in expr.data.items():
@@ -118,21 +114,6 @@ class TermCoeffDictHead(ArithmeticHead):
             if c==1: return t
         return cls(TERM_COEFF_DICT, d)
 
-    def ncmul(self, cls, lhs, rhs):
-        h, d2 = rhs.pair
-        if h is NUMBER:
-            if not d2: return rhs # rhs is 0
-            if d2==1: return lhs # rhs is 1
-            d = lhs.data.copy()       
-            dict_mul_value(d, d2)
-            if len(d)==1:
-                t,c = dict_get_item(d)
-                if t==1: return cls(NUMBER, c)
-                if c==1: return t
-            return cls(TERM_COEFF_DICT, d)
-        lhs = self.as_ncmul(cls, lhs)
-        return NCMUL.ncmul(cls, lhs, rhs)
-        
     def expand_intpow(self, cls, expr, intexp):
         if intexp<0:
             return cls(POW, (expr, intexp))

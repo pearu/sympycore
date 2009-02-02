@@ -3,7 +3,7 @@ __all__ = ['SYMBOL']
 
 import re
 
-from .base import AtomicHead, heads_precedence, Expr, Pair
+from .base import AtomicHead, heads_precedence, Expr, Pair, ArithmeticHead
 
 _is_atomic = re.compile(r'\A\w+\Z').match
 
@@ -29,11 +29,32 @@ class SymbolHead(AtomicHead):
             return s, heads_precedence.SYMBOL
         return s, 0.0 # force parenthesis
 
+    def non_commutative_mul(self, cls, lhs, rhs):
+        head, data = rhs.pair
+        if head is NUMBER:
+            if data==1:
+                return lhs
+            if data==0:
+                return rhs
+            return cls(TERM_COEFF, (lhs, data))
+        if head is SYMBOL:
+            if lhs.data == data:
+                return cls(POW, (lhs, 2))
+            return cls(MUL, [lhs, rhs])
+        if head is TERM_COEFF:
+            term, coeff = data
+            return (lhs * term) * coeff
+        if head is POW:
+            return MUL.combine(cls, [lhs, rhs])
+        if head is MUL:
+            return MUL.combine(cls, [lhs] + data)
+        raise NotImplementedError(`self, cls, lhs.pair, rhs.pair`)
+
     def term_coeff(self, cls, expr):
         return expr, 1
 
     def neg(self, cls, expr):
-        return cls(TERM_COEFF_DICT, {expr:-1})
+        return cls(TERM_COEFF, (expr, -1))
 
     def as_add(self, cls, expr):
         return cls(ADD, [expr])
@@ -60,23 +81,12 @@ class SymbolHead(AtomicHead):
         lhs = self.as_term_coeff_dict(cls, lhs)
         return lhs.head.sub(cls, lhs, rhs)
 
-    def as_ncmul(self, cls, expr):
-        return cls(NCMUL, Pair(1, [expr])) # todo: check expr commutativity
 
     def as_term_coeff_dict(self, cls, expr):
         return cls(TERM_COEFF_DICT, {expr: 1})
 
     def base_exp(self, cls, expr):
         return expr, 1
-
-    def ncmul(self, cls, lhs, rhs):
-        if lhs==rhs:
-            return cls(POW, (lhs, 2))
-        h = rhs.head
-        if h is SYMBOL:
-            return cls(NCMUL, Pair(1, [lhs, rhs]))
-        lhs = self.as_ncmul(cls, lhs)
-        return lhs.head.ncmul(cls, lhs, rhs)
 
     def pow(self, cls, base, exp):
         if exp==0:

@@ -48,14 +48,14 @@ class Ring(Algebra):
         tother = type(other)
         if cls is not tother:
             other = cls.convert(other)
-        return self.head.ncmul(cls, self, other)
+        return self.head.non_commutative_mul(cls, self, other)
 
     def __rmul__(self, other):
         cls = type(self)
         tother = type(other)
         if cls is not tother:
             other = cls.convert(other)
-        return other.head.ncmul(cls, other, self)
+        return other.head.non_commutative_mul(cls, other, self)
 
     def __pow__(self, other):
         cls = type(self)

@@ -25,7 +25,6 @@ from .neg import NEG
 from .add import ADD
 from .sub import SUB
 from .pow import POW
-from .ncmul import NCMUL
 from .mul import MUL
 from .term_coeff_dict import TERM_COEFF_DICT
 from .term_coeff_dict import TERM_COEFF_DICT as TERMS

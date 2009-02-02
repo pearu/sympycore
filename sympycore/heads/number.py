@@ -51,28 +51,18 @@ class NumberHead(AtomicHead):
             return h.data_to_str_and_precedence(cls, d)
         return str(data), 0.0 # force parenthesis
 
+    def non_commutative_mul(self, cls, lhs, rhs):
+        head, data = rhs.pair
+        if head is NUMBER:
+            return cls(NUMBER, lhs.data * data)
+        # Numbers are ring commutants:
+        return rhs.head.non_commutative_mul(cls, rhs, lhs)
+
     def term_coeff(self, cls, expr):
         if isinstance(expr, Expr):
             return cls(NUMBER, 1), expr.data
         return cls(NUMBER, 1), expr
 
-    def get_precedence_for_data(self, data): # obsolete
-        if isinstance(data, complextypes):
-            # todo: check for pure imaginary numbers
-            return heads_precedence.ADD
-        elif isinstance(data, rationaltypes):
-            if data < 0:
-                return heads_precedence.NEG
-            return heads_precedence.DIV
-        elif isinstance(data, realtypes):
-            if data < 0:
-                return heads_precedence.NEG
-            return heads_precedence.NUMBER
-        elif isinstance(data, Expr):
-            h, d = data.pair
-            return h.get_precedence_for_data(d)
-        return heads_precedence.NUMBER
-    
     def neg(self, cls, expr):
         return cls(self, -expr.data)
 
@@ -106,15 +96,6 @@ class NumberHead(AtomicHead):
                 return terms[0]
             return cls(ADD, terms)
         raise NotImplementedError(`self, lhs, rhs`)
-
-    def as_ncmul(self, cls, expr):
-        return cls(NCMUL, Pair(expr, []))
-
-    def ncmul(self, cls, lhs, rhs):
-        if rhs.head is NUMBER:
-            return cls(NUMBER, lhs.data * rhs.data)
-        lhs = self.as_ncmul(cls, lhs)
-        return lhs.head.ncmul(cls, lhs, rhs)
 
     def pow(self, cls, base, exp):
         if isinstance(base, Expr):
