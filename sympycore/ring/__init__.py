@@ -1,4 +1,4 @@
 
-__all__ = ['Ring']
+__all__ = ['Ring', 'CommutativeRing']
 
-from .algebra import Ring
+from .algebra import Ring, CommutativeRing

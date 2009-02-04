@@ -13,6 +13,14 @@ def init_module(m):
     from .base import heads
     for n,h in heads.iterNameValue(): setattr(m, n, h)
 
+    from ..core import expr_module
+    m.dict_add_item = expr_module.dict_add_item
+    m.dict_get_item = expr_module.dict_get_item
+    m.dict_add_dict = expr_module.dict_add_dict
+    m.dict_sub_dict = expr_module.dict_sub_dict
+    m.dict_mul_dict = expr_module.dict_mul_dict
+    m.dict_mul_value = expr_module.dict_mul_value
+
 class SymbolHead(AtomicHead):
     """
     SymbolHead is a head for symbols, data can be any Python object.
@@ -50,6 +58,28 @@ class SymbolHead(AtomicHead):
             return MUL.combine(cls, [lhs] + data)
         raise NotImplementedError(`self, cls, lhs.pair, rhs.pair`)
 
+    def commutative_mul(self, cls, lhs, rhs):
+        rhead, rdata = rhs.pair
+        if rhead is NUMBER:
+            return cls(TERM_COEFF, (lhs, rdata))
+        if rhead is SYMBOL:
+            if lhs.data==rdata:
+                return cls(POW, (lhs, 2))
+            return cls(BASE_EXP_DICT, {lhs:1, rhs:1})
+        if rhead is TERM_COEFF:
+            term, coeff = rdata
+            return (lhs * term) * coeff
+        if rhead is POW:
+            rbase, rexp = rdata
+            if rbase==lhs:
+                return POW.new(cls, lhs, rexp+1)
+            return cls(BASE_EXP_DICT, {lhs:1, rbase:rexp})
+        if rhead is BASE_EXP_DICT:
+            data = rdata.copy()
+            dict_add_item(data, lhs, 1)
+            return BASE_EXP_DICT.new(cls, data)
+        raise NotImplementedError(`self, cls, lhs.pair, rhs.pair`)
+    
     def term_coeff(self, cls, expr):
         return expr, 1
 

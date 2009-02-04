@@ -53,11 +53,9 @@ class TermCoeff(ArithmeticHead):
             return TERM_COEFF.new(cls, term, coeff * data)
         return (term * rhs) * coeff
 
+    commutative_mul = non_commutative_mul
+
     def pow(self, cls, base, exp):
-        if exp==1:
-            return base
-        if exp==0 or base==1:
-            return cls(NUMBER, 1)
         term, coeff = base.data
         if isinstance(exp, Expr):
             head, data = exp.pair

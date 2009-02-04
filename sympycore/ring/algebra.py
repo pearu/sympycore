@@ -1,6 +1,7 @@
 
+__all__ = ['Ring', 'CommutativeRing']
+
 from ..basealgebra import Algebra
-from ..core import Pair
 
 def init_module(m):
     from ..core import heads
@@ -88,3 +89,18 @@ class Ring(Algebra):
     def expand(self):
         return self.head.expand(type(self), self)
 
+class CommutativeRing(Ring):
+
+    def __mul__(self, other):
+        cls = type(self)
+        tother = type(other)
+        if cls is not tother:
+            other = cls.convert(other)
+        return self.head.commutative_mul(cls, self, other)
+
+    def __rmul__(self, other):
+        cls = type(self)
+        tother = type(other)
+        if cls is not tother:
+            other = cls.convert(other)
+        return other.head.commutative_mul(cls, other, self)

@@ -58,6 +58,12 @@ class NumberHead(AtomicHead):
         # Numbers are ring commutants:
         return rhs.head.non_commutative_mul(cls, rhs, lhs)
 
+    def commutative_mul(self, cls, lhs, rhs):
+        head, data = rhs.pair
+        if head is NUMBER:
+            return cls(NUMBER, lhs.data * data)
+        return rhs.head.non_commutative_mul(cls, rhs, lhs)
+    
     def term_coeff(self, cls, expr):
         if isinstance(expr, Expr):
             return cls(NUMBER, 1), expr.data

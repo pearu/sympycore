@@ -10,6 +10,14 @@ def init_module(m):
     from .base import heads
     for n,h in heads.iterNameValue(): setattr(m, n, h)
 
+    from ..core import expr_module
+    m.dict_add_item = expr_module.dict_add_item
+    m.dict_get_item = expr_module.dict_get_item
+    m.dict_add_dict = expr_module.dict_add_dict
+    m.dict_sub_dict = expr_module.dict_sub_dict
+    m.dict_mul_dict = expr_module.dict_mul_dict
+    m.dict_mul_value = expr_module.dict_mul_value
+
 class PowHead(ArithmeticHead):
     """ PowHead represents exponentiation operation, data is a 2-tuple
     of base and exponent expressions. Both can be number instances or
@@ -72,6 +80,28 @@ class PowHead(ArithmeticHead):
         if rhead is TERM_COEFF:
             term, coeff = rdata
             return (lhs * term) * coeff
+        raise NotImplementedError(`self, cls, lhs.pair, rhs.pair`)
+
+    def commutative_mul(self, cls, lhs, rhs):
+        rhead, rdata = rhs.pair
+        if rhead is NUMBER:
+            return TERM_COEFF.new(cls, lhs, rdata)
+        if rhead is SYMBOL:
+            lbase, lexp = lhs.data
+            if lbase == rhs:
+                return POW.new(cls, lbase, lexp + 1)
+            return cls(BASE_EXP_DICT, {rhs:1, lbase:lexp})
+        if rhead is POW:
+            lbase, lexp = lhs.data
+            rbase, rexp = rdata
+            if lbase==rbase:
+                return POW.new(cls, lbase, lexp + rexp)
+            return cls(BASE_EXP_DICT, {lbase:lexp, rbase:rexp})
+        if rhead is BASE_EXP_DICT:
+            base, exp = lhs.data
+            data = rhs.data.copy()
+            dict_add_item(data, base, exp)
+            return BASE_EXP_DICT.new(cls, data)
         raise NotImplementedError(`self, cls, lhs.pair, rhs.pair`)
 
     def as_term_coeff_dict(self, cls, expr):
