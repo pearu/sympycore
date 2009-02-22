@@ -11,6 +11,7 @@ __all__ = ['HEAD', 'SYMBOL', 'NUMBER', 'SPECIAL', 'CALLABLE',
            'EXP_COEFF_DICT',
            'TERM_COEFF_DICT',
            'TERM_COEFF',
+           'BASE_EXP_DICT'
            ]
 
 from .base import HEAD
@@ -26,18 +27,22 @@ from .add import ADD
 from .sub import SUB
 from .pow import POW
 from .mul import MUL
+from .div import DIV
 from .term_coeff_dict import TERM_COEFF_DICT
 from .term_coeff_dict import TERM_COEFF_DICT as TERMS
 from .base_exp_dict import BASE_EXP_DICT
 from .base_exp_dict import BASE_EXP_DICT as FACTORS
 from .term_coeff import TERM_COEFF
 
-from .arithmetic import MOD, DIV, FLOORDIV
+from .apply import APPLY
+
+from .arithmetic import MOD, FLOORDIV
 from .relational import EQ, NE, LT, GT, LE, GE
 from .binary import INVERT, BOR, BXOR, BAND, LSHIFT, RSHIFT
-from .functional import APPLY, SUBSCRIPT, SLICE, LAMBDA, ATTR, KWARG
+from .functional import SUBSCRIPT, SLICE, LAMBDA, ATTR, KWARG
 from .logic import NOT, OR, AND, IS, ISNOT, IN, NOTIN
 from .containers import TUPLE, LIST, DICT
 from .polynomial import SPARSE_POLY, DENSE_POLY
 
 from .exp_coeff_dict import EXP_COEFF_DICT
+from .integer_list import INTEGER_LIST

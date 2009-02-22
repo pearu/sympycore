@@ -8,10 +8,10 @@
 __docformat__ = "restructuredtext"
 __all__ = "PolynomialRing"
 
-from ..core import classes
+from ..core import classes, IntegerList, Expr
 from ..utils import SYMBOL, NUMBER, ADD, MUL, POW, SPARSE_POLY, SUB, DIV
 from ..basealgebra.algebra import Algebra
-from ..basealgebra.ring import CommutativeRing
+from ..ring import CommutativeRing
 from ..basealgebra.verbatim import Verbatim
 from ..arithmetic.numbers import div
 from ..arithmetic.number_theory import multinomial_coefficients
@@ -86,7 +86,7 @@ class PolynomialRingFactory(type):
 
         r = None #cache.get((variables, ring))
         if r is None:
-            name = '%s[%s, %s]' % (self.__name__, AdditiveTuple(variables), ring.__name__)
+            name = '%s[%s, %s]' % (self.__name__, tuple(variables), ring.__name__)
             r = PolynomialRingFactory(name,
                                       (self,),
                                       dict(nvars=nvars, ring = ring,
@@ -104,7 +104,9 @@ class PolynomialRingFactory(type):
             return False
         return set(other.variables).issubset(self.variables)
 
-class AdditiveTuple(tuple):
+AdditiveTuple = IntegerList
+
+class _AdditiveTuple(tuple):
     """ A tuple that can be added element-wise.
 
     Properties::
@@ -166,7 +168,8 @@ class PolynomialRing(CommutativeRing):
             return cls(SPARSE_POLY, data)
         elif isinstance(data, dict):
             return cls(SPARSE_POLY, data)
-        return super(CommutativeRing, cls).convert(data, typeerror=True)
+        r = super(CommutativeRing, cls).convert(data, typeerror=True)
+        return r
 
     @classmethod
     def get_operand_algebra(cls, head, index=0):
@@ -292,14 +295,13 @@ class PolynomialRing(CommutativeRing):
 
     @classmethod
     def convert_coefficient(cls, obj, typeerror=True):
-        if isinstance(obj, cls.ring):
-            return NotImplemented
-        r = cls.ring.convert_coefficient(obj, typeerror=False)
-        if r is not None:
-            return r
-        r = cls.ring.convert(obj, typeerror=False)
-        if r is not None:
-            return r
+        if not isinstance(obj, cls.ring):
+            r = cls.ring.convert_coefficient(obj, typeerror=False)
+            if r is not None:
+                return r
+            r = cls.ring.convert(obj, typeerror=False)
+            if r is not None:
+                return r
         if typeerror:
             raise TypeError('%s.convert_coefficient: failed to convert %s instance'\
                             ' to coefficient algebra, expected int|long object'\
@@ -369,35 +371,37 @@ class PolynomialRing(CommutativeRing):
     def __add__(self, other):
         cls = self.__class__
         other_cls = other.__class__
-        if cls == other_cls:
+        if cls == other_cls and self.head is other.head:
             return add_POLY_POLY(self, other, cls)
         other = self.convert(other)
         if other is NotImplemented:
             return other
         other_cls = other.__class__
-        if cls == other_cls:
+        if cls == other_cls and self.head is other.head:
             return add_POLY_POLY(self, other, cls)
         elif self.nvars < other.nvars:
             return other + self
-        return NotImplemented
+        return self.head.add(cls, self, other)
+
+    __radd__ = __add__
 
     def __mul__(self, other):
         cls = self.__class__
         other_cls = other.__class__
-        if cls == other_cls:
+        if cls == other_cls and self.head is other.head:
             return mul_POLY_POLY(self, other, cls)
-        other = self.convert_coefficient(other, typeerror=False)
-        if other is not NotImplemented:
-            return mul_POLY_COEFF(self, other, cls)
+        other2 = self.convert_coefficient(other, typeerror=False)
+        if other2 is not NotImplemented:
+            return mul_POLY_COEFF(self, other2, cls)
         other = self.convert(other, typeerror=False)
         if other is NotImplemented:
             return other
         other_cls = other.__class__
-        if cls == other_cls:
+        if cls == other_cls and self.head is other.head:
             return mul_POLY_POLY(self, other, cls)
         elif self.nvars < other.nvars:
             return other * self
-        return NotImplemented
+        return self.head.commutative_mul(cls, self, other)
 
     __rmul__ = __mul__
 
@@ -420,8 +424,18 @@ class PolynomialRing(CommutativeRing):
         return divmod(self, other)[1]
     
     def __pow__(self, other):
+        if isinstance(other, type(self)):
+            if other.head is NUMBER:
+                other = other.data
+            if other.head is SPARSE_POLY:
+                data = other.data
+                if len(data)==1:
+                    exps, coeff = data.items()[0]
+                    if exps.data==[0]*len(exps):
+                        other = coeff
         if isinstance(other,(int, long)):
             return pow_POLY_INT(self, other, self.__class__)
+        print `self`, `other.pair`
         return NotImplemented
 
     def __call__(self, *args):

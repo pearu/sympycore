@@ -36,6 +36,10 @@ __all__ = ['Expr', 'Pair']
 def init_module(m):
     from .core import heads
     for n,h in heads.iterNameValue(): setattr(m, n, h)
+    from .arithmetic.numbers import inttypes, numbertypes, try_power
+    m.inttypes = inttypes
+    m.numbertypes = numbertypes
+    m.try_power = try_power
 
 class Expr(object):
     """Represents an symbolic expression in a pair form: (head, data)	
@@ -93,7 +97,12 @@ This is Python version of Expr type.
             self._hash = None
         else:
             raise TypeError("%s requires 1 or 2 arguments but got %r" % (type(self), len(args)))
-
+        msg = self.head.is_data_ok(type(self), self.data)
+        if msg:
+            msg = '%s(head=%s, data=%s): %s' % (type(self).__name__, self.head, self.data, msg)
+            #print msg
+            raise TypeError(msg)
+        
     def __repr__(self):
         return '%s%r' % (type(self).__name__, self.pair)
 
@@ -251,6 +260,25 @@ This is Python version of Expr type.
             return head.to_lowlevel(type(self), data, pair)
         return pair
 
+    def term_coeff(self):
+        head, data = self.pair
+        if head is TERM_COEFF:
+            return data
+        if head is BASE_EXP_DICT:
+            cls = type(self)
+            coeff = base_exp_dict_get_coefficient(cls, data)
+            if coeff is not None:
+                d = data.copy()
+                del d[coeff]
+                r = BASE_EXP_DICT.new(cls, d)
+                return r, coeff.data
+                t, c = r.head.term_coeff(cls, r)
+                return t, c * coeff 
+            return self, 1
+        if head is NUMBER:
+            return self, data
+        return self, 1
+
     for _item in dict(__eq__ = '==', __ne__ = '!=',
                       __lt__ = '<', __le__ = '<=',
                       __gt__ = '>', __ge__ = '>=',
@@ -262,164 +290,40 @@ def %s(self, other):
     return self.as_lowlevel() %s other
 ''' % _item
 
-    def _add_item(self, key, value):
-        # value must be non-zero
-        head, data = self.pair
-        assert type(data) is dict and value
-        c = data.get(key)
-        if c is None:
-            data[key] = value
-        else:
-            c = c + value
-            if c:
-                data[key] = c
-            else:
-                del data[key]
-
-    def _sub_item(self, key, value):
-        # value must be non-zero
-        head, data = self.pair
-        assert type(data) is dict and value
-        c = data.get(key)
-        if c is None:
-            data[key] = -value
-        else:
-            c = c - value
-            if c:
-                data[key] = c
-            else:
-                del data[key]
-
-    def _add_dict(self, d):
-        head, data = self.pair
-        assert type(data) is dict
-        for key, value in d.iteritems():
-            c = data.get(key)
-            if c is None:
-                data[key] = value
-            else:
-                c = c + value
-                if c:
-                    data[key] = c
-                else:
-                    del data[key]
-
-    def _sub_dict(self, d):
-        head, data = self.pair
-        assert type(data) is dict
-        for key, value in d.iteritems():
-            c = data.get(key)
-            if c is None:
-                data[key] = -value
-            else:
-                c = c - value
-                if c:
-                    data[key] = c
-                else:
-                    del data[key]
-
-    def _add_dict2(self, d, coeff):
-        head, data = self.pair
-        assert type(data) is dict,`type(data)`
-        assert type(d) is dict,`type(d)`
-        for key, value in d.iteritems():
-            c = data.get(key)
-            if c is None:
-                data[key] = value * coeff
-            else:
-                c = c + value * coeff
-                if c:
-                    data[key] = c
-                else:
-                    del data[key]
-
-    def _add_dict3(self, d):
-        head, data = self.pair
-        assert type(data) is dict
-        assert type(d) is dict
-        cls = type(self)
-        result = None
-        for key, value in d.iteritems():
-            c = data.get(key)
-            if c is None:
-                data[key] = value
-            else:
-                c = c + value
-                if type(c) is cls and c.head is NUMBER:
-                    c = c.data
-                if c:
-                    if key.head is NUMBER:
-                        result = self.handle_numeric_item(result, key, c)
-                    else:
-                        data[key] = c
-                else:
-                    del data[key]
-        return result
-
-    def handle_numeric_item(self, result, key, value):
-        """ Internal method.
-
-        The method is called from the <Expr instance>._add_dict3(d) method
-        when::
-        
-          <Expr instance>.data[key] = value
-
-        needs to be executed but is left to the call::
-
-          <Expr instance>.handle_numeric_method(result, key, value)
-
-        to handle when key.head is NUMBER and value is non-zero
-        low-level number. Note that handle_numeric_method is responsible
-        for calling::
-        
-          del <Expr instance>.data[key]
-
-        if it does not reset ``<Expr instance>.data[key]``.
-
-        The handle_numeric_item() method may change the value of ``result``
-        (that is returned by the _add_dict3() method) by returning new
-        value. Initially ``result`` is ``None``.
-        """
-        self.data[key] = value
-        return result
-
-    def canonize_FACTORS(self):
-        data = self.data
-        l = len(data)
-        if l==0:
-            return self.one
-        if l==1:
-            t, c = data.items()[0]
-            if c==1:
-                return t
-            if t==self.one:
-                return t
-        return self
-
-    def canonize_TERMS(self):
-        data = self.data
-        l = len(data)
-        if l==0:
-            return self.zero
-        if l==1:
-            t, c = data.items()[0]
-            if c==1:
-                return t
-            if t==self.one:
-                return type(self)(NUMBER, c)
-        return self
 
 class Pair(Expr):
+    """ Holds a pair that may contain list and dict second element.
+    """
+    def __init__(self, *args):
+        if len(args)==2:
+            self.pair = args
+            self._hash = None
+        else:
+            raise TypeError("%s requires 2 arguments but got %r" % (type(self), len(args)))
 
     def __eq__(self, other):
         return self.pair == other
 
     def __len__(self):
         return 2
+    
     def __getitem__(self, index):
         return self.pair[index]
 
-def dict_add_item(d, key, value):
+
+def dict_mul_item(Algebra, d, key, value):
+    c = d.get(key)
+    if c is None:
+        d[key] = value
+    else:
+        d[key] = c * value
+
+base_exp_dict_mul_item = dict_mul_item
+
+def term_coeff_dict_mul_item(Algebra, d, key, value):
+    return dict_mul_item(Algebra, d, key, value)
+
+def dict_add_item(Algebra, d, key, value):
     c = d.get(key)
     if c is None:
         d[key] = value
@@ -430,48 +334,121 @@ def dict_add_item(d, key, value):
         else:
             del d[key]
 
+def base_exp_dict_get_coefficient(Algebra, d):
+    for k, v in d.iteritems():
+        if v is 1 and k.head is NUMBER:
+            return k
+    return
+
+def base_exp_dict_add_item(Algebra, d, base, exp):
+    """
+    d is a dictonary that will be updated with base, exp pair.
+    Base part must be an Algebra instance while exp part
+    can either be a number instance or an expression.
+
+    The dictionary items (base, exp) must satisfy the following
+    conditions:
+      1) numeric (base, exp) must be completely evaluated, that is,
+      if base is numeric then exp is either 1 or rational with denominator
+      part that is not a root of base.
+      2) all numeric items with exp==1 must be combined to one item
+      (coefficient)
+      3) items with base==1 and exp==0 must not be present in the dictionary
+    """
+    base_head, base_data = base.pair
+    value = d.get(base)
+    if type(exp) is Algebra and exp.head is NUMBER:
+        exp = exp.data
+    if value is None:
+        if base_head is NUMBER:
+            assert base
+            if base==1:
+                return
+            if exp==1:
+                coeff = base_exp_dict_get_coefficient(Algebra, d)
+                if coeff is None:
+                    d[base] = 1
+                else:
+                    del d[coeff]
+                    coeff = coeff * base
+                    if coeff==1:
+                        return
+                    d[coeff] = 1
+            else:
+                assert not isinstance(exp, inttypes),`base, exp`
+                d[base] = exp
+        else:
+            assert exp
+            d[base] = exp
+    else:
+        value = value + exp
+        if type(value) is Algebra and value.head is NUMBER:
+            value = value.data
+        if value:
+            if base_head is NUMBER and isinstance(value, numbertypes):
+                del d[base]
+                r, l = try_power(base_data, value)
+                if r!=1:
+                    base_exp_dict_add_item(Algebra, d, Algebra(NUMBER, r), 1)
+                elif len(l)==1 and l[0]==base_data:
+                    d[base] = value
+                else:
+                    for b, e in l:
+                        base_exp_dict_add_item(Algebra, d, Algebra(NUMBER, b), e)
+            elif base_head is TERM_COEFF and isinstance(value, inttypes):
+                del d[base]
+                term, coeff = base_data
+                base_exp_dict_add_item(Algebra, d, term, value)
+                base_exp_dict_add_item(Algebra, d, Algebra(NUMBER, coeff), value)
+            else:
+                d[base] = value
+        else:
+            del d[base]
+
+term_coeff_dict_add_item = dict_add_item
+
 def dict_get_item(d):
     return d.items()[0]
 
-def dict_add_dict(dict1, dict2):
+def dict_add_dict(Algebra, dict1, dict2):
     for key, value in dict2.iteritems():
-        c = dict1.get(key)
-        if c is None:
-            dict1[key] = value
-        else:
-            c = c + value
-            if c:
-                dict1[key] = c
-            else:
-                del dict1[key]
+        dict_add_item(Algebra, dict1, key, value)
 
-def dict_sub_dict(dict1, dict2):
+def base_exp_dict_add_dict(Algebra, dict1, dict2):
     for key, value in dict2.iteritems():
-        c = dict1.get(key)
-        if c is None:
-            dict1[key] = -value
-        else:
-            c = c - value
-            if c:
-                dict1[key] = c
-            else:
-                del dict1[key]
+        base_exp_dict_add_item(Algebra, dict1, key, value)
 
-def dict_mul_dict(d, dict1, dict2):
+def dict_sub_dict(Algebra, dict1, dict2):
+    for key, value in dict2.iteritems():
+        dict_add_item(Algebra, dict1, key, -value)
+
+def base_exp_dict_mul_dict(Algebra, d, dict1, dict2):
     for t1,c1 in dict1.iteritems():
         for t2,c2 in dict2.iteritems():
             t = t1 * t2
+            t, c = t.term_coeff()
+            c12 = c * c1 * c2
+            base_exp_dict_add_item(Algebra, d, t, c12)
+            
+def exp_coeff_dict_mul_dict(Algebra, d, dict1, dict2):
+    for t1,c1 in dict1.iteritems():
+        for t2,c2 in dict2.iteritems():
+            t = t1 + t2
             c12 = c1 * c2
-            c = d.get(t)
-            if c is None:
-                d[t] = c12
-            else:
-                c = c + c12
-                if c:
-                    d[t] = c
-                else:
-                    del d[t]
+            dict_add_item(Algebra, d, t, c12)
+            
+def dict_mul_dict(Algebra, d, dict1, dict2):
+    for t1,c1 in dict1.iteritems():
+        for t2,c2 in dict2.iteritems():
+            t = t1 * t2
+            #t, c = t.term_coeff()
+            c12 = c1 * c2
+            dict_add_item(Algebra, d, t, c12)
     
-def dict_mul_value(d, value):
+def dict_mul_value(Algebra, d, value):
+    assert value
     for t, c in d.items():
         d[t] = c*value
+
+base_exp_dict_mul_value = dict_mul_value
+term_coeff_dict_mul_dict = dict_mul_dict

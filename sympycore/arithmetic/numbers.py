@@ -44,13 +44,21 @@ from . import mpmath
 
 __docformat__ = "restructuredtext"
 
+from ..core import init_module
+
+@init_module
+def _init(module):
+    from ..basealgebra.verbatim import Verbatim
+    module.Verbatim = Verbatim
+
 from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_NUMBER, NUMBER, SYMBOL
-from ..basealgebra.verbatim import Verbatim
 
 inttypes = (int, long)
 
 from .mpmath import mpf, mpc, mp
 from .mpmath.lib import from_rational, round_nearest
+
+
 
 def mpf_to_str_data(self, sort=True):
     if self < 0:

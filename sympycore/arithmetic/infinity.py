@@ -3,6 +3,9 @@
 __docformat__ = "restructuredtext"
 __all__ = ['Infinity']
 
+from ..core import init_module, Expr
+init_module.import_heads()
+
 from .numbers import realtypes, complextypes, mpqc, numbertypes, div
 
 def is_undefined(obj):
@@ -75,27 +78,66 @@ class Infinity(object):
             return True
         if not x or not y:
             return False
-        return NotImplemented
+        if isinstance(x, Expr): algebra = type(x)
+        elif isinstance(y, Expr): algebra = type(y)
+        else: raise NotImplementedError(`cls, x, y`)
+        return algebra.Apply(cls.EqualArg, x, y)
 
     @classmethod
     def IsUnbounded(cls, x):
+        if isinstance(x, Expr):
+            head, data = x.pair
+            if head is NUMBER:
+                return cls.IsUnbounded(data)
+            is_bounded = getattr(x, 'is_bounded', None)
+            if is_bounded is not None:
+                return not is_bounded
+            y = x.evalf(2)
+            if y.head is NUMBER:
+                return cls.IsUnbounded(y.data)
+            return APPLY.new(type(x), (cls.IsUnbounded, (x,)))
         if isinstance(x, Infinity):
             return True
         if isinstance(x, numbertypes):
             # XXX: handle mpf, nan, inf
             return False
-        return NotImplemented
-
+        if isinstance(x, Expr):
+            algebra = type(x)
+        else:
+            return NotImplemented
+        return algebra.Apply(cls.IsUnbounded, x)
+    
     @classmethod
     def IsPositive(cls, x):
+        if isinstance(x, Expr):
+            head, data = x.pair
+            if head is NUMBER:
+                return cls.IsPositive(data)
+            y = x.evalf(2)
+            if y.head is NUMBER:
+                return cls.IsPositive(y.data)
+            return APPLY.new(type(x), (cls.IsPositive, (x,)))
         if isinstance(x, numbertypes):
             return cmp(x, 0)==1
         if isinstance(x, cls):
             return cls.IsPositive(x.data)
-        return NotImplemented
+        if isinstance(x, Expr): algebra = type(x)
+        else: return NotImplemented
+        return algebra.Apply(cls.IsPositive, x)
 
     def __new__(cls, direction):
         obj = object.__new__(cls)
+        if isinstance(direction, Expr):
+            head, data = direction.pair
+            if head is NUMBER:
+                return cls(data)
+            elif head is TERM_COEFF:
+                t, c = data
+                if c>0:
+                    return cls(t)
+            r = direction.get_direction()
+            if r is not NotImplemented:
+                return cls(r)
         if is_undefined(direction):
             obj.data = direction
         elif isinstance(direction, realtypes):
@@ -238,6 +280,14 @@ class Infinity(object):
             return cls(0)
         if not other:
             return cls(cls(0))
+        if isinstance(other, Expr):
+            head, data = other.pair
+            if head is NUMBER:
+                other = data
+            else:
+                head, data = other.evalf(2).pair
+                if head is NUMBER:
+                    other = data
         if isinstance(other, realtypes):
             if other < 0:
                 return cls(-self.data)
@@ -253,7 +303,7 @@ class Infinity(object):
         """
         if is_undefined(self):
             return self
-        return self.zero
+        return type(other)(0)
 
     def __pow__(self, other):
         """ exponentiation of extended numbers
@@ -271,6 +321,12 @@ class Infinity(object):
             return cls(0)
         x = self.data
         zero = self.zero
+        algebra = None
+        if isinstance(other, Expr):
+            algebra = type(other)
+            head, data = other.pair
+            if head is NUMBER:
+                other = data
         if isinstance(other, realtypes):
             if other < 0:
                 return zero
@@ -292,6 +348,9 @@ class Infinity(object):
                 if is_zoo(self):
                     return self
                 return cls(cls.IsPositive(x))
+        if algebra is not None:
+            exp = algebra(other)
+            return algebra(POW, (algebra(SPECIAL, self), exp))
         return NotImplemented
 
     def __rpow__(self, other):
@@ -306,6 +365,12 @@ class Infinity(object):
         x = self.data
         zero = self.zero
         one = self.one
+        algebra = None
+        if isinstance(other, Expr):
+            algebra = type(other)
+            head, data = other.pair
+            if head is NUMBER:
+                other = data
         if isinstance(other, realtypes):
             if other==1:
                 return one
@@ -330,6 +395,9 @@ class Infinity(object):
                 return cls(0)
             if is_undefined(self):
                 return self
+        if algebra is not None:
+            base = algebra(other)
+            return algebra(POW, (base, algebra(SPECIAL, self)))
         return NotImplemented
 
     def __lt__(self, other):

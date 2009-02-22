@@ -246,7 +246,9 @@ class Algebra(Expr):
         return func(*[cls(a) for a,cls in zip(args, arg_algebras)])
     
     def as_verbatim(self):
-        return Verbatim(*self.pair)
+        def as_verbatim(cls, head, data, target):
+            return cls(head, data)
+        return self.head.walk(as_verbatim, Verbatim, self.data, self)
 
     def as_algebra(self, cls):
         """ Convert algebra to another algebra.
@@ -269,7 +271,7 @@ class Algebra(Expr):
         """ Returns a callable such that ``self.func(*self.args) == self``.
         """
         raise NotImplementedError('%s must define property func'      #pragma NO COVER
-                                  % (cls.__name__))                   #pragma NO COVER
+                                  % (self.__class__.__name__))                   #pragma NO COVER
 
     @property
     def args(self):
@@ -308,17 +310,17 @@ class Algebra(Expr):
     def symbols(self):
         """ Return a set of atomic subexpressions in a symbolic object.
         """
-        symbols = getattr(self,'_symbols', None)
-        if symbols is None:
-            args = self.args
-            if args:
-                symbols = set()
-                for arg in args:
-                    symbols |= arg.symbols
-            else:
-                symbols = set([self])
-            self._symbols = symbols
+        def scan_for_symbols(cls, head, data, target):
+            if head is SYMBOL:
+                target.add(cls(head, data)) # introduce expr argument to scan
+        head, data = self.pair
+        symbols = set()
+        head.scan(scan_for_symbols, type(self), data, symbols)
         return symbols
+
+    def has_symbol(self, symbol):
+        symbol = type(self)(symbol)
+        return symbol in self.symbols
 
     def has(self, obj):
         """ Return True if self contains atomic expression obj.
@@ -453,6 +455,36 @@ class Algebra(Expr):
           obj.subs([(subexpr1, newexpr1), (subexpr2, newexpr2), ..])
           obj.subs(<dict of subexpr:newexpr>)
         """
+        cls = type(self)
+        if newexpr is not None:
+            def subs(cls, head, data, target, subexpr=subexpr, newexpr=newexpr):
+                if target==subexpr:
+                    if type(newexpr) is not cls:
+                        newexpr = cls(newexpr)
+                        return newexpr.head.new(cls, newexpr.data)
+                    return newexpr
+                return target
+        elif type(subexpr) is dict:
+            def subs(cls, head, data, target, expr_dict=subexpr):
+                r = expr_dict.get(target, target)
+                if type(r) is not cls:
+                    r = cls(r)
+                    return r.head.new(cls, r.data)
+                return r
+        elif type(subexpr) is list:
+            def subs(cls, head, data, target, expr_list=subexpr):
+                for s, n in expr_list:
+                    if s==target:
+                        if type(n) is not cls:
+                            n = cls(n)
+                            return n.head.new(cls, n.data)
+                        return n
+                return target
+        else:
+            raise NotImplementedError(`subexpr, newexpr`)
+        head, data = self.pair
+        return head.walk(subs, cls, data, self)
+
         convert = lambda x:x
         if newexpr is None:
             if type(subexpr) is dict:

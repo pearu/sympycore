@@ -23,5 +23,5 @@ def test_simple():
     
 def test_repeated():
     assert x.subs([(x,y)])==y
-    assert (x + x*z).subs([(x,y),(z,x)])==y+y*x
-    assert (x+y).subs({x:1,y:2*z})==1+2*z
+    assert (x + x*z).subs([(x,y),(z,x)])==y+y*x,`(x + x*z).subs([(x,y),(z,x)])`
+    assert (x+y).subs({x:1,y:2*z})==1+2*z,`((x+y).subs({x:1,y:2*z})).pair, (1+2*z).pair`

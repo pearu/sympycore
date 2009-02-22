@@ -3,8 +3,10 @@
 
 __docformat__ = 'restructuredtext'
 __all__ = ['classes', 'Expr', 'defined_functions', 'DefinedFunction',
-           'objects', 'Pair']
+           'objects', 'Pair', 'IntegerList']
 
+import sys
+import types
 import inspect
 
 using_C_Expr = False
@@ -152,3 +154,229 @@ def get_nargs(obj):
 
 classes.Expr = Expr
 classes.Pair = Pair
+
+class SymbolicEquality:
+    """ Contex for logical operations.
+
+    In the ``SymbolicEquality(<Algebra class>)`` context relational
+    operations return ``Logic`` instances instead of computing
+    lexicographic value of relational operations.
+
+    For example,
+
+    >>> x = Calculus('x')
+    >>> with SymbolicEquality(Calculus):
+    >>>     print x==x
+    ...     
+    ...     
+    x==x
+    >>> print x==x
+    True
+
+    Add ``from __future__ import with_statement`` to the header of
+    python file when using Python version 2.5.
+    
+    """
+
+    def __init__(self, *classes):
+        self.classes = classes
+
+    def __enter__(self):
+        for cls in self.classes:
+            cls.enable_symbolic_comparison()
+
+    def __exit__(self, type, value, tb):
+        for cls in self.classes:
+            cls.disable_symbolic_comparison()
+        return tb is None
+
+class InitModule:
+    
+    """ Holds a list of functions (or callable objects), composed by
+    that are called exactly once by the execute methods. Functions are
+    assumed to take one argument holding a module object. InitModule
+    instance can be used as a decorator or functions can be added to
+    the list using the register method.
+    """
+
+    def __init__(self):
+        self.func_list = []
+        
+    def register(self, init_module_func):
+        """ Register a function for execution.
+        """
+        if callable(init_module_func):
+            self.func_list.append(init_module_func)
+
+    def execute(self):
+        """ Execute registered functions and discard them.
+        """
+        while self.func_list:
+            func = self.func_list.pop(0)
+            module_name = func.__module__
+            module = sys.modules[module_name]
+            #print 'Executing %s(%s):' % (func.__name__, module.__name__)
+            func(module)
+
+    def __call__(self, func):
+        """ Register function via decorating it.
+        """
+        self.register(func)
+
+    def import_heads(self):
+        """Registers a function that adds heads symbols to a calling
+        module.
+        """
+        frame = sys._getframe(1)
+        module_name = frame.f_locals['__name__']
+
+        def _import_heads(module):
+            from sympycore.core import heads
+            for n,h in heads.iterNameValue():
+                setattr(module, n, h)
+
+        _import_heads.__module__ = module_name
+
+        self.register(_import_heads)
+
+    def import_lowlevel_operations(self):
+        """Registers a function that adds lowlevel operation functions
+        like dict_get_item, dict_add_item, etc to a calling module.
+        """
+        frame = sys._getframe(1)
+        module_name = frame.f_locals['__name__']
+        
+        def _import_lowlevel_operations(module):
+            for n in dir(expr_module):
+                if 'dict' in n:
+                    setattr(module, n, getattr(expr_module, n))
+            module.IntegerList = IntegerList
+            
+        _import_lowlevel_operations.__module__ = module_name
+
+        self.register(_import_lowlevel_operations)
+
+    def import_numbers(self):
+        """Registers a function that adds numbers and number types
+        collections to a calling module.
+        """
+        frame = sys._getframe(1)
+        module_name = frame.f_locals['__name__']
+        
+        def _import_numbers(module):
+            from sympycore.arithmetic import numbers
+            module.numbertypes = numbers.numbertypes
+            module.inttypes = numbers.inttypes
+            module.rationaltypes = numbers.rationaltypes
+            module.realtypes = numbers.realtypes
+            module.complextypes = numbers.complextypes
+            module.Infinity = numbers.Infinity
+            
+        _import_numbers.__module__ = module_name
+
+        self.register(_import_numbers)
+
+init_module = InitModule()
+init_module.register(expr_module.init_module)
+
+init_module.import_heads()
+
+class IntegerList(Expr):
+    """ IntegerList holds a list of integers and supports element-wise
+    arithmetic operations.
+    """
+
+    @classmethod
+    def convert(cls, arg, typeerror=True):
+        t = type(arg)
+        if t is int or t is long:
+            return cls(INTEGER_LIST, [arg])
+        if t is list:
+            return cls(INTEGER_LIST, arg)
+        if t is tuple:
+            return cls(INTEGER_LIST, list(arg))
+        if t is IntegerList:
+            return arg
+        if typeerror:
+            raise TypeError('failed to convert %r to IntegerList' % (arg))
+        return NotImplemented
+
+    def __repr__(self):
+        return '%s(%s)' % (type(self).__name__, self.data)
+
+    def __len__(self): return len(self.data)
+
+    def __getitem__(self, index):
+        return self.data[index]
+
+    def __setitem__(self, index, value):
+        if self.is_writable:
+            self.data[index] = value
+        else:
+            raise TypeError('this IntegerList instance is not writable')
+        
+    def __pos__(self):
+        return self
+
+    def __neg__(self):
+        return IntegerList(INTEGER_LIST, [-i for i in self.data])
+
+    def __add__(self, other):
+        lhead, ldata = self.pair
+        t = type(other)
+        if t is int or t is long:
+            if other==0:
+                return self
+            return IntegerList(INTEGER_LIST, [i + other for i in ldata])
+        if t is IntegerList:
+            rdata = other.data
+        elif t is list or t is tuple:
+            rdata = other
+        else:
+            return NotImplemented
+        if len(ldata)!=len(rdata):
+            raise TypeError('IntegerList.__add__ operands must have the same size')
+        return IntegerList(INTEGER_LIST, [i + j for i,j in zip(ldata, rdata)])
+
+    __radd__ = __add__
+
+    def __sub__(self, other):
+        t = type(other)
+        if t is int or t is long:
+            if other==0:
+                return self
+            return IntegerList(INTEGER_LIST, [i - other for i in self.data])
+        ldata = self.data
+        if t is IntegerList:
+            rdata = other.data
+        elif t is list or t is tuple:
+            rdata = other
+        else:
+            return NotImplemented
+        if len(ldata)!=len(rdata):
+            raise TypeError('IntegerList.__sub__ operands must have the same size')
+        return IntegerList(INTEGER_LIST, [i - j for i,j in zip(ldata, rdata)])
+
+    def __rsub__(self, other):
+        return (-self) + other
+
+    def __mul__(self, other):
+        t = type(other)
+        if t is int or t is long:
+            if other==1:
+                return self
+            return IntegerList(INTEGER_LIST, [i * other for i in self.data])
+        ldata = self.data
+        if t is IntegerList:
+            rdata = other.data
+        elif t is list or t is tuple:
+            rdata = other
+        else:
+            return NotImplemented
+        if len(ldata)!=len(rdata):
+            raise TypeError('IntegerList.__mul__ operands must have the same size')
+        return IntegerList(INTEGER_LIST, [i * j for i,j in zip(ldata, rdata)])
+
+    __rmul__ = __mul__
+
+    

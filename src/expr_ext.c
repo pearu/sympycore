@@ -64,6 +64,8 @@ static PyTypeObject PairType;
 
 static PyObject* zero;
 static PyObject* one;
+static PyObject* py_try_power;
+static PyObject* py_numbertypes;
 
 static PyObject* NUMBER;
 static PyObject* SYMBOL;
@@ -76,17 +78,223 @@ static PyObject* POW;
 static PyObject* TERM_COEFF;
 static PyObject* TERM_COEFF_DICT;
 static PyObject* BASE_EXP_DICT;
+static PyObject* EXP_COEFF_DICT;
 
 static PyObject* Expr_as_lowlevel(Expr *self);
+static PyObject* str_new;
 static PyObject* str_convert;
 static PyObject* str_handle_numeric_item;
 static PyObject* str_getinitargs;
 static PyObject* str_to_lowlevel;
 
+static PyObject* algebra_base_exp_dict_get_coefficient(PyTypeObject* Algebra, PyObject* d);
+
 #define Expr_Check(op) PyObject_TypeCheck(op, &ExprType)
 #define Expr_CheckExact(op) ((op)->ob_type == &ExprType)
 #define Pair_Check(op) PyObject_TypeCheck(op, &PairType)
 #define Pair_CheckExact(op) ((op)->ob_type == &PairType)
+
+#define EXPR_GET_HEAD(OBJ) PyTuple_GET_ITEM(((Expr*)OBJ)->pair, 0)
+#define EXPR_GET_DATA(OBJ) PyTuple_GET_ITEM(((Expr*)OBJ)->pair, 1)
+
+#define EXPR_IS_NUMBER(OBJ) \
+  (Expr_Check(OBJ) && EXPR_GET_HEAD(OBJ)==NUMBER)
+
+#define EXPR_IS_ONE(OBJ) \
+  (EXPR_IS_NUMBER(OBJ) && EXPR_GET_DATA(OBJ)==one)
+
+#define EXPR_IS_ZERO(OBJ) \
+  (EXPR_IS_NUMBER(OBJ) && EXPR_GET_DATA(OBJ)==zero)
+
+#define OBJ_IS_INTEGER(OBJ) (PyInt_Check(OBJ) || PyLong_Check(OBJ))
+
+#define OBJ_IS_NUMBER(OBJ) PyObject_IsInstance(OBJ, py_numbertypes)
+
+#define DICT_PROC_WRAPPER_2(FUNC, FUNC_STR)				\
+  static PyObject*							\
+  func_ # FUNC(PyObject* self, PyObject* args)				\
+  {									\
+    if (PyTuple_Size(args)==2)						\
+      {									\
+	PyObject* d       = PyTuple_GET_ITEM(args, 0);			\
+	PyObject* arg1    = PyTuple_GET_ITEM(args, 1);			\
+	if (!PyDict_Check(d))						\
+	  {								\
+	    PyErr_SetString(PyExc_TypeError, FUNC_STR " first argument must be dict"); \
+	    return NULL;						\
+	  }								\
+	if (FUNC(d, arg1)==0)						\
+	  {								\
+	    Py_INCREF(Py_None);						\
+	    return Py_None;						\
+	  }								\
+	return NULL;							\
+      }									\
+    else								\
+      {									\
+	PyErr_SetString(PyExc_TypeError, FUNC_STR " takes exactly 2 arguments");	\
+	return NULL;							\
+      }									\
+  }
+
+#define DICT_PROC_WRAPPER_3(FUNC, FUNC_STR)				\
+  static PyObject*							\
+  func_ ## FUNC(PyObject* self, PyObject* args)				\
+  {									\
+    if (PyTuple_Size(args)==3)						\
+      {									\
+	PyObject* d       = PyTuple_GET_ITEM(args, 0);			\
+	PyObject* arg1    = PyTuple_GET_ITEM(args, 1);			\
+	PyObject* arg2    = PyTuple_GET_ITEM(args, 2);			\
+	if (!PyDict_Check(d))						\
+	  {								\
+	    PyErr_SetString(PyExc_TypeError, FUNC_STR " first argument must be dict"); \
+	    return NULL;						\
+	  }								\
+	if (FUNC(d, arg1, arg2)==0)					\
+	  {								\
+	    Py_INCREF(Py_None);						\
+	    return Py_None;						\
+	  }								\
+	return NULL;							\
+      }									\
+    else								\
+      {									\
+	PyErr_SetString(PyExc_TypeError, FUNC_STR " takes exactly 3 arguments");	\
+	return NULL;							\
+      }									\
+  }
+
+#define DICT_PROC_WRAPPER_4(FUNC, FUNC_STR)				\
+  static PyObject*							\
+  func_ ## FUNC(PyObject* self, PyObject* args)				\
+  {									\
+    if (PyTuple_Size(args)==4)						\
+      {									\
+	PyObject* d       = PyTuple_GET_ITEM(args, 0);			\
+	PyObject* arg1    = PyTuple_GET_ITEM(args, 1);			\
+	PyObject* arg2    = PyTuple_GET_ITEM(args, 2);			\
+	PyObject* arg3    = PyTuple_GET_ITEM(args, 3);			\
+	if (!PyDict_Check(d))						\
+	  {								\
+	    PyErr_SetString(PyExc_TypeError, FUNC_STR " first argument must be dict"); \
+	    return NULL;						\
+	  }								\
+	if (FUNC(d, arg1, arg2, arg3)==0)					\
+	  {								\
+	    Py_INCREF(Py_None);						\
+	    return Py_None;						\
+	  }								\
+	return NULL;							\
+      }									\
+    else								\
+      {									\
+	PyErr_SetString(PyExc_TypeError, FUNC_STR " takes exactly 4 arguments");	\
+	return NULL;							\
+      }									\
+  }
+
+
+#define ALGEBRA_DICT_PROC_WRAPPER_3(FUNC, FUNC_STR)			\
+  static PyObject*							\
+  func_ ## FUNC(PyObject* self, PyObject* args)				\
+  {									\
+    if (PyTuple_Size(args)==3)						\
+      {									\
+	PyTypeObject* Algebra = (PyTypeObject*)PyTuple_GET_ITEM(args, 0); \
+	PyObject* d       = PyTuple_GET_ITEM(args, 1);			\
+	PyObject* arg3    = PyTuple_GET_ITEM(args, 2);			\
+	if (!PyType_IsSubtype(Algebra, &ExprType))			\
+	  {								\
+	    PyErr_SetString(PyExc_TypeError, FUNC_STR " first argument must be Expr subclass"); \
+	    return NULL;						\
+	  }								\
+	if (!PyDict_Check(d))						\
+	  {								\
+	    PyErr_SetString(PyExc_TypeError, FUNC_STR " second argument must be dict"); \
+	    return NULL;						\
+	  }								\
+	if (FUNC(Algebra, d, arg3)==0)					\
+	  {								\
+	    Py_INCREF(Py_None);						\
+	    return Py_None;						\
+	  }								\
+	return NULL;							\
+      }									\
+    else								\
+      {									\
+	PyErr_SetString(PyExc_TypeError, FUNC_STR " takes exactly 3 arguments");	\
+	return NULL;							\
+      }									\
+}
+
+#define ALGEBRA_DICT_PROC_WRAPPER_4(FUNC, FUNC_STR)			\
+  static PyObject*							\
+  func_ ## FUNC(PyObject* self, PyObject* args)				\
+  {									\
+    if (PyTuple_Size(args)==4)						\
+      {									\
+	PyTypeObject* Algebra = (PyTypeObject*)PyTuple_GET_ITEM(args, 0); \
+	PyObject* d       = PyTuple_GET_ITEM(args, 1);			\
+	PyObject* arg3    = PyTuple_GET_ITEM(args, 2);			\
+	PyObject* arg4    = PyTuple_GET_ITEM(args, 3);			\
+	if (!PyType_IsSubtype(Algebra, &ExprType))			\
+	  {								\
+	    PyErr_SetString(PyExc_TypeError, FUNC_STR " first argument must be Expr subclass"); \
+	    return NULL;						\
+	  }								\
+	if (!PyDict_Check(d))						\
+	  {								\
+	    PyErr_SetString(PyExc_TypeError, FUNC_STR " second argument must be dict"); \
+	    return NULL;						\
+	  }								\
+	  if (FUNC(Algebra, d, arg3, arg4)==0)				\
+	  {								\
+	    Py_INCREF(Py_None);						\
+	    return Py_None;						\
+	  }								\
+	return NULL;							\
+      }									\
+    else								\
+      {									\
+	PyErr_SetString(PyExc_TypeError, FUNC_STR " takes exactly 4 arguments");	\
+	return NULL;							\
+      }									\
+}
+
+#define ALGEBRA_DICT_FUNC_WRAPPER_2(FUNC, FUNC_STR)			\
+  static PyObject*							\
+  func_ ## FUNC(PyObject* self, PyObject* args)				\
+  {									\
+    if (PyTuple_Size(args)==2)						\
+      {									\
+	PyTypeObject* Algebra = (PyTypeObject*)PyTuple_GET_ITEM(args, 0); \
+	PyObject* d       = PyTuple_GET_ITEM(args, 1);			\
+	PyObject* result = NULL;					\
+	if (!PyType_IsSubtype(Algebra, &ExprType))			\
+	  {								\
+	    PyErr_SetString(PyExc_TypeError, FUNC_STR " first argument must be Expr subclass"); \
+	    return NULL;						\
+	  }								\
+	if (!PyDict_Check(d))						\
+	  {								\
+	    PyErr_SetString(PyExc_TypeError, FUNC_STR " second argument must be dict"); \
+	    return NULL;						\
+	  }								\
+	result = FUNC(Algebra, d);					\
+	if (result != NULL)						\
+	  {								\
+	    Py_INCREF(result);						\
+	    return result;						\
+	  }								\
+	return NULL;							\
+      }									\
+    else								\
+      {									\
+	PyErr_SetString(PyExc_TypeError, FUNC_STR " takes exactly 2 arguments");	\
+	return NULL;							\
+      }									\
+}
 
 static int
 Expr_traverse(Expr *self, visitproc visit, void *arg)
@@ -149,6 +357,24 @@ Expr_new(PyTypeObject *type, PyObject *args, PyObject *kws)
     Py_INCREF(self->pair);
   }
   return (PyObject *)self;
+}
+
+static PyObject *
+Expr_new_from_head_data(PyTypeObject *type, PyObject* head, PyObject* data)
+{
+  PyObject* expr = type->tp_alloc(type, 0);
+  if (expr != NULL)
+    {
+      ((Expr*)expr)->pair = PyTuple_Pack(2, head, data);
+      ((Expr*)expr)->hash = -1;
+    }
+  return expr;
+}
+
+static PyObject *
+Expr_new_from_data(PyTypeObject *type, PyObject* head, PyObject* data)
+{
+  return PyObject_CallMethodObjArgs(head, str_new, (PyObject*)type, data, NULL);
 }
 
 static PyObject *
@@ -730,576 +956,333 @@ Expr_richcompare(PyObject *v, PyObject *w, int op)
     return NULL; \
   }
 
-
 static PyObject*
-Expr_canonize_FACTORS(Expr *self) {
-  PyObject *data = PyTuple_GET_ITEM(self->pair, 1);
-  Py_ssize_t n = 0;
-  PyObject *key = NULL;
-  PyObject *value = NULL;
-  PyObject *one = NULL;
-  CHECK_DICT_ARG("Expr.canonize_FACTORS()", data);
-  switch (PyDict_Size(data)) {
-  case 0:
-    return PyObject_GetAttrString((PyObject*)self, "one");
-  case 1:
-    PyDict_Next(data, &n, &key, &value);
-    if (PyInt_CheckExact(value) && PyInt_AS_LONG(value)==1) {
-      Py_INCREF(key);
-      return key;
-    }
-    one = PyInt_FromLong(1);
-    switch (PyObject_RichCompareBool(value, one, Py_EQ)) {
-    case -1:
-      Py_DECREF(one);
-      return NULL;
-    case 1: 
-      Py_DECREF(one);
-      Py_INCREF(key);
-      return key;
-    }
-    Py_DECREF(one);
-    one = PyObject_GetAttrString((PyObject*)self, "one");
-    if (key==one || one==NULL) {
-      return one;
-    }
-    switch (PyObject_RichCompareBool(key, one, Py_EQ)) {
-    case -1:
-      Py_DECREF(one);
-      return NULL;
-    case 1: 
-      return one;
-    }
-    Py_DECREF(one);
-  }
-  Py_INCREF(self);
-  return (PyObject*)self;
-}
-
-static PyObject*
-Expr_canonize_TERMS(Expr *self) {
-  PyObject *data = PyTuple_GET_ITEM(self->pair, 1);
-  Py_ssize_t n = 0;
-  PyObject *key = NULL;
-  PyObject *value = NULL;
-  PyObject *one = NULL;
-  CHECK_DICT_ARG("Expr.canonize_TERMS()", data);
-  switch (PyDict_Size(data)) {
-  case 0:
-    return PyObject_GetAttrString((PyObject*)self, "zero");
-  case 1:
-    PyDict_Next(data, &n, &key, &value);
-    if (PyInt_CheckExact(value) && PyInt_AS_LONG(value)==1) {
-      Py_INCREF(key);
-      return key;
-    }
-    one = PyInt_FromLong(1);
-    switch (PyObject_RichCompareBool(value, one, Py_EQ)) {
-    case -1:
-      Py_DECREF(one);
-      return NULL;
-    case 1: 
-      Py_DECREF(one);
-      Py_INCREF(key);
-      return key;
-    }
-    Py_DECREF(one);
-    one = PyObject_GetAttrString((PyObject*)self, "one");
-    if (one==NULL)
-      return NULL;
-    if (key==one) {
-      Py_INCREF(one);
-      return Expr_new(((PyObject*)self)->ob_type, Py_BuildValue("(OO)", NUMBER, value), NULL);
-    }
-    switch (PyObject_RichCompareBool(key, one, Py_EQ)) {
-    case -1:
-      Py_DECREF(one);
-      return NULL;
-    case 1: 
-      Py_INCREF(one);
-      return Expr_new(((PyObject*)self)->ob_type, Py_BuildValue("(OO)", NUMBER, value), NULL);
-    }
-    Py_DECREF(one);
-  }
-  Py_INCREF(self);
-  return (PyObject*)self;
-}
-
-static PyObject*
-dict_mul_value(PyObject *self, PyObject *args)
+Expr_term_coeff(Expr *self)
 {
-  int nofargs = PyTuple_GET_SIZE(args);
-  if (!(nofargs==2)) 
-    {	    
-      PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("dict_mul_value takes 2 arguments (%d given)", nofargs));
-      return NULL;							
-    }
-  PyObject *d = PyTuple_GET_ITEM(args, 0);
-  PyObject *value = PyTuple_GET_ITEM(args, 1);
-  Py_ssize_t pos = 0;
-  PyObject *t = NULL;
-  PyObject *c = NULL;
-  while (PyDict_Next(d, &pos, &t, &c)) 
+  PyObject *head = PyTuple_GET_ITEM(self->pair, 0);
+  PyObject *data = PyTuple_GET_ITEM(self->pair, 1);
+  if (head==TERM_COEFF)
     {
-      if ((c = PyNumber_Multiply(c, value))==NULL) return NULL;
-      if (PyDict_SetItem(d, t, c)==-1) return NULL;
+      Py_INCREF(data);
+      return data;
     }
-  Py_INCREF(Py_None);
-  return Py_None;
-}
-
-static PyObject*
-dict_mul_dict(PyObject *self, PyObject *args) 
-{
-  PyObject *sum = NULL;
-  PyObject *obj = NULL;
-  int nofargs = PyTuple_GET_SIZE(args);
-  if (!(nofargs==3)) 
-    {	    
-      PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("dict_mul_dict takes 3 arguments (%d given)", nofargs));
-      return NULL;							
-    }			
-  PyObject *d = PyTuple_GET_ITEM(args, 0);
-  PyObject *dict1 = PyTuple_GET_ITEM(args, 1);
-  PyObject *dict2 = PyTuple_GET_ITEM(args, 2);
-  Py_ssize_t pos1 = 0;
-  Py_ssize_t pos2 = 0;
-  PyObject *t1 = NULL;
-  PyObject *c1 = NULL;
-  PyObject *t2 = NULL;
-  PyObject *c2 = NULL;
-  PyObject *t = NULL;
-  PyObject *c = NULL;
-  while (PyDict_Next(dict1, &pos1, &t1, &c1)) 
+  if (head==NUMBER)
+    return PyTuple_Pack(2, self, data);
+  if (head==BASE_EXP_DICT)
     {
-      pos2 = 0;
-      while (PyDict_Next(dict2, &pos2, &t2, &c2))
+      PyObject *coeff = algebra_base_exp_dict_get_coefficient(self->ob_type, data);
+      if (coeff != Py_None)
 	{
-	  if ((t = PyNumber_Multiply(t1, t2))==NULL) return NULL;
-	  if ((c = PyNumber_Multiply(c1, c2))==NULL) return NULL;
-	  obj = PyDict_GetItem(d, t);
-	  if (obj==NULL)
-	    {
-	      if (PyDict_SetItem(d, t, c)==-1)
-		return NULL;
-	    }
-	  else
-	    {
-	      if ((sum = PyNumber_Add(obj, c))==NULL) return NULL;
-	      if (PyInt_CheckExact(sum) ? PyInt_AS_LONG(sum) : PyObject_IsTrue(sum)) 
-		{
-		  if (PyDict_SetItem(d, t, sum)==-1) return NULL;
-		}
-	      else 
-		{
-		  if (PyDict_DelItem(d, t)==-1) return NULL;
-		}
-	    }
+	  PyObject *new_data = PyDict_Copy(data);
+	  PyObject *new_expr = NULL;
+	  if (new_data==NULL) return NULL;
+	  if (PyDict_DelItem(new_data, coeff)==-1) return NULL;
+	  new_expr = Expr_new_from_data(self->ob_type, BASE_EXP_DICT, new_data);
+	  Py_DECREF(new_data);
+	  if (new_expr==NULL) return NULL;
+	  return PyTuple_Pack(2, new_expr, EXPR_GET_DATA(coeff));
 	}
     }
-  Py_INCREF(Py_None);
-  return Py_None;
-}
-
-static PyObject*
-dict_add_dict(PyObject *self, PyObject *args) {
-  PyObject *sum = NULL;
-  PyObject *obj = NULL;
-  // check that args[0] and args[1] are dicts and len(args)==2
-  int nofargs = PyTuple_GET_SIZE(args);
-  if (!(nofargs==2 || nofargs==3)) 
-    {	    
-      PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("dict_add_dict takes 2 or 3 arguments (%d given)", nofargs));
-      return NULL;							
-    }						 
-  PyObject *d = PyTuple_GET_ITEM(args, 0);
-  PyObject *dict = PyTuple_GET_ITEM(args, 1);
-  PyObject *coeff = NULL;
-  PyObject *key = NULL;
-  PyObject *value = NULL;
-  Py_ssize_t pos = 0;
-
-  if (nofargs==3)
-    {
-      coeff = PyTuple_GET_ITEM(args, 2);
-      if (PyInt_CheckExact(coeff) && PyInt_AS_LONG(coeff)==1)
-	nofargs = 2;
-    }
-  if (nofargs==3)
-    {
-      while (PyDict_Next(dict, &pos, &key, &value)) 
-	{
-	  obj = PyDict_GetItem(d, key);
-	  if (obj==NULL) 
-	    { 
-	      if ((sum = PyNumber_Multiply(value, coeff))==NULL)
-		return NULL;
-	      if (PyDict_SetItem(d, key, sum)==-1)
-		return NULL;
-	    } 
-	  else 
-	    {
-	      if ((sum = PyNumber_Multiply(value, coeff))==NULL)
-		return NULL;
-	      if ((sum = PyNumber_Add(obj, sum))==NULL)
-		return NULL;
-	      if (PyInt_CheckExact(sum) ? PyInt_AS_LONG(sum) : PyObject_IsTrue(sum)) 
-		{
-		  if (PyDict_SetItem(d, key, sum)==-1)
-		    return NULL;
-		}
-	      else 
-		{
-		  if (PyDict_DelItem(d, key)==-1)
-		    return NULL;
-		}
-	    }
-	}
-    }
-  else
-    {
-      while (PyDict_Next(dict, &pos, &key, &value)) 
-	{
-	  obj = PyDict_GetItem(d, key);
-	  if (obj==NULL) 
-	    { 
-	      if (PyDict_SetItem(d, key, value)==-1)
-		return NULL;
-	    } 
-	  else 
-	    {
-	      if ((sum = PyNumber_Add(obj, value))==NULL)
-		return NULL;
-	      if (PyInt_CheckExact(sum) ? PyInt_AS_LONG(sum) : PyObject_IsTrue(sum)) 
-		{
-		  if (PyDict_SetItem(d, key, sum)==-1)
-		    return NULL;
-		}
-	      else 
-		{
-		  if (PyDict_DelItem(d, key)==-1)
-		    return NULL;
-		}
-	    }
-	}
-    }
-  Py_INCREF(Py_None);
-  return Py_None;
-}
-
-static PyObject*
-dict_sub_dict(PyObject *self, PyObject *args) {
-  PyObject *sum = NULL;
-  PyObject *obj = NULL;
-  // check that args[0] and args[1] are dicts and len(args)==2
-  PyObject* d = PyTuple_GET_ITEM(args, 0);
-  PyObject *dict = PyTuple_GET_ITEM(args, 1);
-  PyObject *key = NULL;
-  PyObject *value = NULL;
-  Py_ssize_t pos = 0;
-  while (PyDict_Next(dict, &pos, &key, &value)) 
-    {
-      obj = PyDict_GetItem(d, key);
-      if (obj==NULL) 
-	{ 
-	  if (PyDict_SetItem(d, key, PyNumber_Negative(value))==-1)
-	    return NULL;
-	} 
-      else 
-	{
-	  if ((sum = PyNumber_Subtract(obj, value))==NULL)
-	    return NULL;
-	  if (PyInt_CheckExact(sum) ? PyInt_AS_LONG(sum) : PyObject_IsTrue(sum)) 
-	    {
-	      if (PyDict_SetItem(d, key, sum)==-1)
-		return NULL;
-	    }
-	  else 
-	    {
-	      if (PyDict_DelItem(d, key)==-1)
-		return NULL;
-	    }
-	}
-    }
-  Py_INCREF(Py_None);
-  return Py_None;
-}
-
-static PyObject*
-Expr_dict_add_dict(Expr *self, PyObject *args) {
-  PyObject *sum = NULL;
-  PyObject *obj = NULL;
-  PyObject *data = PyTuple_GET_ITEM(self->pair, 1);
-  PyObject *dict = NULL;
-  PyObject *key = NULL;
-  PyObject *value = NULL;
-  Py_ssize_t pos = 0;
-  CHECK_WRITABLE_DICTDATA("Expr._add_dict()", self);
-  CHECK_MTH_ARGS("Expr._add_dict()", 1);
-  dict = PyTuple_GET_ITEM(args, 0);
-  CHECK_DICT_ARG("Expr._add_dict()", dict);
-  while (PyDict_Next(dict, &pos, &key, &value)) {
-    obj = PyDict_GetItem(data, key);
-    if (obj==NULL) { 
-      if (PyDict_SetItem(data, key, value)==-1)
-	return NULL;
-    } else {
-      if ((sum = PyNumber_Add(obj, value))==NULL)
-	return NULL;
-      if (PyInt_CheckExact(sum) ? PyInt_AS_LONG(sum) : PyObject_IsTrue(sum)) {
-	if (PyDict_SetItem(data, key, sum)==-1)
-	  return NULL;
-      } else {
-	if (PyDict_DelItem(data, key)==-1)
-	  return NULL;
-      }
-    }
-  }
-  Py_INCREF(Py_None);
-  return Py_None;
-}
-
-static PyObject*
-Expr_dict_sub_dict(Expr *self, PyObject *args) {
-  PyObject *sum = NULL;
-  PyObject *obj = NULL;
-  PyObject *data = PyTuple_GET_ITEM(self->pair, 1);
-  PyObject *dict = NULL;
-  PyObject *key = NULL;
-  PyObject *value = NULL;
-  Py_ssize_t pos = 0;
-  CHECK_WRITABLE_DICTDATA("Expr._sub_dict()", self);
-  CHECK_MTH_ARGS("Expr._sub_dict()", 1);
-  dict = PyTuple_GET_ITEM(args, 0);
-  CHECK_DICT_ARG("Expr._sub_dict()", dict);
-  while (PyDict_Next(dict, &pos, &key, &value)) {
-    obj = PyDict_GetItem(data, key);
-    if (obj==NULL) { 
-      if (PyDict_SetItem(data, key, PyNumber_Negative(value))==-1)
-	return NULL;
-    } else {
-      if ((sum = PyNumber_Subtract(obj, value))==NULL)
-	return NULL;
-      if (PyInt_CheckExact(sum) ? PyInt_AS_LONG(sum) : PyObject_IsTrue(sum)) {
-	if (PyDict_SetItem(data, key, sum)==-1)
-	  return NULL;
-      } else {
-	if (PyDict_DelItem(data, key)==-1)
-	  return NULL;
-      }
-    }
-  }
-  Py_INCREF(Py_None);
-  return Py_None;
-}
-
-static PyObject*
-Expr_dict_add_dict2(Expr *self, PyObject *args) {
-  PyObject *sum = NULL;
-  PyObject *obj = NULL;
-  PyObject *data = PyTuple_GET_ITEM(self->pair, 1);
-  PyObject *dict = NULL;
-  PyObject *key = NULL;
-  PyObject *value = NULL;
-  PyObject *coeff = NULL;
-  PyObject *tmp = NULL;
-  Py_ssize_t pos = 0;
-  CHECK_WRITABLE_DICTDATA("Expr._add_dict2()", self);
-  CHECK_MTH_ARGS("Expr._add_dict2()", 2);
-  dict = PyTuple_GET_ITEM(args, 0);
-  CHECK_DICT_ARG("Expr._add_dict2()", dict);
-  coeff = PyTuple_GET_ITEM(args, 1);
-  while (PyDict_Next(dict, &pos, &key, &value)) {
-    tmp = PyNumber_Multiply(value, coeff);
-    obj = PyDict_GetItem(data, key);
-    if (obj==NULL) {
-      if (PyDict_SetItem(data, key, tmp)==-1)
-	return NULL;
-    } else {
-      if ((sum = PyNumber_Add(obj, tmp))==NULL)
-	return NULL;
-      if (PyInt_CheckExact(sum) ? PyInt_AS_LONG(sum) : PyObject_IsTrue(sum)) {
-	if (PyDict_SetItem(data, key, sum)==-1)
-	  return NULL;
-      } else {
-	if (PyDict_DelItem(data, key)==-1)
-	  return NULL;
-      }
-    }
-  }
-  Py_INCREF(Py_None);
-  return Py_None;
-}
-
-static PyObject*
-Expr_dict_add_dict3(Expr *self, PyObject *args) {
-  PyObject *sum = NULL;
-  PyObject *obj = NULL;
-  PyObject *data = PyTuple_GET_ITEM(self->pair, 1);
-  PyObject *dict = NULL;
-  PyObject *key = NULL;
-  PyObject *value = NULL;
-  Py_ssize_t pos = 0;
-  PyTypeObject *type = ((PyObject*)self)->ob_type;
-  PyObject *result = NULL;
-  PyObject *tmp = NULL;
-  CHECK_WRITABLE_DICTDATA("Expr._add_dict3()", self);
-  CHECK_MTH_ARGS("Expr._add_dict3()", 1);
-  dict = PyTuple_GET_ITEM(args, 0);
-  CHECK_DICT_ARG("Expr._add_dict3()", dict);
-  while (PyDict_Next(dict, &pos, &key, &value)) {
-    obj = PyDict_GetItem(data, key);
-    if (obj==NULL) { 
-      if (PyDict_SetItem(data, key, value)==-1)
-	return NULL;
-    } else {
-      if ((sum = PyNumber_Add(obj, value))==NULL)
-	return NULL;
-      if (sum->ob_type==type && PyTuple_GET_ITEM(((Expr*)sum)->pair, 0)==NUMBER) {
-	tmp = PyTuple_GET_ITEM(((Expr*)sum)->pair, 1);
-	Py_DECREF(sum);
-	sum = tmp;
-      }
-      if (PyInt_CheckExact(sum) ? PyInt_AS_LONG(sum) : PyObject_IsTrue(sum)) {
-	if (key->ob_type==type && PyTuple_GET_ITEM(((Expr*)key)->pair, 0)==NUMBER) {
-	  if (result==NULL)
-	    tmp = PyObject_CallMethodObjArgs((PyObject*)self,
-					     str_handle_numeric_item,
-					     Py_None,
-					     key,
-					     sum,
-					     NULL
-					     );
-	  else
-	    tmp = PyObject_CallMethodObjArgs((PyObject*)self,
-					     str_handle_numeric_item,
-					     result,
-					     key,
-					     sum,
-					     NULL
-					     );
-	  if (tmp==NULL) // XXX: cleanup
-	    return NULL;
-	  result = tmp;
-	} else if (PyDict_SetItem(data, key, sum)==-1)
-	  return NULL;
-      } else {
-	if (PyDict_DelItem(data, key)==-1)
-	  return NULL;
-      }
-    }
-  }
-  if (result==NULL) {
-    Py_INCREF(Py_None);
-    return Py_None;
-  }
-  return result;
+  return PyTuple_Pack(2, self, one);
 }
 
 static PyObject *
 dict_get_item(PyObject *self, PyObject *args)
 {
-  // check that args[0] is dict and len(args)==1
+  // TODO: check that args[0] is dict and len(args)==1
   PyObject *d = PyTuple_GET_ITEM(args, 0);
   PyObject *key = NULL;
   PyObject *value = NULL;
   Py_ssize_t pos = 0;
   if (!PyDict_Next(d, &pos, &key, &value))
     return NULL;
-  return Py_BuildValue("OO", key, value);
+  return PyTuple_Pack(2, key, value);
 }
 
-static PyObject *
-dict_add_item(PyObject *self, PyObject *args)
+int algebra_dict_add_item(PyTypeObject *Algebra, PyObject *d, PyObject *key, PyObject *value)
 {
-  // check that args[0] is dict and len(args)==3
-  PyObject *d = PyTuple_GET_ITEM(args, 0);
-  PyObject* item_key = PyTuple_GET_ITEM(args, 1);
-  PyObject* item_value = PyTuple_GET_ITEM(args, 2);
-  PyObject *sum = NULL;
-  PyObject* obj = PyDict_GetItem(d, item_key);
-  if (obj==NULL) { 
-    if (PyDict_SetItem(d, item_key, item_value)==-1)
-      return NULL;
-  } else {
-    if ((sum = PyNumber_Add(obj, item_value))==NULL)
-      return NULL;
-    if (PyInt_CheckExact(sum) ? PyInt_AS_LONG(sum) : PyObject_IsTrue(sum)) {
-      if (PyDict_SetItem(d, item_key, sum)==-1)
-	return NULL;
-    } else {
-      if (PyDict_DelItem(d, item_key)==-1)
-	return NULL;
-    }
-  }
-  Py_INCREF(Py_None);
-  return Py_None;
+  PyObject* obj = PyDict_GetItem(d, key);
+  PyObject* sum = NULL;
+  if (obj==NULL) 
+    return PyDict_SetItem(d, key, value);
+  if ((sum = PyNumber_Add(obj, value))==NULL)
+    return -1;
+  if (PyInt_CheckExact(sum) ? PyInt_AS_LONG(sum) : PyObject_IsTrue(sum)) 
+    return PyDict_SetItem(d, key, sum);
+  return PyDict_DelItem(d, key);
 }
 
-/*
-  If Expr.data is dictionary then add to it non-zero value inplace.
- */
-static PyObject *
-Expr_dict_add_item(Expr *self, PyObject *args) {
-  PyObject *sum = NULL;
-  PyObject *obj = NULL;
-  PyObject *d = PyTuple_GET_ITEM(self->pair, 1);
-  PyObject *item_key = NULL;
-  PyObject *item_value = NULL;
-  CHECK_WRITABLE_DICTDATA("Expr._add_item()", self);
-  CHECK_MTH_ARGS("Expr._add_item()", 2);
-  item_key = PyTuple_GET_ITEM(args, 0);
-  item_value = PyTuple_GET_ITEM(args, 1);
-  obj = PyDict_GetItem(d, item_key);
-  if (obj==NULL) { 
-    if (PyDict_SetItem(d, item_key, item_value)==-1)
-      return NULL;
-  } else {
-    if ((sum = PyNumber_Add(obj, item_value))==NULL)
-      return NULL;
-    if (PyInt_CheckExact(sum) ? PyInt_AS_LONG(sum) : PyObject_IsTrue(sum)) {
-      if (PyDict_SetItem(d, item_key, sum)==-1)
-	return NULL;
-    } else {
-      if (PyDict_DelItem(d, item_key)==-1)
-	return NULL;
-    }
-  }
-  Py_INCREF(Py_None);
-  return Py_None;
+int algebra_dict_subtract_item(PyTypeObject *Algebra, PyObject *d, PyObject *key, PyObject *value)
+{
+  PyObject* obj = PyDict_GetItem(d, key);
+  PyObject* sum = NULL;
+  if (obj==NULL) 
+    return PyDict_SetItem(d, key, value);
+  if ((sum = PyNumber_Subtract(obj, value))==NULL)
+    return -1;
+  if (PyInt_CheckExact(sum) ? PyInt_AS_LONG(sum) : PyObject_IsTrue(sum)) 
+    return PyDict_SetItem(d, key, sum);
+  return PyDict_DelItem(d, key);
 }
 
-/*
-  If Expr.data is dictionary then subtract from it non-zero value inplace.
- */
-static PyObject *
-Expr_dict_sub_item(Expr *self, PyObject *args) {
-  PyObject *sum = NULL;
-  PyObject *obj = NULL;
-  PyObject *d = PyTuple_GET_ITEM(self->pair, 1);
-  PyObject *item_key = NULL;
+int algebra_dict_add_dict(PyTypeObject *Algebra, PyObject *d1, PyObject *d2)
+{
+  PyObject *key = NULL;
+  PyObject *value = NULL;
+  Py_ssize_t pos = 0;
+  while (PyDict_Next(d2, &pos, &key, &value))
+    if (algebra_dict_add_item(Algebra, d1, key, value)==-1)
+      return -1;
+  return 0;
+}
+
+int algebra_dict_subtract_dict(PyTypeObject *Algebra, PyObject *d1, PyObject *d2)
+{
+  PyObject *key = NULL;
+  PyObject *value = NULL;
+  Py_ssize_t pos = 0;
+  while (PyDict_Next(d2, &pos, &key, &value))
+    if (algebra_dict_subtract_item(Algebra, d1, key, value)==-1)
+      return -1;
+  return 0;
+}
+
+int algebra_dict_mul_value(PyTypeObject *Algebra, PyObject *d, PyObject *value)
+{
+  PyObject *key = NULL;
   PyObject *item_value = NULL;
-  CHECK_WRITABLE_DICTDATA("Expr._sub_item()", self);
-  CHECK_MTH_ARGS("Expr._sub_item()", 2);
-  item_key = PyTuple_GET_ITEM(args, 0);
-  item_value = PyTuple_GET_ITEM(args, 1);
-  obj = PyDict_GetItem(d, item_key);
-  if (obj==NULL) { 
-    if (PyDict_SetItem(d, item_key, PyNumber_Negative(item_value))==-1)
-      return NULL;
-  } else {
-    if ((sum = PyNumber_Subtract(obj, item_value))==NULL)
-      return NULL;
-    if (PyInt_CheckExact(sum) ? PyInt_AS_LONG(sum) : PyObject_IsTrue(sum)) {
-      if (PyDict_SetItem(d, item_key, sum)==-1)
-	return NULL;
-    } else {
-      if (PyDict_DelItem(d, item_key)==-1)
-	return NULL;
+  PyObject *obj_value = value;
+  PyObject *obj = NULL;
+  Py_ssize_t pos = 0;
+  if (EXPR_IS_NUMBER(value))
+    obj_value = EXPR_GET_DATA(value);
+  while (PyDict_Next(d, &pos, &key, &item_value))
+    {
+      obj = PyNumber_Multiply(item_value, obj_value);
+      if (PyDict_SetItem(d, key, obj)==-1)
+	{
+	  Py_DECREF(obj);
+	  return -1;
+	}
+	;
+      Py_DECREF(obj);
     }
-  }
-  Py_INCREF(Py_None);
-  return Py_None;
+  return 0;
+}
+
+int algebra_dict_mul_dict(PyTypeObject *Algebra, PyObject *d, PyObject *d1, PyObject *d2)
+{
+  PyObject *key1 = NULL;
+  PyObject *value1 = NULL;
+  Py_ssize_t pos1 = 0;
+  PyObject *key2 = NULL;
+  PyObject *value2 = NULL;
+  Py_ssize_t pos2 = 0;
+  PyObject *key = NULL;
+  PyObject *value = NULL;
+  while (PyDict_Next(d1, &pos1, &key1, &value1))
+    {
+      pos2 = 0;
+      while (PyDict_Next(d2, &pos2, &key2, &value2))
+	{
+	  key = PyNumber_Multiply(key1, key2);
+	  value = PyNumber_Multiply(value1, value2);
+	  if (algebra_dict_add_item(Algebra, d, key, value)==-1)
+	    return -1;
+	}
+    }
+  return 0;
+}
+
+int algebra_exp_coeff_dict_mul_dict(PyTypeObject *Algebra, PyObject *d, PyObject *d1, PyObject *d2)
+{
+  PyObject *key1 = NULL;
+  PyObject *value1 = NULL;
+  Py_ssize_t pos1 = 0;
+  PyObject *key2 = NULL;
+  PyObject *value2 = NULL;
+  Py_ssize_t pos2 = 0;
+  PyObject *key = NULL;
+  PyObject *value = NULL;
+  while (PyDict_Next(d1, &pos1, &key1, &value1))
+    {
+      pos2 = 0;
+      while (PyDict_Next(d2, &pos2, &key2, &value2))
+	{
+	  key = PyNumber_Add(key1, key2);
+	  value = PyNumber_Multiply(value1, value2);
+	  if (algebra_dict_add_item(Algebra, d, key, value)==-1)
+	    return -1;
+	}
+    }
+  return 0;
+}
+
+PyObject* algebra_base_exp_dict_get_coefficient(PyTypeObject* Algebra, PyObject* d)
+{
+  PyObject *key = NULL;
+  PyObject *value = NULL;
+  PyObject *coeff = Py_None;
+  Py_ssize_t pos = 0;
+  while (PyDict_Next(d, &pos, &key, &value))
+    {
+      if (value==one && EXPR_GET_HEAD(key)==NUMBER)
+	{
+	  coeff = key;
+	  break;
+	}
+    }
+  return coeff;
+}
+
+int algebra_base_exp_dict_add_item(PyTypeObject* Algebra, PyObject* d, PyObject* base, PyObject* exp)
+{
+  PyObject *bhead = EXPR_GET_HEAD(base);
+  PyObject *bdata = EXPR_GET_DATA(base);
+  PyObject *bexp = PyDict_GetItem(d, base);
+  PyObject *e = exp;
+  if (EXPR_IS_NUMBER(exp))
+    e = EXPR_GET_DATA(exp);
+  if (bexp==NULL)
+    {
+      if (bhead==NUMBER)
+	{
+	  if (bdata==one)
+	    return 0;
+	  if (e==one)
+	    {
+	      PyObject* coeff = algebra_base_exp_dict_get_coefficient(Algebra, d);
+	      if (coeff==Py_None)
+		{
+		  PyDict_SetItem(d, base, one);
+		}
+	      else
+		{
+		  PyDict_DelItem(d, coeff);
+		  coeff = PyNumber_Multiply(coeff, base);
+		  if (coeff==NULL) return -1;
+		  if (!EXPR_IS_ONE(coeff))
+		    PyDict_SetItem(d, coeff, one);
+		}
+	    }
+	  else
+	    {
+	      PyDict_SetItem(d, base, e);
+	    }
+	}
+      else
+	{
+	  PyDict_SetItem(d, base, e);
+	}
+    }
+  else
+    {
+      bexp = PyNumber_Add(bexp, e);
+      if (EXPR_IS_NUMBER(bexp))
+	{
+	  e = EXPR_GET_DATA(bexp);
+	  Py_DECREF(bexp);
+	  bexp = e;
+	}
+      if (bexp==zero)
+	PyDict_DelItem(d, base);
+      else
+	{
+	  if (bhead==NUMBER && OBJ_IS_NUMBER(bexp))
+	    {
+	      PyObject* rl = NULL;
+	      PyObject* r = NULL;
+	      PyObject* l = NULL;
+	      int fail = PyDict_DelItem(d, base);
+	      if (fail) return fail;
+	      rl = PyObject_CallFunctionObjArgs(py_try_power, bdata, bexp, NULL);
+	      if (rl==NULL) return -1;
+	      r = PyTuple_GetItem(rl, 0);
+	      l = PyTuple_GetItem(rl, 1);
+	      if (r!=one)
+		{
+		  PyObject* tmp = Expr_new_from_head_data(Algebra, NUMBER, r);
+		  if (tmp==NULL) fail = -1;
+		  else
+		    {
+		      fail = algebra_base_exp_dict_add_item(Algebra, d, tmp, one);
+		      Py_DECREF(tmp);
+		    }
+		}
+	      else if (PyList_Size(l)==1 && PyList_GET_ITEM(l, 0)==bdata)
+		{
+		  PyDict_SetItem(d, base, bexp);
+		}
+	      else
+		{
+		  Py_ssize_t m = PyList_Size(l);
+		  PyObject *item = NULL;
+		  PyObject *b = NULL;
+		  PyObject *e = NULL;
+		  Py_ssize_t i=0;
+		  for (i=0; i<m; ++i)
+		    {
+		      item = PyList_GET_ITEM(l, i);
+		      b = Expr_new_from_head_data(Algebra, NUMBER, PyTuple_GET_ITEM(item, 0));
+		      e = PyTuple_GET_ITEM(item, 1);
+		      fail = algebra_base_exp_dict_add_item(Algebra, d, b, e);
+		      Py_DECREF(b);
+		      if (fail==-1)
+			break;
+		    }
+		}
+	      Py_DECREF(rl);
+	      return fail;
+	    }
+	  else if (bhead==TERM_COEFF && OBJ_IS_INTEGER(bexp))
+	    {
+	      PyObject* term = PyTuple_GET_ITEM(bdata, 0);
+	      PyObject* coeff = PyTuple_GET_ITEM(bdata, 1);
+	      PyDict_DelItem(d, base);
+	      if (algebra_base_exp_dict_add_item(Algebra, d, term, bexp)) return -1;
+	      if (algebra_base_exp_dict_add_item(Algebra, d, 
+						 Expr_new_from_head_data(Algebra, NUMBER, coeff), bexp)) return -1;
+	    }
+	  else
+	    PyDict_SetItem(d, base, bexp);
+	}
+    }
+  return 0;
+}
+
+int algebra_base_exp_dict_add_dict(PyTypeObject *Algebra, PyObject *d1, PyObject *d2)
+{
+  PyObject *key = NULL;
+  PyObject *value = NULL;
+  Py_ssize_t pos = 0;
+  while (PyDict_Next(d2, &pos, &key, &value))
+    if (algebra_base_exp_dict_add_item(Algebra, d1, key, value)==-1)
+      return -1;
+  return 0;
+}
+
+int algebra_base_exp_dict_mul_dict(PyTypeObject *Algebra, PyObject *d, PyObject *d1, PyObject *d2)
+{
+  PyObject *key1 = NULL;
+  PyObject *value1 = NULL;
+  Py_ssize_t pos1 = 0;
+  PyObject *key2 = NULL;
+  PyObject *value2 = NULL;
+  Py_ssize_t pos2 = 0;
+  PyObject *key = NULL;
+  PyObject *value = NULL;
+  while (PyDict_Next(d1, &pos1, &key1, &value1))
+    {
+      pos2 = 0;
+      while (PyDict_Next(d2, &pos2, &key2, &value2))
+	{
+	  key = PyNumber_Multiply(key1, key2);
+	  value = PyNumber_Multiply(value1, value2);
+	  if (algebra_base_exp_dict_add_item(Algebra, d, key, value)==-1)
+	    return -1;
+	}
+    }
+  return 0;
 }
 
 static PyObject *
@@ -1367,10 +1350,54 @@ static PyObject *init_module(PyObject *self, PyObject *args)
       INIT_HEAD(TERM_COEFF, "TERM_COEFF");
       INIT_HEAD(TERM_COEFF_DICT, "TERM_COEFF_DICT");
       INIT_HEAD(BASE_EXP_DICT, "BASE_EXP_DICT");
+      INIT_HEAD(EXP_COEFF_DICT, "EXP_COEFF_DICT");
+      Py_DECREF(m);
+      m = PyImport_ImportModule("sympycore.arithmetic.numbers");
+      if (m == NULL)
+	return NULL;
+      INIT_HEAD(py_try_power, "try_power");
+      INIT_HEAD(py_numbertypes, "numbertypes");
       Py_DECREF(m);
     }
   return Py_BuildValue("");
 }
+
+int dict_mul_item(PyObject* d, PyObject* key, PyObject* value)
+{
+  PyObject *new_value = value;
+  PyObject *obj = PyDict_GetItem(d, key);
+  if (obj!=NULL)
+    {
+      new_value = PyNumber_Multiply(obj, value);
+      if (new_value==NULL) return -1;
+    }
+  return PyDict_SetItem(d, key, new_value); // returns 0 on success
+}
+
+int algebra_dict_mul_item(PyTypeObject* Algebra, PyObject* d, PyObject* key, PyObject* value)
+{
+  PyObject *new_value = value;
+  PyObject *obj = PyDict_GetItem(d, key);
+  if (obj!=NULL)
+    {
+      new_value = PyNumber_Multiply(obj, value);
+      if (new_value==NULL) return -1;
+    }
+  return PyDict_SetItem(d, key, new_value); // returns 0 on success
+}
+
+ALGEBRA_DICT_PROC_WRAPPER_4(algebra_dict_mul_item, "dict_mul_item");
+ALGEBRA_DICT_PROC_WRAPPER_4(algebra_base_exp_dict_add_item, "base_exp_dict_add_item");
+ALGEBRA_DICT_PROC_WRAPPER_4(algebra_dict_add_item, "dict_add_item");
+ALGEBRA_DICT_PROC_WRAPPER_4(algebra_dict_subtract_item, "dict_sub_item");
+ALGEBRA_DICT_PROC_WRAPPER_3(algebra_dict_mul_value, "dict_mul_value");
+ALGEBRA_DICT_PROC_WRAPPER_3(algebra_dict_add_dict, "dict_add_dict");
+ALGEBRA_DICT_PROC_WRAPPER_3(algebra_base_exp_dict_add_dict, "base_exp_dict_add_dict");
+ALGEBRA_DICT_PROC_WRAPPER_3(algebra_dict_subtract_dict, "dict_sub_dict");
+ALGEBRA_DICT_PROC_WRAPPER_4(algebra_dict_mul_dict, "dict_mul_dict");
+ALGEBRA_DICT_PROC_WRAPPER_4(algebra_base_exp_dict_mul_dict, "base_exp_dict_mul_dict");
+ALGEBRA_DICT_PROC_WRAPPER_4(algebra_exp_coeff_dict_mul_dict, "exp_coeff_dict_mul_dict");
+ALGEBRA_DICT_FUNC_WRAPPER_2(algebra_base_exp_dict_get_coefficient, "base_exp_dict_get_coefficient");
 
 static PyGetSetDef Expr_getseters[] = {
     {"head", (getter)Expr_gethead, NULL,
@@ -1390,14 +1417,7 @@ static PyMethodDef Expr_methods[] = {
   {"__nonzero__", (PyCFunction)Expr_nonzero, METH_VARARGS, NULL},
   {"__nonzero2__", (PyCFunction)Expr_nonzero2, METH_VARARGS, NULL},
   {"_sethash", (PyCFunction)Expr_sethash, METH_VARARGS, NULL},
-  {"_add_item", (PyCFunction)Expr_dict_add_item, METH_VARARGS, NULL},
-  {"_sub_item", (PyCFunction)Expr_dict_sub_item, METH_VARARGS, NULL},
-  {"_add_dict", (PyCFunction)Expr_dict_add_dict, METH_VARARGS, NULL},
-  {"_sub_dict", (PyCFunction)Expr_dict_sub_dict, METH_VARARGS, NULL},
-  {"_add_dict2", (PyCFunction)Expr_dict_add_dict2, METH_VARARGS, NULL},
-  {"_add_dict3", (PyCFunction)Expr_dict_add_dict3, METH_VARARGS, NULL},
-  {"canonize_FACTORS", (PyCFunction)Expr_canonize_FACTORS, METH_VARARGS, NULL},
-  {"canonize_TERMS", (PyCFunction)Expr_canonize_TERMS, METH_VARARGS, NULL},
+  {"term_coeff", (PyCFunction)Expr_term_coeff, METH_VARARGS, NULL},
   {NULL, NULL}           /* sentinel */
 };
 
@@ -1500,12 +1520,50 @@ static PyTypeObject PairType = {
 
 static PyMethodDef module_methods[] = {
   {"init_module",  init_module, METH_VARARGS, "Initialize module."},
-  {"dict_add_item",  dict_add_item, METH_VARARGS, "dict_add_item(dict, key, value) - add (key, value) pair to dict"},
   {"dict_get_item", dict_get_item, METH_VARARGS, "dict_get_item(dict) - return the first (key, value) pair of a dict."},
-  {"dict_add_dict",  dict_add_dict, METH_VARARGS, "dict_add_dict(dict, dict1) - add dict1 items to dict"},
-  {"dict_sub_dict",  dict_sub_dict, METH_VARARGS, "dict_sub_dict(dict, dict1) - add negated dict1 items to dict"},
-  {"dict_mul_dict",  dict_mul_dict, METH_VARARGS, "dict_mul_dict(dict, dict1, dict2) - multiply dict1 and dict2 items and add them to dict"},
-  {"dict_mul_value",  dict_mul_value, METH_VARARGS, "dict_mul_value(dict, value) - multiply dict values with value"},
+  //{"dict_mul_dict",  dict_mul_dict, METH_VARARGS, "dict_mul_dict(dict, dict1, dict2) - multiply dict1 and dict2 items and add them to dict"},
+  //
+
+  {"dict_mul_item",  func_algebra_dict_mul_item, METH_VARARGS, 
+   "dict_mul_item(Algebra, dict, key, value) - multiply dict key value with value"},
+
+  {"dict_add_item",  func_algebra_dict_add_item, METH_VARARGS,
+   "dict_add_item(Algebra, dict, key, value) - add (key, value) pair to dict"},
+  {"dict_sub_item",  func_algebra_dict_subtract_item, METH_VARARGS,
+   "dict_sub_item(Algebra, dict, key, value) - subtract (key, value) pair to dict"},
+  {"dict_mul_value",  func_algebra_dict_mul_value, METH_VARARGS, 
+   "dict_mul_value(dict, value) - multiply dict values with value"},
+
+  {"dict_add_dict",  func_algebra_dict_add_dict, METH_VARARGS,
+   "dict_add_dict(Algebra, dict1, dict2) - add dict2 items to dict1"},
+  {"dict_sub_dict",  func_algebra_dict_subtract_dict, METH_VARARGS,
+   "dict_sub_dict(Algebra, dict1, dict2) - subtract dict2 items from dict1"},
+  {"dict_mul_dict",  func_algebra_dict_mul_dict, METH_VARARGS,
+   "dict_mul_dict(Algebra, dict, dict1, dict2) - multiply dict1 and dict2 items and add them to dict"},
+
+  {"base_exp_dict_get_coefficient",  func_algebra_base_exp_dict_get_coefficient, METH_VARARGS,
+   "base_exp_dict_get_coefficient(Algebra, dict) - get base-exp dict coefficient or None"},
+
+  {"base_exp_dict_add_item",  func_algebra_base_exp_dict_add_item, METH_VARARGS,
+   "base_exp_dict_add_item(Algebra, dict, key, value) - add (key, value) pair to dict"},
+  {"base_exp_dict_mul_item",  func_algebra_dict_mul_item, METH_VARARGS, 
+   "base_exp_dict_mul_item(dict, key, value) - multiply dict key value with value"},
+  {"base_exp_dict_add_dict",  func_algebra_base_exp_dict_add_dict, METH_VARARGS,
+   "base_exp_dict_add_dict(Algebra, dict1, dict2) - add dict2 items to dict1"},
+  {"base_exp_dict_mul_dict",  func_algebra_base_exp_dict_mul_dict, METH_VARARGS,
+   "base_exp_dict_mul_dict(Algebra, dict, dict1, dict2) - multiply dict1 and dict2 items and add them to dict"},
+  {"base_exp_dict_mul_value",  func_algebra_dict_mul_value, METH_VARARGS, 
+   "base_exp_dict_mul_value(dict, value) - multiply dict values with value"},
+
+  {"exp_coeff_dict_mul_dict",  func_algebra_exp_coeff_dict_mul_dict, METH_VARARGS,
+   "exp_coeff_dict_mul_dict(Algebra, dict, dict1, dict2) - multiply dict1 and dict2 values, add their keys, and finally add them to dict"},
+
+  {"term_coeff_dict_add_item",  func_algebra_dict_add_item, METH_VARARGS,
+   "dict_add_item(Algebra, dict, key, value) - add (key, value) pair to dict"},
+  {"term_coeff_dict_mul_item",  func_algebra_dict_mul_item, METH_VARARGS, 
+   "term_coeff_dict_mul_item(dict, key, value) - multiply dict key value with value"},
+  {"term_coeff_dict_mul_dict",  func_algebra_dict_mul_dict, METH_VARARGS,
+   "term_coeff_dict_mul_dict(Algebra, dict, dict1, dict2) - multiply dict1 and dict2 items and add them to dict"},
   {NULL}  /* Sentinel */
 };
 
@@ -1517,8 +1575,9 @@ initexpr_ext(void)
 {
   PyObject* m = NULL;
   NUMBER = SYMBOL = SPECIAL = ADD = MUL = POW = TERM_COEFF_DICT =
-    TERM_COEFF = BASE_EXP_DICT = SUB = DIV = NULL;
-
+    TERM_COEFF = BASE_EXP_DICT = SUB = DIV = EXP_COEFF_DICT = NULL;
+  py_try_power = py_numbertypes = NULL;
+  
   if (PyType_Ready(&ExprType) < 0)
     return;
 
@@ -1531,6 +1590,9 @@ initexpr_ext(void)
   one = PyInt_FromLong(1);
   if (one==NULL) return;
 
+  str_new = PyString_FromString("new");
+  if (str_new==NULL)
+    return;
   str_convert = PyString_FromString("convert");
   if (str_convert==NULL)
     return;

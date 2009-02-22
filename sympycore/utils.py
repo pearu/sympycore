@@ -29,6 +29,9 @@ class HEAD(object):
         # used by the pickler support to make HEAD instances unique
         return self._cache[self._key]
 
+    def is_data_ok(self, cls, expr):
+        return
+
 # The following constants define both the order of operands
 # as well as placing parenthesis for classes deriving from
 # CollectingField:

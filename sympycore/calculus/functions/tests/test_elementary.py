@@ -27,14 +27,14 @@ def test_exp_log():
     assert Log(3*I) == Log(3) + I*pi/2
     assert Log(-3*I) == Log(3) - I*pi/2
     assert str(Log(1+I)) == 'Log(1 + I)'
-    assert Log(5**Number(1,3)) == Number(1,3)*Log(5)
+    assert Log(5**Number(1,3)) == Number(1,3)*Log(5), str(Log(5**Number(1,3)))
     assert Log(5**(3+2*I)) != (3+2*I)*Log(5)
 
 def test_log_assumptions():
     x = Symbol('x')
     assert Log(x**2) != 2*Log(x)
     with Assumptions([x > 0]):
-        assert Log(x**2) == 2*Log(x)
+        assert Log(x**2) == 2*Log(x),str(Log(x**2))
 
 def test_trig_values():
     sqrt2 = A.convert('2**(1/2)')
@@ -55,7 +55,7 @@ def test_trig_values():
     assert Cos(11*pi/2) == 0
     assert Cos(pi/12) == (1 + sqrt3) / (2 * sqrt2)
     assert Tan(7*pi/12) == Sin(7*pi/12)/Cos(7*pi/12)
-    assert Tan(pi/2) == zoo
+    assert Tan(pi/2) == zoo,`Tan(pi/2)`
     assert Tan(pi) == 0
     assert Cot(pi/2) == 0
     assert Cot(pi) == zoo
@@ -68,7 +68,7 @@ def test_trig_symmetry():
     assert Cos(-x) == Cos(x)
     assert Tan(-x) == -Tan(x)
     assert Cot(-x) == -Cot(x)
-    assert Sin(x+pi) == -Sin(x)
+    assert Sin(x+pi) == -Sin(x),`Sin(x+pi)`
     assert Sin(x+2*pi) == Sin(x)
     assert Sin(x+3*pi) == -Sin(x)
     assert Sin(x+4*pi) == Sin(x)

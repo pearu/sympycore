@@ -1,12 +1,13 @@
 
 __all__ = ['CALLABLE']
 
-from .base import AtomicHead, heads_precedence, Expr
 import re
+import types
+from .base import AtomicHead, heads_precedence, Expr
 
-def init_module(m):
-    from .base import heads
-    for n,h in heads.iterNameValue(): setattr(m, n, h)
+from ..core import init_module
+
+init_module.import_heads()
 
 _is_atomic = re.compile(r'\A\w+\Z').match
 
@@ -15,6 +16,13 @@ class CallableHead(AtomicHead):
     CallableHead is a head for interpreting callable objects,
     data can be any callable Python object.
     """
+
+    def is_data_ok(self, cls, data):
+        if not callable(data):
+            if isinstance(data, type):
+                return
+            return 'data instance must be callable but got %s' % (`data.pair`)
+            
     def __repr__(self): return 'CALLABLE'
 
     def data_to_str_and_precedence(self, cls, func):
@@ -28,5 +36,11 @@ class CallableHead(AtomicHead):
         if _is_atomic(s):
             return s, heads_precedence.CALLABLE
         return s, 0.0 # force parenthesis
+
+    def add(self, cls, lhs, rhs):
+        rhead, rdata = rhs.pair
+        if rhead is SYMBOL:
+            return cls(TERM_COEFF_DICT, {lhs:1, rhs:1})
+        raise NotImplementedError(`self, rhead`)
 
 CALLABLE = CallableHead()

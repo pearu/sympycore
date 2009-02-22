@@ -7,11 +7,13 @@
 
 __all__ = ['Function', 'FunctionRing', 'D', 'Differential']
 
-from ..core import classes, DefinedFunction, objects, get_nargs
-from ..basealgebra import CollectingField, Verbatim, Algebra
-from ..utils import SYMBOL, NUMBER, APPLY, DIFF, str_SYMBOL, TERMS, FACTORS
+from ..core import classes, DefinedFunction, objects, get_nargs, init_module
+from ..basealgebra import Verbatim, Algebra
+from ..ring import Ring as CollectingField
+from ..utils import DIFF, str_SYMBOL, TERMS, FACTORS
 from ..calculus import Calculus
-from ..heads import CALLABLE
+
+init_module.import_heads()
 
 def aseqvalg2str(seq, alg):
     shortname_map = {'Calculus':'Calc'}
@@ -165,9 +167,15 @@ class FunctionRing(CollectingField):
         if not evaluate:
             return self.value_algebra.Apply(self, *args)
         if head is TERMS:
-            return self.value_algebra.Terms(*[(t(*args),c) for t,c in data.iteritems()])
+            d = {}
+            for t, c in data.iteritems():
+                d[t(*args)] = c
+            return TERMS.new(self.value_algebra, d)
         if head is FACTORS:
-            return self.value_algebra.Factors(*[(t(*args),c(*args) if callable(c) else c) for t,c in data.iteritems()])
+            d = {}
+            for t, c in data.iteritems():
+                d[t(*args)] = c(*args) if callable(c) else c
+            return FACTORS.new(self.value_algebra, d)
         return self.value_algebra.Apply(self, *args)
 
     def fdiff(self, index=0):

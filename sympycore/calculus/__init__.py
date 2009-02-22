@@ -9,6 +9,8 @@ from .functions import (Exp, Log, Sqrt, Sin, Cos, Tan, Cot, pi, E, gamma,
 from differentiation import diff
 from integration import integrate
 
+from .relational import Assumptions
+
 # Backwards compatibility
 Calculus.diff = diff
 Calculus.integrate = integrate
@@ -33,3 +35,4 @@ from ..arithmetic.number_theory import factorial as _factorial
 def factorial(n):
     return Number(_factorial(n))
     
+Polynom = Calculus.Polynom

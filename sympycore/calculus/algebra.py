@@ -11,7 +11,7 @@ from ..utils import TERMS, str_PRODUCT, SYMBOL, NUMBER
 from ..heads import APPLY, CALLABLE
 from ..heads import BASE_EXP_DICT as FACTORS
 from ..basealgebra import Algebra, Verbatim
-from ..basealgebra.pairs import CollectingField
+from ..ring import CommutativeRing
 
 from ..arithmetic.numbers import normalized_fraction, mpq, mpf, mpc, mpqc, try_power
 
@@ -23,7 +23,7 @@ convertible_numbers = algebra_numbers + (float, complex)
 
 float_one = mpf('1.0')
 
-class Calculus(CollectingField):
+class Calculus(CommutativeRing):
     """ Represents an element of a symbolic algebra.
 
     The set of a symbolic algebra is a set of expressions.
@@ -36,6 +36,37 @@ class Calculus(CollectingField):
     exptypes = algebra_numbers
     exptypes_set = frozenset(exptypes)
 
+    def __abs__(self):
+        head, data = self.pair
+        if head is NUMBER:
+            return type(self)(NUMBER, abs(data))
+        raise NotImplementedError('abs(%r)' % (self))
+
+    def __call__(self, *args, **kws):
+        head, data = self.pair
+        if head is CALLABLE:
+            return data(*args, **kws)
+        raise TypeError(`self` + ' is not callable')
+
+    def __lt__(self, other):
+        if type(other) is type(self):
+            return self.data < other.data
+        return self.data < other
+    def __le__(self, other):
+        if type(other) is type(self):
+            return self.data <= other.data
+        return self.data <= other
+    def __gt__(self, other):
+        if type(other) is type(self):
+            return self.data > other.data
+        return self.data > other
+    def __ge__(self, other):
+        if type(other) is type(self):
+            return self.data >= other.data
+        return self.data >= other
+    def __ne__(self, other):
+        return not (self == other)
+    
     def _sympy_(self):
         import sympy as m
         head, data = self.pair
@@ -146,6 +177,33 @@ class Calculus(CollectingField):
         return defined_functions.mod(x, y)
 
     def evalf(self, n=None):
+        if n is not None:
+            setdps(n)
+        head, data = self.pair
+        def evalf(cls, head, data, target):
+            if head is NUMBER:
+                data = data * float_one
+            if head is SYMBOL:
+                if hasattr(data, 'evalf'):
+                    return cls(data.evalf(n))
+            if head is APPLY:
+                func, args = data
+                name = str(func).lower()
+                if hasattr(mpmath, name):
+                    f = getattr(mpmath, name)
+                    l = []
+                    for a in args:
+                        h, d = a.pair
+                        if h is NUMBER:
+                            l.append(d)
+                        else:
+                            l = None
+                            break
+                    if l is not None:
+                        return cls(f(*l))
+            return target
+        return head.walk(evalf, type(self), data, self)
+        
         if n:
             setdps(n)
         head, data = self.pair

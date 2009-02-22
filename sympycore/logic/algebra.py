@@ -57,6 +57,7 @@ class Logic(Algebra):
         and True for non-numeric predicates.
         """
         head, data = self.pair
+        return head.nonzero(type(self), data)
         mth = head_mth_get(head)
         if mth is None:
             if head is NUMBER:

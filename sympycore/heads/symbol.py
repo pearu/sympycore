@@ -3,28 +3,28 @@ __all__ = ['SYMBOL']
 
 import re
 
+from ..core import init_module
+init_module.import_heads()
+init_module.import_numbers()
+init_module.import_lowlevel_operations()
+
 from .base import AtomicHead, heads_precedence, Expr, Pair, ArithmeticHead
 
 _is_atomic = re.compile(r'\A\w+\Z').match
-
-def init_module(m):
-    from ..arithmetic import numbers as n
-    m.numbertypes = n.numbertypes
-    from .base import heads
-    for n,h in heads.iterNameValue(): setattr(m, n, h)
-
-    from ..core import expr_module
-    m.dict_add_item = expr_module.dict_add_item
-    m.dict_get_item = expr_module.dict_get_item
-    m.dict_add_dict = expr_module.dict_add_dict
-    m.dict_sub_dict = expr_module.dict_sub_dict
-    m.dict_mul_dict = expr_module.dict_mul_dict
-    m.dict_mul_value = expr_module.dict_mul_value
 
 class SymbolHead(AtomicHead):
     """
     SymbolHead is a head for symbols, data can be any Python object.
     """
+
+    def new(self, cls, data, evaluate=True):
+        return cls(self, data)
+
+    def reevaluate(self, cls, data):
+        return cls(self, data)
+
+    def is_data_ok(self, cls, data):
+        return
 
     def __repr__(self): return 'SYMBOL'
 
@@ -37,14 +37,16 @@ class SymbolHead(AtomicHead):
             return s, heads_precedence.SYMBOL
         return s, 0.0 # force parenthesis
 
+    def to_EXP_COEFF_DICT(self, cls, data, expr, variables = None):
+        variables = EXP_COEFF_DICT.combine_variables(data, variables)
+        exp = EXP_COEFF_DICT.make_exponent(data, variables)
+        assert len(exp)==len(variables), `exp, variables, i, data`
+        return cls(EXP_COEFF_DICT, Pair(variables, {exp:1}))
+
     def non_commutative_mul(self, cls, lhs, rhs):
         head, data = rhs.pair
         if head is NUMBER:
-            if data==1:
-                return lhs
-            if data==0:
-                return rhs
-            return cls(TERM_COEFF, (lhs, data))
+            return TERM_COEFF.new(cls, (lhs, data))
         if head is SYMBOL:
             if lhs.data == data:
                 return cls(POW, (lhs, 2))
@@ -61,7 +63,7 @@ class SymbolHead(AtomicHead):
     def commutative_mul(self, cls, lhs, rhs):
         rhead, rdata = rhs.pair
         if rhead is NUMBER:
-            return cls(TERM_COEFF, (lhs, rdata))
+            return TERM_COEFF.new(cls, (lhs, rdata))
         if rhead is SYMBOL:
             if lhs.data==rdata:
                 return cls(POW, (lhs, 2))
@@ -72,12 +74,14 @@ class SymbolHead(AtomicHead):
         if rhead is POW:
             rbase, rexp = rdata
             if rbase==lhs:
-                return POW.new(cls, lhs, rexp+1)
+                return POW.new(cls, (lhs, rexp+1))
             return cls(BASE_EXP_DICT, {lhs:1, rbase:rexp})
         if rhead is BASE_EXP_DICT:
             data = rdata.copy()
-            dict_add_item(data, lhs, 1)
+            dict_add_item(cls, data, lhs, 1)
             return BASE_EXP_DICT.new(cls, data)
+        if rhead is APPLY or rhead is ADD or rhead is TERM_COEFF_DICT:
+            return cls(BASE_EXP_DICT, {lhs:1, rhs:1})
         raise NotImplementedError(`self, cls, lhs.pair, rhs.pair`)
     
     def term_coeff(self, cls, expr):
@@ -93,24 +97,26 @@ class SymbolHead(AtomicHead):
         h,d = rhs.pair
         if h is SYMBOL:
             if lhs==rhs:
-                return cls(TERM_COEFF_DICT, {lhs:2})
-            return cls(TERM_COEFF_DICT, {lhs:1, rhs:1})
-        if h is NUMBER:
-            return cls(TERM_COEFF_DICT, {lhs:1, 1:d})
-        lhs = self.as_term_coeff_dict(cls, lhs)
-        return lhs.head.add(cls, lhs, rhs)
+                return cls(TERM_COEFF, (lhs, 2))
+        elif h is NUMBER:
+            if d==0:
+                return lhs
+            return cls(TERM_COEFF_DICT, {lhs:1, cls(NUMBER,1):d})
+        elif h is ADD:
+            return ADD.new(cls, [lhs]+d)
+        elif h is TERM_COEFF:
+            t,c = d
+            if lhs==t:
+                return TERM_COEFF.new(cls, (t, c+1))
+            return cls(TERM_COEFF_DICT, {t:c, lhs:1})
+        elif h is TERM_COEFF_DICT:
+            data = d.copy()
+            dict_add_item(cls, data, lhs, 1)
+            return TERM_COEFF_DICT.new(cls, data)
+        return cls(TERM_COEFF_DICT, {lhs:1, rhs:1})
 
     def sub(self, cls, lhs, rhs):
-        h,d = rhs.pair
-        if h is SYMBOL:
-            if lhs==rhs:
-                return cls(NUMBER, 0)
-            return cls(TERM_COEFF_DICT, {lhs:1, rhs:-1})
-        if h is NUMBER:
-            return cls(TERM_COEFF_DICT, {lhs:1, 1:-d})
-        lhs = self.as_term_coeff_dict(cls, lhs)
-        return lhs.head.sub(cls, lhs, rhs)
-
+        return lhs + (-rhs)
 
     def as_term_coeff_dict(self, cls, expr):
         return cls(TERM_COEFF_DICT, {expr: 1})
@@ -119,11 +125,7 @@ class SymbolHead(AtomicHead):
         return expr, 1
 
     def pow(self, cls, base, exp):
-        if exp==0:
-            return cls(NUMBER, 1)
-        if exp==1:
-            return base
-        return cls(POW, (base, exp))
+        return POW.new(cls, (base, exp))
 
     def expand(self, cls, expr):
         return expr

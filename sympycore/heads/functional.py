@@ -1,11 +1,10 @@
 
-__all__ = ['APPLY', 'SUBSCRIPT', 'SLICE', 'LAMBDA', 'ATTR', 'KWARG']
+__all__ = ['SUBSCRIPT', 'SLICE', 'LAMBDA', 'ATTR', 'KWARG']
 
 from .base import Head, heads_precedence
 
-def init_module(m):
-    from .base import heads
-    for n,h in heads.iterNameValue(): setattr(m, n, h)
+from ..core import init_module
+init_module.import_heads()
 
 class FunctionalHead(Head):
 
@@ -14,7 +13,7 @@ class FunctionalHead(Head):
     def data_to_str_and_precedence(self, cls, (func, args)):
         o_p = getattr(heads_precedence, repr(self))
         arg_p = heads_precedence.ARG        
-        f, f_p = func.head.data_to_str_and_precedence(cls, func.data)
+        f, f_p = func.head.data_to_str_and_precedence(type(func), func.data)
         if f_p < o_p: f = '('+f+')'
         l = []
         assert type(args) in [tuple], `args`
@@ -24,16 +23,6 @@ class FunctionalHead(Head):
             l.append(a)
         p1,p2 = self.parenthesis
         return f + p1 + ', '.join(l) + p2, o_p
-
-class ApplyHead(FunctionalHead):
-    """
-    ApplyHead is a head for n-ary apply operation,
-    data is a (1+n)-tuple of expression operands
-    """
-    op_mth = '__call__'
-    parenthesis = '()'
-
-    def __repr__(self): return 'APPLY'
 
 class SubscriptHead(FunctionalHead):
     """
@@ -143,7 +132,7 @@ class KwargHead(Head):
 
     def __repr__(self): return 'KWARG'
 
-APPLY = ApplyHead()
+
 SUBSCRIPT = SubscriptHead()
 SLICE = SliceHead()
 LAMBDA = LambdaHead()

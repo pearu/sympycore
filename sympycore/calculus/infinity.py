@@ -8,7 +8,9 @@ from ..heads import SPECIAL
 from ..arithmetic import Infinity
 from .algebra import Calculus
 
-class CalculusInfinity(Infinity):
+CalculusInfinity = Infinity
+
+class _CalculusInfinity(Infinity):
 
     one = Calculus.one
     zero = Calculus.zero

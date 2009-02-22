@@ -3,9 +3,8 @@ __all__ = ['SPARSE_POLY', 'DENSE_POLY']
 
 from .base import Head, heads
 
-def init_module(m):
-    from .base import heads
-    for n,h in heads.iterNameValue(): setattr(m, n, h)
+from ..core import init_module, Pair
+init_module.import_heads()
 
 class SparsepolyHead(Head):
     """
@@ -17,11 +16,34 @@ class SparsepolyHead(Head):
     def __repr__(self): return 'SPARSE_POLY'
 
     def data_to_str_and_precedence(self, cls, data):
-        return heads.EXP_COEFF_DICT.data_to_str_and_precedence(cls, (cls.variables, data))
+        return EXP_COEFF_DICT.data_to_str_and_precedence(cls, Pair(cls.variables, data))
+
+    def reevaluate(self, cls, data):
+        return cls(self, data)
 
     def to_lowlevel(self, cls, data, pair):
-        return heads.EXP_COEFF_DICT.to_lowlevel(cls, data, pair)
-    
+        return EXP_COEFF_DICT.to_lowlevel(cls, Pair(cls.variables, data), pair)
+
+    def add(self, cls, lhs, rhs):
+        rhead, rdata = rhs.pair
+        if rhead is not self:
+            rhs = rhead.to_SPARSE_POLY(cls, rdata, rhs)
+            return lhs + rhs
+        return NotImplemented
+
+    def sub(self, cls, lhs, rhs):
+        return lhs + (-rhs)
+
+    def commutative_mul(self, cls, lhs, rhs):
+        rhead, rdata = rhs.pair
+        if rhead is not self:
+            rhs = rhead.to_SPARSE_POLY(cls, rdata, rhs)
+            return lhs * rhs
+        return NotImplemented
+
+    def term_coeff(self, cls, expr):
+        return expr, 1
+
 class DensepolyHead(Head):
     """
     DensepolyHead is a head for dense polynomials represented

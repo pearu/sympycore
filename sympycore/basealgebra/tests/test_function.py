@@ -80,8 +80,8 @@ def test_foo():
 
     assert foo(x)==foo(x)
     assert foo(x).subs(x,z)==foo(z), `foo(x).subs(x,z), foo(z)`
-    assert foo(x).subs(x,0)==0
-    assert (y+foo(x)).subs(x,0)==y
+    assert foo(x).subs(x,0)==0, `foo(x).subs(x,0)`
+    assert (y+foo(x)).subs(x,0)==y, `(y+foo(x)).subs(x,0)`
 
     assert str(foo(foo(x)))=='foo(foo(x))'
     assert str(foo(x)+foo(y))=='foo(x) + foo(y)', str(foo(x)+foo(y))

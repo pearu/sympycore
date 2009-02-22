@@ -13,30 +13,30 @@ def test_default_ring():
 def test_X():
     X = PolynomialRing['x']
     C = X.convert
-    assert `X.zero`=="PolynomialRing[x, Calculus]('0')"
-    assert `X.one`=="PolynomialRing[x, Calculus]('1')", repr(X.one)
-    assert str(X.zero)=='0'
-    assert str(X.one)=='1'
+    assert `X.zero`=="PolynomialRing[('x',), Calculus]('0')",`X.zero`
+    assert `X.one`=="PolynomialRing[('x',), Calculus]('1')", repr(X.one)
+    assert str(X.zero)=='0',`str(X.zero)`
+    assert str(X.one)=='1',`str(X.zero)`
 
-    assert `C({2:3})`=="PolynomialRing[x, Calculus]('3*x**2')", `C({2:3})`
-    assert `C({2:3,4:5})`=="PolynomialRing[x, Calculus]('5*x**4 + 3*x**2')",`C({2:3,4:5})`
-    assert `C([(2,3)])`=="PolynomialRing[x, Calculus]('3*x**2')"
-    assert `C([(2,3),(4,5)])`=="PolynomialRing[x, Calculus]('5*x**4 + 3*x**2')"
+    assert `C({2:3})`=="PolynomialRing[('x',), Calculus]('3*x**2')", `C({2:3})`
+    assert `C({2:3,4:5})`=="PolynomialRing[('x',), Calculus]('5*x**4 + 3*x**2')",`C({2:3,4:5})`
+    assert `C([(2,3)])`=="PolynomialRing[('x',), Calculus]('3*x**2')"
+    assert `C([(2,3),(4,5)])`=="PolynomialRing[('x',), Calculus]('5*x**4 + 3*x**2')"
 
     assert str(C({2:3}))=="3*x**2"
     assert str(C([(2,3),(4,5)]))=="5*x**4 + 3*x**2"
 
-    assert `C('x*3*x')`=="PolynomialRing[x, Calculus]('3*x**2')"
-    assert `C('x**4+4*x**4-3*x*x+6*x**2')`=="PolynomialRing[x, Calculus]('5*x**4 + 3*x**2')"
+    assert `C('x*3*x')`=="PolynomialRing[('x',), Calculus]('3*x**2')",`C('x*3*x')`
+    assert `C('x**4+4*x**4-3*x*x+6*x**2')`=="PolynomialRing[('x',), Calculus]('5*x**4 + 3*x**2')"
 
-    assert `C([1,2,3])`=="PolynomialRing[x, Calculus]('3*x**2 + 2*x + 1')",repr(C([1,2,3]))
+    assert `C([1,2,3])`=="PolynomialRing[('x',), Calculus]('3*x**2 + 2*x + 1')",repr(C([1,2,3]))
 
 def test_univariate():
     X = PolynomialRing['x']
     C = X.convert
     x = C([0,1])
-    assert `x`=="PolynomialRing[x, Calculus]('x')",`x`
-    assert C([1, 2, 3]) == 3*x**2 + 2*x + 1
+    assert `x`=="PolynomialRing[('x',), Calculus]('x')",`x`
+    assert C([1, 2, 3]) == 3*x**2 + 2*x + 1,`C([1, 2, 3]).pair, (3*x**2 + 2*x + 1).pair`
     assert C([1, 2, 3]).degree == 2
     assert C([1, 2, 3]).ldegree == 0
     assert C([0]).degree == 0

@@ -11,9 +11,9 @@ __all__ = [\
 from ..core import classes
 
 from ..calculus.algebra import Calculus, algebra_numbers
-from ..basealgebra.pairs import CollectingField
+from ..ring import CommutativeRing
 
-class Unit(CollectingField):
+class Unit(CommutativeRing):
     """ Represents an algebra of physical units.
 
     Elements of the units algebra are unit symbols.
@@ -35,24 +35,27 @@ meter = Unit.Symbol('m')
 kilogram = Unit.Symbol('kg')
 second = Unit.Symbol('s')
 
-ten = Calculus.Number(10)
-yotta = ten**24
-zetta = ten**21
-exa   = ten**18
-peta  = ten**15
-tera  = ten**12
-giga  = ten**9
-mega  = ten**6
-kilo  = ten**3
-deca  = ten**1
-deci  = ten**-1
-centi = ten**-2
-milli = ten**-3
-micro = ten**-6
-nano  = ten**-9
-pico  = ten**-12
-femto = ten**-15
-atto  = ten**-18
-zepto = ten**-21
-yocto = ten**-24
+def init_module(m):
+
+
+    m.ten = ten = Calculus.Number(10)
+    m.yotta = ten**24
+    m.zetta = ten**21
+    m.exa   = ten**18
+    m.peta  = ten**15
+    m.tera  = ten**12
+    m.giga  = ten**9
+    m.mega  = ten**6
+    m.kilo  = ten**3
+    m.deca  = ten**1
+    m.deci  = ten**-1
+    m.centi = ten**-2
+    m.milli = ten**-3
+    m.micro = ten**-6
+    m.nano  = ten**-9
+    m.pico  = ten**-12
+    m.femto = ten**-15
+    m.atto  = ten**-18
+    m.zepto = ten**-21
+    m.yocto = ten**-24
 

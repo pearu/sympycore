@@ -92,11 +92,26 @@ class Verbatim(Algebra):
         return self
 
     def as_algebra(self, cls, source=None):
+        def as_algebra(cls, head, data, target):
+            if head is NUMBER:
+                return cls(data)
+            if head is SYMBOL:
+                return cls.convert_symbol(data)
+            return head.reevaluate(cls, data)
+            print head, data
+            return head.new(cls, data)
         head, rest = self.pair
+        return head.walk(as_algebra, cls, rest, self)
         if head is NUMBER:
             return cls(rest)
         if head is SYMBOL:
             return cls.convert_symbol(rest)
+        if head is NEG:
+            return -rest.as_algebra(cls)
+        if head is POS:
+            return +rest.as_algebra(cls)
+        if head is ADD:
+            data = [op.as_algebra(cls) for op in rest]
         n = convert_head_Op_map.get(head)
         if n is not None:
             if head in unary_lst:

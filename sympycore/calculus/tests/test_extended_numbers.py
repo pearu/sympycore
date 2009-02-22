@@ -17,7 +17,7 @@ x,y,z = map(Calculus.Symbol, 'xyz')
 def test_oo_product():
     assert str(oo * (x+y)) in ['oo*(x + y)', 'oo*(y + x)'], str(oo * (x+y))
     assert str(oo * (1+x+y)) in ['oo*(1 + x + y)', 'oo*(y + 1 + x)',
-                                 'oo*(x + 1 + y)'],  str(oo * (1+x+y))
+                                 'oo*(x + 1 + y)', 'oo*(y + x + 1)'],  str(oo * (1+x+y))
     assert str(oo * (2*x))=='oo*(x)'
     assert str(oo / (2/x))=='oo*(x)'
     assert str(oo / (2*x)) in ['oo*(x**(-1))','oo*(1/x)'],str(oo / (2*x))
@@ -25,11 +25,11 @@ def test_oo_product():
 def test_oo_sum():
     assert str(oo + (x+y)) in ['oo + (x + y)','oo + (y + x)'], str(oo + (x+y))
     assert str(oo + (2+x+y)) in ['oo + (2 + x + y)', 'oo + (y + 2 + x)',
-                                 'oo + (x + 2 + y)'], str(oo + (2+x+y))
+                                 'oo + (x + 2 + y)', 'oo + (y + x + 2)'], str(oo + (2+x+y))
     assert str((2+x+y) + oo) in ['oo + (2 + x + y)', 'oo + (y + 2 + x)',
-                                 'oo + (x + 2 + y)'], str((2+x+y) + oo)
+                                 'oo + (x + 2 + y)', 'oo + (y + x + 2)'], str((2+x+y) + oo)
     assert str(oo - (2+x+y)) in ['oo + (-2 - x - y)', 'oo + (-y - 2 - x)',
-                                 'oo + (-x - 2 - y)'], str(oo - (2+x+y))
+                                 'oo + (-x - 2 - y)', 'oo + (-y - x - 2)'], str(oo - (2+x+y))
 
     assert str((oo+y) + (x+y)) in ['oo + (y) + (x + y)', 'oo + (y) + (y + x)'], str((oo+y) + (x+y))
     assert str((x+y) + (oo+y)) in ['oo + (y) + (x + y)','oo + (y) + (y + x)'],  str((x+y) + (oo+y))
@@ -42,7 +42,7 @@ def test_oo_sum():
     assert str(Calculus.Add(oo, x))=='oo + (x)'
     assert str(Calculus.Add(x, oo))=='oo + (x)'
     assert str(Calculus.Add(y, oo, x))=='oo + (y) + (x)'
-    assert str(Calculus.Add(y, oo, x, oo))=='oo + (y) + (oo + (x))'
+    assert str(Calculus.Add(y, oo, x, oo)) in ['oo + (y) + (oo + (x))', 'oo + (y) + (x) + (oo)'], str(Calculus.Add(y, oo, x, oo))
 
     s = x+y
     s -= -oo
@@ -58,7 +58,7 @@ def test_oo_symbol():
     assert str(oo ** x) in ['(oo)**x', 'oo**x'],str(oo**x)
     assert str(x**oo) in ['x**(oo)', 'x**oo'], str(x**oo)
 
-    assert str(oo + pi)=='oo'
+    assert str(oo + pi)=='oo', str(oo+pi)
     assert str(oo - pi)=='oo'
     assert str(oo * pi)=='oo'
     assert str(oo / pi)=='oo'
@@ -642,4 +642,4 @@ def test_undefined_optable():
 def test_issue62():
     z = one / zoo
     assert z==0
-    assert type(z) is Calculus
+    assert type(z) is Calculus, `type(z)`

@@ -3,12 +3,9 @@ __all__ = ['MUL']
 
 from .base import Head, heads_precedence, Pair, Expr, ArithmeticHead
 
-def init_module(m):
-    from ..arithmetic import numbers as n
-    m.numbertypes = n.numbertypes
-    m.inttypes = n.inttypes
-    from .base import heads
-    for n,h in heads.iterNameValue(): setattr(m, n, h)
+from ..core import init_module
+init_module.import_heads()
+init_module.import_numbers()
 
 class MulHead(ArithmeticHead, Head):
     """
@@ -23,7 +20,31 @@ class MulHead(ArithmeticHead, Head):
     """
     op_mth = '__mul__'
     op_rmth = '__rmul__'
+
+    def is_data_ok(self, cls, data):
+        if type(data) in [tuple, list]:
+            for a in data:
+                if not isinstance(a, cls):
+                    return '%s data item must be %s instance but got %s' % (self, cls, type(a))
+        else:
+            return '%s data part must be a list but got %s' % (self, type(data))
+
     def __repr__(self): return 'MUL'
+
+    def new(self, cls, operands, evaluate=True):
+        operands = [op for op in operands if op!=1]
+        n = len(operands)
+        if n==0:
+            return cls(NUMBER, 1)
+        if n==1:
+            return operands[0]
+        return cls(MUL, operands)
+
+    def reevaluate(self, cls, operands):
+        r = cls(NUMBER, 1)
+        for op in operands:
+            r *= op
+        return r
 
     def base_exp(self, cls, expr):
         return expr, 1
@@ -39,12 +60,15 @@ class MulHead(ArithmeticHead, Head):
         r = ''
         for op in operands:
             f, f_p = op.head.data_to_str_and_precedence(cls, op.data)
+            if f=='1': continue
             if not r or r=='-':
                 r += '('+f+')' if f_p<mul_p else f
             elif f.startswith('1/'):
                 r += f[1:]
             else:
                 r += '*('+f+')' if f_p<mul_p else '*'+f
+        if not r:
+            return '1', heads_precedence.NUMBER
         return r, mul_p
 
     def term_coeff(self, cls, expr):
@@ -56,18 +80,18 @@ class MulHead(ArithmeticHead, Head):
         lst = []
         compart = 1
         for factor in factors_list:
-            if not lst:
-                lst.append(factor)
+            if factor.head is NUMBER:
+                compart = compart * factor.data
                 continue
             r = None
             b2, e2 = factor.head.base_exp(cls, factor)
-            if b2.head is MUL:
+            if lst and b2.head is MUL:
                 l = b2.data
                 if len(l)<=len(lst) and lst[-len(l):]==l:
                     # x*a*b*(a*b)**2 -> x*(a*b)**3
                     r = b2 ** (e2 + 1)
                     del lst[-len(l):]
-            if r is None:
+            if lst and r is None:
                 b1, e1 = lst[-1].head.base_exp(cls, lst[-1])
                 if b1==b2:
                     # x*a**3*a**2 -> x*a**5
@@ -103,7 +127,7 @@ class MulHead(ArithmeticHead, Head):
     def non_commutative_mul(self, cls, lhs, rhs):
         head, data = rhs.pair
         if head is NUMBER:
-            return TERM_COEFF.new(cls, lhs, data)
+            return TERM_COEFF.new(cls, (lhs, data))
         if head is SYMBOL or head is POW:
             return self.combine(cls, lhs.data + [rhs])
         if head is TERM_COEFF:
@@ -143,5 +167,23 @@ class MulHead(ArithmeticHead, Head):
                         middle = cls(MUL, rest)
                     return compart * first * middle**d * last # could be optimized
         return cls(POW, (base, exp))
+
+    def walk(self, func, cls, data, target):
+        l = []
+        flag = False
+        for op in data:
+            o = op.head.walk(func, cls, op.data, op)
+            if op is not o:
+                flag = True
+            l.append(o)
+        if flag:
+            r = MUL.new(cls, l)
+            return func(cls, r.head, r.data, r)
+        return func(cls, self, data, target)
+
+    def scan(self, proc, cls, operands, target):
+        for operand in operands:
+            operand.head.scan(proc, cls, operand.data, target)
+        proc(cls, self, operands, target)
 
 MUL = MulHead()

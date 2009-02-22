@@ -9,13 +9,19 @@ __license__ = 'New BSD License'
 
 from .version import version as __version__
 
-from .core import classes, defined_functions, DefinedFunction, Expr, Pair
+from .core import classes, defined_functions, DefinedFunction, Expr, Pair, IntegerList
+from .core import init_module
 
-from basealgebra import *
-from ring import *
+import heads
 
+init_module.execute()
 
 from arithmetic import *
+
+from ring import *
+
+from basealgebra import *
+
 from logic import *
 from sets import *
 from calculus import *
@@ -24,14 +30,10 @@ from matrices import *
 from physics import *
 from functions import *
 
+CollectingField = CommutativeRing
 
-### Initialize sympycore subpackage namespaces (mostly with heads
-### symbols):
-core.expr_module.init_module(core.expr_module)
-import sys as _sys
-for _n, _m in sorted(_sys.modules.items()):
-    if _n.startswith('sympycore'):
-        getattr(_m, 'init_module', lambda _m:None)(_m)
+### Initialize sympycore subpackage namespaces
+init_module.execute()
 
 def profile_expr(expr):
     """ Printout the profiler information for executing ``expr``.

@@ -1,7 +1,7 @@
 
 __all__ = ['Head', 'UnaryHead', 'BinaryHead', 'NaryHead', 'HEAD']
 
-not_implemented_error_msg = '%s.%s() method, report to http://code.google.com/p/sympycore/issues/'
+not_implemented_error_msg = '%s.%s method, report to http://code.google.com/p/sympycore/issues/'
 
 from ..core import Expr, heads, heads_precedence, Pair
 
@@ -97,10 +97,30 @@ class Head(object):
         """
         return pair
 
+    def scan(self, proc, cls, data, targer):
+        raise NotImplementedError(not_implemented_error_msg % (self, 'scan(proc, cls, data, target)')) #pragma NO COVER
+
+    def walk(self, func, cls, data, target):
+        raise NotImplementedError(not_implemented_error_msg % (self, 'walk(func, cls, data, target)')) #pragma NO COVER        
+
+    def is_data_ok(self, cls, data):
+        #print self, data
+        return
+
+    def __todo_repr__(self):
+        # TODO: undefined __repr__ should raise not implemented error
+        raise NotImplementedError('Head subclass must implement __repr__ method returning singleton name')
+        
 class AtomicHead(Head):
     """
     AtomicHead is a base class to atomic expression heads.
     """
+
+    def scan(self, proc, cls, data, target):
+        proc(cls, self, data, target)
+
+    def walk(self, func, cls, data, target):
+        return func(cls, self, data, target)
 
 class UnaryHead(Head):
     """
@@ -116,7 +136,18 @@ class UnaryHead(Head):
         o, o_p = operand.head.data_to_str_and_precedence(cls, operand.data)
         if o_p < u_p: o = '(' + o + ')'
         return self.op_symbol + o, u_p
-    
+
+    def scan(self, proc, cls, expr, target):
+        expr.head.scan(proc, cls, expr.data, target)
+        proc(cls, self, expr, target)
+
+    def walk(self, func, cls, operand, target):
+        operand1 = operand.head.walk(func, cls, operand.data, operand)
+        if operand1 is operand:
+            return func(cls, self, operand, target)
+        r = self.new(cls, operand1)
+        return func(cls, r.head, r.data, r)
+        
 class BinaryHead(Head):
     """
     BinaryHead is base class for binary operation heads,
@@ -124,17 +155,47 @@ class BinaryHead(Head):
     """
     def data_to_str_and_precedence(self, cls, (lhs, rhs)):
         rel_p = getattr(heads_precedence, repr(self))
-        l, l_p = lhs.head.data_to_str_and_precedence(cls, lhs.data)
-        r, r_p = rhs.head.data_to_str_and_precedence(cls, rhs.data)
+        if isinstance(lhs, Expr):
+            l, l_p = lhs.head.data_to_str_and_precedence(cls, lhs.data)
+        else:
+            l, l_p = str(lhs), 0.0
+        if isinstance(rhs, Expr):
+            r, r_p = rhs.head.data_to_str_and_precedence(cls, rhs.data)
+        else:
+            r, r_p = str(rhs), 0.0
         if l_p < rel_p: l = '(' + l + ')'
         if r_p < rel_p: r = '(' + r + ')'
         return l + self.op_symbol + r, rel_p
+
+    def reevaluate(self, cls, (lhs, rhs)):
+        return self.new(cls, (lhs, rhs))
+
+    def scan(self, proc, cls, data, target):
+        lhs, rhs = data
+        lhs.head.scan(proc, cls, lhs.data, target)
+        rhs.head.scan(proc, cls, rhs.data, target)
+        proc(cls, self, data, target)
+
+    def walk(self, func, cls, data, target):
+        lhs, rhs = data
+        lhs1 = lhs.head.walk(func, cls, lhs.data, lhs)
+        rhs1 = rhs.head.walk(func, cls, rhs.data, rhs)
+        if lhs1 is lhs and rhs1 is rhs:
+            return func(cls, data, target)
+        r = self.new(cls, (lhs1, rhs1))
+        return func(cls, r.head, r.data, r)
 
 class NaryHead(Head):
     """
     NaryHead is base class for n-ary operation heads,
     data is a n-tuple of expression operands.
     """
+    def new(self, cls, data, evaluate=True):
+        return cls(self, data)
+
+    def reevaluate(self, cls, operands):
+        return self.new(cls, operands)
+    
     def data_to_str_and_precedence(self, cls, operand_seq):
         op_p = getattr(heads_precedence, repr(self))
         l = []
@@ -143,6 +204,24 @@ class NaryHead(Head):
             if o_p < op_p: o = '(' + o + ')'
             l.append(o)
         return self.op_symbol.join(l), op_p
+
+    def scan(self, proc, cls, operands, target):
+        for operand in operands:
+            operand.head.scan(proc, cls, operand.data, target)
+        proc(cls, self, operands, target)
+
+    def walk(self, func, cls, operands, target):
+        l = []
+        flag = False
+        for operand in operands:
+            o = operand.head.walk(func, cls, operand.data, operand)
+            if o is not operand:
+                flag = True
+            l.append(o)
+        if flag:
+            r = self.new(cls, l)
+            return func(cls, r.head, r.data, r)
+        return func(cls, self, operands, target)
 
 class ArithmeticHead(Head):
     """ Base class for heads representing arithmetic operations.
@@ -155,57 +234,57 @@ class ArithmeticHead(Head):
           coefficent is a number instance
 
         """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'term_coeff')) #pragma NO COVER
+        raise NotImplementedError(not_implemented_error_msg % (self, 'term_coeff(self, cls, expr)')) #pragma NO COVER
 
     def as_add(self, cls, expr):
         """ Return expr as ADD expression.
         """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'as_add')) #pragma NO COVER
+        raise NotImplementedError(not_implemented_error_msg % (self, 'as_add(cls, expr)')) #pragma NO COVER
 
     def as_term_coeff_dict(self, cls, expr):
         """ Return expr as TERM_COEFF_DICT expression.
         """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'as_term_coeff_dict')) #pragma NO COVER
+        raise NotImplementedError(not_implemented_error_msg % (self, 'as_term_coeff_dict(cls, expr)')) #pragma NO COVER
     
     def neg(self, cls, expr):
         """ Return negated expression: -expr.
         """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'neg')) #pragma NO COVER
+        raise NotImplementedError(not_implemented_error_msg % (self, 'neg(cls, expr)')) #pragma NO COVER
 
     def add(self, cls, lhs, rhs):
         """ Return a sum of expressions: lhs + rhs.
         """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'add')) #pragma NO COVER
+        raise NotImplementedError(not_implemented_error_msg % (self, 'add(cls, lhs, rhs)')) #pragma NO COVER
 
     def sub(self, cls, lhs, rhs):
         """ Return a subtract of expressions: lhs + rhs.
         """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'sub')) #pragma NO COVER
+        raise NotImplementedError(not_implemented_error_msg % (self, 'sub(cls, lhs, rhs)')) #pragma NO COVER
 
     def non_commutative_mul(self, cls, lhs, rhs):
         """ Return a non-commutative product of expressions: lhs * rhs.
         """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'non_commutative_mul')) #pragma NO COVER
+        raise NotImplementedError(not_implemented_error_msg % (self, 'non_commutative_mul(cls, lhs, rhs)')) #pragma NO COVER
 
     def mul(self, cls, lhs, rhs):
         """ Return a product of expressions: lhs * rhs.
         """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'mul')) #pragma NO COVER
+        raise NotImplementedError(not_implemented_error_msg % (self, 'mul(cls, lhs, rhs)')) #pragma NO COVER
 
     def pow(self, cls, base, exp):
         """ Return a power of expressions: base ** exp.
         """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'pow')) #pragma NO COVER
+        raise NotImplementedError(not_implemented_error_msg % (self, 'pow(cls, base, exp)')) #pragma NO COVER
 
     def expand(self, cls, expr):
         """ Return expanded expression: open parenthesis of arithmetic operations.
         """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'expand')) #pragma NO COVER
+        raise NotImplementedError(not_implemented_error_msg % (self, 'expand(cls, expr)')) #pragma NO COVER
 
     def expand_intpow(self, cls, expr, intexp):
         """ Return expanded expr ** intexp where intexp is integer.
         """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'expand_intpow')) #pragma NO COVER
+        raise NotImplementedError(not_implemented_error_msg % (self, 'expand_intpow(cls, expr, intexpr)')) #pragma NO COVER
     
 for k, v in Head.precedence_map.items():
     setattr(heads_precedence, k, v)

@@ -1,6 +1,6 @@
 
-from sympycore.core import Expr, Pair, heads
-from sympycore.heads import NUMBER, SYMBOL, TERMS, FACTORS, MUL, ADD, TERM_COEFF
+from sympycore.core import Expr, Pair, heads, IntegerList
+from sympycore.heads import *
 
 class MyExpr(Expr):
 
@@ -69,13 +69,14 @@ def test_equality_symbol():
 
 def test_pos():
     x, y, z = map(Symbol,'xyz')
-    assert MyExpr(heads.POS,x)==x
-    assert hash(MyExpr(heads.POS,x))==hash(x)
+    assert MyExpr(POS,x)==x
+    assert hash(MyExpr(POS,x))==hash(x)
     
 def test_neg():
     x, y, z = map(Symbol,'xyz')
-    assert MyExpr(heads.NEG, 2)==-2
-    assert hash(MyExpr(heads.NEG, 2))==hash(-2)
+    z, o, t = map(Number, [0,1,2])
+    assert MyExpr(NEG, t)==-2, MyExpr(NEG, t)
+    assert hash(MyExpr(NEG, t))==hash(-2), `hash(MyExpr(NEG, t)),hash(-2)`
     
 def test_equality_add():
     x, y, z = map(Symbol,'xyz')
@@ -88,7 +89,7 @@ def test_equality_add():
     assert x + y != 'x'
     assert x + y != 1
 
-    assert MyExpr(ADD,[])==0
+    assert MyExpr(ADD,[])==0,`MyExpr(ADD,[]).as_lowlevel()`
     assert MyExpr(ADD,[x])==x
     assert (not not MyExpr(ADD,[])) == False
 
@@ -116,54 +117,66 @@ def test_equality_mul():
 
 def test_equality_term_coeff():
     x, y, z = map(Symbol,'xyz')
+    z, o, t = map(Number, [0,1,2])
     assert MyExpr(TERM_COEFF, (x, 0))==0
     assert MyExpr(TERM_COEFF, (x, 1))==x
-    assert MyExpr(TERM_COEFF, (1, 2))==2
-    assert MyExpr(TERM_COEFF, (x, -1))==MyExpr(heads.NEG, x)
+    assert MyExpr(TERM_COEFF, (o, 2))==2
+    assert MyExpr(TERM_COEFF, (x, -1))==MyExpr(NEG, x)
     assert hash(MyExpr(TERM_COEFF, (x, 0)))==hash(0)
     assert hash(MyExpr(TERM_COEFF, (x, 1)))==hash(x)
-    assert hash(MyExpr(TERM_COEFF, (1, 2)))==hash(2)
-    assert hash(MyExpr(TERM_COEFF, (x, -1)))==hash(MyExpr(heads.NEG, x))
+    assert hash(MyExpr(TERM_COEFF, (o, 2)))==hash(2)
+    assert hash(MyExpr(TERM_COEFF, (x, -1)))==hash(MyExpr(NEG, x))
 
     
 def test_equality_term_coeff_dict():
     x, y, z = map(Symbol,'xyz')
-    assert MyExpr(heads.TERM_COEFF_DICT, {})==0
-    assert MyExpr(heads.TERM_COEFF_DICT, {x:0})==0
-    assert MyExpr(heads.TERM_COEFF_DICT, {x:1})==x
-    assert MyExpr(heads.TERM_COEFF_DICT, {x:2})==MyExpr(TERM_COEFF, (x, 2))
-    assert MyExpr(heads.TERM_COEFF_DICT, {1:2})==2
+    z, o, t = map(Number, [0,1,2])
+    assert MyExpr(TERM_COEFF_DICT, {})==0
+    assert MyExpr(TERM_COEFF_DICT, {x:0})==0
+    assert MyExpr(TERM_COEFF_DICT, {x:1})==x
+    assert MyExpr(TERM_COEFF_DICT, {x:2})==MyExpr(TERM_COEFF, (x, 2))
+    assert MyExpr(TERM_COEFF_DICT, {o:2})==2
 
-    assert hash(MyExpr(heads.TERM_COEFF_DICT, {}))==hash(0)
-    assert hash(MyExpr(heads.TERM_COEFF_DICT, {x:0}))==hash(0)
-    assert hash(MyExpr(heads.TERM_COEFF_DICT, {x:1}))==hash(x)
-    assert hash(MyExpr(heads.TERM_COEFF_DICT, {x:2}))==hash(MyExpr(TERM_COEFF, (x, 2)))
-    assert hash(MyExpr(heads.TERM_COEFF_DICT, {1:2}))==hash(2)
+    assert hash(MyExpr(TERM_COEFF_DICT, {}))==hash(0)
+    assert hash(MyExpr(TERM_COEFF_DICT, {x:0}))==hash(0)
+    assert hash(MyExpr(TERM_COEFF_DICT, {x:1}))==hash(x)
+    assert hash(MyExpr(TERM_COEFF_DICT, {x:2}))==hash(MyExpr(TERM_COEFF, (x, 2)))
+    assert hash(MyExpr(TERM_COEFF_DICT, {o:2}))==hash(2)
 
 def test_equality_pow():
     x, y, z = map(Symbol,'xyz')
-    assert MyExpr(heads.POW, (x, 0))==1
-    assert MyExpr(heads.POW, (x, 1))==x
-    assert MyExpr(heads.POW, (1, x))==1
+    z, o = map(Number, [0,1])
+    assert MyExpr(POW, (x, 0))==1
+    assert MyExpr(POW, (x, 1))==x
+    assert MyExpr(POW, (o, x))==1
 
-    assert hash(MyExpr(heads.POW, (x, 0)))==hash(1)
-    assert hash(MyExpr(heads.POW, (x, 1)))==hash(x)
-    assert hash(MyExpr(heads.POW, (1, x)))==hash(1)
+    assert hash(MyExpr(POW, (x, 0)))==hash(1)
+    assert hash(MyExpr(POW, (x, 1)))==hash(x)
+    assert hash(MyExpr(POW, (o, x)))==hash(1)
 
 def test_equality_base_exp_dict():
     x, y, z = map(Symbol,'xyz')
-    assert MyExpr(heads.BASE_EXP_DICT, {})==1
-    assert MyExpr(heads.BASE_EXP_DICT, {x:0})==1
-    assert MyExpr(heads.BASE_EXP_DICT, {x:1})==x
-    assert MyExpr(heads.BASE_EXP_DICT, {x:2})==MyExpr(heads.POW, (x, 2))
-    assert MyExpr(heads.BASE_EXP_DICT, {1:2})==1
+    z, o, t = map(Number, [0,1,2])
+    assert MyExpr(BASE_EXP_DICT, {})==1
+    assert MyExpr(BASE_EXP_DICT, {x:0})==1
+    assert MyExpr(BASE_EXP_DICT, {x:1})==x
+    assert MyExpr(BASE_EXP_DICT, {x:2})==MyExpr(POW, (x, 2))
+    assert MyExpr(BASE_EXP_DICT, {o:2})==1
 
-    assert hash(MyExpr(heads.BASE_EXP_DICT, {}))==hash(1)
-    assert hash(MyExpr(heads.BASE_EXP_DICT, {x:0}))==hash(1)
-    assert hash(MyExpr(heads.BASE_EXP_DICT, {x:1}))==hash(x)
-    assert hash(MyExpr(heads.BASE_EXP_DICT, {x:2}))==hash(MyExpr(heads.POW, (x, 2)))
-    assert hash(MyExpr(heads.BASE_EXP_DICT, {1:2}))==hash(1)
+    assert hash(MyExpr(BASE_EXP_DICT, {}))==hash(1)
+    assert hash(MyExpr(BASE_EXP_DICT, {x:0}))==hash(1)
+    assert hash(MyExpr(BASE_EXP_DICT, {x:1}))==hash(x)
+    assert hash(MyExpr(BASE_EXP_DICT, {x:2}))==hash(MyExpr(POW, (x, 2)))
+    assert hash(MyExpr(BASE_EXP_DICT, {o:2}))==hash(1)
 
+def test_equality_exp_coeff_dict():
+    x, y, z = map(Symbol,'xyz')
+    assert MyExpr(EXP_COEFF_DICT, Pair((x,), {}))==0
+    assert MyExpr(EXP_COEFF_DICT, Pair((x,), {IntegerList(0):2}))==2
+    assert MyExpr(EXP_COEFF_DICT, Pair((x,), {IntegerList(1):1}))==x
+    assert MyExpr(EXP_COEFF_DICT, Pair((x,), {IntegerList(1):2}))==MyExpr(TERM_COEFF, (x,2))
+    assert MyExpr(EXP_COEFF_DICT, Pair((x,), {IntegerList(2):1}))==MyExpr(POW, (x,2))
+    
 def test_hash_number():
     assert hash(Number(1))==hash(1)
     assert hash(Number(-1))==hash(-1)
@@ -179,7 +192,7 @@ def test_hash_dict_data():
     assert hash(x + y) == hash((TERMS, frozenset([(x,1),(y,1)])))
 
 def test_hash_list_data():
-    l = [1,2,3]
+    l = map(MyExpr,[1,2,3])
     e1 = MyExpr(MUL, l)
     assert e1.is_writable
     e2 = MyExpr(MUL, tuple(l))
@@ -187,9 +200,7 @@ def test_hash_list_data():
     assert not e1.is_writable
 
 def test_is_writable():
-    assert MyExpr(MUL, [1,2]).is_writable
-    assert not MyExpr(MUL, (1,2)).is_writable
-    assert not MyExpr(MUL, Pair(1,2)).is_writable
-    assert MyExpr(MUL, Pair(1,[2])).is_writable
-    assert not MyExpr(MUL, Pair(1,(1,2))).is_writable
+    n, m = map(MyExpr, [1,2])
+    assert MyExpr(MUL, [n,m]).is_writable
+    assert not MyExpr(MUL, (n,m)).is_writable
     
