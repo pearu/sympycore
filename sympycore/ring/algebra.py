@@ -30,8 +30,7 @@ class Ring(Algebra, RingInterface):
 
     def __add__(self, other):
         cls = type(self)
-        tother = type(other)
-        if cls is not tother:
+        if type(other) is not cls:
             other = cls.convert(other, typeerror=False)
             if other is NotImplemented:
                 return NotImplemented

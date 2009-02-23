@@ -110,101 +110,16 @@ static PyObject* algebra_base_exp_dict_get_coefficient(PyTypeObject* Algebra, Py
 
 #define OBJ_IS_NUMBER(OBJ) PyObject_IsInstance(OBJ, py_numbertypes)
 
-#define DICT_PROC_WRAPPER_2(FUNC, FUNC_STR)				\
-  static PyObject*							\
-  func_ # FUNC(PyObject* self, PyObject* args)				\
-  {									\
-    if (PyTuple_Size(args)==2)						\
-      {									\
-	PyObject* d       = PyTuple_GET_ITEM(args, 0);			\
-	PyObject* arg1    = PyTuple_GET_ITEM(args, 1);			\
-	if (!PyDict_Check(d))						\
-	  {								\
-	    PyErr_SetString(PyExc_TypeError, FUNC_STR " first argument must be dict"); \
-	    return NULL;						\
-	  }								\
-	if (FUNC(d, arg1)==0)						\
-	  {								\
-	    Py_INCREF(Py_None);						\
-	    return Py_None;						\
-	  }								\
-	return NULL;							\
-      }									\
-    else								\
-      {									\
-	PyErr_SetString(PyExc_TypeError, FUNC_STR " takes exactly 2 arguments");	\
-	return NULL;							\
-      }									\
-  }
-
-#define DICT_PROC_WRAPPER_3(FUNC, FUNC_STR)				\
-  static PyObject*							\
-  func_ ## FUNC(PyObject* self, PyObject* args)				\
-  {									\
-    if (PyTuple_Size(args)==3)						\
-      {									\
-	PyObject* d       = PyTuple_GET_ITEM(args, 0);			\
-	PyObject* arg1    = PyTuple_GET_ITEM(args, 1);			\
-	PyObject* arg2    = PyTuple_GET_ITEM(args, 2);			\
-	if (!PyDict_Check(d))						\
-	  {								\
-	    PyErr_SetString(PyExc_TypeError, FUNC_STR " first argument must be dict"); \
-	    return NULL;						\
-	  }								\
-	if (FUNC(d, arg1, arg2)==0)					\
-	  {								\
-	    Py_INCREF(Py_None);						\
-	    return Py_None;						\
-	  }								\
-	return NULL;							\
-      }									\
-    else								\
-      {									\
-	PyErr_SetString(PyExc_TypeError, FUNC_STR " takes exactly 3 arguments");	\
-	return NULL;							\
-      }									\
-  }
-
-#define DICT_PROC_WRAPPER_4(FUNC, FUNC_STR)				\
-  static PyObject*							\
-  func_ ## FUNC(PyObject* self, PyObject* args)				\
-  {									\
-    if (PyTuple_Size(args)==4)						\
-      {									\
-	PyObject* d       = PyTuple_GET_ITEM(args, 0);			\
-	PyObject* arg1    = PyTuple_GET_ITEM(args, 1);			\
-	PyObject* arg2    = PyTuple_GET_ITEM(args, 2);			\
-	PyObject* arg3    = PyTuple_GET_ITEM(args, 3);			\
-	if (!PyDict_Check(d))						\
-	  {								\
-	    PyErr_SetString(PyExc_TypeError, FUNC_STR " first argument must be dict"); \
-	    return NULL;						\
-	  }								\
-	if (FUNC(d, arg1, arg2, arg3)==0)					\
-	  {								\
-	    Py_INCREF(Py_None);						\
-	    return Py_None;						\
-	  }								\
-	return NULL;							\
-      }									\
-    else								\
-      {									\
-	PyErr_SetString(PyExc_TypeError, FUNC_STR " takes exactly 4 arguments");	\
-	return NULL;							\
-      }									\
-  }
-
-
 #define ALGEBRA_DICT_PROC_WRAPPER_3(FUNC, FUNC_STR)			\
   static PyObject*							\
   func_ ## FUNC(PyObject* self, PyObject* args)				\
   {									\
-    if (PyTuple_Size(args)==3)						\
+    if (PyTuple_GET_SIZE(args)==3)						\
       {									\
 	PyTypeObject* Algebra = (PyTypeObject*)PyTuple_GET_ITEM(args, 0); \
 	PyObject* d       = PyTuple_GET_ITEM(args, 1);			\
 	PyObject* arg3    = PyTuple_GET_ITEM(args, 2);			\
-	if (!PyType_IsSubtype(Algebra, &ExprType))			\
+	if (0) { if (!PyType_IsSubtype(Algebra, &ExprType))		\
 	  {								\
 	    PyErr_SetString(PyExc_TypeError, FUNC_STR " first argument must be Expr subclass"); \
 	    return NULL;						\
@@ -213,7 +128,7 @@ static PyObject* algebra_base_exp_dict_get_coefficient(PyTypeObject* Algebra, Py
 	  {								\
 	    PyErr_SetString(PyExc_TypeError, FUNC_STR " second argument must be dict"); \
 	    return NULL;						\
-	  }								\
+	  }}								\
 	if (FUNC(Algebra, d, arg3)==0)					\
 	  {								\
 	    Py_INCREF(Py_None);						\
@@ -232,13 +147,13 @@ static PyObject* algebra_base_exp_dict_get_coefficient(PyTypeObject* Algebra, Py
   static PyObject*							\
   func_ ## FUNC(PyObject* self, PyObject* args)				\
   {									\
-    if (PyTuple_Size(args)==4)						\
+    if (PyTuple_GET_SIZE(args)==4)						\
       {									\
 	PyTypeObject* Algebra = (PyTypeObject*)PyTuple_GET_ITEM(args, 0); \
 	PyObject* d       = PyTuple_GET_ITEM(args, 1);			\
 	PyObject* arg3    = PyTuple_GET_ITEM(args, 2);			\
 	PyObject* arg4    = PyTuple_GET_ITEM(args, 3);			\
-	if (!PyType_IsSubtype(Algebra, &ExprType))			\
+	if(0){if (!PyType_IsSubtype(Algebra, &ExprType))		\
 	  {								\
 	    PyErr_SetString(PyExc_TypeError, FUNC_STR " first argument must be Expr subclass"); \
 	    return NULL;						\
@@ -247,8 +162,8 @@ static PyObject* algebra_base_exp_dict_get_coefficient(PyTypeObject* Algebra, Py
 	  {								\
 	    PyErr_SetString(PyExc_TypeError, FUNC_STR " second argument must be dict"); \
 	    return NULL;						\
-	  }								\
-	  if (FUNC(Algebra, d, arg3, arg4)==0)				\
+	  }}								\
+	if (FUNC(Algebra, d, arg3, arg4)==0)				\
 	  {								\
 	    Py_INCREF(Py_None);						\
 	    return Py_None;						\
@@ -266,12 +181,12 @@ static PyObject* algebra_base_exp_dict_get_coefficient(PyTypeObject* Algebra, Py
   static PyObject*							\
   func_ ## FUNC(PyObject* self, PyObject* args)				\
   {									\
-    if (PyTuple_Size(args)==2)						\
+    if (PyTuple_GET_SIZE(args)==2)						\
       {									\
 	PyTypeObject* Algebra = (PyTypeObject*)PyTuple_GET_ITEM(args, 0); \
 	PyObject* d       = PyTuple_GET_ITEM(args, 1);			\
 	PyObject* result = NULL;					\
-	if (!PyType_IsSubtype(Algebra, &ExprType))			\
+	if (0) {if (!PyType_IsSubtype(Algebra, &ExprType))		\
 	  {								\
 	    PyErr_SetString(PyExc_TypeError, FUNC_STR " first argument must be Expr subclass"); \
 	    return NULL;						\
@@ -280,7 +195,7 @@ static PyObject* algebra_base_exp_dict_get_coefficient(PyTypeObject* Algebra, Py
 	  {								\
 	    PyErr_SetString(PyExc_TypeError, FUNC_STR " second argument must be dict"); \
 	    return NULL;						\
-	  }								\
+	  }}								\
 	result = FUNC(Algebra, d);					\
 	if (result != NULL)						\
 	  {								\
@@ -328,35 +243,37 @@ Expr_dealloc(Expr* self)
 static PyObject *
 Expr_new(PyTypeObject *type, PyObject *args, PyObject *kws)
 {
-  Py_ssize_t len;
   Expr *self = NULL;
- 
-  if (!PyTuple_Check(args)) {
-    PyErr_SetString(PyExc_SystemError,
-		    "new style getargs format but argument is not a tuple");
-    return NULL;
-  }
-
-  len = PyTuple_GET_SIZE(args);
-  if (len==1)
-    return PyObject_CallMethodObjArgs((PyObject*)type,
-				      str_convert,
-				      PyTuple_GET_ITEM(args, 0),
-				      NULL
-				      );  
-  if (len!=2) {
-    PyErr_SetString(PyExc_TypeError,
-		    "Expr.__new__ expects 1 or 2 arguments: obj or (head, data)");
-    return NULL;
-  }
-  
-  self = (Expr *)type->tp_alloc(type, 0);
-  if (self != NULL) {
-    self->pair = args;    
-    self->hash = -1;
-    Py_INCREF(self->pair);
-  }
-  return (PyObject *)self;
+  /*
+  if (!PyTuple_Check(args)) 
+    {
+      PyErr_SetString(PyExc_SystemError,
+		      "new style getargs format but argument is not a tuple");
+      return NULL;
+    }
+  */
+  switch (PyTuple_GET_SIZE(args))
+    {
+    case 2:
+      self = (Expr *)type->tp_alloc(type, 0);
+      if (self != NULL) 
+	{
+	  Py_INCREF(args);
+	  self->pair = args;    
+	  self->hash = -1;
+	}
+      return (PyObject *)self;
+    case 1:
+      return PyObject_CallMethodObjArgs((PyObject*)type,
+					str_convert,
+					PyTuple_GET_ITEM(args, 0),
+					NULL
+					);
+    default:
+      PyErr_SetString(PyExc_TypeError,
+		      "Expr.__new__ expects 1 or 2 arguments: obj or (head, data)");
+      return NULL;
+    }
 }
 
 static PyObject *

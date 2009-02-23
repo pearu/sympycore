@@ -10,11 +10,6 @@ init_module.import_heads()
 init_module.import_numbers()
 init_module.import_lowlevel_operations()
 
-@init_module
-def _init(module):
-    from ..arithmetic.numbers import try_power
-    module.try_power = try_power
-    
 _is_number = re.compile(r'\A[-]?\d+\Z').match
 _is_neg_number = re.compile(r'\A-\d+([/]\d+)?\Z').match
 _is_rational = re.compile(r'\A\d+[/]\d+\Z').match
@@ -93,16 +88,15 @@ class NumberHead(AtomicHead):
         return cls(self, -expr.data)
 
     def add(self, cls, lhs, rhs):
-        if lhs==0:
+        ldata = lhs.data
+        if ldata==0:
             return rhs
         h, d = rhs.pair
         if h is NUMBER:
-            return cls(NUMBER, lhs.data + d)
-        if h is SYMBOL:
-            if lhs==0:
-                return rhs
-            return cls(TERM_COEFF_DICT, {cls(NUMBER,1): lhs.data, rhs:1})
-        if h is ADD:
+            return cls(NUMBER, ldata + d)
+        elif h is SYMBOL:
+            return cls(TERM_COEFF_DICT, {cls(NUMBER,1): ldata, rhs:1})
+        elif h is ADD:
             terms = []
             for term in d:
                 h1, c = term.pair
@@ -117,12 +111,12 @@ class NumberHead(AtomicHead):
             if len(terms)==1:
                 return terms[0]
             return cls(ADD, terms)
-        if h is TERM_COEFF:
+        elif h is TERM_COEFF:
             term, coeff = d
             return cls(TERM_COEFF_DICT, {term:coeff, cls(NUMBER,1):lhs.data})
-        if h is POW or h is BASE_EXP_DICT:
+        elif h is POW or h is BASE_EXP_DICT:
             return cls(TERM_COEFF_DICT, {cls(NUMBER,1):lhs.data, rhs:1})
-        if h is TERM_COEFF_DICT:
+        elif h is TERM_COEFF_DICT:
             data = d.copy()
             dict_add_item(cls, data, cls(NUMBER,1), lhs.data)
             return TERM_COEFF_DICT.new(cls, data)

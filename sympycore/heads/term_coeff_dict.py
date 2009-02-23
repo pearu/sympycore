@@ -27,19 +27,12 @@ class TermCoeffDictHead(ArithmeticHead):
                                                   term_coeff_dict.items()))
 
     def new(self, cls, data, evaluate=True):
-        if not evaluate:
-            n = len(data)
-            if n==0:
-                return cls(NUMBER, 0)
-            if n==1:
-                t, c = dict_get_item(data)
-                return TERM_COEFF.new(cls, (t, c))
-            return cls(self, data)
-        try:
-            del data[0]
-        except KeyError:
-            pass
-        return self.new(cls, data, evaluate=False)
+        n = len(data)
+        if n==0:
+            return cls(NUMBER, 0)
+        if n==1:
+            return TERM_COEFF.new(cls, dict_get_item(data))
+        return cls(self, data)
 
     def reevaluate(self, cls, data):
         r = cls(NUMBER, 0)
@@ -63,10 +56,20 @@ class TermCoeffDictHead(ArithmeticHead):
         return expr, 1
 
     def iadd(self, cls, data, rhs):
+        self.add(cls, data, rhs, inplace=True)
+
+    def add(self, cls, lhs, rhs, inplace=False):
+        if inplace:
+            data = lhs
+        else:
+            data = lhs.data.copy()
+        
         h2, d2 = rhs.pair
         if h2 is NUMBER:
-            if d2 == 0: return
-            dict_add_item(cls, data, cls(NUMBER, 1), d2)
+            if d2 != 0:
+                dict_add_item(cls, data, cls(NUMBER, 1), d2)
+        elif h2 is SYMBOL:
+            dict_add_item(cls, data, rhs, 1)
         elif h2 is TERM_COEFF:
             term, coeff = d2
             dict_add_item(cls, data, term, coeff)
@@ -93,10 +96,15 @@ class TermCoeffDictHead(ArithmeticHead):
         else:
             dict_add_item(cls, data, rhs, 1)
 
-    def add(self, cls, lhs, rhs):
-        d = lhs.data.copy()
-        self.iadd(cls, d, rhs)
-        return self.new(cls, d)
+        if inplace:
+            return
+        
+        n = len(data)
+        if n>1:
+            return cls(self, data)
+        if n==1:
+            return TERM_COEFF.new(cls, dict_get_item(data))
+        return cls(NUMBER, 0)
 
     def isub(self, cls, data, rhs):
         self.iadd(cls, data, -rhs)
