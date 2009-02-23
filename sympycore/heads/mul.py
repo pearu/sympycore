@@ -120,13 +120,17 @@ class MulHead(ArithmeticHead, Head):
                     lst.append(r)            
         if not lst:
             return compart
-        if len(lst)==1 and compart==1:
-            return lst[0]
+        if compart==1:
+            if len(lst)==1:
+                return lst[0]
+            return cls(MUL, lst)
         return cls(TERM_COEFF, (cls(MUL, lst), compart))
 
     def non_commutative_mul(self, cls, lhs, rhs):
         head, data = rhs.pair
         if head is NUMBER:
+            if data==1:
+                return lhs
             return TERM_COEFF.new(cls, (lhs, data))
         if head is SYMBOL or head is POW:
             return self.combine(cls, lhs.data + [rhs])
@@ -167,6 +171,9 @@ class MulHead(ArithmeticHead, Head):
                         middle = cls(MUL, rest)
                     return compart * first * middle**d * last # could be optimized
         return cls(POW, (base, exp))
+
+    def pow_number(self, cls, base, exp):
+        return self.pow(cls, base, cls(NUMBER, exp))
 
     def walk(self, func, cls, data, target):
         l = []

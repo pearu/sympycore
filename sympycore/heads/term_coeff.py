@@ -127,6 +127,7 @@ class TermCoeff(ArithmeticHead):
             return cls(TERM_COEFF_DICT,{term:coeff, rhs:1})
         raise NotImplementedError(`self, rhs.head`)
 
+    inplace_add = add
 
     def sub(self, cls, lhs, rhs):
         return lhs + (-rhs)
@@ -140,6 +141,17 @@ class TermCoeff(ArithmeticHead):
 
     commutative_mul = non_commutative_mul
 
+    def commutative_mul_number(self, cls, lhs, rhs):
+        if rhs==1:
+            return lhs
+        if rhs==0:
+            return cls(NUMBER, 0)
+        term, coeff = lhs.data
+        new_coeff = coeff * rhs
+        if new_coeff==1:
+            return term
+        return cls(TERM_COEFF, (term, new_coeff))
+
     def pow(self, cls, base, exp):
         term, coeff = base.data
         if isinstance(exp, Expr):
@@ -151,6 +163,14 @@ class TermCoeff(ArithmeticHead):
                 return term ** exp / coeff ** (-exp)
             return term ** exp * coeff ** exp
         return POW.new(cls, (base, exp))
+
+    def pow_number(self, cls, base, exp):
+        term, coeff = base.data
+        if isinstance(exp, inttypes):
+            if exp<0:
+                return term ** exp / coeff ** (-exp)
+            return term ** exp * coeff ** exp
+        return cls(POW, (base, exp))
 
     def walk(self, func, cls, data, target):
         term, coeff = data

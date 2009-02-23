@@ -108,6 +108,8 @@ class BaseExpDictHead(ArithmeticHead):
             base_exp_dict_add_item(cls, data, lterm, lcoeff)
             return TERM_COEFF_DICT.new(cls, data)
         raise NotImplementedError(`self, cls, lhs.pair, rhs.pair`)
+
+    inplace_add = add
     
     def commutative_imul(self, cls, data, rhs):
         rhead, rdata = rhs.pair
@@ -133,6 +135,10 @@ class BaseExpDictHead(ArithmeticHead):
         data = lhs.data.copy()
         self.commutative_imul(cls, data, rhs)
         return BASE_EXP_DICT.new(cls, data)
+
+    def commutative_mul_number(self, cls, lhs, rhs):
+        #TODO: optimize
+        return self.commutative_mul(cls, lhs, cls(NUMBER, rhs))
 
     def scan(self, proc, cls, data, target):
         for b, e in data.iteritems():
@@ -172,6 +178,8 @@ class BaseExpDictHead(ArithmeticHead):
                 return BASE_EXP_DICT.new(cls, data)
             return cls(NUMBER, 1)
         return POW.new(cls, (base, exp))
+
+    pow_number = pow
 
     def expand(self, cls, expr):
         data = {}

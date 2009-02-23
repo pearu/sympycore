@@ -6,6 +6,7 @@ from .interface import RingInterface
 
 from ..core import init_module
 init_module.import_heads()
+init_module.import_numbers()
 
 @init_module
 def _init(m):
@@ -37,6 +38,14 @@ class Ring(Algebra, RingInterface):
         return self.head.add(cls, self, other)
 
     __radd__ = __add__
+
+    def __iadd__(self, other):
+        cls = type(self)
+        if type(other) is not cls:
+            other = cls.convert(other, typeerror=False)
+            if other is NotImplemented:
+                return NotImplemented
+        return self.head.inplace_add(cls, self, other)
 
     def __sub__(self, other):
         cls = type(self)
@@ -70,8 +79,9 @@ class Ring(Algebra, RingInterface):
 
     def __pow__(self, other):
         cls = type(self)
-        tother = type(other)
-        if cls is not tother:
+        if isinstance(other, numbertypes):
+            return self.head.pow_number(cls, self, other)
+        if type(other) is not cls:
             other = cls.convert(other, typeerror=False)
             if other is NotImplemented:
                 return NotImplemented
@@ -88,8 +98,9 @@ class Ring(Algebra, RingInterface):
 
     def __div__(self, other):
         cls = type(self)
-        tother = type(other)
-        if cls is not tother:
+        if isinstance(other, numbertypes):
+            return self * number_div(1, other)
+        if type(other) is not cls:
             other = cls.convert(other, typeerror=False)
             if other is NotImplemented:
                 return NotImplemented
@@ -111,21 +122,15 @@ class CommutativeRing(Ring):
 
     def __mul__(self, other):
         cls = type(self)
-        tother = type(other)
-        if cls is not tother:
+        if isinstance(other, numbertypes):
+            return self.head.commutative_mul_number(cls, self, other)
+        if type(other) is not cls:
             other = cls.convert(other, typeerror=False)
             if other is NotImplemented:
                 return NotImplemented
         return self.head.commutative_mul(cls, self, other)
 
-    def __rmul__(self, other):
-        cls = type(self)
-        tother = type(other)
-        if cls is not tother:
-            other = cls.convert(other, typeerror=False)
-            if other is NotImplemented:
-                return NotImplemented
-        return other.head.commutative_mul(cls, other, self)
+    __rmul__ = __mul__
 
     def to(self, target, *args):
         """ Convert expression to target representation.

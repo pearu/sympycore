@@ -165,6 +165,8 @@ class AddHead(ArithmeticHead):
     def pow(self, cls, base, exp):
         return POW.new(cls, (base, exp))
 
+    pow_number = pow
+
     def walk(self, func, cls, data, target):
         l = []
         flag = False

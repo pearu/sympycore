@@ -162,6 +162,8 @@ class PowHead(ArithmeticHead):
             return cls(TERM_COEFF_DICT, {lhs:1, rhs:1})
         raise NotImplementedError(`self, rhs.head`)
 
+    inplace_add = add
+
     def sub(self, cls, lhs, rhs):
         return lhs + (-rhs)
 
@@ -175,6 +177,13 @@ class PowHead(ArithmeticHead):
             term, coeff = rdata
             return (lhs * term) * coeff
         raise NotImplementedError(`self, cls, lhs.pair, rhs.pair`)
+
+    def commutative_mul_number(self, cls, lhs, rhs):
+        if rhs==1:
+            return lhs
+        if rhs==0:
+            return cls(NUMBER, 0)
+        return cls(TERM_COEFF, (lhs, rhs))
 
     def commutative_mul(self, cls, lhs, rhs):
         rhead, rdata = rhs.pair
@@ -220,6 +229,8 @@ class PowHead(ArithmeticHead):
             base, exp = b, e*exp
         
         return POW.new(cls, (base, exp))
+
+    pow_number = pow
 
     def walk(self, func, cls, data, target):
         base, exp = data

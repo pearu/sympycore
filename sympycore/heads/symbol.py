@@ -83,6 +83,13 @@ class SymbolHead(AtomicHead):
         if rhead is APPLY or rhead is ADD or rhead is TERM_COEFF_DICT:
             return cls(BASE_EXP_DICT, {lhs:1, rhs:1})
         raise NotImplementedError(`self, cls, lhs.pair, rhs.pair`)
+
+    def commutative_mul_number(self, cls, lhs, rhs):
+        if rhs==1:
+            return lhs
+        if rhs==0:
+            return cls(NUMBER, 0)
+        return cls(TERM_COEFF, (lhs, rhs))
     
     def term_coeff(self, cls, expr):
         return expr, 1
@@ -115,6 +122,8 @@ class SymbolHead(AtomicHead):
             return TERM_COEFF_DICT.new(cls, data)
         return cls(TERM_COEFF_DICT, {lhs:1, rhs:1})
 
+    inplace_add = add
+
     def sub(self, cls, lhs, rhs):
         return lhs + (-rhs)
 
@@ -125,7 +134,13 @@ class SymbolHead(AtomicHead):
         return expr, 1
 
     def pow(self, cls, base, exp):
-        return POW.new(cls, (base, exp))
+        if exp==0:
+            return cls(NUMBER, 1)
+        if exp==1:
+            return base
+        return cls(POW, (base, exp))
+
+    pow_number = pow
 
     def expand(self, cls, expr):
         return expr

@@ -58,6 +58,21 @@ class TermCoeffDictHead(ArithmeticHead):
     def iadd(self, cls, data, rhs):
         self.add(cls, data, rhs, inplace=True)
 
+    def inplace_add(self, cls, lhs, rhs):
+        if lhs.is_writable:
+            data = lhs.data
+        else:
+            data = lhs.data.copy()
+
+        self.add(cls, data, rhs, inplace=True)
+
+        n = len(data)
+        if n>1:
+            return cls(self, data)
+        if n==1:
+            return TERM_COEFF.new(cls, dict_get_item(data))
+        return cls(NUMBER, 0)
+
     def add(self, cls, lhs, rhs, inplace=False):
         if inplace:
             data = lhs
@@ -144,6 +159,13 @@ class TermCoeffDictHead(ArithmeticHead):
             return cls(BASE_EXP_DICT, {lhs:1, rhs:1})
         raise NotImplementedError(`self, rhs.pair`)
 
+    def commutative_mul_number(self, cls, lhs, rhs):
+        if rhs==0:
+            return cls(NUMBER, 0)
+        data = lhs.data.copy()
+        dict_mul_value(cls, data, rhs)
+        return cls(self, data)
+
     def pow(self, cls, base, exp):
         if exp==0: return cls(NUMBER, 1)
         if exp==1: return base
@@ -155,6 +177,8 @@ class TermCoeffDictHead(ArithmeticHead):
             if c==1: return t
             return cls(TERM_COEFF, (t, c))
         return POW.new(cls, (base, exp))
+
+    pow_number = pow
 
     def neg(self, cls, expr):
         d = expr.data.copy()

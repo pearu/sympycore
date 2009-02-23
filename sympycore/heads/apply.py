@@ -56,6 +56,8 @@ class ApplyHead(FunctionalHead):
             return rhs + lhs
         return ADD.new(cls, [lhs, rhs])
 
+    inplace_add = add
+
     def sub(self, cls, lhs, rhs):
         return lhs + (-rhs)
     
@@ -83,8 +85,17 @@ class ApplyHead(FunctionalHead):
             return BASE_EXP_DICT.new(cls, data)
         raise NotImplementedError(`self, cls, lhs.pair, rhs.pair`)
 
+    def commutative_mul_number(self, cls, lhs, rhs):
+        if rhs==0:
+            return cls(NUMBER, 0)
+        if rhs==1:
+            return lhs
+        return cls(TERM_COEFF, (lhs, rhs))
+
     def pow(self, cls, base, exp):
         return POW.new(cls, (base, exp))
+
+    pow_number = pow
 
     def scan(self, proc, cls, data, target):
         f, args = data

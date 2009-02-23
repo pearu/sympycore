@@ -73,6 +73,9 @@ class NumberHead(AtomicHead):
         # Numbers are ring commutants:
         return rhs.head.non_commutative_mul(cls, rhs, lhs)
 
+    def commutative_mul_number(self, cls, lhs, rhs):
+        return cls(NUMBER, lhs.data * rhs)
+
     def commutative_mul(self, cls, lhs, rhs):
         head, data = rhs.pair
         if head is NUMBER:
@@ -122,11 +125,15 @@ class NumberHead(AtomicHead):
             return TERM_COEFF_DICT.new(cls, data)
         raise NotImplementedError(`self, lhs.pair, rhs.pair`)
 
+    inplace_add = add
+
     def sub(self, cls, lhs, rhs):
         return lhs + (-rhs)
 
     def pow(self, cls, base, exp):
         return POW.new(cls, (base, exp))
+
+    pow_number = pow
 
     def expand(self, cls, expr):
         return expr
