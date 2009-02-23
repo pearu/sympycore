@@ -134,6 +134,8 @@ class AddHead(ArithmeticHead):
             return ADD.new(cls, lhs.data + rdata)
         return ADD.new(cls, lhs.data + [rhs])
 
+    inplace_add = add
+
     def sub(self, cls, lhs, rhs):
         return lhs + (-rhs)
 
@@ -161,6 +163,9 @@ class AddHead(ArithmeticHead):
             return BASE_EXP_DICT.new(cls, data)
 
         raise NotImplementedError(`self, lhs.pair, rhs.pair`)
+
+    def commutative_mul_number(self, cls, lhs, rhs):
+        return ADD.new(cls, [op*rhs for op in lhs.data])
 
     def pow(self, cls, base, exp):
         return POW.new(cls, (base, exp))
