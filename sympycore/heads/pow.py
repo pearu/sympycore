@@ -164,6 +164,11 @@ class PowHead(ArithmeticHead):
 
     inplace_add = add
 
+    def add_number(self, cls, lhs, rhs):
+        if rhs==0:
+            return lhs
+        return cls(TERM_COEFF_DICT, {lhs:1, cls(NUMBER,1):rhs})
+
     def sub(self, cls, lhs, rhs):
         return lhs + (-rhs)
 
@@ -184,6 +189,8 @@ class PowHead(ArithmeticHead):
         if rhs==0:
             return cls(NUMBER, 0)
         return cls(TERM_COEFF, (lhs, rhs))
+
+    non_commutative_mul_number = commutative_mul_number
 
     def commutative_mul(self, cls, lhs, rhs):
         rhead, rdata = rhs.pair

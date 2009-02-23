@@ -266,6 +266,7 @@ class InitModule:
         def _import_numbers(module):
             from sympycore.arithmetic import numbers
             module.numbertypes = numbers.numbertypes
+            module.numbertypes_set = numbers.numbertypes_set
             module.inttypes = numbers.inttypes
             module.rationaltypes = numbers.rationaltypes
             module.realtypes = numbers.realtypes

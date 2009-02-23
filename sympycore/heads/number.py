@@ -76,6 +76,8 @@ class NumberHead(AtomicHead):
     def commutative_mul_number(self, cls, lhs, rhs):
         return cls(NUMBER, lhs.data * rhs)
 
+    non_commutative_mul_number = commutative_mul_number
+
     def commutative_mul(self, cls, lhs, rhs):
         head, data = rhs.pair
         if head is NUMBER:
@@ -126,6 +128,9 @@ class NumberHead(AtomicHead):
         raise NotImplementedError(`self, lhs.pair, rhs.pair`)
 
     inplace_add = add
+
+    def add_number(self, cls, lhs, rhs):
+        return cls(NUMBER, lhs.data + rhs)
 
     def sub(self, cls, lhs, rhs):
         return lhs + (-rhs)

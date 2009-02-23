@@ -121,6 +121,18 @@ class TermCoeffDictHead(ArithmeticHead):
             return TERM_COEFF.new(cls, dict_get_item(data))
         return cls(NUMBER, 0)
 
+    def add_number(self, cls, lhs, rhs):
+        if rhs==0:
+            return lhs
+        data = lhs.data.copy()
+        dict_add_item(cls, data, cls(NUMBER, 1), rhs)
+        n = len(data)
+        if n>1:
+            return cls(self, data)
+        if n==1:
+            return TERM_COEFF.new(cls, dict_get_item(data))
+        return cls(NUMBER, 0)
+
     def isub(self, cls, data, rhs):
         self.iadd(cls, data, -rhs)
 

@@ -110,6 +110,12 @@ class BaseExpDictHead(ArithmeticHead):
         raise NotImplementedError(`self, cls, lhs.pair, rhs.pair`)
 
     inplace_add = add
+
+    def add_number(self, cls, lhs, rhs):
+        if rhs==0:
+            return lhs
+        lterm, lcoeff = self.term_coeff(cls, lhs)
+        return cls(TERM_COEFF_DICT, {lterm:lcoeff, cls(NUMBER, 1):rhs})
     
     def commutative_imul(self, cls, data, rhs):
         rhead, rdata = rhs.pair

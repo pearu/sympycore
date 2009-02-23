@@ -141,6 +141,13 @@ class MulHead(ArithmeticHead, Head):
             return self.combine(cls, lhs.data + rhs.data)
         raise NotImplementedError(`self, cls, lhs.pair, rhs.pair`)
 
+    def non_commutative_mul_number(self, cls, lhs, rhs):
+        if rhs==0:
+            return cls(NUMBER, 0)
+        if rhs==1:
+            return lhs
+        return cls(TERM_COEFF, (lhs, rhs))
+
     def pow(self, cls, base, exp):
         if exp==0:
             return cls(NUMBER, 1)

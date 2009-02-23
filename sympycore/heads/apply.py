@@ -58,6 +58,11 @@ class ApplyHead(FunctionalHead):
 
     inplace_add = add
 
+    def add_number(self, cls, lhs, rhs):
+        if rhs==0:
+            return lhs
+        return cls(TERM_COEFF_DICT, {lhs:1, cls(NUMBER, 1): rhs})
+
     def sub(self, cls, lhs, rhs):
         return lhs + (-rhs)
     

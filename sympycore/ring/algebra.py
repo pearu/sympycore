@@ -31,7 +31,10 @@ class Ring(Algebra, RingInterface):
 
     def __add__(self, other):
         cls = type(self)
-        if type(other) is not cls:
+        tother = type(other)
+        if tother is not cls:
+            if tother in numbertypes_set:
+                return self.head.add_number(cls, self, other)
             other = cls.convert(other, typeerror=False)
             if other is NotImplemented:
                 return NotImplemented
@@ -48,13 +51,7 @@ class Ring(Algebra, RingInterface):
         return self.head.inplace_add(cls, self, other)
 
     def __sub__(self, other):
-        cls = type(self)
-        tother = type(other)
-        if cls is not tother:
-            other = cls.convert(other, typeerror=False)
-            if other is NotImplemented:
-                return NotImplemented
-        return self.head.sub(cls, self, other)
+        return self + (-other)
 
     def __rsub__(self, other):
         return other + (-self)
@@ -63,6 +60,8 @@ class Ring(Algebra, RingInterface):
         cls = type(self)
         tother = type(other)
         if cls is not tother:
+            if tother in numbertypes_set:
+                return self.head.non_commutative_mul_number(cls, self, other)
             other = cls.convert(other, typeerror=False)
             if other is NotImplemented:
                 return NotImplemented
@@ -79,9 +78,10 @@ class Ring(Algebra, RingInterface):
 
     def __pow__(self, other):
         cls = type(self)
-        if isinstance(other, numbertypes):
-            return self.head.pow_number(cls, self, other)
-        if type(other) is not cls:
+        tother = type(other)
+        if tother is not cls:
+            if tother in numbertypes_set:
+                return self.head.pow_number(cls, self, other)
             other = cls.convert(other, typeerror=False)
             if other is NotImplemented:
                 return NotImplemented
@@ -98,9 +98,10 @@ class Ring(Algebra, RingInterface):
 
     def __div__(self, other):
         cls = type(self)
-        if isinstance(other, numbertypes):
-            return self * number_div(1, other)
-        if type(other) is not cls:
+        tother = type(other)
+        if tother is not cls:
+            if tother in numbertypes_set:
+                return self * number_div(1, other)
             other = cls.convert(other, typeerror=False)
             if other is NotImplemented:
                 return NotImplemented
@@ -122,9 +123,10 @@ class CommutativeRing(Ring):
 
     def __mul__(self, other):
         cls = type(self)
-        if isinstance(other, numbertypes):
-            return self.head.commutative_mul_number(cls, self, other)
-        if type(other) is not cls:
+        tother = type(other)
+        if tother is not cls:
+            if tother in numbertypes_set:
+                return self.head.commutative_mul_number(cls, self, other)
             other = cls.convert(other, typeerror=False)
             if other is NotImplemented:
                 return NotImplemented

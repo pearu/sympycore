@@ -129,6 +129,12 @@ class TermCoeff(ArithmeticHead):
 
     inplace_add = add
 
+    def add_number(self, cls, lhs, rhs):
+        if rhs==0:
+            return lhs
+        term, coeff = lhs.data
+        return cls(TERM_COEFF_DICT, {term: coeff, cls(NUMBER, 1): rhs})
+
     def sub(self, cls, lhs, rhs):
         return lhs + (-rhs)
 
@@ -151,6 +157,8 @@ class TermCoeff(ArithmeticHead):
         if new_coeff==1:
             return term
         return cls(TERM_COEFF, (term, new_coeff))
+
+    non_commutative_mul_number = commutative_mul_number
 
     def pow(self, cls, base, exp):
         term, coeff = base.data
