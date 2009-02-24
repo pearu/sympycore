@@ -146,11 +146,7 @@ class SymbolHead(AtomicHead):
         return expr, 1
 
     def pow(self, cls, base, exp):
-        if exp==0:
-            return cls(NUMBER, 1)
-        if exp==1:
-            return base
-        return cls(POW, (base, exp))
+        return pow_new(cls, (base, exp))
 
     pow_number = pow
 

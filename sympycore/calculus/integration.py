@@ -21,7 +21,6 @@ def unknown(expr, *args):
 def integrate_indefinite(expr, x):
     head, data = expr.pair
     cls = type(expr)
-    #print `expr.pair`
     if head is NUMBER or not expr.has_symbol(x):
         return expr*cls.Symbol(x)
     elif head is SYMBOL and expr.data == x:

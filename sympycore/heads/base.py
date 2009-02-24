@@ -97,7 +97,7 @@ class Head(object):
         """
         return pair
 
-    def scan(self, proc, cls, data, targer):
+    def scan(self, proc, cls, data, target):
         raise NotImplementedError(not_implemented_error_msg % (self, 'scan(proc, cls, data, target)')) #pragma NO COVER
 
     def walk(self, func, cls, data, target):

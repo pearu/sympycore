@@ -6,13 +6,10 @@ __all__ = ['diff']
 from ..core import init_module
 
 init_module.import_heads()
+init_module.import_numbers()
 init_module.import_lowlevel_operations()
 
-from ..utils import SYMBOL, NUMBER, FACTORS, TERMS
-from ..heads import APPLY, CALLABLE
-from ..arithmetic.numbers import inttypes
 from ..basealgebra import Algebra
-#from ..basealgebra.pairs import inplace_add2, inplace_add, return_terms
 from .algebra import Calculus, algebra_numbers, zero, one
 from .functions import Log
 
@@ -21,10 +18,10 @@ cache_factors = {}
 
 def is_integer(expr):
     head, data = expr.pair
-    return head is NUMBER and isinstance(data, (int, long))
+    return head is NUMBER and isinstance(data, inttypes)
 
 def is_constant(expr, xdata):
-    return xdata not in get_symbols_data(expr)
+    return xdata not in expr.symbols_data
 
 def is_constant_exponent(exp, xdata):
     return isinstance(exp, algebra_numbers) or is_constant(exp, xdata)
@@ -125,7 +122,7 @@ def diff_factor(base, exp, xdata, order):
             d = exp * base**(exp-1) * diff_generic(base, xdata, one)
             res = diff_repeated(d, xdata, order-1)
     # Handle a**f(x) where a is constant
-    elif xdata not in get_symbols_data(base):
+    elif xdata not in base.symbols_data:
         # a**x
         if exp.head is SYMBOL:
             # Should not happen
@@ -175,27 +172,17 @@ def diff_product(pairs, xdata, order=one):
             b, e = args[i]
             dt = diff_factor(b, e, xdata, one)
             if dt != zero:
-                d1 = Calculus(FACTORS, dict(args[:i] + args[i+1:]))
+                d1 = Calculus(BASE_EXP_DICT, dict(args[:i] + args[i+1:]))
                 s += dt * d1
         return diff_repeated(s, xdata, order-1)
 
-def scan_for_symbols_data(cls, head, data, target):
-    if head is SYMBOL:
-        target.add(data)
-
-def get_symbols_data(expr):
-    head, data = expr.pair
-    symbols_data = set()
-    head.scan(scan_for_symbols_data, type(expr), data, symbols_data)
-    return symbols_data
-
-def diff_generic(expr, xdata, order, NUMBER=NUMBER, SYMBOL=SYMBOL, TERMS=TERMS, FACTORS=FACTORS):
+def diff_generic(expr, xdata, order):
     key = (expr, xdata, order)
     c = cache_generic.get(key)
     if c is not None:
         return c
     head, data = expr.pair
-    if xdata not in get_symbols_data(expr):
+    if xdata not in expr.symbols_data:
         return zero
     if head is NUMBER:
         if is_integer(order):
@@ -209,16 +196,12 @@ def diff_generic(expr, xdata, order, NUMBER=NUMBER, SYMBOL=SYMBOL, TERMS=TERMS, 
             r = zero
         else:
             raise NotImplementedError(monomial_msg)
-    elif head is TERMS:
+    elif head is TERM_COEFF_DICT:
         # Differentiate term by term. Note that coefficients are constants.
         s = zero
-        d = {}
         cls = type(expr)
-        d_get = d.get
         for term, coeff in data.iteritems():
             # Inline common cases
-            if term is 1:
-                continue
             th, td = term.pair
             if th is NUMBER:
                 continue
@@ -230,13 +213,21 @@ def diff_generic(expr, xdata, order, NUMBER=NUMBER, SYMBOL=SYMBOL, TERMS=TERMS, 
                         s += coeff
                 # else: zero
                 continue
-            if th is FACTORS:
-                dterm = diff_product(term.data, xdata, order)
+            if th is BASE_EXP_DICT:
+                dterm = diff_product(td, xdata, order)
             # General case
             else:
                 dterm = diff_generic(term, xdata, order)
             s += dterm * coeff
         r = s
+    elif head is TERM_COEFF:
+        term, coeff = data
+        return diff_generic(term, xdata, order) * coeff
+    elif head is BASE_EXP_DICT:
+        r = diff_product(data, xdata, order)
+    elif head is POW:
+        base, exp = data
+        r = diff_factor(base, exp, xdata, order)
     elif head is ADD:
         r = zero
         for op in data:
@@ -245,14 +236,6 @@ def diff_generic(expr, xdata, order, NUMBER=NUMBER, SYMBOL=SYMBOL, TERMS=TERMS, 
                 continue
             r += dop
         return r
-    elif head is TERM_COEFF:
-        term, coeff = data
-        return diff_generic(term, xdata, order) * coeff
-    elif head is FACTORS:
-        r = diff_product(data, xdata, order)
-    elif head is POW:
-        base, exp = data
-        r = diff_factor(base, exp, xdata, order)
     else:
         r = diff_callable(head, data, xdata, order)
     cache_generic[key] = r

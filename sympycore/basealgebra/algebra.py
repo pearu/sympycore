@@ -306,16 +306,31 @@ class Algebra(Expr):
             new_args.append(cls(KWARG, (convert(k), convert(v))))
         return cls(APPLY, (func, tuple(new_args)))
 
+    _cache_symbols = None
+
     @property
     def symbols(self):
         """ Return a set of atomic subexpressions in a symbolic object.
         """
-        def scan_for_symbols(cls, head, data, target):
-            if head is SYMBOL:
-                target.add(cls(head, data)) # introduce expr argument to scan
-        head, data = self.pair
-        symbols = set()
-        head.scan(scan_for_symbols, type(self), data, symbols)
+        symbols = self._cache_symbols
+        if symbols is None:
+            def scan_for_symbols(cls, head, data, target):
+                if head is SYMBOL:
+                    target.add(cls(head, data)) # introduce expr argument to scan
+            head, data = self.pair
+            symbols = set([])
+            head.scan(scan_for_symbols, type(self), data, symbols)
+            self._cache_symbols = symbols
+            #todo: make self read-only
+        return symbols
+
+    _cache_symbols_data = None
+    @property
+    def symbols_data(self):
+        symbols = self._cache_symbols_data
+        if symbols is None:
+            symbols = set([s.data for s in self.symbols])
+            self._cache_symbols_data = symbols
         return symbols
 
     def has_symbol(self, symbol):
