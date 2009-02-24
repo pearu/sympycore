@@ -116,8 +116,14 @@ class TermCoeffDictHead(ArithmeticHead):
         if rhs==0:
             return lhs
         data = lhs.data.copy()
-        dict_add_item(cls, data, cls(NUMBER, 1), rhs)
+        term_coeff_dict_add_item(cls, data, cls(NUMBER, 1), rhs)
+        return term_coeff_dict_new(cls, data)
 
+    def sub_number(self, cls, lhs, rhs):
+        if rhs==0:
+            return lhs
+        data = lhs.data.copy()
+        term_coeff_dict_add_item(cls, data, cls(NUMBER, 1), -rhs)
         return term_coeff_dict_new(cls, data)
 
     def isub(self, cls, data, rhs):

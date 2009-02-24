@@ -92,7 +92,7 @@ class NumberHead(AtomicHead):
         if head is NUMBER:
             return cls(NUMBER, lhs.data * data)
         return rhs.head.commutative_mul(cls, rhs, lhs)
-    
+
     def term_coeff(self, cls, expr):
         if isinstance(expr, Expr):
             return cls(NUMBER, 1), expr.data
@@ -139,7 +139,10 @@ class NumberHead(AtomicHead):
     inplace_add = add
 
     def add_number(self, cls, lhs, rhs):
-        return cls(NUMBER, lhs.data + rhs)
+        return cls(NUMBER, lhs.data + rhs) if rhs else lhs
+
+    def sub_number(self, cls, lhs, rhs):
+        return cls(NUMBER, lhs.data - rhs) if rhs else lhs
 
     def sub(self, cls, lhs, rhs):
         return lhs + (-rhs)

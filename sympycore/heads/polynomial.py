@@ -33,6 +33,9 @@ class SparsepolyHead(Head):
 
     inplace_add = add
 
+    def sub_number(self, cls, lhs, rhs):
+        return lhs + (-rhs)
+
     def sub(self, cls, lhs, rhs):
         return lhs + (-rhs)
 

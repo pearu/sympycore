@@ -51,7 +51,15 @@ class Ring(Algebra, RingInterface):
         return self.head.inplace_add(cls, self, other)
 
     def __sub__(self, other):
-        return self + (-other)
+        cls = type(self)
+        tother = type(other)
+        if tother is not cls:
+            if tother in numbertypes_set:
+                return self.head.sub_number(cls, self, other)
+            other = cls.convert(other, typeerror=False)
+            if other is NotImplemented:
+                return NotImplemented
+        return self.head.sub(cls, self, other)
 
     def __rsub__(self, other):
         return other + (-self)

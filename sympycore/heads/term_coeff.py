@@ -125,6 +125,12 @@ class TermCoeff(ArithmeticHead):
         term, coeff = lhs.data
         return cls(TERM_COEFF_DICT, {term: coeff, cls(NUMBER, 1): rhs})
 
+    def sub_number(self, cls, lhs, rhs):
+        if rhs==0:
+            return lhs
+        term, coeff = lhs.data
+        return cls(TERM_COEFF_DICT, {term: coeff, cls(NUMBER, 1): -rhs})
+    
     def sub(self, cls, lhs, rhs):
         return lhs + (-rhs)
 
