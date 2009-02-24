@@ -97,6 +97,25 @@ class ApplyHead(FunctionalHead):
             return lhs
         return cls(TERM_COEFF, (lhs, rhs))
 
+    def commutative_div(self, cls, lhs, rhs):
+        rhead, rdata = rhs.pair
+        if rhead is NUMBER:
+            return self.commutative_div_number(cls, lhs, rdata)
+        if rhead is APPLY:
+            if lhs.data==rdata:
+                return cls(NUMBER, 1)
+            return cls(BASE_EXP_DICT, {lhs:1, rhs:-1})
+        if rhead is SYMBOL or rhead is TERM_COEFF_DICT:
+            return cls(BASE_EXP_DICT, {lhs:1, rhs:-1})
+        if rhead is TERM_COEFF:
+            term, coeff = rdata
+            return (lhs / term) * number_div(1, coeff)
+        if rhead is BASE_EXP_DICT:
+            data = {lhs:1}
+            base_exp_dict_sub_dict(cls, data, rdata)
+            return base_exp_dict_new(cls, data)
+        return ArithmeticHead.commutative_div(self, cls, lhs, rhs)
+
     def pow(self, cls, base, exp):
         return POW.new(cls, (base, exp))
 

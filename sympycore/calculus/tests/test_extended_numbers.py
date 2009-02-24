@@ -401,7 +401,7 @@ def test_two_optable():
     assert two * undefined == undefined
 
     assert two / moo == zero
-    assert two / zero == zoo
+    assert two / zero == zoo, `two/zero`
     assert two / oo == zero
     assert two / zoo == zero
     assert two / undefined == undefined

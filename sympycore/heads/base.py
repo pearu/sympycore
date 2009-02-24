@@ -273,14 +273,23 @@ class ArithmeticHead(Head):
     def commutative_mul(self, cls, lhs, rhs):
         """ Return a commutative product of expressions: lhs * rhs.
         """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'commutative_mul(cls, lhs, rhs)')) #pragma NO COVER
+        raise NotImplementedError(not_implemented_error_msg % (self, 'commutative_mul(cls, lhs, <%s expression>)' % (rhs.head))) #pragma NO COVER
 
     inplace_commutative_mul = commutative_mul_number = commutative_mul
+
+    def commutative_div(self, cls, lhs, rhs):
+        """ Return a commutative product of expressions: lhs / rhs.
+        """
+        raise NotImplementedError(not_implemented_error_msg % (self, 'commutative_div(cls, lhs, <%s expression>)' % (rhs.head))) #pragma NO COVER
+
+    inplace_commutative_div = commutative_div_number = commutative_rdiv_number = commutative_div
 
     def pow(self, cls, base, exp):
         """ Return a power of expressions: base ** exp.
         """
         raise NotImplementedError(not_implemented_error_msg % (self, 'pow(cls, base, exp)')) #pragma NO COVER
+
+    pow_number = pow
 
     def expand(self, cls, expr):
         """ Return expanded expression: open parenthesis of arithmetic operations.

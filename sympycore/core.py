@@ -272,7 +272,7 @@ class InitModule:
             module.realtypes = numbers.realtypes
             module.complextypes = numbers.complextypes
             module.Infinity = numbers.Infinity
-            module.number_div = numbers.div
+            module.number_div = numbers.number_div
             
         _import_numbers.__module__ = module_name
 

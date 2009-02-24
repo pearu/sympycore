@@ -152,11 +152,32 @@ class TermCoeff(ArithmeticHead):
 
     def commutative_div_number(self, cls, lhs, rhs):
         term, coeff = lhs.data
-        return term_coeff_new(cls, (term, number_div(coeff, rhs)))
+        return term_coeff_new(cls, (term, number_div(cls, coeff, rhs)))
 
     def commutative_rdiv_number(self, cls, lhs, rhs):
         term, coeff = lhs.data
-        return term_coeff_new(cls, (1/term, number_div(rhs, coeff)))
+        return term_coeff_new(cls, (1/term, number_div(cls, rhs, coeff)))
+
+    def commutative_div(self, cls, lhs, rhs):
+        rhead, rdata = rhs.pair
+        if rhead is NUMBER:
+            return self.commutative_div_number(cls, lhs, rdata)
+        term, coeff = lhs.data
+        if rhead is TERM_COEFF:
+            rterm, rcoeff = rdata
+            if term==rterm:
+                return cls(NUMBER, number_div(cls, coeff, rcoeff))
+            return term.head.commutative_div(cls, term, rterm) * number_div(cls, coeff, rcoeff)
+        if rhead is SYMBOL or rhead is APPLY:
+            if term == rhs:
+                return cls(NUMBER, coeff)
+            return cls(TERM_COEFF, (cls(BASE_EXP_DICT, {term:1, rhs:-1}), coeff))
+        if rhead is TERM_COEFF_DICT:
+            return cls(TERM_COEFF, (cls(BASE_EXP_DICT, {term:1, rhs:-1}), coeff))
+        if term==rhs:
+            return cls(NUMBER, coeff)
+        return (term / rhs) * coeff
+        return term.head.commutative_div(cls, term, rhs) * coeff
 
     def pow(self, cls, base, exp):
         term, coeff = base.data

@@ -218,12 +218,32 @@ class PowHead(ArithmeticHead):
         raise NotImplementedError(`self, cls, lhs.pair, rhs.pair`)
 
     def commutative_div_number(self, cls, lhs, rhs):
-        return term_coeff_new(cls, (lhs, number_div(1, rhs)))
+        return term_coeff_new(cls, (lhs, number_div(cls, 1, rhs)))
 
     def commutative_rdiv_number(self, cls, lhs, rhs):
         base, exp = lhs.data
         return term_coeff_new(cls, (pow_new(cls, (base, -exp)), rhs))
 
+    def commutative_div(self, cls, lhs, rhs):
+        rhead, rdata = rhs.pair
+        if rhead is NUMBER:
+            return self.commutative_div_number(cls, lhs, rdata)
+        base, exp = lhs.data
+        if rhead is POW:
+            rbase, rexp = rdata
+            if base==rbase:
+                return pow_new(cls, (base, exp-rexp))
+            return base_exp_dict_new(cls, {base:exp, rbase: -rexp})
+        if rhead is BASE_EXP_DICT:
+            data = {base:exp}
+            for b, e in rdata.iteritems():
+                base_exp_dict_add_item(cls, data, b, e)
+            return base_exp_dict_new(cls, data)
+        if base==rhs:
+            return pow_new(cls, (base, exp-1))
+        return base_exp_dict_new(cls, {base:exp, rhs:-1})
+        return ArithmeticHead.commutative_div(self, cls, lhs, rhs)
+    
     def as_term_coeff_dict(self, cls, expr):
         return cls(TERM_COEFF_DICT, {expr:1})
 

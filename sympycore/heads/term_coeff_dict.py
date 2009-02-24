@@ -156,7 +156,8 @@ class TermCoeffDictHead(ArithmeticHead):
             return BASE_EXP_DICT.new(cls, data)
         if rhead is ADD:
             return cls(BASE_EXP_DICT, {lhs:1, rhs:1})
-        raise NotImplementedError(`self, rhs.pair`)
+        return ArithmeticHead.commutative_mul(self, cls, lhs, rhs)
+
 
     def commutative_mul_number(self, cls, lhs, rhs):
         if rhs==0:
@@ -168,6 +169,32 @@ class TermCoeffDictHead(ArithmeticHead):
     def commutative_rdiv_number(self, cls, lhs, rhs):
         return term_coeff_new(cls, (cls(POW, (lhs, -1)), rhs))
 
+    def commutative_div(self, cls, lhs, rhs):
+        rhead, rdata = rhs.pair
+        if rhead is NUMBER:
+            return commutative_div_number(cls, lhs, rdata)
+        if rhead is TERM_COEFF_DICT:
+            if lhs.data == rdata:
+                return cls(NUMBER, 1)
+            return cls(BASE_EXP_DICT, {lhs:1, rhs:-1})
+        if rhead is SYMBOL:
+            return cls(BASE_EXP_DICT, {lhs:1, rhs:-1})
+        if rhead is TERM_COEFF:
+            term, coeff = rdata
+            return (lhs / term) * number_div(cls, 1, coeff)
+        if rhead is POW:
+            base, exp = rdata
+            if lhs==base:
+                return pow_new(cls, (lhs, 1-exp))
+            return cls(BASE_EXP_DICT, {lhs:1, base:-exp})            
+        if rhead is BASE_EXP_DICT:
+            data = {lhs:1}
+            for base, exp in rdata.iteritems():
+                base_exp_dict_add_item(cls, data, base, -exp)
+            return base_exp_dict_new(cls, data)
+        return ArithmeticHead.commutative_div(self, cls, lhs, rhs)
+
+        
     def pow(self, cls, base, exp):
         if exp==0: return cls(NUMBER, 1)
         if exp==1: return base

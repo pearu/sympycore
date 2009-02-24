@@ -424,6 +424,13 @@ def base_exp_dict_add_dict(Algebra, dict1, dict2):
     for key, value in dict2.iteritems():
         base_exp_dict_add_item(Algebra, dict1, key, value)
 
+def base_exp_dict_sub_item(Algebra, dict, key, value):
+    return base_exp_dict_add_item(Algebra, dict, key, -value)
+
+def base_exp_dict_sub_dict(Algebra, dict1, dict2):
+    for key, value in dict2.iteritems():
+        base_exp_dict_sub_item(Algebra, dict1, key, value)
+
 def dict_sub_dict(Algebra, dict1, dict2):
     for key, value in dict2.iteritems():
         dict_add_item(Algebra, dict1, key, -value)

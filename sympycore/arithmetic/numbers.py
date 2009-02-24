@@ -46,6 +46,8 @@ __docformat__ = "restructuredtext"
 
 from ..core import init_module
 
+init_module.import_heads()
+
 @init_module
 def _init(module):
     from ..basealgebra.verbatim import Verbatim
@@ -328,6 +330,18 @@ realtypes_set = frozenset(realtypes)
 complextypes_set = frozenset(complextypes)
 numbertypes_set = frozenset(numbertypes)
 
+def number_div(Algebra, a, b):
+    if type(b) in inttypes_set:
+        if not b:
+            if a:
+                return Infinity(Infinity(0))
+            return Infinity(0)
+        if b == 1:
+            return a
+        if type(a) in inttypes_set:
+            return normalized_fraction(a, b)
+    return a / b
+
 def div(a, b):
     """Safely compute a/b.
 
@@ -336,6 +350,7 @@ def div(a, b):
     """
     if type(b) in inttypes_set:
         if not b:
+            return Infinity(a)
             raise ZeroDivisionError('%r / %r' % (a, b))
         if b == 1:
             return a

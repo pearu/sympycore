@@ -77,10 +77,13 @@ class NumberHead(AtomicHead):
         return cls(NUMBER, lhs.data * rhs)
 
     def commutative_div_number(self, cls, lhs, rhs):
-        return cls(NUMBER, number_div(lhs.data, rhs))
+        return cls(NUMBER, number_div(cls, lhs.data, rhs))
 
     def commutative_rdiv_number(self, cls, lhs, rhs):
-        return cls(NUMBER, number_div(rhs, lhs.data))
+        return cls(NUMBER, number_div(cls, rhs, lhs.data))
+
+    def commutative_div(self, cls, lhs, rhs):
+        return self.commutative_rdiv_number(cls, rhs, lhs.data)
 
     non_commutative_mul_number = commutative_mul_number
 

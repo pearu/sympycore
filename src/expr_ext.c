@@ -939,6 +939,7 @@ Expr_term_coeff(Expr *self)
 	  new_expr = Expr_new_from_data(self->ob_type, BASE_EXP_DICT, new_data);
 	  Py_DECREF(new_data);
 	  if (new_expr==NULL) return NULL;
+	  Py_INCREF(coeff);
 	  return PyTuple_Pack(2, new_expr, EXPR_GET_DATA(coeff));
 	}
     }
@@ -1215,6 +1216,13 @@ int algebra_base_exp_dict_add_item(PyTypeObject* Algebra, PyObject* d, PyObject*
   return 0;
 }
 
+int algebra_base_exp_dict_sub_item(PyTypeObject* Algebra, PyObject* d, PyObject* base, PyObject* exp)
+{
+  if (EXPR_IS_NUMBER(exp))
+    return algebra_base_exp_dict_add_item(Algebra, d, base, PyNumber_Negative(EXPR_GET_DATA(exp)));
+  return algebra_base_exp_dict_add_item(Algebra, d, base, PyNumber_Negative(exp));
+}
+
 int algebra_base_exp_dict_add_dict(PyTypeObject *Algebra, PyObject *d1, PyObject *d2)
 {
   PyObject *key = NULL;
@@ -1222,6 +1230,17 @@ int algebra_base_exp_dict_add_dict(PyTypeObject *Algebra, PyObject *d1, PyObject
   Py_ssize_t pos = 0;
   while (PyDict_Next(d2, &pos, &key, &value))
     if (algebra_base_exp_dict_add_item(Algebra, d1, key, value)==-1)
+      return -1;
+  return 0;
+}
+
+int algebra_base_exp_dict_sub_dict(PyTypeObject *Algebra, PyObject *d1, PyObject *d2)
+{
+  PyObject *key = NULL;
+  PyObject *value = NULL;
+  Py_ssize_t pos = 0;
+  while (PyDict_Next(d2, &pos, &key, &value))
+    if (algebra_base_exp_dict_sub_item(Algebra, d1, key, value)==-1)
       return -1;
   return 0;
 }
@@ -1383,7 +1402,7 @@ PyObject* algebra_pow_new(PyTypeObject* Algebra, PyObject* data)
       return base;
     }
   if (EXPR_IS_ONE(base) || exp==zero || EXPR_IS_ZERO(exp))
-    return Expr_new_from_head_data(Algebra, NUMBER, one);
+      return Expr_new_from_head_data(Algebra, NUMBER, one);
   return Expr_new_from_head_data(Algebra, POW, data);
 }
 
@@ -1418,11 +1437,14 @@ ALGEBRA_DATA_FUNC_WRAPPER_2(algebra_base_exp_dict_new, "base_exp_dict_new");
 
 ALGEBRA_DICT_PROC_WRAPPER_4(algebra_dict_mul_item, "dict_mul_item");
 ALGEBRA_DICT_PROC_WRAPPER_4(algebra_base_exp_dict_add_item, "base_exp_dict_add_item");
+ALGEBRA_DICT_PROC_WRAPPER_4(algebra_base_exp_dict_sub_item, "base_exp_dict_sub_item");
+ALGEBRA_DICT_PROC_WRAPPER_3(algebra_base_exp_dict_add_dict, "base_exp_dict_add_dict");
+ALGEBRA_DICT_PROC_WRAPPER_3(algebra_base_exp_dict_sub_dict, "base_exp_dict_sub_dict");
 ALGEBRA_DICT_PROC_WRAPPER_4(algebra_dict_add_item, "dict_add_item");
 ALGEBRA_DICT_PROC_WRAPPER_4(algebra_dict_subtract_item, "dict_sub_item");
 ALGEBRA_DICT_PROC_WRAPPER_3(algebra_dict_mul_value, "dict_mul_value");
 ALGEBRA_DICT_PROC_WRAPPER_3(algebra_dict_add_dict, "dict_add_dict");
-ALGEBRA_DICT_PROC_WRAPPER_3(algebra_base_exp_dict_add_dict, "base_exp_dict_add_dict");
+
 ALGEBRA_DICT_PROC_WRAPPER_3(algebra_dict_subtract_dict, "dict_sub_dict");
 ALGEBRA_DICT_PROC_WRAPPER_4(algebra_dict_mul_dict, "dict_mul_dict");
 ALGEBRA_DICT_PROC_WRAPPER_4(algebra_base_exp_dict_mul_dict, "base_exp_dict_mul_dict");
@@ -1585,10 +1607,14 @@ static PyMethodDef module_methods[] = {
 
   {"base_exp_dict_add_item",  func_algebra_base_exp_dict_add_item, METH_VARARGS,
    "base_exp_dict_add_item(Algebra, dict, key, value) - add (key, value) pair to dict"},
+  {"base_exp_dict_sub_item",  func_algebra_base_exp_dict_sub_item, METH_VARARGS,
+   "base_exp_dict_sub_item(Algebra, dict, key, value) - add (key, -value) pair to dict"},
   {"base_exp_dict_mul_item",  func_algebra_dict_mul_item, METH_VARARGS, 
    "base_exp_dict_mul_item(dict, key, value) - multiply dict key value with value"},
   {"base_exp_dict_add_dict",  func_algebra_base_exp_dict_add_dict, METH_VARARGS,
    "base_exp_dict_add_dict(Algebra, dict1, dict2) - add dict2 items to dict1"},
+  {"base_exp_dict_sub_dict",  func_algebra_base_exp_dict_sub_dict, METH_VARARGS,
+   "base_exp_dict_sub_dict(Algebra, dict1, dict2) - subtract dict2 items from dict1"},
   {"base_exp_dict_mul_dict",  func_algebra_base_exp_dict_mul_dict, METH_VARARGS,
    "base_exp_dict_mul_dict(Algebra, dict, dict1, dict2) - multiply dict1 and dict2 items and add them to dict"},
   {"base_exp_dict_mul_value",  func_algebra_dict_mul_value, METH_VARARGS, 

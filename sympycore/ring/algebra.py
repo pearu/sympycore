@@ -109,7 +109,7 @@ class Ring(Algebra, RingInterface):
         tother = type(other)
         if tother is not cls:
             if tother in numbertypes_set:
-                other = number_div(1, other)
+                other = number_div(cls, 1, other)
                 return self.head.non_commutative_mul_number(cls, self, other)
             other = cls.convert(other, typeerror=False)
             if other is NotImplemented:
@@ -152,7 +152,7 @@ class CommutativeRing(Ring):
             other = cls.convert(other, typeerror=False)
             if other is NotImplemented:
                 return NotImplemented
-        return self * other**-1
+        return self.head.commutative_div(cls, self, other)
 
     def __rdiv__(self, other):
         cls = type(self)

@@ -138,8 +138,27 @@ class BaseExpDictHead(ArithmeticHead):
         return term_coeff_new(cls, (lhs, rhs))
 
     def commutative_div_number(self, cls, lhs, rhs):        
-        return term_coeff_new(cls, (lhs, number_div(1, rhs)))
+        return term_coeff_new(cls, (lhs, number_div(cls, 1, rhs)))
 
+    def commutative_div(self, cls, lhs, rhs):
+        rhead, rdata = rhs.pair
+        if rhead is NUMBER:
+            return self.commutative_div_number(cls, lhs, rdata)
+        if rhead is POW:
+            data = lhs.data.copy()
+            base, exp = rdata
+            base_exp_dict_sub_item(cls, data, base, exp)
+            return base_exp_dict_new(cls, data)
+        if rhead is BASE_EXP_DICT:
+            data = lhs.data.copy()
+            base_exp_dict_sub_dict(cls, data, rdata)
+            return base_exp_dict_new(cls, data)
+        if rhead is SYMBOL:
+            data = lhs.data.copy()
+            base_exp_dict_sub_item(cls, data, rhs, 1)
+            return base_exp_dict_new(cls, data)
+        return ArithmeticHead.commutative_div(self, cls, lhs, rhs)
+    
     def scan(self, proc, cls, data, target):
         for b, e in data.iteritems():
             b.head.scan(proc, cls, b.data, target)
