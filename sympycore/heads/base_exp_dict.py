@@ -135,8 +135,10 @@ class BaseExpDictHead(ArithmeticHead):
         return base_exp_dict_new(cls, data)
 
     def commutative_mul_number(self, cls, lhs, rhs):
-        #TODO: optimize
-        return self.commutative_mul(cls, lhs, cls(NUMBER, rhs))
+        return term_coeff_new(cls, (lhs, rhs))
+
+    def commutative_div_number(self, cls, lhs, rhs):        
+        return term_coeff_new(cls, (lhs, number_div(1, rhs)))
 
     def scan(self, proc, cls, data, target):
         for b, e in data.iteritems():

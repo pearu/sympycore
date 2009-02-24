@@ -91,6 +91,12 @@ class SymbolHead(AtomicHead):
             return cls(NUMBER, 0)
         return cls(TERM_COEFF, (lhs, rhs))
 
+    def commutative_div_number(self, cls, lhs, rhs):
+        return term_coeff_new(cls, (lhs, number_div(1, rhs)))
+
+    def commutative_rdiv_number(self, cls, lhs, rhs):
+        return term_coeff_new(cls, (cls(POW, (lhs, -1)), rhs))
+
     def non_commutative_mul_number(self, cls, lhs, rhs):
         if rhs==0:
             return cls(NUMBER, 0)

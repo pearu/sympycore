@@ -165,6 +165,9 @@ class TermCoeffDictHead(ArithmeticHead):
         dict_mul_value(cls, data, rhs)
         return cls(self, data)
 
+    def commutative_rdiv_number(self, cls, lhs, rhs):
+        return term_coeff_new(cls, (cls(POW, (lhs, -1)), rhs))
+
     def pow(self, cls, base, exp):
         if exp==0: return cls(NUMBER, 1)
         if exp==1: return base

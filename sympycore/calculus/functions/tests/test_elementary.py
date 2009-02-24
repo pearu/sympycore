@@ -42,7 +42,7 @@ def test_trig_values():
     assert Sin(0) == 0
     assert Sin(pi) == 0
     assert Sin(4*pi) == 0
-    assert Sin(3*pi/2) == -1
+    assert Sin(3*pi/2) == -1, `Sin(3*pi/2)`
     assert Sin(5*pi/2) == 1
     assert Sin(pi/3) == sqrt3/2, `Sin(pi/3).pair, (sqrt3/2).pair`
     assert Sin(pi/2) == 1

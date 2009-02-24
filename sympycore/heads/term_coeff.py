@@ -8,13 +8,8 @@ from .base import heads_precedence, ArithmeticHead, Expr
 from ..core import init_module
 
 init_module.import_heads()
+init_module.import_numbers()
 init_module.import_lowlevel_operations()
-
-@init_module
-def _import_numbertypes(m):
-    from sympycore.arithmetic import numbers as n
-    m.numbertypes = n.numbertypes
-    m.inttypes = n.inttypes
 
 class TermCoeff(ArithmeticHead):
     """ Expr(TERM_COEFF, (term, coeff)) represents term*coeff
@@ -154,6 +149,14 @@ class TermCoeff(ArithmeticHead):
         return cls(TERM_COEFF, (term, new_coeff))
 
     non_commutative_mul_number = commutative_mul_number
+
+    def commutative_div_number(self, cls, lhs, rhs):
+        term, coeff = lhs.data
+        return term_coeff_new(cls, (term, number_div(coeff, rhs)))
+
+    def commutative_rdiv_number(self, cls, lhs, rhs):
+        term, coeff = lhs.data
+        return term_coeff_new(cls, (1/term, number_div(rhs, coeff)))
 
     def pow(self, cls, base, exp):
         term, coeff = base.data

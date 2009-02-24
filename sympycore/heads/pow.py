@@ -217,6 +217,13 @@ class PowHead(ArithmeticHead):
             return (lhs * term) * coeff
         raise NotImplementedError(`self, cls, lhs.pair, rhs.pair`)
 
+    def commutative_div_number(self, cls, lhs, rhs):
+        return term_coeff_new(cls, (lhs, number_div(1, rhs)))
+
+    def commutative_rdiv_number(self, cls, lhs, rhs):
+        base, exp = lhs.data
+        return term_coeff_new(cls, (pow_new(cls, (base, -exp)), rhs))
+
     def as_term_coeff_dict(self, cls, expr):
         return cls(TERM_COEFF_DICT, {expr:1})
 

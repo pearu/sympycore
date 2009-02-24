@@ -109,7 +109,8 @@ class Ring(Algebra, RingInterface):
         tother = type(other)
         if tother is not cls:
             if tother in numbertypes_set:
-                return self * number_div(1, other)
+                other = number_div(1, other)
+                return self.head.non_commutative_mul_number(cls, self, other)
             other = cls.convert(other, typeerror=False)
             if other is NotImplemented:
                 return NotImplemented
@@ -141,6 +142,28 @@ class CommutativeRing(Ring):
         return self.head.commutative_mul(cls, self, other)
 
     __rmul__ = __mul__
+
+    def __div__(self, other):
+        cls = type(self)
+        tother = type(other)
+        if tother is not cls:
+            if tother in numbertypes_set:
+                return self.head.commutative_div_number(cls, self, other)
+            other = cls.convert(other, typeerror=False)
+            if other is NotImplemented:
+                return NotImplemented
+        return self * other**-1
+
+    def __rdiv__(self, other):
+        cls = type(self)
+        tother = type(other)
+        if tother is not cls:
+            if tother in numbertypes_set:
+                return self.head.commutative_rdiv_number(cls, self, other)
+            other = cls.convert(other, typeerror=False)
+            if other is NotImplemented:
+                return NotImplemented
+        return other * self**-1
 
     def to(self, target, *args):
         """ Convert expression to target representation.
