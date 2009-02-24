@@ -5,7 +5,13 @@ from .base import heads, heads_precedence, ArithmeticHead, Pair
 
 from ..core import init_module, Expr
 init_module.import_heads()
+init_module.import_numbers()
 init_module.import_lowlevel_operations()
+
+@init_module
+def _init(module):
+    from ..arithmetic.number_theory import multinomial_coefficients
+    module.multinomial_coefficients = multinomial_coefficients
 
 class TermCoeffDictHead(ArithmeticHead):
 
@@ -192,20 +198,24 @@ class TermCoeffDictHead(ArithmeticHead):
             return cls(NUMBER, 1)
         if intexp==1:
             return expr
-
+        term_coeff_list = [(term.base_exp(), coeff) for term, coeff in expr.data.items()]
+        mdata = multinomial_coefficients(len(term_coeff_list), intexp)
         d = {}
-        if intexp==2:
-            d1 = expr.data
-            dict_mul_dict(cls, d, d1, d1)
-        else:
-            expr2 = self.expand_intpow(cls, expr, intexp//2)
-            h1, d1 = expr2.pair
-            if intexp % 2: # odd intexp
-                d2 = {}
-                dict_mul_dict(cls, d2, d1, expr.data)
-                dict_mul_dict(cls, d, d2, d1)
-            else:
-                dict_mul_dict(cls, d, d1, d1)
+        for e,c in mdata.iteritems():
+            new_coeff = c
+            df = {}
+            for e_i, ((base, exp), coeff) in zip(e, term_coeff_list):
+                if e_i:
+                    if e_i==1:
+                        base_exp_dict_add_item(cls, df, base, exp)
+                        if coeff is not 1:
+                            new_coeff *= coeff
+                    else:
+                        base_exp_dict_add_item(cls, df, base, exp*e_i)
+                        if coeff is not 1:
+                            new_coeff *= coeff ** e_i
+            new_term = base_exp_dict_new(cls, df)
+            term_coeff_dict_add_item(cls, d, new_term, new_coeff)
         return term_coeff_dict_new(cls, d)
 
     def walk(self, func, cls, data, target):

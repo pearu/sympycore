@@ -903,6 +903,19 @@ Expr_richcompare(PyObject *v, PyObject *w, int op)
   }
 
 static PyObject*
+Expr_base_exp(Expr *self)
+{
+  PyObject *head = PyTuple_GET_ITEM(self->pair, 0);
+  PyObject *data = PyTuple_GET_ITEM(self->pair, 1);
+  if (head==POW)
+    {
+      Py_INCREF(data);
+      return data;
+    }
+  return PyTuple_Pack(2, self, one);
+}
+
+static PyObject*
 Expr_term_coeff(Expr *self)
 {
   PyObject *head = PyTuple_GET_ITEM(self->pair, 0);
@@ -1435,6 +1448,7 @@ static PyMethodDef Expr_methods[] = {
   {"__nonzero2__", (PyCFunction)Expr_nonzero2, METH_VARARGS, NULL},
   {"_sethash", (PyCFunction)Expr_sethash, METH_VARARGS, NULL},
   {"term_coeff", (PyCFunction)Expr_term_coeff, METH_VARARGS, NULL},
+  {"base_exp", (PyCFunction)Expr_base_exp, METH_VARARGS, NULL},
   {NULL, NULL}           /* sentinel */
 };
 

@@ -279,6 +279,12 @@ This is Python version of Expr type.
             return self, data
         return self, 1
 
+    def base_exp(self):
+        head, data = self.pair
+        if head==POW:
+            return data
+        return self, 1
+
     for _item in dict(__eq__ = '==', __ne__ = '!=',
                       __lt__ = '<', __le__ = '<=',
                       __gt__ = '>', __ge__ = '>=',

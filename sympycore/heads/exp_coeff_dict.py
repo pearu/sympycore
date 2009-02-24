@@ -173,7 +173,7 @@ class ExpCoeffDict(ArithmeticHead):
             if exp==1:
                 return base
             if exp>1:
-                exps_coeff_list = list(base.data.data.iteritems())
+                exps_coeff_list = base.data.data.items()
                 m = len(variables)
                 mdata = multinomial_coefficients(len(exps_coeff_list), exp)
                 d = {}
