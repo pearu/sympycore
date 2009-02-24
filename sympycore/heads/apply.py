@@ -69,7 +69,7 @@ class ApplyHead(FunctionalHead):
     def commutative_mul(self, cls, lhs, rhs):
         rhead, rdata = rhs.pair
         if rhead is NUMBER:
-            return TERM_COEFF.new(cls, (lhs, rdata))
+            return term_coeff_new(cls, (lhs, rdata))
         if rhead is SYMBOL or rhead is ADD or rhead is TERM_COEFF_DICT:
             return cls(BASE_EXP_DICT, {lhs:1, rhs:1})
         if rhead is APPLY:
@@ -82,12 +82,12 @@ class ApplyHead(FunctionalHead):
         if rhead is POW:
             rbase, rexp = rdata
             if rbase==lhs:
-                return POW.new(cls, (lhs, rexp+1))
+                return pow_new(cls, (lhs, rexp+1))
             return cls(BASE_EXP_DICT, {lhs:1, rbase:rexp})
         if rhead is BASE_EXP_DICT:
             data = rdata.copy()
             dict_add_item(cls, data, lhs, 1)
-            return BASE_EXP_DICT.new(cls, data)
+            return base_exp_dict_new(cls, data)
         raise NotImplementedError(`self, cls, lhs.pair, rhs.pair`)
 
     def commutative_mul_number(self, cls, lhs, rhs):

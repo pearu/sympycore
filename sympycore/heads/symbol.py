@@ -46,7 +46,7 @@ class SymbolHead(AtomicHead):
     def non_commutative_mul(self, cls, lhs, rhs):
         head, data = rhs.pair
         if head is NUMBER:
-            return TERM_COEFF.new(cls, (lhs, data))
+            return term_coeff_new(cls, (lhs, data))
         if head is SYMBOL:
             if lhs.data == data:
                 return cls(POW, (lhs, 2))
@@ -63,7 +63,7 @@ class SymbolHead(AtomicHead):
     def commutative_mul(self, cls, lhs, rhs):
         rhead, rdata = rhs.pair
         if rhead is NUMBER:
-            return TERM_COEFF.new(cls, (lhs, rdata))
+            return term_coeff_new(cls, (lhs, rdata))
         if rhead is SYMBOL:
             if lhs.data==rdata:
                 return cls(POW, (lhs, 2))
@@ -74,12 +74,12 @@ class SymbolHead(AtomicHead):
         if rhead is POW:
             rbase, rexp = rdata
             if rbase==lhs:
-                return POW.new(cls, (lhs, rexp+1))
+                return pow_new(cls, (lhs, rexp+1))
             return cls(BASE_EXP_DICT, {lhs:1, rbase:rexp})
         if rhead is BASE_EXP_DICT:
             data = rdata.copy()
             dict_add_item(cls, data, lhs, 1)
-            return BASE_EXP_DICT.new(cls, data)
+            return base_exp_dict_new(cls, data)
         if rhead is APPLY or rhead is ADD or rhead is TERM_COEFF_DICT:
             return cls(BASE_EXP_DICT, {lhs:1, rhs:1})
         raise NotImplementedError(`self, cls, lhs.pair, rhs.pair`)
@@ -121,12 +121,12 @@ class SymbolHead(AtomicHead):
         elif h is TERM_COEFF:
             t,c = d
             if lhs==t:
-                return TERM_COEFF.new(cls, (t, c+1))
+                return term_coeff_new(cls, (t, c+1))
             return cls(TERM_COEFF_DICT, {t:c, lhs:1})
         elif h is TERM_COEFF_DICT:
             data = d.copy()
             dict_add_item(cls, data, lhs, 1)
-            return TERM_COEFF_DICT.new(cls, data)
+            return term_coeff_dict_new(cls, data)
         return cls(TERM_COEFF_DICT, {lhs:1, rhs:1})
 
     inplace_add = add

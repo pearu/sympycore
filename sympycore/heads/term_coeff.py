@@ -42,12 +42,8 @@ class TermCoeff(ArithmeticHead):
 
     def __repr__(self): return 'TERM_COEFF'
 
-    def new(self, cls, (term, coeff)):
-        if coeff==1:
-            return term
-        if coeff==0 or term==1:
-            return cls(coeff)
-        return cls(self, (term, coeff))
+    def new(self, cls, data):
+        return term_coeff_new(cls, data)
 
     def reevaluate(self, cls, (term, coeff)):
         return term * coeff
@@ -83,8 +79,7 @@ class TermCoeff(ArithmeticHead):
 
     def neg(self, cls, expr):
         term, coeff = expr.data
-        coeff = -coeff
-        return TERM_COEFF.new(cls, (term, coeff))
+        return term_coeff_new(cls, (term, -coeff))
 
     def add(self, cls, lhs, rhs):
         term, coeff = lhs.data
@@ -94,36 +89,36 @@ class TermCoeff(ArithmeticHead):
         if head is TERM_COEFF_DICT:
             data = data.copy()
             dict_add_item(cls, data, term, coeff)
-            return TERM_COEFF_DICT.new(cls, data)
+            return term_coeff_dict_new(cls, data)
         if head is NUMBER:
             if data==0:
                 return lhs
             return cls(TERM_COEFF_DICT,{term:coeff, cls(NUMBER,1):data})
         if head is SYMBOL:
             if term==rhs:
-                return TERM_COEFF.new(cls, (term, coeff + 1))
+                return term_coeff_new(cls, (term, coeff + 1))
             return cls(TERM_COEFF_DICT,{term:coeff, rhs:1})
         if head is TERM_COEFF:
             rterm, rcoeff = data
             if rterm==term:
-                return TERM_COEFF.new(cls, (term, coeff + rcoeff))
+                return term_coeff_new(cls, (term, coeff + rcoeff))
             return cls(TERM_COEFF_DICT,{term:coeff, rterm:rcoeff})
         if head is BASE_EXP_DICT:
             rcoeff = base_exp_dict_get_coefficient(cls, data)
             if rcoeff is not None:
                 d = data.copy()
                 del d[rcoeff]
-                rterm = BASE_EXP_DICT.new(cls, d)
+                rterm = base_exp_dict_new(cls, d)
                 if rterm==term:
-                    return TERM_COEFF.new(cls, (term, coeff + rcoeff))
+                    return term_coeff_new(cls, (term, coeff + rcoeff))
                 return cls(TERM_COEFF_DICT,{term:coeff, rterm:rcoeff})
             else:
                 if term==rhs:
-                    return TERM_COEFF.new(cls, (term, coeff + 1))
+                    return term_coeff_new(cls, (term, coeff + 1))
                 return cls(TERM_COEFF_DICT,{term:coeff, rhs:1})
         if head is POW or head is APPLY:
             if term==rhs:
-                return TERM_COEFF.new(cls, (term, coeff + 1))
+                return term_coeff_new(cls, (term, coeff + 1))
             return cls(TERM_COEFF_DICT,{term:coeff, rhs:1})
         raise NotImplementedError(`self, rhs.head`)
 
@@ -142,7 +137,7 @@ class TermCoeff(ArithmeticHead):
         term, coeff = lhs.data
         head, data = rhs.pair
         if head is NUMBER:
-            return TERM_COEFF.new(cls, (term, coeff * data))
+            return term_coeff_new(cls, (term, coeff * data))
         return (term * rhs) * coeff
 
     commutative_mul = non_commutative_mul
@@ -170,7 +165,7 @@ class TermCoeff(ArithmeticHead):
             if exp<0:
                 return term ** exp / coeff ** (-exp)
             return term ** exp * coeff ** exp
-        return POW.new(cls, (base, exp))
+        return pow_new(cls, (base, exp))
 
     def pow_number(self, cls, base, exp):
         term, coeff = base.data

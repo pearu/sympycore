@@ -76,7 +76,7 @@ class ExpCoeffDict(ArithmeticHead):
             if not factors:
                 return coeff
             term = MUL.new(cls, factors)
-            return TERM_COEFF.new(cls, (term, coeff))
+            return term_coeff_new(cls, (term, coeff))
         return pair
 
     def combine_variables(self, *seq):

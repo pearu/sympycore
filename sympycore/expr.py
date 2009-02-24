@@ -452,3 +452,41 @@ def dict_mul_value(Algebra, d, value):
 
 base_exp_dict_mul_value = dict_mul_value
 term_coeff_dict_mul_dict = dict_mul_dict
+
+def term_coeff_new(Algebra, data):
+    term, coeff = data
+    if coeff==1:
+        return term
+    if term==1:
+        return Algebra(NUMBER, coeff)
+    if coeff==0:
+        return Algebra(NUMBER, 0)
+    return Algebra(TERM_COEFF, data)
+
+def term_coeff_dict_new(Algebra, data):
+    n = len(data)
+    if n>1:
+        return Algebra(TERM_COEFF_DICT, data)
+    if n==0:
+        return Algebra(NUMBER, 0)
+    return term_coeff_new(Algebra, dict_get_item(data))
+
+def pow_new(Algebra, data):
+    base, exp = data
+    if exp==1:
+        return base
+    if base==1 or exp==0:
+        return Algebra(NUMBER, 1)
+    return Algebra(POW, data)
+
+def base_exp_dict_new(Algebra, data):
+    n = len(data)
+    if n==0:
+        return Algebra(NUMBER, 1)
+    if n==1:
+        return pow_new(Algebra, dict_get_item(data))
+    coeff = base_exp_dict_get_coefficient(Algebra, data)
+    if coeff is None:
+        return Algebra(BASE_EXP_DICT, data)
+    del data[coeff]
+    return term_coeff_new(Algebra, (base_exp_dict_new(Algebra, data), coeff.data))

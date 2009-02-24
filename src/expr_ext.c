@@ -211,6 +211,35 @@ static PyObject* algebra_base_exp_dict_get_coefficient(PyTypeObject* Algebra, Py
       }									\
 }
 
+#define ALGEBRA_DATA_FUNC_WRAPPER_2(FUNC, FUNC_STR)			\
+  static PyObject*							\
+  func_ ## FUNC(PyObject* self, PyObject* args)				\
+  {									\
+    if (PyTuple_GET_SIZE(args)==2)						\
+      {									\
+	PyTypeObject* Algebra = (PyTypeObject*)PyTuple_GET_ITEM(args, 0); \
+	PyObject* data       = PyTuple_GET_ITEM(args, 1);		\
+	PyObject* result = NULL;					\
+	if (0) {if (!PyType_IsSubtype(Algebra, &ExprType))		\
+	  {								\
+	    PyErr_SetString(PyExc_TypeError, FUNC_STR " first argument must be Expr subclass"); \
+	    return NULL;						\
+	  }}								\
+	result = FUNC(Algebra, data);					\
+	if (result != NULL)						\
+	  {								\
+	    Py_INCREF(result);						\
+	    return result;						\
+	  }								\
+	return NULL;							\
+      }									\
+    else								\
+      {									\
+	PyErr_SetString(PyExc_TypeError, FUNC_STR " takes exactly 2 arguments");	\
+	return NULL;							\
+      }									\
+}
+
 static int
 Expr_traverse(Expr *self, visitproc visit, void *arg)
 {
@@ -904,16 +933,22 @@ Expr_term_coeff(Expr *self)
 }
 
 static PyObject *
-dict_get_item(PyObject *self, PyObject *args)
+dict_get_item(PyObject *dict)
 {
-  // TODO: check that args[0] is dict and len(args)==1
-  PyObject *d = PyTuple_GET_ITEM(args, 0);
   PyObject *key = NULL;
   PyObject *value = NULL;
   Py_ssize_t pos = 0;
-  if (!PyDict_Next(d, &pos, &key, &value))
+  if (!PyDict_Next(dict, &pos, &key, &value))
     return NULL;
-  return PyTuple_Pack(2, key, value);
+  return PyTuple_Pack(2, key, value);  
+}
+
+static PyObject *
+func_dict_get_item(PyObject *self, PyObject *args)
+{
+  // TODO: check that args[0] is dict and len(args)==1
+  PyObject *d = PyTuple_GET_ITEM(args, 0);
+  return dict_get_item(d);
 }
 
 int algebra_dict_add_item(PyTypeObject *Algebra, PyObject *d, PyObject *key, PyObject *value)
@@ -1279,18 +1314,6 @@ static PyObject *init_module(PyObject *self, PyObject *args)
   return Py_BuildValue("");
 }
 
-int dict_mul_item(PyObject* d, PyObject* key, PyObject* value)
-{
-  PyObject *new_value = value;
-  PyObject *obj = PyDict_GetItem(d, key);
-  if (obj!=NULL)
-    {
-      new_value = PyNumber_Multiply(obj, value);
-      if (new_value==NULL) return -1;
-    }
-  return PyDict_SetItem(d, key, new_value); // returns 0 on success
-}
-
 int algebra_dict_mul_item(PyTypeObject* Algebra, PyObject* d, PyObject* key, PyObject* value)
 {
   PyObject *new_value = value;
@@ -1302,6 +1325,83 @@ int algebra_dict_mul_item(PyTypeObject* Algebra, PyObject* d, PyObject* key, PyO
     }
   return PyDict_SetItem(d, key, new_value); // returns 0 on success
 }
+
+PyObject* algebra_term_coeff_new(PyTypeObject* Algebra, PyObject* data)
+{
+  PyObject* term = PyTuple_GET_ITEM(data, 0);
+  PyObject* coeff = PyTuple_GET_ITEM(data, 1);
+  if (coeff==one)
+    {
+      Py_INCREF(term);
+      return term;
+    }
+  if (EXPR_IS_ONE(term) || coeff==zero)
+    return Expr_new_from_head_data(Algebra, NUMBER, coeff);
+  if (EXPR_IS_ZERO(coeff))
+    return Expr_new_from_head_data(Algebra, NUMBER, zero);
+  if (EXPR_IS_NUMBER(term))
+    {
+      PyObject* obj = PyNumber_Multiply(EXPR_GET_DATA(term), coeff);
+      return Expr_new_from_head_data(Algebra, NUMBER, obj);
+    }
+  return Expr_new_from_head_data(Algebra, TERM_COEFF, data);
+}
+
+PyObject* algebra_term_coeff_dict_new(PyTypeObject* Algebra, PyObject* data)
+{
+  switch (PyDict_Size(data))
+    {
+    case 0:
+      return Expr_new_from_head_data(Algebra, NUMBER, zero);
+    case 1:
+      return algebra_term_coeff_new(Algebra, dict_get_item(data));
+    default:
+      return Expr_new_from_head_data(Algebra, TERM_COEFF_DICT, data);
+    }
+}
+
+PyObject* algebra_pow_new(PyTypeObject* Algebra, PyObject* data)
+{
+  PyObject* base = PyTuple_GET_ITEM(data, 0);
+  PyObject* exp = PyTuple_GET_ITEM(data, 1);
+  if (EXPR_IS_ONE(exp) || exp==one)
+    {
+      Py_INCREF(base);
+      return base;
+    }
+  if (EXPR_IS_ONE(base) || exp==zero || EXPR_IS_ZERO(exp))
+    return Expr_new_from_head_data(Algebra, NUMBER, one);
+  return Expr_new_from_head_data(Algebra, POW, data);
+}
+
+PyObject* algebra_base_exp_dict_new(PyTypeObject* Algebra, PyObject* data)
+{
+
+  PyObject *coeff = NULL;
+  Py_ssize_t len = PyDict_Size(data);
+  if (len==0)
+    return Expr_new_from_head_data(Algebra, NUMBER, one);
+  if (len==1)
+    return algebra_pow_new(Algebra, dict_get_item(data));
+  coeff = algebra_base_exp_dict_get_coefficient(Algebra, data);
+  if (coeff==NULL)
+    return NULL;
+  if (coeff != Py_None)
+    {
+      Py_INCREF(coeff);
+      if (PyDict_DelItem(data, coeff)==-1) return NULL;
+      return algebra_term_coeff_new(Algebra, 
+				    PyTuple_Pack(2, 
+						 algebra_base_exp_dict_new(Algebra, data),
+						 EXPR_GET_DATA(coeff)));
+    }
+  return Expr_new_from_head_data(Algebra, BASE_EXP_DICT, data);
+}
+
+ALGEBRA_DATA_FUNC_WRAPPER_2(algebra_term_coeff_new, "term_coeff_new");
+ALGEBRA_DATA_FUNC_WRAPPER_2(algebra_term_coeff_dict_new, "term_coeff_dict_new");
+ALGEBRA_DATA_FUNC_WRAPPER_2(algebra_pow_new, "pow_new");
+ALGEBRA_DATA_FUNC_WRAPPER_2(algebra_base_exp_dict_new, "base_exp_dict_new");
 
 ALGEBRA_DICT_PROC_WRAPPER_4(algebra_dict_mul_item, "dict_mul_item");
 ALGEBRA_DICT_PROC_WRAPPER_4(algebra_base_exp_dict_add_item, "base_exp_dict_add_item");
@@ -1437,9 +1537,17 @@ static PyTypeObject PairType = {
 
 static PyMethodDef module_methods[] = {
   {"init_module",  init_module, METH_VARARGS, "Initialize module."},
-  {"dict_get_item", dict_get_item, METH_VARARGS, "dict_get_item(dict) - return the first (key, value) pair of a dict."},
-  //{"dict_mul_dict",  dict_mul_dict, METH_VARARGS, "dict_mul_dict(dict, dict1, dict2) - multiply dict1 and dict2 items and add them to dict"},
-  //
+
+  {"term_coeff_new",  func_algebra_term_coeff_new, METH_VARARGS, 
+   "term_coeff_new(Algebra, data) - create Algebra instance from TERM_COEFF data"},
+  {"term_coeff_dict_new",  func_algebra_term_coeff_dict_new, METH_VARARGS, 
+   "term_coeff_dict_new(Algebra, data) - create Algebra instance from TERM_COEFF_DICT data"},
+  {"pow_new",  func_algebra_pow_new, METH_VARARGS, 
+   "pow_new(Algebra, data) - create Algebra instance from POW data"},
+  {"base_exp_dict_new",  func_algebra_base_exp_dict_new, METH_VARARGS, 
+   "base_exp_dict_new(Algebra, data) - create Algebra instance from BASE_EXP_DICT data"},
+
+  {"dict_get_item", func_dict_get_item, METH_VARARGS, "dict_get_item(dict) - return the first (key, value) pair of a dict."},
 
   {"dict_mul_item",  func_algebra_dict_mul_item, METH_VARARGS, 
    "dict_mul_item(Algebra, dict, key, value) - multiply dict key value with value"},

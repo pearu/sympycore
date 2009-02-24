@@ -248,7 +248,7 @@ class InitModule:
         
         def _import_lowlevel_operations(module):
             for n in dir(expr_module):
-                if 'dict' in n:
+                if 'dict' in n or 'new' in n and not n.startswith('_'):
                     setattr(module, n, getattr(expr_module, n))
             module.IntegerList = IntegerList
             

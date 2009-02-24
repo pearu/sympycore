@@ -56,6 +56,14 @@ class Ring(Algebra, RingInterface):
     def __rsub__(self, other):
         return other + (-self)
 
+    def __isub__(self, other):
+        cls = type(self)
+        if type(other) is not cls:
+            other = cls.convert(other, typeerror=False)
+            if other is NotImplemented:
+                return NotImplemented
+        return self.head.inplace_add(cls, self, -other)
+
     def __mul__(self, other):
         cls = type(self)
         tother = type(other)

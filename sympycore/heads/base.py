@@ -256,6 +256,8 @@ class ArithmeticHead(Head):
         """
         raise NotImplementedError(not_implemented_error_msg % (self, 'add(cls, lhs, rhs)')) #pragma NO COVER
 
+    inplace_add = add_number = add
+
     def sub(self, cls, lhs, rhs):
         """ Return a subtract of expressions: lhs + rhs.
         """
@@ -266,10 +268,14 @@ class ArithmeticHead(Head):
         """
         raise NotImplementedError(not_implemented_error_msg % (self, 'non_commutative_mul(cls, lhs, rhs)')) #pragma NO COVER
 
-    def mul(self, cls, lhs, rhs):
-        """ Return a product of expressions: lhs * rhs.
+    inplace_non_commutative_mul = non_commutative_mul_number = non_commutative_mul
+
+    def commutative_mul(self, cls, lhs, rhs):
+        """ Return a commutative product of expressions: lhs * rhs.
         """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'mul(cls, lhs, rhs)')) #pragma NO COVER
+        raise NotImplementedError(not_implemented_error_msg % (self, 'commutative_mul(cls, lhs, rhs)')) #pragma NO COVER
+
+    inplace_commutative_mul = commutative_mul_number = commutative_mul
 
     def pow(self, cls, base, exp):
         """ Return a power of expressions: base ** exp.

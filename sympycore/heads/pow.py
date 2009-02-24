@@ -61,7 +61,7 @@ class PowHead(ArithmeticHead):
             if isinstance(b, numbertypes):
                 r, base_exp_list = try_power(b, exp)
                 if not base_exp_list:
-                    return NUMBER.new(cls, r)
+                    return cls(NUMBER, r)
                 if len(base_exp_list)==1:
                     b, e = base_exp_list[0]
                     rest = cls(POW, (cls(NUMBER, b), e))
@@ -147,12 +147,12 @@ class PowHead(ArithmeticHead):
         if rhead is TERM_COEFF:
             term, coeff = rdata
             if term==lhs:
-                return TERM_COEFF.new(cls, (term, coeff + 1))
+                return term_coeff_new(cls, (term, coeff + 1))
             return cls(TERM_COEFF_DICT, {lhs:1, term:coeff})
         if rhead is TERM_COEFF_DICT:
             data = rdata.copy()
             dict_add_item(cls, data, lhs, 1)
-            return TERM_COEFF_DICT.new(cls, data)
+            return term_coeff_dict_new(cls, data)
         if rhead is POW:
             if lhs==rhs:
                 return cls(TERM_COEFF, (lhs, 2))
@@ -175,7 +175,7 @@ class PowHead(ArithmeticHead):
     def non_commutative_mul(self, cls, lhs, rhs):
         rhead, rdata = rhs.pair
         if rhead is NUMBER:
-            return TERM_COEFF.new(cls, (lhs, rdata))
+            return term_coeff_new(cls, (lhs, rdata))
         if rhead is SYMBOL or rhead is POW:
             return MUL.combine(cls, [lhs, rhs])
         if rhead is TERM_COEFF:
@@ -195,11 +195,11 @@ class PowHead(ArithmeticHead):
     def commutative_mul(self, cls, lhs, rhs):
         rhead, rdata = rhs.pair
         if rhead is NUMBER:
-            return TERM_COEFF.new(cls, (lhs, rdata))
+            return term_coeff_new(cls, (lhs, rdata))
         if rhead is SYMBOL or rhead is ADD or rhead is TERM_COEFF_DICT or rhead is APPLY:
             lbase, lexp = lhs.data
             if lbase == rhs:
-                return POW.new(cls, (lbase, lexp + 1))
+                return pow_new(cls, (lbase, lexp + 1))
             return cls(BASE_EXP_DICT, {rhs:1, lbase:lexp})
         if rhead is POW:
             lbase, lexp = lhs.data
@@ -211,7 +211,7 @@ class PowHead(ArithmeticHead):
             base, exp = lhs.data
             data = rhs.data.copy()
             dict_add_item(cls, data, base, exp)
-            return BASE_EXP_DICT.new(cls, data)
+            return base_exp_dict_new(cls, data)
         if rhead is TERM_COEFF:
             term, coeff = rdata
             return (lhs * term) * coeff

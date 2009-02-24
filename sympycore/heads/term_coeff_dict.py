@@ -27,12 +27,7 @@ class TermCoeffDictHead(ArithmeticHead):
                                                   term_coeff_dict.items()))
 
     def new(self, cls, data, evaluate=True):
-        n = len(data)
-        if n==0:
-            return cls(NUMBER, 0)
-        if n==1:
-            return TERM_COEFF.new(cls, dict_get_item(data))
-        return cls(self, data)
+        return term_coeff_dict_new(cls, data)
 
     def reevaluate(self, cls, data):
         r = cls(NUMBER, 0)
@@ -66,12 +61,7 @@ class TermCoeffDictHead(ArithmeticHead):
 
         self.add(cls, data, rhs, inplace=True)
 
-        n = len(data)
-        if n>1:
-            return cls(self, data)
-        if n==1:
-            return TERM_COEFF.new(cls, dict_get_item(data))
-        return cls(NUMBER, 0)
+        return term_coeff_dict_new(cls, data)
 
     def add(self, cls, lhs, rhs, inplace=False):
         if inplace:
@@ -105,7 +95,7 @@ class TermCoeffDictHead(ArithmeticHead):
                 if t.head is BASE_EXP_DICT:
                     dict_add_item(cls, data, t, c)
                 else:
-                    self.iadd(cls, data, t * c)
+                    self.add(cls, data, t * c, inplace=True)
             else:
                 dict_add_item(cls, data, rhs, 1)
         else:
@@ -113,25 +103,16 @@ class TermCoeffDictHead(ArithmeticHead):
 
         if inplace:
             return
-        
-        n = len(data)
-        if n>1:
-            return cls(self, data)
-        if n==1:
-            return TERM_COEFF.new(cls, dict_get_item(data))
-        return cls(NUMBER, 0)
+
+        return term_coeff_dict_new(cls, data)
 
     def add_number(self, cls, lhs, rhs):
         if rhs==0:
             return lhs
         data = lhs.data.copy()
         dict_add_item(cls, data, cls(NUMBER, 1), rhs)
-        n = len(data)
-        if n>1:
-            return cls(self, data)
-        if n==1:
-            return TERM_COEFF.new(cls, dict_get_item(data))
-        return cls(NUMBER, 0)
+
+        return term_coeff_dict_new(cls, data)
 
     def isub(self, cls, data, rhs):
         self.iadd(cls, data, -rhs)
@@ -139,7 +120,7 @@ class TermCoeffDictHead(ArithmeticHead):
     def sub(self, cls, lhs, rhs):
         d = lhs.data.copy()
         self.isub(cls, d, rhs)
-        return self.new(cls, d)
+        return term_coeff_dict_new(cls, d)
 
     def commutative_mul(self, cls, lhs, rhs):
         rhead, rdata = rhs.pair
@@ -148,7 +129,7 @@ class TermCoeffDictHead(ArithmeticHead):
                 return rhs
             data = lhs.data.copy()
             dict_mul_value(cls, data, rdata)
-            return TERM_COEFF_DICT.new(cls, data)
+            return term_coeff_dict_new(cls, data)
         if rhead is TERM_COEFF:
             term, coeff = rdata
             return (lhs * term) * coeff
@@ -201,12 +182,8 @@ class TermCoeffDictHead(ArithmeticHead):
     def expand(self, cls, expr):
         d = {}
         for t, c in expr.data.items():
-            if t is 1:
-                dict_add_item(cls, d, cls(NUMBER, 1), c)
-            else:
-                t = t.expand() * c
-                self.iadd(cls, d, t)
-        return TERM_COEFF_DICT.new(cls, d)
+            self.add(cls, d, t.expand() * c, inplace=True)
+        return term_coeff_dict_new(cls, d)
 
     def expand_intpow(self, cls, expr, intexp):
         if intexp<0:
@@ -229,7 +206,7 @@ class TermCoeffDictHead(ArithmeticHead):
                 dict_mul_dict(cls, d, d2, d1)
             else:
                 dict_mul_dict(cls, d, d1, d1)
-        return TERM_COEFF_DICT.new(cls, d)
+        return term_coeff_dict_new(cls, d)
 
     def walk(self, func, cls, data, target):
         d = {}
@@ -245,7 +222,7 @@ class TermCoeffDictHead(ArithmeticHead):
                 flag = True
             iadd(cls, d, t1 * c1)
         if flag:
-            r = TERM_COEFF_DICT.new(cls, d)
+            r = term_coeff_dict_new(cls, d)
             return func(cls, r.head, r.data, r)
         return func(cls, self, data, target)
 

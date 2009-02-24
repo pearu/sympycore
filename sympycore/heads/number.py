@@ -124,7 +124,7 @@ class NumberHead(AtomicHead):
         elif h is TERM_COEFF_DICT:
             data = d.copy()
             dict_add_item(cls, data, cls(NUMBER,1), lhs.data)
-            return TERM_COEFF_DICT.new(cls, data)
+            return term_coeff_dict_new(cls, data)
         raise NotImplementedError(`self, lhs.pair, rhs.pair`)
 
     inplace_add = add

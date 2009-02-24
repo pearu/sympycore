@@ -48,35 +48,27 @@ class BaseExpDictHead(ArithmeticHead):
         return r
 
     def term_coeff(self, cls, expr):
-        coeff = base_exp_dict_get_coefficient(cls, expr.data)
+        data = expr.data
+        coeff = base_exp_dict_get_coefficient(cls, data)
         if coeff is not None:
-            d = expr.data.copy()
-            del d[coeff]
-            r = BASE_EXP_DICT.new(cls, d)
+            data = data.copy()
+            del data[coeff]
+            r = base_exp_dict_new(cls, data)
             t, c = r.head.term_coeff(cls, r)
             return t, c * coeff 
         return expr, 1
 
     def new(self, cls, base_exp_dict, evaluate=True):
-        m = len(base_exp_dict)
-        if m==0:
-            return cls(NUMBER, 1)
-        if m==1:
-            base, exp = dict_get_item(base_exp_dict)
-            return POW.new(cls, (base, exp), evaluate=False)
-        coeff = base_exp_dict_get_coefficient(cls, base_exp_dict)
-        if coeff is not None:
-            del base_exp_dict[coeff]
-            if m==2:
-                base, exp = dict_get_item(base_exp_dict)
-                return TERM_COEFF.new(cls, (POW.new(cls, (base, exp)), coeff.data))
-            return TERM_COEFF.new(cls, (cls(BASE_EXP_DICT, base_exp_dict), coeff.data))
-        return cls(BASE_EXP_DICT, base_exp_dict)
+        return base_exp_dict_new(cls, base_exp_dict)
 
     def neg(self, cls, expr):
-        data = expr.data.copy()
-        base_exp_dict_add_item(cls, data, cls(NUMBER,-1), 1)
-        return BASE_EXP_DICT.new(cls, data)
+        data = expr.data
+        coeff = base_exp_dict_get_coefficient(cls, data)
+        if coeff is None:
+            return cls(TERM_COEFF, (expr, -1))
+        data = data.copy()
+        del data[coeff]
+        return term_coeff_new(cls, (base_exp_dict_new(cls, data), -coeff))
 
     def add(self, cls, lhs, rhs):
         rhead, rdata = rhs.pair
@@ -84,7 +76,7 @@ class BaseExpDictHead(ArithmeticHead):
             lterm, lcoeff = self.term_coeff(cls, lhs)
             rterm, rcoeff = self.term_coeff(cls, rhs)
             if lterm==rterm:
-                return TERM_COEFF.new(cls, (lterm, lcoeff + rcoeff))
+                return term_coeff_new(cls, (lterm, lcoeff + rcoeff))
             return cls(TERM_COEFF_DICT, {lterm:lcoeff, rterm:rcoeff})
         if rhead is ADD:
             return ADD.new(cls, [lhs]+rdata)
@@ -100,13 +92,13 @@ class BaseExpDictHead(ArithmeticHead):
             rterm, rcoeff = rdata
             lterm, lcoeff = self.term_coeff(cls, lhs)
             if lterm==rterm:
-                return TERM_COEFF.new(cls, (lterm, lcoeff + rcoeff))
+                return term_coeff_new(cls, (lterm, lcoeff + rcoeff))
             return cls(TERM_COEFF_DICT, {lterm:lcoeff, rterm:rcoeff})
         if rhead is TERM_COEFF_DICT:
             lterm, lcoeff = self.term_coeff(cls, lhs)
             data = rdata.copy()
             base_exp_dict_add_item(cls, data, lterm, lcoeff)
-            return TERM_COEFF_DICT.new(cls, data)
+            return term_coeff_dict_new(cls, data)
         raise NotImplementedError(`self, cls, lhs.pair, rhs.pair`)
 
     inplace_add = add
@@ -140,7 +132,7 @@ class BaseExpDictHead(ArithmeticHead):
     def commutative_mul(self, cls, lhs, rhs):
         data = lhs.data.copy()
         self.commutative_imul(cls, data, rhs)
-        return BASE_EXP_DICT.new(cls, data)
+        return base_exp_dict_new(cls, data)
 
     def commutative_mul_number(self, cls, lhs, rhs):
         #TODO: optimize
@@ -168,7 +160,7 @@ class BaseExpDictHead(ArithmeticHead):
                 flag = True
             self.commutative_imul(cls, d, b1**e1)
         if flag:
-            r = BASE_EXP_DICT.new(cls, d)
+            r = base_exp_dict_new(cls, d)
             return func(cls, r.head, r.data, r)
         return func(cls, self, data, target)
 
@@ -181,16 +173,16 @@ class BaseExpDictHead(ArithmeticHead):
             if exp:
                 data = base.data.copy()
                 base_exp_dict_mul_value(cls, data, exp)
-                return BASE_EXP_DICT.new(cls, data)
+                return base_exp_dict_new(cls, data)
             return cls(NUMBER, 1)
-        return POW.new(cls, (base, exp))
+        return pow_new(cls, (base, exp))
 
     pow_number = pow
 
     def expand(self, cls, expr):
         data = {}
         for b, e in expr.data.items():
-            f = POW.new(cls, (b, e)).expand()
+            f = pow_new(cls, (b, e)).expand()
             h, d = f.pair
             data1 = {}
             if h is TERM_COEFF_DICT:
@@ -203,6 +195,6 @@ class BaseExpDictHead(ArithmeticHead):
                 data = data1
             else:
                 data = data2
-        return TERM_COEFF_DICT.new(cls, data)
+        return term_coeff_dict_new(cls, data)
 
 BASE_EXP_DICT = BaseExpDictHead()
