@@ -295,12 +295,13 @@ class Algebra(Expr):
     @classmethod
     def Apply(cls, func, *args, **kwargs):
         convert= cls.convert
+        fcls = cls.get_function_algebra()
         if isinstance(func, Expr):
             pass
         elif callable(func):
-            func = cls(CALLABLE, func)
+            func = fcls(CALLABLE, func)
         else:
-            func = cls(SYMBOL, func)
+            func = fcls(SYMBOL, func)
         new_args = map(convert, args)
         for k, v in kwargs.items():
             new_args.append(cls(KWARG, (convert(k), convert(v))))

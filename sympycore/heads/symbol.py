@@ -84,6 +84,8 @@ class SymbolHead(AtomicHead):
             return cls(BASE_EXP_DICT, {lhs:1, rhs:1})
         raise NotImplementedError(`self, cls, lhs.pair, rhs.pair`)
 
+    inplace_commutative_mul = commutative_mul
+
     def commutative_mul_number(self, cls, lhs, rhs):
         if rhs==1:
             return lhs
@@ -122,11 +124,9 @@ class SymbolHead(AtomicHead):
         return ArithmeticHead.commutative_div(self, cls, lhs, rhs)
 
     def non_commutative_mul_number(self, cls, lhs, rhs):
-        if rhs==0:
-            return cls(NUMBER, 0)
-        if rhs==1:
-            return lhs
-        return cls(TERM_COEFF, (lhs, rhs))
+        return term_coeff_new(cls, (lhs, rhs))
+
+    non_commutative_rmul_number = commutative_mul_number
     
     def term_coeff(self, cls, expr):
         return expr, 1
@@ -177,6 +177,8 @@ class SymbolHead(AtomicHead):
         return expr, 1
 
     def pow(self, cls, base, exp):
+        if type(exp) is cls and exp.head is NUMBER:
+            exp = exp.data
         return pow_new(cls, (base, exp))
 
     pow_number = pow
@@ -188,5 +190,16 @@ class SymbolHead(AtomicHead):
         if intexp==0:
             return cls(NUMBER, 1)
         return cls(POW, (expr, intexp))
+
+    def diff(self, cls, data, expr, symbol, order, cache={}):
+        if order==0:
+            return expr
+        if data == symbol:
+            assert order>0,`order`
+            return cls(NUMBER, int(order==1))
+        return cls(NUMBER, 0)
+
+    def apply(self, cls, data, func, args):
+        return cls(APPLY, (func, args))
 
 SYMBOL = SymbolHead()

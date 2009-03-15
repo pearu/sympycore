@@ -140,6 +140,10 @@ class FunctionRing(CollectingField):
     nargs = None
 
     @classmethod
+    def get_differential_algebra(cls):
+        return classes.DifferentialRing
+
+    @classmethod
     def get_predefined_symbols(cls, name):
         if name=='D': return D
         return
@@ -178,7 +182,15 @@ class FunctionRing(CollectingField):
             return FACTORS.new(self.value_algebra, d)
         return self.value_algebra.Apply(self, *args)
 
-    def fdiff(self, index=0):
+    def __call__(self, *args, **options):
+        evaluate = options.get('evaluate', True)
+        if evaluate:
+            result = self.head.apply(Calculus, self.data, self, args)
+            if result is not NotImplemented:
+                return result
+        return Calculus(APPLY, (self, args))
+
+    def __fdiff(self, index=0):
         return FDiff(self, index)
 
 classes.FunctionRing = FunctionRing
@@ -205,7 +217,7 @@ class Differential(CollectingField):
             #return super(CollectingField, cls).convert(obj, typeerror=typeerror)
         return cls(NUMBER, Calculus.convert(obj))
 
-    def __str__(self):
+    def __old_str__(self):
         return self.to_str_data()[1]
 
     def to_str_data(self, sort=True):

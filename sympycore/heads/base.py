@@ -46,7 +46,9 @@ class Head(object):
 
         POS = 0.6, NEG = 0.6, INVERT = 0.6,
         POW = 0.7, POWPOW = 0.71,
-        ATTR = 0.81, SUBSCRIPT = 0.82, SLICE = 0.83, APPLY = 0.84, 
+        # a.foo(), a[]()
+        APPLY = 0.8, 
+        ATTR = 0.81, SUBSCRIPT = 0.82, SLICE = 0.83, 
         TUPLE = 0.91, LIST = 0.92, DICT = 0.93,
         CALLABLE = 0.85,
         DOT = 0.9,
@@ -115,6 +117,9 @@ class AtomicHead(Head):
     """
     AtomicHead is a base class to atomic expression heads.
     """
+
+    def reevaluate(self, cls, data):
+        return cls(self, data)
 
     def scan(self, proc, cls, data, target):
         proc(cls, self, data, target)

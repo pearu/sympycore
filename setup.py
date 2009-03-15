@@ -23,6 +23,14 @@ expr_ext = Extension('sympycore.expr_ext',
                      sources = [os.path.join('src','expr_ext.c')],
                      )
 
+combinatorics_ext = Extension('sympycore.arithmetic.combinatorics',
+                     sources = [os.path.join('sympycore','arithmetic','combinatorics.c')],
+                     )
+
+extensions = [expr_ext,
+              #combinatorics_ext
+              ]
+
 packages = ['sympycore',
             'sympycore.arithmetic',
             'sympycore.arithmetic.mpmath',
@@ -179,7 +187,7 @@ oriented design that can be easily extended.
 ''',
           platforms = ["All"],
           packages = packages,
-          ext_modules = [expr_ext],
+          ext_modules = extensions,
           package_dir = {'sympycore': 'sympycore'},
           cmdclass=dict(test=tester, build_py=build_py)
           )

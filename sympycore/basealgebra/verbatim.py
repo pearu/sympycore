@@ -188,6 +188,19 @@ def %s(self, other):
     __truediv__ = __div__
     __rtruediv__ = __rdiv__
 
+    def __pow__(self, other):
+        other = self.convert(other)
+        if other.head is NUMBER:
+            other = other.data
+        return Verbatim(POW, (self, other))
+
+    def __rpow__(self, other):
+        other = self.convert(other)
+        if self.head is NUMBER:
+            self = self.data
+        return Verbatim(POW, (other, self))
+
+
     def __divmod__(self, other):
         other = self.convert(other)
         return Verbatim(APPLY, (Verbatim(CALLABLE, divmod), (self, other)))
@@ -270,6 +283,11 @@ class VerbatimWalker:
         elif head in unary_lst:
             assert len(lst)==1,`lst`
             self.append(Verbatim(head, lst[0]))
+        elif head is POW:
+            b, e = lst
+            if e.head is NUMBER:
+                e = e.data
+            self.append(Verbatim(head, (b, e)))
         else:
             self.append(Verbatim(head, tuple(lst)))
     

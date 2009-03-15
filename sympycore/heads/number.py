@@ -76,6 +76,8 @@ class NumberHead(AtomicHead):
     def commutative_mul_number(self, cls, lhs, rhs):
         return cls(NUMBER, lhs.data * rhs)
 
+    non_commutative_rmul_number = commutative_mul_number
+
     def commutative_div_number(self, cls, lhs, rhs):
         return cls(NUMBER, number_div(cls, lhs.data, rhs))
 
@@ -83,7 +85,7 @@ class NumberHead(AtomicHead):
         return cls(NUMBER, number_div(cls, rhs, lhs.data))
 
     def commutative_div(self, cls, lhs, rhs):
-        return self.commutative_rdiv_number(cls, rhs, lhs.data)
+        return rhs.head.commutative_rdiv_number(cls, rhs, lhs.data)
 
     non_commutative_mul_number = commutative_mul_number
 
@@ -92,6 +94,8 @@ class NumberHead(AtomicHead):
         if head is NUMBER:
             return cls(NUMBER, lhs.data * data)
         return rhs.head.commutative_mul(cls, rhs, lhs)
+
+    inplace_commutative_mul = commutative_mul
 
     def term_coeff(self, cls, expr):
         if isinstance(expr, Expr):
@@ -108,7 +112,7 @@ class NumberHead(AtomicHead):
         h, d = rhs.pair
         if h is NUMBER:
             return cls(NUMBER, ldata + d)
-        elif h is SYMBOL:
+        elif h is SYMBOL or h is APPLY:
             return cls(TERM_COEFF_DICT, {cls(NUMBER,1): ldata, rhs:1})
         elif h is ADD:
             terms = []
@@ -154,5 +158,15 @@ class NumberHead(AtomicHead):
 
     def expand(self, cls, expr):
         return expr
+
+    def diff(self, cls, data, expr, symbol, order, cache={}):
+        #if isinstance(data, Expr):
+        #    return cls(NUMBER, data.head.diff(type(data), data.data, data, symbol, order))
+        return cls(NUMBER, 0)
+
+    def apply(self, cls, data, func, args):
+        if isinstance(data, cls):
+            return data
+        return cls(NUMBER, data)
 
 NUMBER = NumberHead()

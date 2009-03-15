@@ -150,7 +150,7 @@ def get_nargs(obj):
         return len(inspect.getargspec(obj)[0])
     if inspect.ismethod(obj):
         return len(inspect.getargspec(obj)[0]) - 1
-    raise NotImplementedError(`obj`)        
+    raise NotImplementedError(`obj, type(obj)`)        
 
 classes.Expr = Expr
 classes.Pair = Pair

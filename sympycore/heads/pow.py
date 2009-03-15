@@ -30,9 +30,7 @@ class PowHead(ArithmeticHead):
                 if isinstance(exp, cls):
                     if exp.head is NUMBER:
                         if isinstance(exp.data, numbertypes):
-                            return
-                        else:
-                            return 'data[1] must be lowlevel number but got %s' % (type(exp.data))
+                            return 'data[1] must be lowlevel number or non-numeric but got %s' % (type(exp.data))
                     else:
                         return
                 else:
@@ -182,22 +180,24 @@ class PowHead(ArithmeticHead):
         if rhead is TERM_COEFF:
             term, coeff = rdata
             return (lhs * term) * coeff
+        if rhead is DIFF:
+            base, exp = lhs.data
+            if base==rhs:
+                return pow_new(cls, (base, exp + 1))
+            return MUL.combine(cls, [lhs, rhs])
         raise NotImplementedError(`self, cls, lhs.pair, rhs.pair`)
 
     def commutative_mul_number(self, cls, lhs, rhs):
-        if rhs==1:
-            return lhs
-        if rhs==0:
-            return cls(NUMBER, 0)
-        return cls(TERM_COEFF, (lhs, rhs))
+        return term_coeff_new(cls, (lhs, rhs))
 
     non_commutative_mul_number = commutative_mul_number
+    non_commutative_rmul_number = commutative_mul_number
 
     def commutative_mul(self, cls, lhs, rhs):
         rhead, rdata = rhs.pair
         if rhead is NUMBER:
             return term_coeff_new(cls, (lhs, rdata))
-        if rhead is SYMBOL or rhead is ADD or rhead is TERM_COEFF_DICT or rhead is APPLY:
+        if rhead is SYMBOL or rhead is ADD or rhead is TERM_COEFF_DICT or rhead is APPLY or rhead is DIFF or rhead is FDIFF:
             lbase, lexp = lhs.data
             if lbase == rhs:
                 return pow_new(cls, (lbase, lexp + 1))
@@ -217,6 +217,8 @@ class PowHead(ArithmeticHead):
             term, coeff = rdata
             return (lhs * term) * coeff
         raise NotImplementedError(`self, cls, lhs.pair, rhs.pair`)
+
+    inplace_commutative_mul = commutative_mul
 
     def commutative_div_number(self, cls, lhs, rhs):
         return term_coeff_new(cls, (lhs, number_div(cls, 1, rhs)))
@@ -301,5 +303,94 @@ class PowHead(ArithmeticHead):
             if isinstance(exp, int):
                 return base.head.expand_intpow(cls, base, exp)
         return cls(POW, (base, exp))
+
+    def diff(self, cls, data, expr, symbol, order, cache={}):
+        # XXXX needs implementatiin
+        key = (expr, symbol, order)
+        result = cache.get(key)
+        if result is not None:
+            return result
+        base, exp = data
+        texp = type(exp)
+        if symbol not in base.symbols_data:
+            # constant ** exp
+            if texp is cls:
+                if exp.head is SYMBOL:
+                    if exp.data==symbol:
+                        result = expr * cls.Log(base)**order
+                        cache[key] = result
+                        return result
+                    else:
+                        return cls(NUMBER, 0)
+                if symbol not in exp.symbols_data:
+                    return cls(NUMBER, 0)
+                key1 = (expr, symbol, 1)
+                result = cache.get(key1)
+                if result is None:
+                    de = exp.head.diff(cls, exp.data, exp, symbol, 1, cache=cache)
+                    if symbol not in de.symbols_data:
+                        result = expr * de**order * cls.Log(base)**order
+                        cache[key] = result
+                        return result
+                    result = expr * cls.Log(base) * de
+                    cache[key1] = result
+                if order>1:
+                    result = result.head.diff(cls, result.data, result, symbol, order-1, cache=cache)
+                    cache[key] = result
+                return result
+            else:
+                return cls(NUMBER, 0)
+        elif not (texp is cls and symbol in exp.symbols_data):
+            if exp is cls and exp.head is NUMBER:
+                exp = exp.data
+            # variable ** constant            
+            # f(x)**n  -> n*f**(n-1)*f' ->
+            db = base.head.diff(cls, base.data, base, symbol, 1, cache=cache)
+            if db.head is NUMBER:
+                if texp is int and order>exp and exp>0:
+                    return cls(NUMBER, 0)            
+                p = db.data ** order
+                e = exp
+                for i in xrange(order):
+                    p *= e
+                    e -= 1
+                result = p * base ** e
+                cache[key] = result
+                return result
+
+        key1 = (expr, symbol, 1)
+        result = cache.get(key1)
+        if result is None:
+            base, exp = data
+            db = base.head.diff(cls, base.data, base, symbol, 1, cache=cache)            
+            if isinstance(exp, Expr):
+                de = exp.head.diff(cls, exp.data, exp, symbol, 1, cache=cache)
+                if de==0:
+                    result = base ** (exp-1) * db * exp
+                else:
+                    result = expr * (db / base * exp + cls.Log(base) * de)
+            else:
+                result = base ** (exp-1) * db * exp
+            cache[key1] = result
+        if order>1:
+            # todo: if, say, order>400, return unevaluated result to avoid recursion
+            result = result.head.diff(cls, result.data, result, symbol, order-1, cache=cache)
+            cache[key] = result
+        return result
+
+    def diff_apply(self, cls, data, diff, expr):
+        base, exp = data
+        bhead, bdata = base.pair
+        if bhead is DIFF and isinstance(exp, inttypes) and exp>=0:
+            return expr.head.diff(type(expr), expr.data, expr, bdata.data, exp)
+        if bhead is FDIFF and isinstance(exp, inttypes) and exp>=0:
+            return expr.head.fdiff(type(expr), expr.data, expr, bdata.data, exp)
+        return NotImplemented
+
+    def apply(self, cls, data, func, args):
+        base, exp = data
+        if isinstance(exp, Expr):
+            return NotImplemented
+        return base.head.apply(cls, base.data, base, args) ** exp
 
 POW = PowHead()

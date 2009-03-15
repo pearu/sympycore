@@ -22,6 +22,9 @@ class BaseExpDictHead(ArithmeticHead):
                 msg = POW.is_data_ok(cls, item)
                 if msg:
                     return 'POW data=%s: %s' % (item, msg)
+                b, e = item
+                if b.head is POW:
+                    return 'BASE_EXP_DICT key cannot be POW'
         else:
             return 'data must be dict instance but got %s' % (type(data))
         return
@@ -117,7 +120,7 @@ class BaseExpDictHead(ArithmeticHead):
     
     def commutative_imul(self, cls, data, rhs):
         rhead, rdata = rhs.pair
-        if rhead is SYMBOL or rhead is ADD or rhead is APPLY:
+        if rhead is SYMBOL or rhead is ADD or rhead is APPLY or rhead is DIFF or rhead is FDIFF:
             base_exp_dict_add_item(cls, data, rhs, 1)
         elif rhead is NUMBER:
             base_exp_dict_mul_item(cls, data, rhs, 1)
@@ -224,4 +227,39 @@ class BaseExpDictHead(ArithmeticHead):
                 data = data2
         return term_coeff_dict_new(cls, data)
 
+    def diff(self, cls, data, expr, symbol, order, cache={}):
+        key = (expr, symbol, order)
+        result = cache.get(key)
+        if result is not None:
+            return result
+        key1 = (expr, symbol, 1)
+        result = cache.get(key1)
+        if result is None:
+            operands = data.items()
+            zero = cls(NUMBER, 0)
+            result = zero
+            for i in range(len(operands)):
+                p = pow_new(cls, operands[i])
+                d = p.head.diff(cls, p.data, p, symbol, 1, cache=cache)
+                if d==zero:
+                    continue
+                be_dict = data.copy()
+                del be_dict[operands[i][0]]
+                r = base_exp_dict_new(cls, be_dict)
+                result += r * d
+            cache[key1] = result
+        if order>1:
+            result = result.head.diff(cls, result.data, result, symbol, order-1, cache=cache)
+            cache[key] = result
+        return result
+
+    def apply(self, cls, data, func, args):
+        result = cls(NUMBER, 1)
+        for base, exp in data.iteritems():
+            if isinstance(exp, Expr):
+                return NotImplemented
+            result *= base.head.apply(cls, base.data, base, args) ** exp
+        return result
+    
 BASE_EXP_DICT = BaseExpDictHead()
+

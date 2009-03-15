@@ -62,6 +62,9 @@ def mycos(x):
 mysin.derivative = lambda arg: mycos(arg)
 mycos.derivative = lambda arg: -mysin(arg)
 
+mysin.fdiff = lambda fcls, arg_index, order: (lambda x: mycos(x))
+mycos.fdiff = lambda fcls, arg_index, order: (lambda x: -mysin(x))
+
 def foo2(x, y):
     if x==y:
         return Algebra.one
@@ -75,6 +78,13 @@ def foo2_2(x, y):
 
 
 foo2.derivative = foo2_1,foo2_2
+
+def foo2_fdiff(fcls, arg_index, order):
+    assert order==1 and arg_index in [0,1], `arg_index, order`
+    if arg_index==0: return foo2_1
+    return foo2_2
+
+foo2.fdiff = foo2_fdiff
 
 def bar2(x, y):
     return Apply(bar2, x,y)
@@ -158,14 +168,16 @@ def test_foo2():
     assert str(foo2(x,y).diff(y))=='foo2_2(x, y)'
     assert str(foo2(foo(x),bar(x)).diff(x)) in ['bar_1(x)*foo2_2(foo(x), bar(x)) + foo_1(x)*foo2_1(foo(x), bar(x))',
                                                 'bar_1(x)*foo2_2(foo(x), bar(x)) + foo2_1(foo(x), bar(x))*foo_1(x)',
-                                                'foo_1(x)*foo2_1(foo(x), bar(x)) + bar_1(x)*foo2_2(foo(x), bar(x))'],\
+                                                'foo_1(x)*foo2_1(foo(x), bar(x)) + bar_1(x)*foo2_2(foo(x), bar(x))',
+                                                'FD[0](foo)(x)*foo2_1(foo(x), bar(x)) + FD[0](bar)(x)*foo2_2(foo(x), bar(x))'],\
                                                 str(foo2(foo(x),bar(x)).diff(x))
 
 def test_bar2():
     assert str(bar2(x,y))=='bar2(x, y)'
     assert str(bar2(x,y).subs(x,z))=='bar2(z, y)'
-    assert str(bar2(x,y).diff(x))=='bar2_1(x, y)'
-    assert str(bar2(x,y).diff(y))=='bar2_2(x, y)'
+    assert str(bar2(x,y).diff(x)) in ['bar2_1(x, y)','FD[0](bar2)(x, y)'],str(bar2(x,y).diff(x))
+    assert str(bar2(x,y).diff(y)) in ['bar2_2(x, y)','FD[1](bar2)(x, y)'], str(bar2(x,y).diff(y))
     assert str(bar2(x,x).diff(x)) in ['bar2_1(x, x) + bar2_2(x, x)',
-                                      'bar2_2(x, x) + bar2_1(x, x)'],\
+                                      'bar2_2(x, x) + bar2_1(x, x)',
+                                      'FD[1](bar2)(x, x) + FD[0](bar2)(x, x)'],\
                                       str(bar2(x,x).diff(x))

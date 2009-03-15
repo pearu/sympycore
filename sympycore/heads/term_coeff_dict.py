@@ -281,4 +281,24 @@ class TermCoeffDictHead(ArithmeticHead):
                 NUMBER.scan(proc, cls, c, target)
         proc(cls, self, data, target)
 
+    def diff(self, cls, data, expr, symbol, order, cache={}):
+        key = (expr, symbol, order)
+        result = cache.get(key)
+        if result is not None:
+            return result
+        if result is None:
+            d = {}
+            result = cls(NUMBER, 0)
+            for term, coeff in data.iteritems():
+                result += term.head.diff(cls, term.data, term, symbol, order, cache=cache) * coeff
+            key1 = (expr, symbol, 1)
+        cache[key] = result
+        return result
+
+    def apply(self, cls, data, func, args):
+        result = cls(NUMBER, 0)
+        for term, coeff in data.iteritems():
+            result += term.head.apply(cls, term.data, term, args) * coeff
+        return result
+
 TERM_COEFF_DICT = TermCoeffDictHead()

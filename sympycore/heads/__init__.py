@@ -36,6 +36,8 @@ from .term_coeff import TERM_COEFF
 
 from .apply import APPLY
 
+from .differential import DIFF, FDIFF
+
 from .arithmetic import MOD, FLOORDIV
 from .relational import EQ, NE, LT, GT, LE, GE
 from .binary import INVERT, BOR, BXOR, BAND, LSHIFT, RSHIFT

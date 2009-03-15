@@ -22,7 +22,8 @@ class FunctionalHead(Head):
             if a_p < arg_p: a = '('+a+')'
             l.append(a)
         p1,p2 = self.parenthesis
-        return f + p1 + ', '.join(l) + p2, o_p
+        f = f + p1 + ', '.join(l) + p2
+        return f,o_p
 
 class SubscriptHead(FunctionalHead):
     """

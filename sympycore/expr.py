@@ -490,6 +490,8 @@ def pow_new(Algebra, data):
         return base
     if base==1 or exp==0:
         return Algebra(NUMBER, 1)
+    #if type(exp) is Algebra and exp.head is NUMBER:
+    #    data = base, exp.data
     return Algebra(POW, data)
 
 def base_exp_dict_new(Algebra, data):

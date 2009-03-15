@@ -36,6 +36,10 @@ class Calculus(CommutativeRing):
     exptypes = algebra_numbers
     exptypes_set = frozenset(exptypes)
 
+    @classmethod
+    def get_function_algebra(cls):
+        return classes.CalculusFunctionRing
+
     def __abs__(self):
         head, data = self.pair
         if head is NUMBER:
@@ -163,18 +167,18 @@ class Calculus(CommutativeRing):
 
     @classmethod
     def Log(cls, arg, base=None):
-        log = defined_functions.log
+        log = defined_functions.Log
         if base is None:
             return log(arg)
         return log(arg)/log(base)
 
     @classmethod
     def Exp(cls, arg):
-        return defined_functions.exp(arg)
+        return defined_functions.Exp(arg)
 
     @classmethod
     def Mod(cls, x, y):
-        return defined_functions.mod(x, y)
+        return defined_functions.Mod(x, y)
 
     def evalf(self, n=None):
         if n is not None:

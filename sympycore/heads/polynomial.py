@@ -46,6 +46,8 @@ class SparsepolyHead(Head):
             return lhs * rhs
         return NotImplemented
 
+    inplace_commutative_mul = commutative_mul
+
     def term_coeff(self, cls, expr):
         return expr, 1
 

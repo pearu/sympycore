@@ -1,2 +1,4 @@
 
-from .algebra import Function, FunctionRing, D, Differential
+from .algebra import Function, FunctionRing, Differential
+
+from .differential import DifferentialRing, FDFactory, DFactory

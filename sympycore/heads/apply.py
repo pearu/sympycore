@@ -35,7 +35,8 @@ class ApplyHead(FunctionalHead):
 
     def new(self, cls, (func, args), evaluate=True):
         if not isinstance(func, Expr):
-            func = cls(CALLABLE, func)
+            fcls = cls.get_function_algebra()
+            func = fcls(CALLABLE, func)
         return cls(APPLY, (func, args))
 
     def term_coeff(self, cls, expr):
@@ -45,16 +46,27 @@ class ApplyHead(FunctionalHead):
         return cls(TERM_COEFF, (expr, -1))
 
     def add(self, cls, lhs, rhs):
-        rhead, rdata = rhs.pair
-        if rhead is self:
-            if lhs.data == rdata:
+        h, d = rhs.pair
+        if h is APPLY:
+            if lhs.data==d:
                 return cls(TERM_COEFF, (lhs, 2))
-            return cls(ADD, [lhs, rhs])
-        if rhead is ADD:
-            return ADD.new(cls, [lhs]+rdata)
-        if rhead is TERM_COEFF_DICT:
-            return rhs + lhs
-        return ADD.new(cls, [lhs, rhs])
+            return cls(TERM_COEFF_DICT, {lhs:1, rhs:1})
+        elif h is NUMBER:
+            if d==0:
+                return lhs
+            return cls(TERM_COEFF_DICT, {lhs:1, cls(NUMBER,1):d})
+        elif h is TERM_COEFF:
+            t,c = d
+            if lhs==t:
+                return term_coeff_new(cls, (t, c+1))
+            return cls(TERM_COEFF_DICT, {t:c, lhs:1})
+        elif h is TERM_COEFF_DICT:
+            data = d.copy()
+            dict_add_item(cls, data, lhs, 1)
+            return term_coeff_dict_new(cls, data)
+        elif h is SYMBOL or h is POW or h is BASE_EXP_DICT:
+            return cls(TERM_COEFF_DICT, {lhs:1, rhs:1})
+        raise NotImplementedError(`self, rhs.pair`)
 
     inplace_add = add
 
@@ -158,5 +170,44 @@ class ApplyHead(FunctionalHead):
 
     def expand(self, cls, expr):
         return expr
+
+    def diff(self, cls, data, expr, symbol, order, cache={}):
+        key = (expr, symbol, order)
+        result = cache.get(key)
+        if result is not None:
+            return result
+        key1 = (expr, symbol, 1)
+        result = cache.get(key1)
+        if result is None:
+            func, args = data
+            assert func.head is CALLABLE,`func`
+            fcls = cls.get_function_algebra()
+            if len(args)==1:
+                arg = args[0]
+                da = arg.head.diff(cls, arg.data, arg, symbol, 1, cache=cache)
+                if symbol not in da.symbols_data:
+                    df = func.head.fdiff(fcls, func.data, func, 0, order)
+                    if df is not NotImplemented:
+                        result = df(*args) * da**order
+                        cache[key] = result
+                        return result
+                df = func.head.fdiff(fcls, func.data, func, 0, 1)
+                result = df(*args) * da
+
+            else:
+                result = cls(NUMBER, 0)
+                for i in range(len(args)):
+                    arg = args[i]
+                    da = arg.head.diff(cls, arg.data, arg, symbol, 1, cache=cache)
+                    df = func.head.fdiff(fcls, func.data, func, i, 1)
+                    result += df(*args) * da
+            cache[key1] = result
+        if order>1:
+            result = result.head.diff(cls, result.data, result, symbol, order-1, cache=cache)
+            cache[key] = result
+        return result
+
+    def apply(self, cls, data, func, args):
+        return NotImplemented
 
 APPLY = ApplyHead()

@@ -6,6 +6,7 @@ from .base import Head, heads_precedence, Pair, Expr, ArithmeticHead
 from ..core import init_module
 init_module.import_heads()
 init_module.import_numbers()
+init_module.import_lowlevel_operations()
 
 class MulHead(ArithmeticHead, Head):
     """
@@ -142,11 +143,9 @@ class MulHead(ArithmeticHead, Head):
         raise NotImplementedError(`self, cls, lhs.pair, rhs.pair`)
 
     def non_commutative_mul_number(self, cls, lhs, rhs):
-        if rhs==0:
-            return cls(NUMBER, 0)
-        if rhs==1:
-            return lhs
-        return cls(TERM_COEFF, (lhs, rhs))
+        return term_coeff_new(cls, (lhs, rhs))
+
+    non_commutative_rmul_number = non_commutative_mul_number
 
     def pow(self, cls, base, exp):
         if exp==0:
@@ -177,6 +176,8 @@ class MulHead(ArithmeticHead, Head):
                     else:
                         middle = cls(MUL, rest)
                     return compart * first * middle**d * last # could be optimized
+            if h is NUMBER:
+                exp = d
         return cls(POW, (base, exp))
 
     def pow_number(self, cls, base, exp):

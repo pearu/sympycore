@@ -261,3 +261,21 @@ def diff(expr, symbol, order=one):
         #print len(cache)
         cache_generic.clear()
         cache_factors.clear()
+
+def diff(expr, symbol, order=1):
+    if order==0:
+        return expr
+    cls = type(expr)
+    if type(symbol) is cls:
+        symbol = symbol.data
+    elif isinstance(symbol, str):
+        pass
+    else:
+        raise TypeError('diff(symbol, order) first argument must be str or %s instance but got %s instance' % (cls.__name__, type(symbol).__name__))
+    try:
+        cache = {}
+        result = expr.head.diff(cls, expr.data, expr, symbol, order, cache=cache)
+    finally:
+        cache.clear()
+    return result
+

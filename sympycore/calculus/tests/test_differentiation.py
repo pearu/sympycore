@@ -53,6 +53,6 @@ def test_diff_trig():
 def test_diff_symbolic_order():
     assert diff(Exp(x), x, n) == Exp(x)
     assert diff(Exp(-x), x, n) == (-1)**n * Exp(-x)
-    assert diff(Cos(2*x+3), x, n) == Cos(2*x+3 + n*pi/2) * 2**n
+    assert diff(Cos(2*x+3), x, n) == Cos(2*x+3 + n*pi/2) * 2**n, `diff(Cos(2*x+3), x, n)`
     assert diff(Log(2*x+3), x, n) == (-1)**(n-1) * Factorial(n-1) * (3+2*x)**(-n) * 2**n
     assert diff(2**(3*x+4), x, n) == 2**(4+3*x) * 3**n * Log(2)**n

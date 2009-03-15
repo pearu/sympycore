@@ -4,7 +4,7 @@ __all__ = ['Ring', 'CommutativeRing']
 from ..basealgebra import Algebra
 from .interface import RingInterface
 
-from ..core import init_module
+from ..core import init_module, classes
 init_module.import_heads()
 init_module.import_numbers()
 
@@ -18,6 +18,10 @@ class Ring(Algebra, RingInterface):
     Ring represents algebraic ring (R, +, *) where (R, +) is abelian
     group, (R,*) is monoid, with distributivity.
     """
+
+    @classmethod
+    def get_function_algebra(cls):
+        return classes.FunctionRing
 
     def __str__(self):
         h, d = self.pair
@@ -87,6 +91,8 @@ class Ring(Algebra, RingInterface):
         cls = type(self)
         tother = type(other)
         if cls is not tother:
+            if tother in numbertypes_set:
+                return self.head.non_commutative_rmul_number(cls, self, other)
             other = cls.convert(other, typeerror=False)
             if other is NotImplemented:
                 return NotImplemented
@@ -151,6 +157,14 @@ class CommutativeRing(Ring):
 
     __rmul__ = __mul__
 
+    def __imul__(self, other):
+        cls = type(self)
+        if type(other) is not cls:
+            other = cls.convert(other, typeerror=False)
+            if other is NotImplemented:
+                return NotImplemented
+        return self.head.inplace_commutative_mul(cls, self, other)
+
     def __div__(self, other):
         cls = type(self)
         tother = type(other)
@@ -190,3 +204,5 @@ class CommutativeRing(Ring):
             return head.to_EXP_COEFF_DICT(type(self), data, self, args or None)
         raise NotImplementedError('%s.convert(target=%r)' % (type(self), target))
 
+classes.Ring = Ring
+classes.CommutativeRing = CommutativeRing

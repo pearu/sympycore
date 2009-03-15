@@ -23,6 +23,8 @@ from ...arithmetic.numbers import complextypes, realtypes, inttypes
 from ...arithmetic.number_theory import factorial
 from ...arithmetic import infinity
 
+from .algebra import CalculusFunctionRing
+
 Apply = Calculus.Apply
 
 import math
@@ -113,6 +115,11 @@ class Exp(CalculusDefinedFunction):
     def derivative(arg):
         return E ** arg
 
+    @classmethod
+    def fdiff(cls, FAlgebra, argument_index, order):
+        assert argument_index==0
+        return FAlgebra(CALLABLE, cls)
+
 class Log(CalculusDefinedFunction):
     def __new__(cls, arg, base=E):
         if type(arg) is not Calculus:
@@ -168,6 +175,15 @@ class Log(CalculusDefinedFunction):
     @classmethod
     def nth_derivative(cls, arg, n=1):
         return (-1)**(n-1) * Factorial(n-1) * arg**(-n)
+
+    @classmethod
+    def fdiff(cls, FAlgebra, argument_index, order):
+        assert argument_index==0
+        if order==1:
+            func = lambda x: 1/x
+        else:
+            func = lambda x: (-1)**(order-1) * Factorial(order-1) * x**(-order)
+        return FAlgebra(CALLABLE, func)
 
 class Ln(Log):
     def __new__(cls, arg):
@@ -280,6 +296,21 @@ class Sin(TrigonometricFunction):
     def nth_derivative(cls, arg, n):
         return Sin(arg + n*pi/2)
 
+    @classmethod
+    def fdiff(cls, FAlgebra, argument_index, order):
+        if argument_index!=0:
+            if isinstance(argument_index, inttypes):
+                raise TypeError('%s.fdiff argument_index must be 0 but got %r' % (cls.__name__, argument_index))
+            return NotImplemented
+        n = order % 4
+        if n==0:
+            return FAlgebra(CALLABLE, Sin)
+        if n==1:
+            return FAlgebra(CALLABLE, Cos)
+        if n==2:
+            return -FAlgebra(CALLABLE, Sin)
+        return -FAlgebra(CALLABLE, Cos)
+
 class Cos(TrigonometricFunction):
     parity = 'even'
     period = 2
@@ -295,6 +326,24 @@ class Cos(TrigonometricFunction):
     @classmethod
     def nth_derivative(cls, arg, n=1):
         return Cos(arg + n*pi/2)
+
+    @classmethod
+    def fdiff(cls, FAlgebra, argument_index, order):
+        if argument_index!=0:
+            if isinstance(argument_index, inttypes):
+                raise TypeError('%s.fdiff argument_index must be 0 but got %r' % (cls.__name__, argument_index))
+            return NotImplemented
+        if isinstance(order, inttypes):
+            n = (order+1) % 4
+            if n==0:
+                return FAlgebra(CALLABLE, Sin)
+            if n==1:
+                return FAlgebra(CALLABLE, Cos)
+            if n==2:
+                return -FAlgebra(CALLABLE, Sin)
+            return -FAlgebra(CALLABLE, Cos)
+        func = lambda x: Cos(x + order * pi/2)
+        return FAlgebra(CALLABLE, func)
 
 class Tan(TrigonometricFunction):
     parity = 'odd'
@@ -312,6 +361,16 @@ class Tan(TrigonometricFunction):
     def derivative(cls, arg):
         return 1+Tan(arg)**2
 
+    @classmethod
+    def fdiff(cls, FAlgebra, argument_index, order):
+        if argument_index!=0:
+            if isinstance(argument_index, inttypes):
+                raise TypeError('%s.fdiff argument_index must be 0 but got %r' % (cls.__name__, argument_index))
+            return NotImplemented
+        assert order==1
+        tan = FAlgebra(CALLABLE, cls)
+        return tan**2 + 1
+
 class Cot(TrigonometricFunction):
     parity = 'odd'
     period = 1
@@ -327,6 +386,16 @@ class Cot(TrigonometricFunction):
     @classmethod
     def derivative(cls, arg, n=1):
         return -(1+Cot(arg)**2)
+
+    @classmethod
+    def fdiff(cls, FAlgebra, argument_index, order):
+        if argument_index!=0:
+            if isinstance(argument_index, inttypes):
+                raise TypeError('%s.fdiff argument_index must be 0 but got %r' % (cls.__name__, argument_index))
+            return NotImplemented
+        assert order==1
+        cot = FAlgebra(CALLABLE, cls)
+        return -cot**2 - 1
 
 # pi/2-x symmetry
 conjugates = {

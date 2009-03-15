@@ -134,13 +134,13 @@ class ExpCoeffDict(ArithmeticHead):
         rvars, rdict = rdata.pair
         if lvars == rvars:
             d = ldict.copy()
-            dict_add_dict(d, rdict)
+            dict_add_dict(cls, d, rdict)
             return cls(self, Pair(lvars, d))
         variables = tuple(sorted(set(lvars + rvars)))
         lhs = self.to_EXP_COEFF_DICT(cls, lhs.data, lhs, variables)
         rhs = self.to_EXP_COEFF_DICT(cls, rhs.data, rhs, variables)
         d = lhs.data.data.copy()
-        dict_add_dict(d, rhs.data.data)
+        dict_add_dict(cls, d, rhs.data.data)
         return cls(self, Pair(variables, d))
 
     def commutative_mul(self, cls, lhs, rhs):
@@ -168,6 +168,15 @@ class ExpCoeffDict(ArithmeticHead):
         if isinstance(exp, Expr) and exp.head is NUMBER and isinstance(exp.data, inttypes):
             exp = exp.data
         if isinstance(exp, inttypes):
+            return self.pow_number(cls, base, exp)
+        expr = cls(POW, (base, exp))
+        variables = self.combine_variables(variables, expr)
+        exps = self.make_exponent(expr, variables)
+        return cls(self, Pair(variables, {exps:1}))
+
+    def pow_number(self, cls, base, exp):
+        variables, exp_coeff_dict = base.data.pair
+        if isinstance(exp, inttypes):
             if exp==0:
                 return cls(self, Pair(variables, {(0,)*len(variables):1}))
             if exp==1:
@@ -183,11 +192,11 @@ class ExpCoeffDict(ArithmeticHead):
                     for e_i, (exps,coeff) in zip(e, exps_coeff_list):
                         new_exps += exps * e_i
                         new_coeff *= coeff ** e_i
-                    dict_add_item(d, new_exps, new_coeff)
+                    dict_add_item(cls, d, new_exps, new_coeff)
                 return cls(self, Pair(variables, d))
         expr = cls(POW, (base, exp))
         variables = self.combine_variables(variables, expr)
         exps = self.make_exponent(expr, variables)
         return cls(self, Pair(variables, {exps:1}))
-            
+
 EXP_COEFF_DICT = ExpCoeffDict()

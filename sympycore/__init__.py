@@ -84,13 +84,19 @@ def var(s):
         # doc
         del frame
 
-sin = Function(Sin, Calculus, Calculus)
-cos = Function(Cos, Calculus, Calculus)
-tan = Function(Tan, Calculus, Calculus)
-cot = Function(Cot, Calculus, Calculus)
-exp = Function(Exp, Calculus, Calculus)
-log = Function(Log, (Calculus, Calculus), Calculus)
-ln = Function(Ln, Calculus, Calculus)
+#sin = Function(Sin, Calculus, Calculus)
+#cos = Function(Cos, Calculus, Calculus)
+#tan = Function(Tan, Calculus, Calculus)
+#cot = Function(Cot, Calculus, Calculus)
+#exp = Function(Exp, Calculus, Calculus)
+#log = Function(Log, (Calculus, Calculus), Calculus)
+#ln = Function(Ln, Calculus, Calculus)
+
+FD = FDFactory(CalculusDifferentialRing)
+D = DFactory(CalculusDifferentialRing)
+
+sin = CalculusFunctionRing(heads.CALLABLE, Sin)
+cos = CalculusFunctionRing(heads.CALLABLE, Cos)
 
 class _Tester:
 

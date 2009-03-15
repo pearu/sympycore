@@ -1,5 +1,10 @@
 """Provides algorithms from number theory.
 """
+
+from ..core import init_module
+
+init_module.import_lowlevel_operations()
+
 from .numbers import mpq, div
 
 __all__ = ['gcd', 'lcm', 'factorial',
@@ -171,8 +176,8 @@ def multinomial_coefficients(m, n, _tuple=tuple, _zip=zip):
         return binomial_coefficients(n)
     symbols = [(0,)*i + (1,) + (0,)*(m-i-1) for i in range(m)]
     s0 = symbols[0]
-    p0 = [_tuple(aa-bb for aa,bb in _zip(s,s0)) for s in symbols]
-    r = {_tuple(aa*n for aa in s0):1}
+    p0 = [_tuple([aa-bb for aa,bb in _zip(s,s0)]) for s in symbols]
+    r = {_tuple([aa*n for aa in s0]):1}
     r_get = r.get
     r_update = r.update
     l = [0] * (n*(m-1)+1)
@@ -188,16 +193,10 @@ def multinomial_coefficients(m, n, _tuple=tuple, _zip=zip):
             for t2, c2 in l[k-i]:
                 tt = _tuple([aa+bb for aa,bb in _zip(t2,t)])
                 cc = nn * c2
-                b = d_get(tt)
-                if b is None:
-                    d[tt] = cc
-                else:
-                    cc = b + cc
-                    if cc:
-                        d[tt] = cc
-                    else:
-                        del d[tt]
+                dict_add_item(None, d, tt, cc)
         r1 = [(t, c//k) for (t, c) in d.iteritems()]
         l[k] = r1
         r_update(r1)
     return r
+
+#from .combinatorics import multinomial_coefficients

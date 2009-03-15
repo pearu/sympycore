@@ -111,7 +111,7 @@ class TermCoeff(ArithmeticHead):
                 if term==rhs:
                     return term_coeff_new(cls, (term, coeff + 1))
                 return cls(TERM_COEFF_DICT,{term:coeff, rhs:1})
-        if head is POW or head is APPLY:
+        if head is POW or head is APPLY or head is DIFF or head is FDIFF:
             if term==rhs:
                 return term_coeff_new(cls, (term, coeff + 1))
             return cls(TERM_COEFF_DICT,{term:coeff, rhs:1})
@@ -156,6 +156,8 @@ class TermCoeff(ArithmeticHead):
 
     non_commutative_mul_number = commutative_mul_number
 
+    inplace_commutative_mul = commutative_mul
+
     def commutative_div_number(self, cls, lhs, rhs):
         term, coeff = lhs.data
         return term_coeff_new(cls, (term, number_div(cls, coeff, rhs)))
@@ -177,9 +179,11 @@ class TermCoeff(ArithmeticHead):
         if rhead is SYMBOL or rhead is APPLY:
             if term == rhs:
                 return cls(NUMBER, coeff)
-            return cls(TERM_COEFF, (cls(BASE_EXP_DICT, {term:1, rhs:-1}), coeff))
+            b, e = term.base_exp()
+            return cls(TERM_COEFF, (cls(BASE_EXP_DICT, {b:e, rhs:-1}), coeff))
         if rhead is TERM_COEFF_DICT:
-            return cls(TERM_COEFF, (cls(BASE_EXP_DICT, {term:1, rhs:-1}), coeff))
+            b, e = term.base_exp()
+            return cls(TERM_COEFF, (cls(BASE_EXP_DICT, {b:e, rhs:-1}), coeff))
         if term==rhs:
             return cls(NUMBER, coeff)
         return (term / rhs) * coeff
@@ -226,6 +230,18 @@ class TermCoeff(ArithmeticHead):
     def expand(self, cls, expr):
         term, coeff  = expr.data
         return term.head.expand(cls, term) * coeff
-        
+
+    def diff(self, cls, data, expr, symbol, order, cache={}):
+        term, coeff = data
+        return term.head.diff(cls, term.data, term, symbol, order, cache=cache) * coeff
+
+
+    def diff_apply(self, cls, data, diff, expr):
+        term, coeff = data
+        return term.head.diff_apply(cls, term.data, term, expr) * coeff
+
+    def apply(self, cls, data, func, args):
+        term, coeff = data
+        return term.head.apply(cls, term.data, term, args) * coeff
 
 TERM_COEFF = TermCoeff()
