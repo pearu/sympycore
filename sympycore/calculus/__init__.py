@@ -8,14 +8,10 @@ from .functions import (Exp, Log, Sqrt, Sin, Cos, Tan, Cot, pi, E, gamma,
     Sign, Mod, Ln, Factorial)
 from .functions import CalculusFunctionRing, CalculusDifferentialRing
 
-from differentiation import diff
-from integration import integrate
+def diff(expr, symbol, order=1):
+    return expr.diff(symbol, order)
 
 from .relational import Assumptions
-
-# Backwards compatibility
-Calculus.diff = diff
-Calculus.integrate = integrate
 
 Symbol = Calculus.Symbol
 

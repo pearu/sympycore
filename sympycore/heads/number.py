@@ -152,9 +152,33 @@ class NumberHead(AtomicHead):
         return lhs + (-rhs)
 
     def pow(self, cls, base, exp):
-        return POW.new(cls, (base, exp))
+        h, d = exp.pair
+        if h is NUMBER and type(d) in numbertypes_set:
+            return self.pow_number(cls, base, d)
+        return pow_new(cls, (base, exp))
 
-    pow_number = pow
+    def pow_number(self, cls, base, exp):
+        if exp==1:
+            return base
+        if exp==0:
+            return cls(NUMBER, 1)
+        bd = base.data
+        if bd==1:
+            return base
+        r, l = try_power(bd, exp)
+        if not l:
+            return cls(NUMBER, r)
+        if len(l)==1:
+            b, e = l[0]
+            if r==1:
+                return cls(POW, (cls(NUMBER, b), e))
+            return cls(TERM_COEFF, (cls(POW, (cls(NUMBER, b), e)), r))
+        d = {}
+        for b, e in l:
+            d[cls(NUMBER, b)] = e
+        if r == 1:
+            return cls(BASE_EXP_DICT, d)
+        return cls(TERM_COEFF, (cls(BASE_EXP_DICT, d), r))
 
     def expand(self, cls, expr):
         return expr
@@ -168,5 +192,19 @@ class NumberHead(AtomicHead):
         if isinstance(data, cls):
             return data
         return cls(NUMBER, data)
+
+    def integrate_indefinite(self, cls, data, expr, x):
+        if data==0:
+            return expr
+        if data==1:
+            return cls(SYMBOL, x)
+        return cls(TERM_COEFF, (cls(SYMBOL, x), data))
+
+    def integrate_definite(self, cls, data, expr, x, a, b):
+        if data==0:
+            return expr
+        if data==1:
+            return b-a
+        return (b-a)*data
 
 NUMBER = NumberHead()

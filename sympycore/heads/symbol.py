@@ -181,7 +181,10 @@ class SymbolHead(AtomicHead):
             exp = exp.data
         return pow_new(cls, (base, exp))
 
-    pow_number = pow
+    def pow_number(self, cls, base, exp):
+        if exp==1: return base
+        if exp==0: return cls(NUMBER, 1)
+        return cls(POW, (base, exp))
 
     def expand(self, cls, expr):
         return expr
@@ -201,5 +204,15 @@ class SymbolHead(AtomicHead):
 
     def apply(self, cls, data, func, args):
         return cls(APPLY, (func, args))
+
+    def integrate_indefinite(self, cls, data, expr, x):
+        if data==x:
+            return cls(TERM_COEFF, (cls(POW, (expr, 2)), mpq((1,2))))
+        return cls(BASE_EXP_DICT, {expr:1, cls(SYMBOL, x):1})
+
+    def integrate_definite(self, cls, data, expr, x, a, b):
+        if data==x:
+            return (b**2-a**2)/2
+        return expr*(b-a)
 
 SYMBOL = SymbolHead()

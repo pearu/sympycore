@@ -393,4 +393,53 @@ class PowHead(ArithmeticHead):
             return NotImplemented
         return base.head.apply(cls, base.data, base, args) ** exp
 
+    def integrate_indefinite(self, cls, data, expr, x):
+        base, exp = data
+        t = type(exp)
+        if t is cls:
+            ehead, edata = exp.pair
+            exp_symbols_data = exp.symbols_data
+        else:
+            ehead, edata = NUMBER, exp
+            exp_symbols_data = set([])
+        bhead, bdata = base.pair
+        if bhead is SYMBOL and bdata==x and x not in exp_symbols_data:
+            e1 = edata + 1
+            return pow_new(cls, (base, e1))/e1
+        if bhead is NUMBER or x not in base.symbols_data:
+            if ehead is SYMBOL and edata == x:
+                return expr / cls.Log(base)
+            elif ehead is TERM_COEFF:
+                t, c = edata
+                if t.head is SYMBOL and t.data==x:
+                    return expr / (cls.Log(base) * c)
+            if x not in exp_symbols_data:
+                return expr * cls(SYMBOL, x)
+        raise NotImplementedError("don't know how to integrate %s over %s" % (expr, x))
+
+    def integrate_definite(self, cls, data, expr, x, a, b):
+        base, exp = data
+        t = type(exp)
+        if t is cls:
+            ehead, edata = exp.pair
+            exp_symbols_data = exp.symbols_data
+        else:
+            ehead, edata = NUMBER, exp
+            exp_symbols_data = set([])
+        bhead, bdata = base.pair
+        if bhead is SYMBOL and bdata==x and x not in exp_symbols_data:
+            e1 = edata + 1
+            return (b**e1 - a**e1)/e1
+        if bhead is NUMBER or x not in base.symbols_data:
+            if ehead is SYMBOL and edata == x:
+                return (base**b - base**a) / cls.Log(base)
+            elif ehead is TERM_COEFF:
+                t, c = edata
+                if t.head is SYMBOL and t.data==x:
+                    return (base**(b*c) - base**(a*c)) / (cls.Log(base) * c)
+            if x not in exp_symbols_data:
+                return expr * (b - a)
+        raise NotImplementedError("don't know how to integrate %s over %s in [%s, %s]" % (expr, x, a, b))
+    
+
 POW = PowHead()

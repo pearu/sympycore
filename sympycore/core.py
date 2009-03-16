@@ -273,6 +273,8 @@ class InitModule:
             module.complextypes = numbers.complextypes
             module.Infinity = numbers.Infinity
             module.number_div = numbers.number_div
+            module.mpq = numbers.mpq
+            module.try_power = numbers.try_power
             
         _import_numbers.__module__ = module_name
 

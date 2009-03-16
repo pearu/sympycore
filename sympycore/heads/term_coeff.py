@@ -244,4 +244,12 @@ class TermCoeff(ArithmeticHead):
         term, coeff = data
         return term.head.apply(cls, term.data, term, args) * coeff
 
+    def integrate_indefinite(self, cls, data, expr, x):
+        term, coeff = data
+        return term.head.integrate_indefinite(cls, term.data, term, x) * coeff
+
+    def integrate_definite(self, cls, data, expr, x, a, b):
+        term, coeff = data
+        return term.head.integrate_definite(cls, term.data, term, x, a, b) * coeff
+
 TERM_COEFF = TermCoeff()

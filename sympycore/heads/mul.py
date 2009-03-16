@@ -167,7 +167,7 @@ class MulHead(ArithmeticHead, Head):
                 last = factors_list[-1]
                 a = last * first
                 if a is not None and a.head is NUMBER: # todo: or a is commutative
-                    compart = NUMBER.pow(cls, a, d)
+                    compart = NUMBER.pow_number(cls, a, d)
                     rest = factors_list[1:-1]
                     if not rest:
                         return compart

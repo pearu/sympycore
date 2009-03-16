@@ -260,6 +260,74 @@ class BaseExpDictHead(ArithmeticHead):
                 return NotImplemented
             result *= base.head.apply(cls, base.data, base, args) ** exp
         return result
+
+    def integrate_indefinite(self, cls, data, expr, x):
+        d1 = {} # f(x)**g(x)
+        d2 = {} # f(x)**const
+        d3 = {} # const**g(x)
+        d4 = {} # const**const
+        for base, exp in data.iteritems():
+            if x in base.symbols_data:
+                if type(exp) is cls and x in exp.symbols_data:
+                    d1[base] = exp
+                else:
+                    d2[base] = exp                    
+            elif type(exp) is cls and x in exp.symbols_data:
+                d3[base] = exp
+            else:
+                d4[base] = exp
+        if d1 or (d2 and d3) or (len(d2)>1) or (len(d3)>1):
+            raise NotImplementedError("don't know how to integrate %s over %s" % (expr, x))
+        if not (d2 or d3):
+            return expr * cls(SYMBOL, x)            
+        if d4:
+            if len(d4)>1:
+                const = cls(BASE_EXP_DICT, d4)
+            else:
+                const = pow_new(cls, dict_get_item(d4))
+        else:
+            const = 1
+        if d2:
+            newexpr = pow_new(cls, dict_get_item(d2))
+            return newexpr.head.integrate_indefinite(cls, newexpr.data, newexpr, x) * const
+        if d3:
+            newexpr = pow_new(cls, dict_get_item(d3))
+            return newexpr.head.integrate_indefinite(cls, newexpr.data, newexpr, x) * const
+        raise NotImplementedError("don't know how to integrate %s over %s" % (expr, x))
+
+    def integrate_definite(self, cls, data, expr, x, a, b):
+        d1 = {} # f(x)**g(x)
+        d2 = {} # f(x)**const
+        d3 = {} # const**g(x)
+        d4 = {} # const**const
+        for base, exp in data.iteritems():
+            if x in base.symbols_data:
+                if type(exp) is cls and x in exp.symbols_data:
+                    d1[base] = exp
+                else:
+                    d2[base] = exp                    
+            elif type(exp) is cls and x in exp.symbols_data:
+                d3[base] = exp
+            else:
+                d4[base] = exp
+        if d1 or (d2 and d3) or (len(d2)>1) or (len(d3)>1):
+            raise NotImplementedError("don't know how to integrate %s over %s in [%s, %s]" % (expr, x, a, b))
+        if not (d2 or d3):
+            return (b-a) * cls(SYMBOL, x)            
+        if d4:
+            if len(d4)>1:
+                const = cls(BASE_EXP_DICT, d4)
+            else:
+                const = pow_new(cls, dict_get_item(d4))
+        else:
+            const = 1
+        if d2:
+            newexpr = pow_new(cls, dict_get_item(d2))
+            return newexpr.head.integrate_definite(cls, newexpr.data, newexpr, x, a, b) * const
+        if d3:
+            newexpr = pow_new(cls, dict_get_item(d3))
+            return newexpr.head.integrate_definite(cls, newexpr.data, newexpr, x, a, b) * const
+        raise NotImplementedError("don't know how to integrate %s over %s in [%s, %s]" % (expr, x, a, b))
     
 BASE_EXP_DICT = BaseExpDictHead()
 

@@ -175,10 +175,18 @@ class TermCoeffDictHead(ArithmeticHead):
     def commutative_rdiv_number(self, cls, lhs, rhs):
         return term_coeff_new(cls, (cls(POW, (lhs, -1)), rhs))
 
+    def commutative_div_number(self, cls, lhs, rhs):
+        r = number_div(cls, 1, rhs)
+        if rhs==0:
+            return r * lhs        
+        data = lhs.data.copy()
+        dict_mul_value(cls, data, number_div(cls, 1, r))
+        return cls(self, data)
+
     def commutative_div(self, cls, lhs, rhs):
         rhead, rdata = rhs.pair
         if rhead is NUMBER:
-            return commutative_div_number(cls, lhs, rdata)
+            return self.commutative_div_number(cls, lhs, rdata)
         if rhead is TERM_COEFF_DICT:
             if lhs.data == rdata:
                 return cls(NUMBER, 1)
@@ -299,6 +307,18 @@ class TermCoeffDictHead(ArithmeticHead):
         result = cls(NUMBER, 0)
         for term, coeff in data.iteritems():
             result += term.head.apply(cls, term.data, term, args) * coeff
+        return result
+
+    def integrate_indefinite(self, cls, data, expr, x):
+        result = cls(NUMBER, 0)
+        for term, coeff in data.iteritems():
+            result += term.head.integrate_indefinite(cls, term.data, term, x) * coeff
+        return result
+
+    def integrate_definite(self, cls, data, expr, x, a, b):
+        result = cls(NUMBER, 0)
+        for term, coeff in data.iteritems():
+            result += term.head.integrate_definite(cls, term.data, term, x, a, b) * coeff
         return result
 
 TERM_COEFF_DICT = TermCoeffDictHead()

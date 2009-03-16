@@ -204,5 +204,49 @@ class CommutativeRing(Ring):
             return head.to_EXP_COEFF_DICT(type(self), data, self, args or None)
         raise NotImplementedError('%s.convert(target=%r)' % (type(self), target))
 
+    def diff(self, symbol, order=1):
+        if order==0:
+            return self
+        cls = type(self)
+        if type(symbol) is cls:
+            assert symbol.head is SYMBOL,`symbol.pair`
+            symbol = symbol.data
+        elif isinstance(symbol, str):
+            pass
+        else:
+            raise TypeError('diff(symbol, order) first argument must be str or %s instance but got %s instance' % (cls.__name__, type(symbol).__name__))
+        try:
+            cache = {}
+            result = self.head.diff(cls, self.data, self, symbol, order, cache=cache)
+        finally:
+            cache.clear()
+        return result
+
+    def integrate(self, x):
+        cls = type(self)
+
+        t = type(x)
+        if t is tuple:
+            x, a, b = x
+            t = type(x)
+        else:
+            a, b = None, None
+
+        if t is cls:
+            assert x.head is SYMBOL,`x.pair`
+            x = x.data
+        elif t is str:
+            pass
+        else:
+            raise TypeError('integrate(x,..), x must be str or %s instance but got %s instance' % (cls.__name__, type(symbol).__name__))
+    
+        if a is None:
+            return self.head.integrate_indefinite(cls, self.data, self, x)
+        if type(a) is not cls:
+            a = cls(a)
+        if type(b) is not cls:
+            b = cls(b)
+        return self.head.integrate_definite(cls, self.data, self, x, a, b)
+
 classes.Ring = Ring
 classes.CommutativeRing = CommutativeRing

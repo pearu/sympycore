@@ -1,5 +1,4 @@
 from sympycore.calculus import *
-from sympycore.calculus.differentiation import *
 
 x = Symbol('x')
 n = Symbol('n')
