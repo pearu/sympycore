@@ -47,7 +47,7 @@ class Head(object):
         POS = 0.6, NEG = 0.6, INVERT = 0.6,
         POW = 0.7, POWPOW = 0.71,
         # a.foo(), a[]()
-        APPLY = 0.8, 
+        APPLY = 0.8,
         ATTR = 0.81, SUBSCRIPT = 0.82, SLICE = 0.83, 
         TUPLE = 0.91, LIST = 0.92, DICT = 0.93,
         CALLABLE = 0.85,

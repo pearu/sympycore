@@ -1019,18 +1019,32 @@ int algebra_dict_mul_value(PyTypeObject *Algebra, PyObject *d, PyObject *value)
   PyObject *item_value = NULL;
   PyObject *obj_value = value;
   PyObject *obj = NULL;
+  PyObject *tmp = NULL;
   Py_ssize_t pos = 0;
   if (EXPR_IS_NUMBER(value))
     obj_value = EXPR_GET_DATA(value);
+  if (obj_value==one)
+    return 0;
   while (PyDict_Next(d, &pos, &key, &item_value))
     {
       obj = PyNumber_Multiply(item_value, obj_value);
-      if (PyDict_SetItem(d, key, obj)==-1)
+      if (EXPR_IS_NUMBER(obj))
 	{
+	  tmp = EXPR_GET_DATA(obj);	  
 	  Py_DECREF(obj);
-	  return -1;
+	  obj = tmp;
+	  Py_INCREF(obj);
 	}
-	;
+      if (obj==zero)
+	PyDict_DelItem(d, key);
+      else
+	{
+	  if (PyDict_SetItem(d, key, obj)==-1)
+	    {
+	      Py_DECREF(obj);
+	      return -1;
+	    }
+	}
       Py_DECREF(obj);
     }
   return 0;

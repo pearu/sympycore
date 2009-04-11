@@ -21,8 +21,11 @@ class CalculusFunctionRing(FunctionRing):
     @classmethod
     def get_differential_algebra(cls):
         return CalculusDifferentialRing
-    
 
+    @classmethod
+    def get_value_algebra(cls):
+        return Calculus
+    
 class CalculusDifferentialRing(DifferentialRing):
 
     @classmethod

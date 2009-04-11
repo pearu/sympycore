@@ -442,7 +442,7 @@ def base_exp_dict_mul_dict(Algebra, d, dict1, dict2):
             t, c = t.term_coeff()
             c12 = c * c1 * c2
             base_exp_dict_add_item(Algebra, d, t, c12)
-            
+
 def exp_coeff_dict_mul_dict(Algebra, d, dict1, dict2):
     for t1,c1 in dict1.iteritems():
         for t2,c2 in dict2.iteritems():
@@ -459,12 +459,17 @@ def dict_mul_dict(Algebra, d, dict1, dict2):
             dict_add_item(Algebra, d, t, c12)
     
 def dict_mul_value(Algebra, d, value):
-    assert value
+    if value==1:
+        return
     for t, c in d.items():
-        d[t] = c*value
+        c *= value
+        if c:
+            d[t] = c
+        else:
+            del d[t]
 
-base_exp_dict_mul_value = dict_mul_value
 term_coeff_dict_mul_dict = dict_mul_dict
+base_exp_dict_mul_value = dict_mul_value
 
 def term_coeff_new(Algebra, data):
     term, coeff = data

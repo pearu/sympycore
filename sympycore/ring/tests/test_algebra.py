@@ -1,5 +1,5 @@
 
-from sympycore import Ring, heads
+from sympycore import Ring, heads, CommutativeRing
 
 def test_symbol():
     x,y = map(Ring, 'xy')
@@ -90,3 +90,6 @@ def test_div():
     assert str((x*y)*(1/(x*y)))=='1', str((x*y)*(1/(x*y)))
     assert str(1/(2*x*y))=='1/2/y/x', str(1/(2*x*y))
     assert str(1/(x*y/2))=='2/y/x', str(1/(x*y/2))
+
+
+            

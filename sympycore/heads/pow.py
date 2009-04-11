@@ -240,12 +240,14 @@ class PowHead(ArithmeticHead):
         if rhead is BASE_EXP_DICT:
             data = {base:exp}
             for b, e in rdata.iteritems():
-                base_exp_dict_add_item(cls, data, b, e)
+                base_exp_dict_add_item(cls, data, b, -e)
             return base_exp_dict_new(cls, data)
+        if rhead is TERM_COEFF:
+            term, coeff = rhs.term_coeff()
+            return (lhs / term) / coeff
         if base==rhs:
             return pow_new(cls, (base, exp-1))
         return base_exp_dict_new(cls, {base:exp, rhs:-1})
-        return ArithmeticHead.commutative_div(self, cls, lhs, rhs)
     
     def as_term_coeff_dict(self, cls, expr):
         return cls(TERM_COEFF_DICT, {expr:1})
@@ -383,7 +385,7 @@ class PowHead(ArithmeticHead):
         bhead, bdata = base.pair
         if bhead is DIFF and isinstance(exp, inttypes) and exp>=0:
             return expr.head.diff(type(expr), expr.data, expr, bdata.data, exp)
-        if bhead is FDIFF and isinstance(exp, inttypes) and exp>=0:
+        if bhead is FDIFF:# and isinstance(exp, inttypes) and exp>=0:
             return expr.head.fdiff(type(expr), expr.data, expr, bdata.data, exp)
         return NotImplemented
 

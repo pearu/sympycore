@@ -6,6 +6,7 @@ from sympycore.calculus.infinity import oo, zoo, undefined
 from sympycore.calculus import Number, Symbol
 from sympycore.calculus.functions.elementary import Sin, Cos, Tan, Cot, pi, E, Exp, Log
 from sympycore.calculus.relational import Assumptions
+from sympycore import FD, D
 
 def test_exp_log():
     assert Exp(1) == E
@@ -113,3 +114,26 @@ def test_trig_diff():
 
 
     assert (x*Sin(x)).diff(x) == x*Cos(x) + Sin(x)
+
+def test_trig_diff_intorder():
+    x = Symbol('x')
+    assert Sin(x).diff(x,2) == -Sin(x)
+    assert Sin(x).diff(x,3) == -Cos(x)
+    assert Sin(x).diff(x,4) == Sin(x)
+    assert Sin(x).diff(x,4000000) == Sin(x)
+
+    assert Cos(x).diff(x,2) == -Cos(x)
+    assert Cos(x).diff(x,3) == Sin(x)
+    assert Cos(x).diff(x,4) == Cos(x)
+    assert Cos(x).diff(x,4000000) == Cos(x)
+
+    assert Tan(x).diff(x,2) == Tan(x).diff(x).diff(x)
+    assert Cot(x).diff(x,2) == Cot(x).diff(x).diff(x)
+
+def test_trig_diff_symorder():
+    x = Symbol('x')
+    n = Symbol('n')
+    assert Sin(x).diff(x,n) == Sin(x + pi*n/2),`Sin(x).diff(x,n)`
+    assert Cos(x).diff(x,n) == Cos(x + pi*n/2),`Cos(x).diff(x,n)`
+    assert Tan(x).diff(x,n) == (FD[0]**n)(Tan)(x),`Tan(x).diff(x,n)`
+    assert Cot(x).diff(x,n) == (FD[0]**n)(Cot)(x),`Cot(x).diff(x,n)`

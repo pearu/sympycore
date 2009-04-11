@@ -178,9 +178,10 @@ class TermCoeffDictHead(ArithmeticHead):
     def commutative_div_number(self, cls, lhs, rhs):
         r = number_div(cls, 1, rhs)
         if rhs==0:
+            # lhs/0 -> zoo * lhs
             return r * lhs        
         data = lhs.data.copy()
-        dict_mul_value(cls, data, number_div(cls, 1, r))
+        dict_mul_value(cls, data, r)
         return cls(self, data)
 
     def commutative_div(self, cls, lhs, rhs):

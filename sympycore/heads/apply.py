@@ -6,6 +6,7 @@ from .functional import FunctionalHead
 
 from ..core import init_module, Expr
 init_module.import_heads()
+init_module.import_numbers()
 init_module.import_lowlevel_operations()
 
 class ApplyHead(FunctionalHead):
@@ -171,29 +172,52 @@ class ApplyHead(FunctionalHead):
     def expand(self, cls, expr):
         return expr
 
+    def expand_intpow(self, cls, base, exp):
+        return cls(POW, (base, exp))
+
     def diff(self, cls, data, expr, symbol, order, cache={}):
         key = (expr, symbol, order)
         result = cache.get(key)
         if result is not None:
             return result
+        if isinstance(order, inttypes):
+            pass
+
+            
         key1 = (expr, symbol, 1)
         result = cache.get(key1)
         if result is None:
             func, args = data
-            assert func.head is CALLABLE,`func`
             fcls = cls.get_function_algebra()
+            dcls = fcls.get_differential_algebra()
             if len(args)==1:
                 arg = args[0]
                 da = arg.head.diff(cls, arg.data, arg, symbol, 1, cache=cache)
                 if symbol not in da.symbols_data:
+                    # argument is linear with respect to symbol
                     df = func.head.fdiff(fcls, func.data, func, 0, order)
-                    if df is not NotImplemented:
+                    if df is NotImplemented:
+                        if isinstance(order, int):
+                            df = func.head.fdiff(fcls, func.data, func, 0, 1)
+                            result = df(*args) * da
+                            if order>1:
+                                result = result.head.diff(cls, result.data, result, symbol, order-1, cache=cache)
+                        else:
+                            d = dcls(FDIFF, cls(NUMBER, 0))**order
+                            df = fcls(APPLY, (d, (func,)))
+                            result = df(*args) * da**order
+                    else:
                         result = df(*args) * da**order
-                        cache[key] = result
-                        return result
-                df = func.head.fdiff(fcls, func.data, func, 0, 1)
-                result = df(*args) * da
-
+                elif isinstance(order, int):
+                    df = func.head.fdiff(fcls, func.data, func, 0, 1)
+                    result = df(*args) * da
+                    if order>1:
+                        result = result.head.diff(cls, result.data, result, symbol, order-1, cache=cache)
+                else:
+                    d = dcls(DIFF, cls(NUMBER, 0))**order
+                    result = cls(APPLY, (d, (expr,)))
+                cache[key] = result
+                return result
             else:
                 result = cls(NUMBER, 0)
                 for i in range(len(args)):
@@ -209,5 +233,17 @@ class ApplyHead(FunctionalHead):
 
     def apply(self, cls, data, func, args):
         return NotImplemented
+
+    def integrate_indefinite(self, cls, data, expr, x):
+        if x not in expr.symbols_data:
+            return expr * cls(SYMBOL, x)
+        return cls(INTEGRAL_INDEFINITE, (expr, x))
+
+    def integrate_definite(self, cls, data, expr, x, a, b):
+        if x not in expr.symbols_data:
+            return expr * (b - a)
+        return cls(INTEGRAL_DEFINITE, (expr, x, a, b))
+
+    
 
 APPLY = ApplyHead()

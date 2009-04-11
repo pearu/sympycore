@@ -202,6 +202,12 @@ class SymbolHead(AtomicHead):
             return cls(NUMBER, int(order==1))
         return cls(NUMBER, 0)
 
+    def fdiff(self, cls, data, expr, argument_index, order):
+        fcls = cls.get_function_algebra()
+        dcls = fcls.get_differential_algebra()
+        d = dcls(FDIFF, cls(NUMBER, argument_index))**order
+        return fcls(APPLY, (d, (expr,)))
+
     def apply(self, cls, data, func, args):
         return cls(APPLY, (func, args))
 

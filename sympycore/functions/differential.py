@@ -39,7 +39,8 @@ class DifferentialRing(CommutativeRing):
             return target
         cls = type(self)
         s = self.head.walk(get_differential_data, cls, self.data, self)
-        if type(s) is cls:
+        #print s, type(s)
+        if 0 and type(s) is cls:
             raise TypeError('Expression does not contain differential instances')        
         return s
 
@@ -69,12 +70,24 @@ class DifferentialRing(CommutativeRing):
 
     def __call__(self, *args):
         cls = type(self)
+        FAlgebra = self.get_apply_algebra()
         if len(args)==1:
             expr = args[0]
+            if not isinstance(expr, Expr):
+                expr = FAlgebra(CALLABLE, expr)
             result = self.head.diff_apply(cls, self.data, self, expr)
             if result is not NotImplemented:
                 return result
-        FAlgebra = self.get_apply_algebra()
+            return FAlgebra(APPLY, (self, (expr,)))
+        new_args = []
+        args_changed = False
+        for a in args:
+            if not isinstance(expr, Expr):
+                a = FAlgebra(CALLABLE, a)
+                args_changed = True
+            new_args.append(a)
+        if args_changed:
+            args = tuple(new_args)
         return FAlgebra(APPLY, (self, args))
 
 classes.DifferentialRing = DifferentialRing

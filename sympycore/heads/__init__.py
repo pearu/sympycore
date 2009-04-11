@@ -11,7 +11,8 @@ __all__ = ['HEAD', 'SYMBOL', 'NUMBER', 'SPECIAL', 'CALLABLE',
            'EXP_COEFF_DICT',
            'TERM_COEFF_DICT',
            'TERM_COEFF',
-           'BASE_EXP_DICT'
+           'BASE_EXP_DICT',
+           'INTEGRAL_DEFINITE', 'INTEGRAL_INDEFINITE'
            ]
 
 from .base import HEAD
@@ -37,6 +38,9 @@ from .term_coeff import TERM_COEFF
 from .apply import APPLY
 
 from .differential import DIFF, FDIFF
+
+from .integral_indefinite import INTEGRAL_INDEFINITE
+from .integral_definite import INTEGRAL_DEFINITE
 
 from .arithmetic import MOD, FLOORDIV
 from .relational import EQ, NE, LT, GT, LE, GE

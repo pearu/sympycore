@@ -88,6 +88,7 @@ class Mod(CalculusDefinedFunction):
         return Apply(cls, (x, y))
 
 class Factorial(CalculusDefinedFunction):
+    
     def __new__(cls, x):
         if not isinstance(x, Calculus):
             x = Calculus.convert(x)
@@ -117,7 +118,10 @@ class Exp(CalculusDefinedFunction):
 
     @classmethod
     def fdiff(cls, FAlgebra, argument_index, order):
-        assert argument_index==0
+        if argument_index!=0:
+            if isinstance(argument_index, inttypes):
+                raise TypeError('%s.fdiff argument_index must be 0 but got %r' % (cls.__name__, argument_index))
+            return NotImplemented
         return FAlgebra(CALLABLE, cls)
 
 class Log(CalculusDefinedFunction):
@@ -178,7 +182,10 @@ class Log(CalculusDefinedFunction):
 
     @classmethod
     def fdiff(cls, FAlgebra, argument_index, order):
-        assert argument_index==0
+        if argument_index!=0:
+            if isinstance(argument_index, inttypes):
+                raise TypeError('%s.fdiff argument_index must be 0 but got %r' % (cls.__name__, argument_index))
+            return NotImplemented
         if order==1:
             func = lambda x: 1/x
         else:
@@ -302,14 +309,18 @@ class Sin(TrigonometricFunction):
             if isinstance(argument_index, inttypes):
                 raise TypeError('%s.fdiff argument_index must be 0 but got %r' % (cls.__name__, argument_index))
             return NotImplemented
-        n = order % 4
-        if n==0:
-            return FAlgebra(CALLABLE, Sin)
-        if n==1:
-            return FAlgebra(CALLABLE, Cos)
-        if n==2:
-            return -FAlgebra(CALLABLE, Sin)
-        return -FAlgebra(CALLABLE, Cos)
+        if isinstance(order, inttypes):
+            n = order % 4
+            if n==0:
+                return FAlgebra(CALLABLE, Sin)
+            if n==1:
+                return FAlgebra(CALLABLE, Cos)
+            if n==2:
+                return -FAlgebra(CALLABLE, Sin)
+            return -FAlgebra(CALLABLE, Cos)
+        order = order.data
+        func = lambda x: Sin(x + order * pi/2)
+        return FAlgebra(CALLABLE, func)
 
 class Cos(TrigonometricFunction):
     parity = 'even'
@@ -367,9 +378,10 @@ class Tan(TrigonometricFunction):
             if isinstance(argument_index, inttypes):
                 raise TypeError('%s.fdiff argument_index must be 0 but got %r' % (cls.__name__, argument_index))
             return NotImplemented
-        assert order==1
-        tan = FAlgebra(CALLABLE, cls)
-        return tan**2 + 1
+        if order==1:
+            tan = FAlgebra(CALLABLE, cls)
+            return tan**2 + 1
+        return NotImplemented
 
 class Cot(TrigonometricFunction):
     parity = 'odd'
@@ -393,9 +405,10 @@ class Cot(TrigonometricFunction):
             if isinstance(argument_index, inttypes):
                 raise TypeError('%s.fdiff argument_index must be 0 but got %r' % (cls.__name__, argument_index))
             return NotImplemented
-        assert order==1
-        cot = FAlgebra(CALLABLE, cls)
-        return -cot**2 - 1
+        if order==1:
+            cot = FAlgebra(CALLABLE, cls)
+            return -cot**2 - 1
+        return NotImplemented
 
 # pi/2-x symmetry
 conjugates = {
