@@ -21,7 +21,7 @@ class TermCoeff(ArithmeticHead):
         if type(data) is tuple and len(data)==2:
             term, coeff = data
             if isinstance(term, cls):
-                if isinstance(coeff, numbertypes):
+                if isinstance(coeff, numbertypes) or type(coeff) is not cls:
                     return
                 elif isinstance(coeff, cls):
                     if coeff.head is NUMBER:

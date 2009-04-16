@@ -290,11 +290,181 @@ commutative_operations_results = '''\
 (2)/(y*x):2/y/x
 (y*x)/(2*x):1/2*y
 (y*x)/(y + x):y*x/(y + x)
+(1)+(Foo(x)):Foo(x) + 1
+(1)-(Foo(x)):-Foo(x) + 1;1 - Foo(x)
+(1)*(Foo(x)):Foo(x)
+(1)/(Foo(x)):1/Foo(x)
+(1)**(Foo(x)):1
+(2)+(Foo(x)):2 + Foo(x)
+(2)-(Foo(x)):-Foo(x) + 2
+(2)*(Foo(x)):2*Foo(x)
+(2)/(Foo(x)):2/Foo(x)
+(2)**(Foo(x)):2**Foo(x)
+(x)+(Foo(x)):x + Foo(x)
+(x)-(Foo(x)):-Foo(x) + x;x - Foo(x)
+(x)*(Foo(x)):x*Foo(x)
+(x)/(Foo(x)):x/Foo(x)
+(x)**(Foo(x)):x**Foo(x)
+(2*x)+(Foo(x)):2*x + Foo(x)
+(2*x)-(Foo(x)):2*x - Foo(x)
+(2*x)*(Foo(x)):2*x*Foo(x)
+(2*x)/(Foo(x)):2*x/Foo(x)
+(2*x)**(Foo(x)):(2*x)**Foo(x)
+(y + x)+(Foo(x)):y + x + Foo(x)
+(y + x)-(Foo(x)):y + x - Foo(x)
+(y + x)*(Foo(x)):Foo(x)*(y + x)
+(y + x)/(Foo(x)):1/Foo(x)*(y + x)
+(y + x)**(Foo(x)):(y + x)**Foo(x)
+(x**2)+(Foo(x)):Foo(x) + x**2
+(x**2)-(Foo(x)):-Foo(x) + x**2
+(x**2)*(Foo(x)):Foo(x)*x**2
+(x**2)/(Foo(x)):x**2/Foo(x)
+(x**2)**(Foo(x)):(x**2)**Foo(x)
+(y*x)+(Foo(x)):Foo(x) + y*x
+(y*x)-(Foo(x)):-Foo(x) + y*x
+(y*x)*(Foo(x)):y*x*Foo(x)
+(y*x)/(Foo(x)):y*x/Foo(x)
+(y*x)**(Foo(x)):(y*x)**Foo(x)
++(Foo(x)):Foo(x)
+-(Foo(x)):-Foo(x)
+(Foo(x))+(1):Foo(x) + 1
+(Foo(x))-(1):Foo(x) - 1
+(Foo(x))*(1):Foo(x)
+(Foo(x))/(1):Foo(x)
+(Foo(x))**(1):Foo(x)
+(Foo(x))+(2):Foo(x) + 2
+(Foo(x))-(2):Foo(x) - 2
+(Foo(x))*(2):2*Foo(x)
+(Foo(x))/(2):1/2*Foo(x)
+(Foo(x))**(2):Foo(x)**2
+(Foo(x))+(x):Foo(x) + x
+(Foo(x))-(x):-x + Foo(x); Foo(x) - x
+(Foo(x))*(x):Foo(x)*x
+(Foo(x))/(x):Foo(x)/x
+(Foo(x))**(x):Foo(x)**x
+(Foo(x))+(2*x):2*x + Foo(x)
+(Foo(x))-(2*x):-2*x + Foo(x)
+(Foo(x))*(2*x):2*Foo(x)*x
+(Foo(x))/(2*x):1/2*Foo(x)/x
+(Foo(x))**(2*x):Foo(x)**(2*x)
+(Foo(x))+(y + x):y + x + Foo(x)
+(Foo(x))-(y + x):-y - x + Foo(x)
+(Foo(x))*(y + x):Foo(x)*(y + x)
+(Foo(x))/(y + x):Foo(x)/(y + x)
+(Foo(x))**(y + x):Foo(x)**(y + x)
+(Foo(x))+(x**2):Foo(x) + x**2
+(Foo(x))-(x**2):Foo(x) - x**2
+(Foo(x))*(x**2):Foo(x)*x**2
+(Foo(x))/(x**2):Foo(x)/x**2
+(Foo(x))**(x**2):Foo(x)**x**2
+(Foo(x))+(y*x):Foo(x) + y*x
+(Foo(x))-(y*x):Foo(x) - y*x
+(Foo(x))*(y*x):y*x*Foo(x)
+(Foo(x))/(y*x):1/y*Foo(x)/x
+(Foo(x))**(y*x):Foo(x)**(y*x)
+(Foo(x))+(Foo(x)):2*Foo(x)
+(Foo(x))-(Foo(x)):0
+(Foo(x))*(Foo(x)):Foo(x)**2
+(Foo(x))/(Foo(x)):1
+(Foo(x))**(Foo(x)):Foo(x)**Foo(x)
+
+(1)+(Foo):1 + Foo
+(1)-(Foo):1 - Foo
+(1)*(Foo):Foo
+(1)/(Foo):1/Foo
+(1)**(Foo):1
+(2)+(Foo):2 + Foo
+(2)-(Foo):2 - Foo
+(2)*(Foo):2*Foo
+(2)/(Foo):2/Foo
+(2)**(Foo):2**Foo
+(x)+(Foo):x + Foo
+(x)-(Foo):x - Foo
+(x)*(Foo):x*Foo
+(x)/(Foo):x/Foo
+(x)**(Foo):x**Foo
+(2*x)+(Foo):2*x + Foo
+(2*x)-(Foo):2*x - Foo
+(2*x)*(Foo):2*x*Foo
+(2*x)/(Foo):2*x/Foo
+(2*x)**(Foo):(2*x)**Foo
+(y + x)+(Foo):y + x + Foo
+(y + x)-(Foo):y + x - Foo
+(y + x)*(Foo):(y + x)*Foo
+(y + x)/(Foo):(y + x)/Foo
+(y + x)**(Foo):(y + x)**Foo
+(x**2)+(Foo):x**2 + Foo
+(x**2)-(Foo):x**2 - Foo
+(x**2)*(Foo):x**2*Foo
+(x**2)/(Foo):x**2/Foo
+(x**2)**(Foo):(x**2)**Foo
+(y*x)+(Foo):y*x + Foo
+(y*x)-(Foo):y*x - Foo
+(y*x)*(Foo):y*x*Foo
+(y*x)/(Foo):y*x/Foo
+(y*x)**(Foo):(y*x)**Foo
+(Foo(x))+(Foo):Foo(x) + Foo
+(Foo(x))-(Foo):Foo(x) - Foo
+(Foo(x))*(Foo):Foo(x)*Foo
+(Foo(x))/(Foo):Foo(x)/Foo
+(Foo(x))**(Foo):Foo(x)**Foo
++(Foo):Foo
+-(Foo):-Foo
+(Foo)+(1):1 + Foo
+(Foo)-(1):-1 + Foo
+(Foo)*(1):Foo
+(Foo)/(1):Foo
+(Foo)**(1):Foo
+(Foo)+(2):2 + Foo
+(Foo)-(2):-2 + Foo
+(Foo)*(2):2*Foo
+(Foo)/(2):1/2*Foo
+(Foo)**(2):Foo**2
+(Foo)+(x):x + Foo
+(Foo)-(x):-x + Foo
+(Foo)*(x):x*Foo
+(Foo)/(x):1/x*Foo
+(Foo)**(x):Foo**x
+(Foo)+(2*x):2*x + Foo
+(Foo)-(2*x):-2*x + Foo
+(Foo)*(2*x):2*x*Foo
+(Foo)/(2*x):1/2/x*Foo
+(Foo)**(2*x):Foo**(2*x)
+(Foo)+(y + x):y + x + Foo
+(Foo)-(y + x):-y - x + Foo
+(Foo)*(y + x):(y + x)*Foo
+(Foo)/(y + x):1/(y + x)*Foo
+(Foo)**(y + x):Foo**(y + x)
+(Foo)+(x**2):x**2 + Foo
+(Foo)-(x**2):-x**2 + Foo
+(Foo)*(x**2):x**2*Foo
+(Foo)/(x**2):1/x**2*Foo
+(Foo)**(x**2):Foo**x**2
+(Foo)+(y*x):y*x + Foo
+(Foo)-(y*x):-y*x + Foo
+(Foo)*(y*x):y*x*Foo
+(Foo)/(y*x):1/y/x*Foo
+(Foo)**(y*x):Foo**(y*x)
+(Foo)+(Foo(x)):Foo(x) + Foo
+(Foo)-(Foo(x)):-Foo(x) + Foo
+(Foo)*(Foo(x)):Foo(x)*Foo
+(Foo)/(Foo(x)):1/Foo(x)*Foo
+(Foo)**(Foo(x)):Foo**Foo(x)
+(Foo)+(Foo):2*Foo
+(Foo)-(Foo):0
+(Foo)*(Foo):Foo**2
+(Foo)/(Foo):1
+(Foo)**(Foo):Foo**Foo
 '''
 
 def test_commutative_operations():
     Ring = CommutativeRing
     x,y,z = map(Ring, 'xyz')
+    FRing = Ring.get_function_algebra()
+    def Foo(x):
+        return Ring(heads.APPLY, (foo, (Ring(x),)))
+    foo = FRing(heads.CALLABLE, Foo)
+    
     operands = [1,
                 Ring(heads.NUMBER, 2),
                 x,
@@ -302,6 +472,8 @@ def test_commutative_operations():
                 Ring(heads.TERM_COEFF_DICT, {x:1, y:1}), # x+y
                 Ring(heads.POW, (x, 2)), # x**2
                 Ring(heads.BASE_EXP_DICT, {x:1, y:1}), # x*y
+                Foo(x), # Foo(x),
+                foo,    # function foo
                 ]
     unary_operations = ['+', '-']
     binary_operations = ['+', '-', '*', '/', '**']

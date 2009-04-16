@@ -5,6 +5,11 @@ not_implemented_error_msg = '%s.%s method, report to http://code.google.com/p/sy
 
 from ..core import Expr, heads, heads_precedence, Pair
 
+from ..core import init_module
+init_module.import_heads()
+init_module.import_numbers()
+init_module.import_lowlevel_operations()
+
 class Head(object):
 
     """
@@ -112,7 +117,191 @@ class Head(object):
     def __todo_repr__(self):
         # TODO: undefined __repr__ should raise not implemented error
         raise NotImplementedError('Head subclass must implement __repr__ method returning singleton name')
+
+    def base_exp(self, cls, expr):
+        return expr, 1
+
+    def term_coeff(self, cls, expr):
+        return expr, 1
+
+    def neg(self, cls, expr):
+        return cls(TERM_COEFF, (expr, -1))
+
+    def add_number(self, cls, lhs, rhs):
+        return cls(TERM_COEFF_DICT, {lhs:1, cls(NUMBER,1):rhs}) if rhs else lhs
+
+    def add(self, cls, lhs, rhs):
+        """ Return a sum of expressions: lhs + rhs.
+        """
+        rhead, rdata = rhs.pair
+        if rhead is NUMBER:
+            if rdata==0:
+                return lhs
+            return cls(TERM_COEFF_DICT, {lhs:1, cls(NUMBER,1):rdata})
+        if rhead is self:
+            if lhs==rhs:
+                return cls(TERM_COEFF, (lhs, 2))
+            return cls(TERM_COEFF_DICT, {lhs:1, rhs:1})
+        if rhead is TERM_COEFF:
+            t,c = rdata
+            if lhs==t:
+                return term_coeff_new(cls, (t, c+1))
+            return cls(TERM_COEFF_DICT, {t:c, lhs:1})
+        if rhead is TERM_COEFF_DICT:
+            data = rdata.copy()
+            term_coeff_dict_add_item(cls, data, lhs, 1)
+            return term_coeff_dict_new(cls, data)            
+        if rhead is SYMBOL or rhead is APPLY or rhead is CALLABLE\
+               or rhead is BASE_EXP_DICT or rhead is POW:
+            return cls(TERM_COEFF_DICT, {lhs:1, rhs:1})
+        raise NotImplementedError(\
+            not_implemented_error_msg % \
+            (self, 'add(cls, <%s expression>, <%s expression>)' \
+             % (self, rhs.head))) #pragma NO COVER
+
+    inplace_add = add
+
+    def sub_number(self, cls, lhs, rhs):
+        return cls(TERM_COEFF_DICT, {lhs:1, cls(NUMBER,1):-rhs}) if rhs else lhs
+
+    def sub(self, cls, lhs, rhs):
+        """ Return a subtract of expressions: lhs - rhs.
+        """
+        rhead, rdata = rhs.pair
+        if rhead is NUMBER:
+            if rdata==0:
+                return lhs
+            return cls(TERM_COEFF_DICT, {lhs:1, cls(NUMBER,1):-rdata})
+        if rhead is self:
+            if lhs==rhs:
+                return cls(NUMBER, 0)
+            return cls(TERM_COEFF_DICT, {lhs:1, rhs:-1})
+        if rhead is TERM_COEFF:
+            t,c = rdata
+            if lhs==t:
+                return term_coeff_new(cls, (t, 1-c))
+            return cls(TERM_COEFF_DICT, {t:-c, lhs:1})
+        if rhead is TERM_COEFF_DICT:
+            data = rdata.copy()
+            term_coeff_dict_mul_value(cls, data, -1)
+            term_coeff_dict_add_item(cls, data, lhs, 1)
+            return term_coeff_dict_new(cls, data)            
+        if rhead is SYMBOL or rhead is APPLY or rhead is CALLABLE\
+               or rhead is BASE_EXP_DICT or rhead is POW:
+            return cls(TERM_COEFF_DICT, {lhs:1, rhs:-1})
+        raise NotImplementedError(\
+            not_implemented_error_msg % \
+            (self, 'sub(cls, <%s expression>, <%s expression>)' \
+             % (self, rhs.head))) #pragma NO COVER
+
+    inplace_sub = sub
+
+    def commutative_mul_number(self, cls, lhs, rhs):
+        """ Return a commutative product of expressions: lhs * rhs
+        where rhs is a coefficient.
+        """
+        return term_coeff_new(cls, (lhs, rhs))
+
+    commutative_rmul_number = commutative_mul_number
+
+    def commutative_mul(self, cls, lhs, rhs):
+        """ Return a commutative product of expressions: lhs * rhs.
+        """
+        rhead, rdata = rhs.pair
+        if rhead is NUMBER:
+            return term_coeff_new(cls, (lhs, rdata))
+        if rhead is self:
+            if lhs.data==rdata:
+                return cls(POW, (lhs, 2))
+            return cls(BASE_EXP_DICT, {lhs:1, rhs:1})
+        if rhead is TERM_COEFF:
+            term, coeff = rdata
+            return (lhs * term) * coeff
+        if rhead is POW:
+            rbase, rexp = rdata
+            if rbase==lhs:
+                return pow_new(cls, (lhs, rexp+1))
+            return cls(BASE_EXP_DICT, {lhs:1, rbase:rexp})
+        if rhead is BASE_EXP_DICT:
+            data = rdata.copy()
+            base_exp_dict_add_item(cls, data, lhs, 1)
+            return base_exp_dict_new(cls, data)
+        if rhead is SYMBOL or rhead is CALLABLE or rhead is APPLY \
+           or rhead is TERM_COEFF_DICT or head is ADD:
+            return cls(BASE_EXP_DICT, {lhs:1, rhs:1})
+        raise NotImplementedError(\
+            not_implemented_error_msg % \
+            (self, 'commutative_mul(cls, <%s expression>, <%s expression>)' \
+             % (self, rhs.head))) #pragma NO COVER
+
+    inplace_commutative_mul = commutative_mul
+
+    def commutative_div_number(self, cls, lhs, rhs):
+        return term_coeff_new(cls, (lhs, number_div(cls, 1, rhs)))
+
+    def commutative_rdiv_number(self, cls, lhs, rhs):
+        return term_coeff_new(cls, (cls(POW, (lhs, -1)), rhs))
+
+    def commutative_div(self, cls, lhs, rhs):
+        """ Return a commutative division of expressions: lhs / rhs.
+        """
+        rhead, rdata = rhs.pair
+        if rhead is NUMBER:
+            return term_coeff_new(cls, (lhs, number_div(cls, 1, rdata)))
+        if rhead is self:
+            if lhs.data==rdata:
+                return cls(NUMBER, 1)
+            return cls(BASE_EXP_DICT, {lhs:1, rhs:-1})
+        if rhead is TERM_COEFF:
+            term, coeff = rdata
+            return (lhs / term) * number_div(cls, 1, coeff)
+        if rhead is POW:
+            rbase, rexp = rdata
+            if lhs==rbase:
+                return pow_new(cls, (lhs, 1-rexp))
+            return cls(BASE_EXP_DICT, {lhs:1, rbase:-rexp, })
+        if rhead is BASE_EXP_DICT:
+            data = {lhs:1}
+            base_exp_dict_sub_dict(cls, data, rdata)
+            return base_exp_dict_new(cls, data)
+        if rhead is SYMBOL or rhead is CALLABLE or rhead is APPLY \
+           or rhead is TERM_COEFF_DICT or head is ADD:
+            return cls(BASE_EXP_DICT, {lhs:1, rhs:-1})
         
+        raise NotImplementedError(\
+            not_implemented_error_msg % \
+            (self, 'commutative_div(cls, <%s expression>, <%s expression>)' \
+             % (self, rhs.head))) #pragma NO COVER
+
+    def non_commutative_mul_number(self, cls, lhs, rhs):
+        """ Return a non-commutative product of expressions: lhs * rhs
+        where rhs is a coefficient (which is assumed to be commutator).
+        """
+        return term_coeff_new(cls, (lhs, rhs))
+
+    non_commutative_rmul_number = non_commutative_mul_number
+
+    def non_commutative_mul(self, cls, lhs, rhs):
+        rhead, rdata = rhs.pair
+        if rhead is NUMBER:
+            return term_coeff_new(cls, (lhs, rdata))
+        if rhead is self:
+            if lhs.data == rdata:
+                return cls(POW, (lhs, 2))
+            return cls(MUL, [lhs, rhs])
+        if rhead is TERM_COEFF:
+            term, coeff = rdata
+            return (lhs * term) * coeff
+        if rhead is POW:
+            return MUL.combine(cls, [lhs, rhs])
+        if rhead is MUL:
+            return MUL.combine(cls, [lhs] + rdata)
+
+        raise NotImplementedError(\
+            not_implemented_error_msg % \
+            (self, 'non_commutative_mul(cls, <%s expression>, <%s expression>)' \
+             % (self, rhs.head))) #pragma NO COVER
+
 class AtomicHead(Head):
     """
     AtomicHead is a base class to atomic expression heads.
@@ -231,80 +420,6 @@ class NaryHead(Head):
 class ArithmeticHead(Head):
     """ Base class for heads representing arithmetic operations.
     """
-
-    def term_coeff(self, cls, expr):
-        """ Return (term, coefficent) pair such that
-
-          expr = term * coefficent
-          coefficent is a number instance
-
-        """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'term_coeff(self, cls, expr)')) #pragma NO COVER
-
-    def as_add(self, cls, expr):
-        """ Return expr as ADD expression.
-        """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'as_add(cls, expr)')) #pragma NO COVER
-
-    def as_term_coeff_dict(self, cls, expr):
-        """ Return expr as TERM_COEFF_DICT expression.
-        """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'as_term_coeff_dict(cls, expr)')) #pragma NO COVER
-    
-    def neg(self, cls, expr):
-        """ Return negated expression: -expr.
-        """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'neg(cls, expr)')) #pragma NO COVER
-
-    def add(self, cls, lhs, rhs):
-        """ Return a sum of expressions: lhs + rhs.
-        """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'add(cls, lhs, rhs)')) #pragma NO COVER
-
-    inplace_add = add_number = add
-
-    def sub(self, cls, lhs, rhs):
-        """ Return a subtract of expressions: lhs + rhs.
-        """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'sub(cls, lhs, rhs)')) #pragma NO COVER
-
-    def non_commutative_mul(self, cls, lhs, rhs):
-        """ Return a non-commutative product of expressions: lhs * rhs.
-        """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'non_commutative_mul(cls, lhs, rhs)')) #pragma NO COVER
-
-    inplace_non_commutative_mul = non_commutative_mul_number = non_commutative_mul
-
-    def commutative_mul(self, cls, lhs, rhs):
-        """ Return a commutative product of expressions: lhs * rhs.
-        """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'commutative_mul(cls, lhs, <%s expression>)' % (rhs.head))) #pragma NO COVER
-
-    inplace_commutative_mul = commutative_mul_number = commutative_mul
-
-    def commutative_div(self, cls, lhs, rhs):
-        """ Return a commutative product of expressions: lhs / rhs.
-        """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'commutative_div(cls, lhs, <%s expression>)' % (rhs.head))) #pragma NO COVER
-
-    inplace_commutative_div = commutative_div_number = commutative_rdiv_number = commutative_div
-
-    def pow(self, cls, base, exp):
-        """ Return a power of expressions: base ** exp.
-        """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'pow(cls, base, exp)')) #pragma NO COVER
-
-    pow_number = pow
-
-    def expand(self, cls, expr):
-        """ Return expanded expression: open parenthesis of arithmetic operations.
-        """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'expand(cls, expr)')) #pragma NO COVER
-
-    def expand_intpow(self, cls, expr, intexp):
-        """ Return expanded expr ** intexp where intexp is integer.
-        """
-        raise NotImplementedError(not_implemented_error_msg % (self, 'expand_intpow(cls, expr, intexpr)')) #pragma NO COVER
     
 for k, v in Head.precedence_map.items():
     setattr(heads_precedence, k, v)

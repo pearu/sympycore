@@ -84,7 +84,7 @@ class Calculus(CommutativeRing):
             return m.Mul(*self.as_Mul_args())
         raise NotImplemented(`self`)
 
-    def as_algebra(self, cls):
+    def as_algebra(self, cls, typeerror=True):
         """ Convert algebra to another algebra.
         """
         if cls is Verbatim:

@@ -470,6 +470,7 @@ def dict_mul_value(Algebra, d, value):
 
 term_coeff_dict_mul_dict = dict_mul_dict
 base_exp_dict_mul_value = dict_mul_value
+term_coeff_dict_mul_value = dict_mul_value
 
 def term_coeff_new(Algebra, data):
     term, coeff = data

@@ -1633,6 +1633,8 @@ static PyMethodDef module_methods[] = {
    "base_exp_dict_mul_dict(Algebra, dict, dict1, dict2) - multiply dict1 and dict2 items and add them to dict"},
   {"base_exp_dict_mul_value",  func_algebra_dict_mul_value, METH_VARARGS, 
    "base_exp_dict_mul_value(dict, value) - multiply dict values with value"},
+  {"term_coeff_dict_mul_value",  func_algebra_dict_mul_value, METH_VARARGS, 
+   "term_coeff_dict_mul_value(dict, value) - multiply dict values with value"},
 
   {"exp_coeff_dict_mul_dict",  func_algebra_exp_coeff_dict_mul_dict, METH_VARARGS,
    "exp_coeff_dict_mul_dict(Algebra, dict, dict1, dict2) - multiply dict1 and dict2 values, add their keys, and finally add them to dict"},

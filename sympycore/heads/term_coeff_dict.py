@@ -28,9 +28,8 @@ class TermCoeffDictHead(ArithmeticHead):
     def __repr__(self): return 'TERM_COEFF_DICT'
 
     def data_to_str_and_precedence(self, cls, term_coeff_dict):
-        return ADD.data_to_str_and_precedence(cls,
-                                              map(lambda p: cls(TERM_COEFF, p),
-                                                  term_coeff_dict.items()))
+        r = [cls(TERM_COEFF, tc) for tc in term_coeff_dict.items()]
+        return ADD.data_to_str_and_precedence(cls, r)
 
     def new(self, cls, data, evaluate=True):
         return term_coeff_dict_new(cls, data)
@@ -150,7 +149,7 @@ class TermCoeffDictHead(ArithmeticHead):
             if lhs==base:
                 return POW.new(cls, (lhs, exp + 1))
             return cls(BASE_EXP_DICT, {lhs:1, base:exp})
-        if rhead is SYMBOL:
+        if rhead is SYMBOL or rhead is APPLY:
             return cls(BASE_EXP_DICT, {lhs:1, rhs:1})
         if rhead is TERM_COEFF_DICT:
             if rdata==lhs.data:
@@ -163,7 +162,6 @@ class TermCoeffDictHead(ArithmeticHead):
         if rhead is ADD:
             return cls(BASE_EXP_DICT, {lhs:1, rhs:1})
         return ArithmeticHead.commutative_mul(self, cls, lhs, rhs)
-
 
     def commutative_mul_number(self, cls, lhs, rhs):
         if rhs==0:
@@ -192,7 +190,7 @@ class TermCoeffDictHead(ArithmeticHead):
             if lhs.data == rdata:
                 return cls(NUMBER, 1)
             return cls(BASE_EXP_DICT, {lhs:1, rhs:-1})
-        if rhead is SYMBOL:
+        if rhead is SYMBOL or rhead is APPLY:
             return cls(BASE_EXP_DICT, {lhs:1, rhs:-1})
         if rhead is TERM_COEFF:
             term, coeff = rdata

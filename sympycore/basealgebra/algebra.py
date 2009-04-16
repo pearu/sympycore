@@ -68,7 +68,7 @@ class Algebra(Expr):
       convert_exponent(cls, obj, typeerror=True)
       convert_operand(self, obj, typeerror=True)
       as_verbatim(self)
-      as_algebra(self, cls)
+      as_algebra(self, cls, typeerror=True)
 
     and the following properties::
 
@@ -158,13 +158,17 @@ class Algebra(Expr):
     def convert(cls, obj, typeerror=True):
         """ Convert obj to algebra element.
 
+        With typeerror=False NotImplemented is returned when
+        conversion is not possible, otherwise a TypeError is raised.
+        
         Set typeerror=False when calling from operation methods like __add__,
         __mul__, etc.
         """
+        tobj = type(obj)
         # check if obj is already algebra element:
-        if isinstance(obj, cls):
+        if tobj is cls:
             return obj
-
+        
         # check if obj belongs to coefficient algebra
         r = cls.convert_number(obj, typeerror=False)
         if r is not NotImplemented:
@@ -176,8 +180,10 @@ class Algebra(Expr):
 
         # as a last resort, convert from another algebra:
         if isinstance(obj, Algebra):
-            return obj.as_algebra(cls)
-
+            result = obj.as_algebra(cls, typeerror=typeerror)
+            if result is not NotImplemented:
+                return result
+            
         return cls.handle_convert_failure('algebra', obj, typeerror)
 
     @classmethod
@@ -250,7 +256,7 @@ class Algebra(Expr):
             return cls(head, data)
         return self.head.walk(as_verbatim, Verbatim, self.data, self)
 
-    def as_algebra(self, cls):
+    def as_algebra(self, cls, typeerror=True):
         """ Convert algebra to another algebra.
 
         This method uses default conversation via verbatim algebra that

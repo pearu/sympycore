@@ -128,49 +128,6 @@ class PowHead(ArithmeticHead):
                 return self.to_EXP_COEFF_DICT(cls, (base**(exp/numer), numer), expr, variables)
         raise NotImplementedError(`base, exp`)
 
-    def term_coeff(self, cls, expr):
-        return expr, 1
-
-    def neg(self, cls, expr):
-        return cls(TERM_COEFF, (expr, -1))
-
-    def add(self, cls, lhs, rhs):
-        rhead, rdata = rhs.pair
-        if rhead is SYMBOL:
-            return cls(TERM_COEFF_DICT, {lhs:1, rhs:1})
-        if rhead is NUMBER:
-            if rdata==0:
-                return lhs
-            return cls(TERM_COEFF_DICT, {lhs:1, cls(NUMBER,1):rdata})
-        if rhead is TERM_COEFF:
-            term, coeff = rdata
-            if term==lhs:
-                return term_coeff_new(cls, (term, coeff + 1))
-            return cls(TERM_COEFF_DICT, {lhs:1, term:coeff})
-        if rhead is TERM_COEFF_DICT:
-            data = rdata.copy()
-            dict_add_item(cls, data, lhs, 1)
-            return term_coeff_dict_new(cls, data)
-        if rhead is POW:
-            if lhs==rhs:
-                return cls(TERM_COEFF, (lhs, 2))
-            return cls(TERM_COEFF_DICT, {lhs:1, rhs:1})
-        if rhead is BASE_EXP_DICT:
-            assert not (len(rdata)==2 and 1 in rdata),'todo: handle the case x**2 + 3*x**2'
-            return cls(TERM_COEFF_DICT, {lhs:1, rhs:1})
-        raise NotImplementedError(`self, rhs.head`)
-
-    inplace_add = add
-
-    def add_number(self, cls, lhs, rhs):
-        return cls(TERM_COEFF_DICT, {lhs:1, cls(NUMBER,1):rhs}) if rhs else lhs
-
-    def sub_number(self, cls, lhs, rhs):
-        return cls(TERM_COEFF_DICT, {lhs:1, cls(NUMBER,1):-rhs}) if rhs else lhs
-
-    def sub(self, cls, lhs, rhs):
-        return lhs + (-rhs)
-
     def non_commutative_mul(self, cls, lhs, rhs):
         rhead, rdata = rhs.pair
         if rhead is NUMBER:

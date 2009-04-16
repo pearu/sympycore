@@ -1,6 +1,6 @@
 
 from ...core import init_module, classes
-from ...functions import FunctionRing, DifferentialRing
+from ...functions import FunctionRing, DifferentialRing, OperatorRing
 
 from ..algebra import Calculus
 
@@ -12,29 +12,36 @@ class CalculusFunctionRing(FunctionRing):
     Functions ring with Calculus value algebra.
     """
 
-    def __call__(self, *args):
-        result = self.head.apply(Calculus, self.data, self, args)
-        if result is not NotImplemented:
-            return result
-        return Calculus(APPLY, (self, args))
+    @classmethod
+    def get_value_algebra(cls):
+        return Calculus
+
+    @classmethod
+    def get_function_algebra(cls):
+        return CalculusOperatorRing
 
     @classmethod
     def get_differential_algebra(cls):
         return CalculusDifferentialRing
 
-    @classmethod
-    def get_value_algebra(cls):
-        return Calculus
-    
-class CalculusDifferentialRing(DifferentialRing):
+class CalculusOperatorRing(OperatorRing):
 
     @classmethod
-    def get_apply_algebra(cls):
+    def get_value_algebra(cls):
         return CalculusFunctionRing
 
     @classmethod
-    def get_value_algebra(cls):
-        return Calculus
+    def get_function_algebra(cls):
+        raise NotImplementedError(`cls`)
+
+    @classmethod
+    def get_differential_algebra(cls):
+        raise NotImplementedError(`cls`)
+    
+class CalculusDifferentialRing(CalculusOperatorRing, DifferentialRing):
+
+    pass
 
 classes.CalculusFunctionRing = CalculusFunctionRing
+classes.CalculusOperatorRing = CalculusOperatorRing
 classes.CalculusDifferentialRing = CalculusDifferentialRing

@@ -23,5 +23,5 @@ def test_pickle():
     obj = FunctionRing
     assert obj==pickler(obj)
 
-    obj = Function('func')
+    obj = FunctionRing('func')
     assert obj==pickler(obj)

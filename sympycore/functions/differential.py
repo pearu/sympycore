@@ -1,11 +1,13 @@
 
+__all__ = ['DifferentialRing']
+
 from ..core import classes, Expr, init_module
-from ..ring import CommutativeRing
+from .operator import OperatorRing
 
 init_module.import_heads()
 init_module.import_numbers()
 
-class DifferentialRing(CommutativeRing):
+class DifferentialRing(OperatorRing):
 
     """
     DifferentialRing(DIFF, x) - partial derivative with respect to x
@@ -17,20 +19,12 @@ class DifferentialRing(CommutativeRing):
     def convert(cls, obj, typeerror=True):
         if isinstance(obj, cls):
             return obj
-        if isinstance(obj, cls.get_value_algebra()):
+        fcls = cls.get_value_algebra()
+        if isinstance(obj, fcls):
+            return cls(NUMBER, obj)
+        if isinstance(obj, fcls.get_value_algebra()):
             return cls(NUMBER, obj)
         return cls.handle_convert_failure('algebra', obj, typeerror)
-
-    def as_algebra(self, cls):
-        return NotImplemented
-
-    @classmethod
-    def get_apply_algebra(cls):
-        return classes.FunctionRing
-
-    @classmethod
-    def get_value_algebra(cls):
-        return classes.Ring
 
     def get_differentiation_symbol(self):
         def get_differential_data(cls, head, data, target):
@@ -70,7 +64,7 @@ class DifferentialRing(CommutativeRing):
 
     def __call__(self, *args):
         cls = type(self)
-        FAlgebra = self.get_apply_algebra()
+        FAlgebra = self.get_value_algebra()
         if len(args)==1:
             expr = args[0]
             if not isinstance(expr, Expr):

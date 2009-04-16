@@ -51,26 +51,11 @@ class CallableHead(AtomicHead):
             return s, heads_precedence.CALLABLE
         return s, 0.0 # force parenthesis
 
-    def neg(self, cls, expr):
-        return cls(TERM_COEFF,(expr, -1))
-
-    def add(self, cls, lhs, rhs):
-        rhead, rdata = rhs.pair
-        if rhead is CALLABLE and lhs.data==rdata:
-            return cls(TERM_COEFF, (lhs, 2))
-        elif rhead is NUMBER:
-            return self.add_number(cls, lhs, rdata)
-        return cls(TERM_COEFF_DICT, {lhs:1, rhs:1})
-
     def pow_number(self, cls, base, exp):
         return pow_new(cls, (base, exp))
 
-    def non_commutative_mul_number(self, cls, lhs, rhs):
-        return term_coeff_new(cls, (lhs, rhs))
-
-    def add_number(self, cls, lhs, rhs):
-        if rhs==0: return lhs
-        return cls(TERM_COEFF_DICT, {lhs:1, cls(NUMBER, 1): rhs})
+    def pow(self, cls, base, exp):
+        return pow_new(cls, (base, exp))
 
     def apply(self, cls, data, func, args):
         return data(*args)
@@ -78,9 +63,9 @@ class CallableHead(AtomicHead):
     def fdiff(self, cls, data, expr, argument_index, order):
         if hasattr(data, 'fdiff'):
             return data.fdiff(cls, argument_index, order)
-        fcls = cls.get_function_algebra()
-        dcls = fcls.get_differential_algebra()
-        d = dcls(FDIFF, cls(NUMBER, argument_index))**order
-        return fcls(APPLY, (d, (expr,)))
+        vcls = cls.get_value_algebra()
+        dcls = cls.get_differential_algebra()
+        d = dcls(FDIFF, vcls(NUMBER, argument_index))**order
+        return cls(APPLY, (d, (expr,)))
 
 CALLABLE = CallableHead()

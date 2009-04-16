@@ -71,9 +71,26 @@ class Verbatim(Algebra):
     _str = None
 
     @classmethod
+    def get_value_algebra(cls):
+        return cls
+
+    def get_argument_algebra(self, index):
+        return self.get_value_algebra()
+
+    @classmethod
+    def get_function_algebra(cls):
+        return cls
+
+    @classmethod
+    def get_differential_algebra(cls):
+        return cls
+    
+    @classmethod
     def convert(cls, obj):
         if isinstance(obj, (str, unicode)):
             obj = string2Verbatim(obj)
+        if isinstance(obj, Verbatim):
+            return obj
         if hasattr(obj, 'as_verbatim'):
             # handle low-level numbers and constants, as well as Verbatim subclasses
             return obj.as_verbatim()
@@ -98,46 +115,8 @@ class Verbatim(Algebra):
             if head is SYMBOL:
                 return cls.convert_symbol(data)
             return head.reevaluate(cls, data)
-            print head, data
-            return head.new(cls, data)
         head, rest = self.pair
         return head.walk(as_algebra, cls, rest, self)
-        if head is NUMBER:
-            return cls(rest)
-        if head is SYMBOL:
-            return cls.convert_symbol(rest)
-        if head is NEG:
-            return -rest.as_algebra(cls)
-        if head is POS:
-            return +rest.as_algebra(cls)
-        if head is ADD:
-            data = [op.as_algebra(cls) for op in rest]
-        n = convert_head_Op_map.get(head)
-        if n is not None:
-            if head in unary_lst:
-                return getattr(cls, n)(rest.as_algebra(cls.get_operand_algebra(head, 0)))
-            return getattr(cls, n)(*[r.as_algebra(cls.get_operand_algebra(head, i)) for i,r in enumerate(rest)])
-        if head is APPLY:
-            func = rest[0]
-            args = rest[1]
-            fcls = objects.get_function_ring((cls,)*len(args), cls)
-            f = func.as_algebra(fcls)
-            return f(*[a.as_algebra(cls) for a in args])
-        if head in containing_lst:
-            element, container = rest
-            container = container.as_algebra(cls.get_operand_algebra(IN, 1))
-            element_algebra = container.get_element_algebra()
-            element = element.as_algebra(element_algebra)
-            r = cls.Element(element, container)
-            if head is NOTIN:
-                return cls.Not(r)
-            return r
-        if head is SUBSCRIPT:
-            obj, index = rest
-            obj = obj.as_algebra(cls)
-            return obj[index]
-        print `head, rest`
-        raise TypeError('%r cannot be converted to %s algebra' % (self, cls.__name__))
 
     def __repr__(self):
         return '%s(%r, %r)' % (type(self).__name__, self.head, self.data)

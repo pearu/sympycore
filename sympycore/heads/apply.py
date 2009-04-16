@@ -20,13 +20,17 @@ class ApplyHead(FunctionalHead):
     def is_data_ok(self, cls, data):
         if isinstance(data, tuple) and len(data)==2:
             func, args = data
+            fcls = cls.get_function_algebra()
+            if not isinstance(func, fcls):
+                return '%s data[0] must be %s instance but got %s' % (self, fcls, type(func))
             msg = func.head.is_data_ok(type(func), func.data)
             if msg:
                 return '%s data=%r: %s' % (func.head, func.pair, msg)
             if type(args) is tuple:
                 for i,a in enumerate(args):
-                    if not isinstance(a, Expr):
-                        return '%s data[1][%s] must be %s instance but got %s' % (self, i, type(a))
+                    acls = func.get_argument_algebra(i)
+                    if not isinstance(a, Expr) or type(a) is not acls:
+                        return '%s data[1][%s] must be %s instance but got %s' % (self, i, acls, type(a))
             else:
                 return '%s data[1] must be tuple but got %s' % (self, type(args))
         else:
@@ -39,96 +43,6 @@ class ApplyHead(FunctionalHead):
             fcls = cls.get_function_algebra()
             func = fcls(CALLABLE, func)
         return cls(APPLY, (func, args))
-
-    def term_coeff(self, cls, expr):
-        return expr, 1
-
-    def neg(self, cls, expr):
-        return cls(TERM_COEFF, (expr, -1))
-
-    def add(self, cls, lhs, rhs):
-        h, d = rhs.pair
-        if h is APPLY:
-            if lhs.data==d:
-                return cls(TERM_COEFF, (lhs, 2))
-            return cls(TERM_COEFF_DICT, {lhs:1, rhs:1})
-        elif h is NUMBER:
-            if d==0:
-                return lhs
-            return cls(TERM_COEFF_DICT, {lhs:1, cls(NUMBER,1):d})
-        elif h is TERM_COEFF:
-            t,c = d
-            if lhs==t:
-                return term_coeff_new(cls, (t, c+1))
-            return cls(TERM_COEFF_DICT, {t:c, lhs:1})
-        elif h is TERM_COEFF_DICT:
-            data = d.copy()
-            dict_add_item(cls, data, lhs, 1)
-            return term_coeff_dict_new(cls, data)
-        elif h is SYMBOL or h is POW or h is BASE_EXP_DICT:
-            return cls(TERM_COEFF_DICT, {lhs:1, rhs:1})
-        raise NotImplementedError(`self, rhs.pair`)
-
-    inplace_add = add
-
-    def add_number(self, cls, lhs, rhs):
-        return cls(TERM_COEFF_DICT, {lhs:1, cls(NUMBER,1):rhs}) if rhs else lhs
-
-    def sub_number(self, cls, lhs, rhs):
-        return cls(TERM_COEFF_DICT, {lhs:1, cls(NUMBER,1):-rhs}) if rhs else lhs
-
-    def sub(self, cls, lhs, rhs):
-        return lhs + (-rhs)
-    
-    def commutative_mul(self, cls, lhs, rhs):
-        rhead, rdata = rhs.pair
-        if rhead is NUMBER:
-            return term_coeff_new(cls, (lhs, rdata))
-        if rhead is SYMBOL or rhead is ADD or rhead is TERM_COEFF_DICT:
-            return cls(BASE_EXP_DICT, {lhs:1, rhs:1})
-        if rhead is APPLY:
-            if lhs.data==rdata:
-                return cls(POW, (lhs, 2))
-            return cls(BASE_EXP_DICT, {lhs:1, rhs:1})
-        if rhead is TERM_COEFF:
-            term, coeff = rdata
-            return (lhs * term) * coeff
-        if rhead is POW:
-            rbase, rexp = rdata
-            if rbase==lhs:
-                return pow_new(cls, (lhs, rexp+1))
-            return cls(BASE_EXP_DICT, {lhs:1, rbase:rexp})
-        if rhead is BASE_EXP_DICT:
-            data = rdata.copy()
-            dict_add_item(cls, data, lhs, 1)
-            return base_exp_dict_new(cls, data)
-        raise NotImplementedError(`self, cls, lhs.pair, rhs.pair`)
-
-    def commutative_mul_number(self, cls, lhs, rhs):
-        if rhs==0:
-            return cls(NUMBER, 0)
-        if rhs==1:
-            return lhs
-        return cls(TERM_COEFF, (lhs, rhs))
-
-    def commutative_div(self, cls, lhs, rhs):
-        rhead, rdata = rhs.pair
-        if rhead is NUMBER:
-            return self.commutative_div_number(cls, lhs, rdata)
-        if rhead is APPLY:
-            if lhs.data==rdata:
-                return cls(NUMBER, 1)
-            return cls(BASE_EXP_DICT, {lhs:1, rhs:-1})
-        if rhead is SYMBOL or rhead is TERM_COEFF_DICT:
-            return cls(BASE_EXP_DICT, {lhs:1, rhs:-1})
-        if rhead is TERM_COEFF:
-            term, coeff = rdata
-            return (lhs / term) * number_div(1, coeff)
-        if rhead is BASE_EXP_DICT:
-            data = {lhs:1}
-            base_exp_dict_sub_dict(cls, data, rdata)
-            return base_exp_dict_new(cls, data)
-        return ArithmeticHead.commutative_div(self, cls, lhs, rhs)
 
     def pow(self, cls, base, exp):
         return POW.new(cls, (base, exp))
@@ -144,30 +58,23 @@ class ApplyHead(FunctionalHead):
 
     def walk(self, func, cls, data, target):
         f, args = data
-        f1 = f.head.walk(func, cls, f.data, f)
-        l = []
-        flag = f is not f1
+        new_f = f.head.walk(func, cls, f.data, f)
+        new_args = []
+        flag = f is not new_f
         for arg in args:
             h, d = arg.pair
-            a = arg.head.walk(func, cls, arg.data, arg)
-            if a is not arg:
+            new_arg = arg.head.walk(func, cls, arg.data, arg)
+            if arg is not new_arg:
                 flag = True
-            l.append(a)
+            new_args.append(new_arg)
         if flag:
-            if f1.head is CALLABLE:
-                r = cls(f1.data(*l))
+            new_args = tuple(new_args)
+            if new_f.head is CALLABLE:
+                r = new_f.data(*new_args)
             else:
-                r = cls(APPLY, (f, tuple(l)))
+                r = cls(APPLY, (new_f, new_args))
             return func(cls, r.head, r.data, r)
-        else:
-            return func(cls, self, data, target)
-        h, d = f.pair
-        if h is CALLABLE:
-            r = cls(d(*l))
-            h, d = r.pair
-            return func(cls, h, d)
-        else:
-            return func(cls, self, (f, tuple(l)))
+        return func(cls, self, data, target)
 
     def expand(self, cls, expr):
         return expr
@@ -181,9 +88,7 @@ class ApplyHead(FunctionalHead):
         if result is not None:
             return result
         if isinstance(order, inttypes):
-            pass
-
-            
+            pass            
         key1 = (expr, symbol, 1)
         result = cache.get(key1)
         if result is None:
@@ -232,7 +137,7 @@ class ApplyHead(FunctionalHead):
         return result
 
     def apply(self, cls, data, func, args):
-        return NotImplemented
+        return cls(APPLY, (func, args))
 
     def integrate_indefinite(self, cls, data, expr, x):
         if x not in expr.symbols_data:

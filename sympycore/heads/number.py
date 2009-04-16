@@ -63,7 +63,7 @@ class NumberHead(AtomicHead):
             return str(data), heads_precedence.NUMBER
         elif isinstance(data, Expr):
             h, d = data.pair
-            return h.data_to_str_and_precedence(cls, d)
+            return h.data_to_str_and_precedence(type(data), d)
         return str(data), 0.0 # force parenthesis
 
     def non_commutative_mul(self, cls, lhs, rhs):
@@ -112,7 +112,7 @@ class NumberHead(AtomicHead):
         h, d = rhs.pair
         if h is NUMBER:
             return cls(NUMBER, ldata + d)
-        elif h is SYMBOL or h is APPLY:
+        elif h is SYMBOL or h is APPLY or h is CALLABLE:
             return cls(TERM_COEFF_DICT, {cls(NUMBER,1): ldata, rhs:1})
         elif h is ADD:
             terms = []

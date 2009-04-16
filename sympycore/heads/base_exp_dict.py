@@ -73,77 +73,6 @@ class BaseExpDictHead(ArithmeticHead):
         del data[coeff]
         return term_coeff_new(cls, (base_exp_dict_new(cls, data), -coeff))
 
-    def add(self, cls, lhs, rhs):
-        rhead, rdata = rhs.pair
-        if rhead is BASE_EXP_DICT:
-            lterm, lcoeff = self.term_coeff(cls, lhs)
-            rterm, rcoeff = self.term_coeff(cls, rhs)
-            if lterm==rterm:
-                return term_coeff_new(cls, (lterm, lcoeff + rcoeff))
-            return cls(TERM_COEFF_DICT, {lterm:lcoeff, rterm:rcoeff})
-        if rhead is ADD:
-            return ADD.new(cls, [lhs]+rdata)
-        if rhead is NUMBER:
-            if rdata==0:
-                return lhs
-            lterm, lcoeff = self.term_coeff(cls, lhs)
-            return cls(TERM_COEFF_DICT, {lterm:lcoeff, cls(NUMBER, 1):rdata})
-        if rhead is APPLY or rhead is SYMBOL or rhead is POW:
-            lterm, lcoeff = self.term_coeff(cls, lhs)
-            return cls(TERM_COEFF_DICT, {lterm:lcoeff, rhs:1})
-        if rhead is TERM_COEFF:
-            rterm, rcoeff = rdata
-            lterm, lcoeff = self.term_coeff(cls, lhs)
-            if lterm==rterm:
-                return term_coeff_new(cls, (lterm, lcoeff + rcoeff))
-            return cls(TERM_COEFF_DICT, {lterm:lcoeff, rterm:rcoeff})
-        if rhead is TERM_COEFF_DICT:
-            lterm, lcoeff = self.term_coeff(cls, lhs)
-            data = rdata.copy()
-            base_exp_dict_add_item(cls, data, lterm, lcoeff)
-            return term_coeff_dict_new(cls, data)
-        raise NotImplementedError(`self, cls, lhs.pair, rhs.pair`)
-
-    inplace_add = add
-
-    def add_number(self, cls, lhs, rhs):
-        if rhs==0:
-            return lhs
-        lterm, lcoeff = self.term_coeff(cls, lhs)
-        return cls(TERM_COEFF_DICT, {lterm:lcoeff, cls(NUMBER, 1):rhs})
-
-    def sub_number(self, cls, lhs, rhs):
-        if rhs==0:
-            return lhs
-        lterm, lcoeff = self.term_coeff(cls, lhs)
-        return cls(TERM_COEFF_DICT, {lterm:lcoeff, cls(NUMBER, 1):-rhs})
-
-    def sub(self, cls, lhs, rhs):
-        rhead, rdata = rhs.pair
-        if rhead is BASE_EXP_DICT:
-            lterm, lcoeff = self.term_coeff(cls, lhs)
-            rterm, rcoeff = self.term_coeff(cls, rhs)
-            if lterm==rterm:
-                return term_coeff_new(cls, (lterm, lcoeff - rcoeff))
-            return cls(TERM_COEFF_DICT, {lterm:lcoeff, rterm:-rcoeff})
-        if rhead is NUMBER:
-            if rdata==0:
-                return lhs
-            lterm, lcoeff = self.term_coeff(cls, lhs)
-            return cls(TERM_COEFF_DICT, {lterm:lcoeff, cls(NUMBER, 1):-rdata})
-        if rhead is APPLY or rhead is SYMBOL or rhead is POW:
-            lterm, lcoeff = self.term_coeff(cls, lhs)
-            return cls(TERM_COEFF_DICT, {lterm:lcoeff, rhs:-1})
-        if rhead is TERM_COEFF:
-            rterm, rcoeff = rdata
-            lterm, lcoeff = self.term_coeff(cls, lhs)
-            if lterm==rterm:
-                return term_coeff_new(cls, (lterm, lcoeff - rcoeff))
-            return cls(TERM_COEFF_DICT, {lterm:lcoeff, rterm:-rcoeff})
-        if rhead is TERM_COEFF_DICT:
-            return lhs + (-rhs)
-        raise NotImplementedError(`self, cls, lhs.pair, rhs.pair`)
-
     def commutative_imul(self, cls, data, rhs):
         rhead, rdata = rhs.pair
         if rhead is SYMBOL or rhead is ADD or rhead is APPLY or rhead is DIFF or rhead is FDIFF:
@@ -188,7 +117,7 @@ class BaseExpDictHead(ArithmeticHead):
             data = lhs.data.copy()
             base_exp_dict_sub_dict(cls, data, rdata)
             return base_exp_dict_new(cls, data)
-        if rhead is SYMBOL or rhead is TERM_COEFF_DICT:
+        if rhead is SYMBOL or rhead is TERM_COEFF_DICT or rhead is APPLY:
             data = lhs.data.copy()
             base_exp_dict_sub_item(cls, data, rhs, 1)
             return base_exp_dict_new(cls, data)
