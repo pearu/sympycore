@@ -149,9 +149,8 @@ def lu_MATRIX(m, n, k, ldata, udata):
                         del udata[jp]
             if i<k and j<m and c:
                 ldata[j, i] = c
-        if i<k:
-            ldata[i,i] = 1
-        ldata[k-1, k-1] = 1
+    for i in xrange(min(m, k)):
+        ldata[i,i] = 1
     if m>n:
         crop_MATRIX(k, n, udata)
     return pivot_table
@@ -195,9 +194,8 @@ def lu_MATRIX_T(m, n, k, ldata, udata):
                         del udata[jp]
             if i<k and j<m and c:
                 ldata[j, i] = c
-        if i<k:
-            ldata[i,i] = 1
-        ldata[k-1, k-1] = 1
+    for i in xrange(min(m, k)):
+        ldata[i,i] = 1
     if m>n:
         crop_MATRIX_T(k, n, udata)
     return pivot_table
