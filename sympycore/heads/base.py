@@ -159,7 +159,8 @@ class Head(object):
             (self, 'add(cls, <%s expression>, <%s expression>)' \
              % (self, rhs.head))) #pragma NO COVER
 
-    inplace_add = add
+    def inplace_add(self, cls, lhs, rhs):
+        return self.add(cls, lhs, rhs)
 
     def sub_number(self, cls, lhs, rhs):
         return cls(TERM_COEFF_DICT, {lhs:1, cls(NUMBER,1):-rhs}) if rhs else lhs
@@ -237,7 +238,10 @@ class Head(object):
     inplace_commutative_mul = commutative_mul
 
     def commutative_div_number(self, cls, lhs, rhs):
-        return term_coeff_new(cls, (lhs, number_div(cls, 1, rhs)))
+        r = number_div(cls, 1, rhs)
+        if rhs==0:
+            return r * lhs
+        return term_coeff_new(cls, (lhs, r))
 
     def commutative_rdiv_number(self, cls, lhs, rhs):
         return term_coeff_new(cls, (cls(POW, (lhs, -1)), rhs))

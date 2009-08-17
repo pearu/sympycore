@@ -46,8 +46,57 @@ def test_to():
     x,y,z = map(CommutativeRing, 'xyz')
     assert x.to(heads.EXP_COEFF_DICT).data==(('x',), {core.IntegerList([1]):1})
     assert x.to(heads.EXP_COEFF_DICT, x, y).data==(('x','y'), {core.IntegerList([1,0]):1})
+    assert (x+y).to(heads.EXP_COEFF_DICT).data==(('x', 'y'), {core.IntegerList([1,0]):1,core.IntegerList([0,1]):1})
+    assert (x+y).to(heads.EXP_COEFF_DICT, x,y).data==(('x', 'y'), {core.IntegerList([1,0]):1,core.IntegerList([0,1]):1})
+    assert (x+y).to(heads.EXP_COEFF_DICT, x).data==(('x', 'y'), {core.IntegerList([1,0]):1,core.IntegerList([0,1]):1})
+    assert (x*2).to(heads.EXP_COEFF_DICT).data==(('x',), {core.IntegerList([1]):2}), (x*2).to(heads.EXP_COEFF_DICT).data
 
 commutative_operations_results = '''\
+(1)/(0):zoo
+(x)/(0):zoo
+(2*x)/(0):zoo
+
+(0)+(2):2
+(0)-(2):-2
+(0)*(2):0
+(0)/(2):0
+(0)**(2):0
+(0)+(x):x
+(0)-(x):-x
+(0)*(x):0
+(0)/(x):0
+(0)**(x):0**x
+(0)+(2*x):2*x
+(0)-(2*x):-2*x
+(0)*(2*x):0
+(0)/(2*x):0
+(0)**(2*x):0**(2*x)
+(0)+(y + x):y + x
+(0)-(y + x):-y - x
+(0)*(y + x):0
+(0)/(y + x):0
+(0)**(y + x):0**(y + x)
+(0)+(x**2):x**2
+(0)-(x**2):-x**2
+(0)*(x**2):0
+(0)/(x**2):0
+(0)**(x**2):0**x**2
+(0)+(y*x):y*x
+(0)-(y*x):-y*x
+(0)*(y*x):0
+(0)/(y*x):0
+(0)**(y*x):0**(y*x)
+(0)+(Foo(x)):Foo(x)
+(0)-(Foo(x)):-Foo(x)
+(0)*(Foo(x)):0
+(0)/(Foo(x)):0
+(0)**(Foo(x)):0**Foo(x)
+(0)+(Foo):Foo
+(0)-(Foo):-Foo
+(0)*(Foo):0
+(0)/(Foo):0
+(0)**(Foo):0**Foo
+
 (1)+(2):3
 (1)-(2):-1
 (1)*(2):2
@@ -81,9 +130,14 @@ commutative_operations_results = '''\
 -(2):-2
 (2)+(1):3
 (2)-(1):1
+(2)-(0):2
+(2)+(0):2
 (2)*(1):2
+(2)*(0):0
 (2)/(1):2
+(2)/(0):zoo
 (2)**(1):2
+(2)**(0):1
 (2)+(2):4
 (2)-(2):0
 (2)*(2):4
@@ -466,6 +520,42 @@ commutative_operations_results = '''\
 (Foo)*(Foo):Foo**2
 (Foo)/(Foo):1
 (Foo)**(Foo):Foo**Foo
+(Foo(x))+(0):Foo(x)
+
+(x)+(0):x
+(x)-(0):x
+(x)*(0):0
+(x)**(0):1
+(2*x)+(0):2*x
+(2*x)-(0):2*x
+(2*x)*(0):0
+(2*x)**(0):1
+(y + x)+(0):y + x
+(y + x)-(0):y + x
+(y + x)*(0):0
+(y + x)/(0):zoo
+(y + x)**(0):1
+(x**2)+(0):x**2
+(x**2)-(0):x**2
+(x**2)*(0):0
+(x**2)/(0):zoo
+(x**2)**(0):1
+(y*x)+(0):y*x
+(y*x)-(0):y*x
+(y*x)*(0):0
+(y*x)/(0):zoo
+(y*x)**(0):1
+
+(Foo(x))-(0):Foo(x)
+(Foo(x))*(0):0
+(Foo(x))/(0):zoo
+(Foo(x))**(0):1
+(Foo)+(0):Foo
+(Foo)-(0):Foo
+(Foo)*(0):0
+(Foo)/(0):zoo
+(Foo)**(0):1
+
 '''
 
 def test_commutative_operations():
@@ -478,6 +568,7 @@ def test_commutative_operations():
     
     operands = [1,
                 Ring(heads.NUMBER, 2),
+                0,
                 x,
                 Ring(heads.TERM_COEFF, (x, 2)), # 2*x
                 Ring(heads.TERM_COEFF_DICT, {x:1, y:1}), # x+y
@@ -527,4 +618,4 @@ def test_commutative_operations():
                 if expr not in results:
                     print '%s:%s' % (expr, result)
                     continue
-                assert result in results[expr], `results[expr], result`
+                assert result in results[expr], `results[expr], result, op1, op2`

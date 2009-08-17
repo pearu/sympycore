@@ -101,8 +101,11 @@ class BaseExpDictHead(ArithmeticHead):
     def commutative_mul_number(self, cls, lhs, rhs):
         return term_coeff_new(cls, (lhs, rhs))
 
-    def commutative_div_number(self, cls, lhs, rhs):        
-        return term_coeff_new(cls, (lhs, number_div(cls, 1, rhs)))
+    def commutative_div_number(self, cls, lhs, rhs):
+        r = number_div(cls, 1, rhs)
+        if rhs==0:
+            return r * lhs
+        return term_coeff_new(cls, (lhs, r))
 
     def commutative_div(self, cls, lhs, rhs):
         rhead, rdata = rhs.pair

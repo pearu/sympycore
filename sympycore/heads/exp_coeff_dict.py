@@ -144,17 +144,10 @@ class ExpCoeffDict(ArithmeticHead):
         return cls(self, Pair(variables, d))
 
     def commutative_mul(self, cls, lhs, rhs):
-        lvars, ldict = lhs.data.pair
         rhead, rdata = rhs.pair
         if rhead is NUMBER:
-            if rdata==0:
-                return cls(self, Pair(lvars, {}))
-            if rdata==1:
-                return lhs
-            d = {}
-            for exps, coeff in ldict.iteritems():
-                d[exps] = coeff * rdata
-            return cls(self, Pair(lvars, d))
+            return self.commutative_mul_number(cls, lhs, rdata)
+        lvars, ldict = lhs.data.pair
         if rhead is EXP_COEFF_DICT:
             rvars, rdict = rdata.pair
             if lvars == rvars:
@@ -163,6 +156,17 @@ class ExpCoeffDict(ArithmeticHead):
                 return cls(self, Pair(lvars, d))
         raise NotImplementedError(`self, rhs.head`)
 
+    def commutative_mul_number(self, cls, lhs, rhs):
+        lvars, ldict = lhs.data.pair
+        if rhs==0:
+            return cls(self, Pair(lvars, {}))
+        if rhs==1:
+            return lhs
+        d = {}
+        for exps, coeff in ldict.iteritems():
+            d[exps] = coeff * rhs
+        return cls(self, Pair(lvars, d))
+    
     def pow(self, cls, base, exp):
         variables, exp_coeff_dict = base.data.pair
         if isinstance(exp, Expr) and exp.head is NUMBER and isinstance(exp.data, inttypes):

@@ -96,5 +96,6 @@ def test_div():
     assert str(1/(2*x*y))=='1/2/y/x', str(1/(2*x*y))
     assert str(1/(x*y/2))=='2/y/x', str(1/(x*y/2))
 
-
-            
+    assert str(x/0)=='(zoo)*x', str(x/0)
+    assert str((x+y)/0) in ['(zoo)*(x + y)','(zoo)*(y + x)'], str((x+y)/0)
+    assert str((2*x)/(x-x))=='(zoo)*x', str((2*x)/(x-x))

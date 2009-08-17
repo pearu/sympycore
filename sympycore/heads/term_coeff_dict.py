@@ -20,9 +20,9 @@ class TermCoeffDictHead(ArithmeticHead):
             for item in data.iteritems():
                 msg = TERM_COEFF.is_data_ok(cls, item)
                 if msg:
-                    return 'TERM_COEFF data=%s: %s' % (item, msg)
+                    return 'TERM_COEFF data=%s: %s' % (item, msg) #pragma: no cover
         else:
-            return 'data must be dict instance but got %s' % (type(data))
+            return 'data must be dict instance but got %s' % (type(data)) #pragma: no cover
         return
     
     def __repr__(self): return 'TERM_COEFF_DICT'

@@ -178,7 +178,10 @@ class PowHead(ArithmeticHead):
     inplace_commutative_mul = commutative_mul
 
     def commutative_div_number(self, cls, lhs, rhs):
-        return term_coeff_new(cls, (lhs, number_div(cls, 1, rhs)))
+        r = number_div(cls, 1, rhs)
+        if rhs==0:
+            return r * lhs
+        return term_coeff_new(cls, (lhs, r))
 
     def commutative_rdiv_number(self, cls, lhs, rhs):
         base, exp = lhs.data

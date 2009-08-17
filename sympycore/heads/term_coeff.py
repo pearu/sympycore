@@ -25,14 +25,14 @@ class TermCoeff(ArithmeticHead):
                     return
                 elif isinstance(coeff, cls):
                     if coeff.head is NUMBER:
-                        if not isinstance(coeff.data, numbertypes):
-                            return 'data[1].data must be %s instance for NUMBER head but got %s instance' % (numbertypes, type(coeff.data))
+                        if not isinstance(coeff.data, numbertypes): #pragma: no cover
+                            return 'data[1].data must be %s instance for NUMBER head but got %s instance' % (numbertypes, type(coeff.data)) #pragma: no cover
                 else:
-                    return 'data[1] must be %s instance but got %s instance' % ((cls, numbertypes), type(coeff))
+                    return 'data[1] must be %s instance but got %s instance' % ((cls, numbertypes), type(coeff)) #pragma: no cover
             else:
-                return 'data[0] must be %s instance but got %s instance' % (cls, type(term))
+                return 'data[0] must be %s instance but got %s instance' % (cls, type(term)) #pragma: no cover
         else:
-            return 'data must be 2-tuple'
+            return 'data must be 2-tuple' #pragma: no cover
         return
 
     def __repr__(self): return 'TERM_COEFF'
@@ -160,7 +160,10 @@ class TermCoeff(ArithmeticHead):
 
     def commutative_div_number(self, cls, lhs, rhs):
         term, coeff = lhs.data
-        return term_coeff_new(cls, (term, number_div(cls, coeff, rhs)))
+        r = number_div(cls, coeff, rhs)
+        if rhs==0:
+            return r * term
+        return term_coeff_new(cls, (term, r))
 
     def commutative_rdiv_number(self, cls, lhs, rhs):
         term, coeff = lhs.data
