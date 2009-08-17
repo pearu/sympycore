@@ -31,7 +31,7 @@ class DivHead(NaryHead):
 
     def reevaluate(self, cls, operands):
         r = operands[0] if operands else cls(NUMBER, 1)
-        for op in operands:
+        for op in operands[1:]:
             r /= op
         return r
 

@@ -1,11 +1,16 @@
 
 __all__ = ['DifferentialRing']
 
-from ..core import classes, Expr, init_module
+from ..core import classes, Expr, init_module, DefinedFunction
 from .operator import OperatorRing
 
 init_module.import_heads()
 init_module.import_numbers()
+
+class Diff(DefinedFunction):
+
+    def __new__(cls, expr, symbol):
+        return OperatorRing()
 
 class DifferentialRing(OperatorRing):
 

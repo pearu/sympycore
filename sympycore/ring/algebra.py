@@ -40,8 +40,7 @@ class Ring(Algebra, RingInterface):
             if tother in numbertypes_set:
                 return self.head.add_number(cls, self, other)
             other = cls.convert(other, typeerror=False)
-            if other is NotImplemented:
-                return NotImplemented
+            if other is NotImplemented: return NotImplemented
         return self.head.add(cls, self, other)
 
     __radd__ = __add__
@@ -50,8 +49,7 @@ class Ring(Algebra, RingInterface):
         cls = type(self)
         if type(other) is not cls:
             other = cls.convert(other, typeerror=False)
-            if other is NotImplemented:
-                return NotImplemented
+            if other is NotImplemented: return NotImplemented
         return self.head.inplace_add(cls, self, other)
 
     def __sub__(self, other):
@@ -61,8 +59,7 @@ class Ring(Algebra, RingInterface):
             if tother in numbertypes_set:
                 return self.head.sub_number(cls, self, other)
             other = cls.convert(other, typeerror=False)
-            if other is NotImplemented:
-                return NotImplemented
+            if other is NotImplemented: return NotImplemented
         return self.head.sub(cls, self, other)
 
     def __rsub__(self, other):
@@ -72,8 +69,7 @@ class Ring(Algebra, RingInterface):
         cls = type(self)
         if type(other) is not cls:
             other = cls.convert(other, typeerror=False)
-            if other is NotImplemented:
-                return NotImplemented
+            if other is NotImplemented: return NotImplemented
         return self.head.inplace_add(cls, self, -other)
 
     def __mul__(self, other):
@@ -83,8 +79,7 @@ class Ring(Algebra, RingInterface):
             if tother in numbertypes_set:
                 return self.head.non_commutative_mul_number(cls, self, other)
             other = cls.convert(other, typeerror=False)
-            if other is NotImplemented:
-                return NotImplemented
+            if other is NotImplemented: return NotImplemented
         return self.head.non_commutative_mul(cls, self, other)
 
     def __rmul__(self, other):
@@ -94,8 +89,7 @@ class Ring(Algebra, RingInterface):
             if tother in numbertypes_set:
                 return self.head.non_commutative_rmul_number(cls, self, other)
             other = cls.convert(other, typeerror=False)
-            if other is NotImplemented:
-                return NotImplemented
+            if other is NotImplemented: return NotImplemented
         return other.head.non_commutative_mul(cls, other, self)
 
     def __pow__(self, other):
@@ -105,8 +99,7 @@ class Ring(Algebra, RingInterface):
             if tother in numbertypes_set:
                 return self.head.pow_number(cls, self, other)
             other = cls.convert(other, typeerror=False)
-            if other is NotImplemented:
-                return NotImplemented
+            if other is NotImplemented: return NotImplemented
         return self.head.pow(cls, self, other)
 
     def __rpow__(self, other):
@@ -114,8 +107,7 @@ class Ring(Algebra, RingInterface):
         tother = type(other)
         if cls is not tother:
             other = cls.convert(other, typeerror=False)
-            if other is NotImplemented:
-                return NotImplemented
+            if other is NotImplemented: return NotImplemented
         return other.head.pow(cls, other, self)
 
     def __div__(self, other):
@@ -126,8 +118,7 @@ class Ring(Algebra, RingInterface):
                 other = number_div(cls, 1, other)
                 return self.head.non_commutative_mul_number(cls, self, other)
             other = cls.convert(other, typeerror=False)
-            if other is NotImplemented:
-                return NotImplemented
+            if other is NotImplemented: return NotImplemented
         return self * other**-1
 
     def __rdiv__(self, other):
@@ -135,8 +126,7 @@ class Ring(Algebra, RingInterface):
         tother = type(other)
         if cls is not tother:
             other = cls.convert(other, typeerror=False)
-            if other is NotImplemented:
-                return NotImplemented
+            if other is NotImplemented: return NotImplemented
         return other * self**-1
 
     def expand(self):
@@ -202,7 +192,7 @@ class CommutativeRing(Ring):
         head, data = self.pair
         if target is EXP_COEFF_DICT:
             return head.to_EXP_COEFF_DICT(type(self), data, self, args or None)
-        raise NotImplementedError('%s.convert(target=%r)' % (type(self), target))
+        raise NotImplementedError('%s.to(target=%r)' % (type(self), target))
 
     def diff(self, symbol, order=1):
         if order==0:

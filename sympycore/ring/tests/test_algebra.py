@@ -44,6 +44,9 @@ def test_sub():
 
 def test_ncmul():
     x,y,z = map(Ring, 'xyz')
+    assert str(x*2)=='2*x', str(x*2)
+    assert str(x*'2')=='2*x', str(x*'2')
+    assert str('2'*x)=='2*x', str('2'*x)
     assert str(x*y)=='x*y', str(x*y)
     assert str(x*y*x)=='x*y*x', str(x*y*x)
     assert str(x*(y*x))=='x*y*x', str(x*(y*x))
@@ -79,6 +82,8 @@ def test_pow():
 def test_div():
     x,y,z = map(Ring, 'xyz')
     assert str(1/y)=='1/y', str(1/y)
+    assert str('1'/y)=='1/y', str('1'/y)
+    assert str(y/'2')=='1/2*y', str(y/'2')
     assert str(1/y/y)=='1/y**2', str(1/y/y)
     assert str(x/y)=='x/y', str(x/y)
     assert str(x/y/y)=='x/y**2', str(x/y/y)

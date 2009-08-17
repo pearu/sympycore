@@ -1,5 +1,5 @@
 
-from sympycore import CommutativeRing, heads, Expr
+from sympycore import CommutativeRing, heads, Expr, core
 
 def test_add():
     x,y,z = map(CommutativeRing, 'xyz')
@@ -35,6 +35,17 @@ def test_mul():
 
     assert (x*x)*(y*y)==x*(x*y)*y
     assert str((x*x)*(y*y))=='y**2*x**2',str((x*x)*(y*y))
+
+def test_diff():
+    x,y,z = map(CommutativeRing, 'xyz')
+    assert x.diff(x, order=0)==x, str(x.diff(x, order=0))
+    assert x.diff(x)==1, str(x.diff(x))
+    assert x.diff('x')==1, str(x.diff('x'))
+
+def test_to():
+    x,y,z = map(CommutativeRing, 'xyz')
+    assert x.to(heads.EXP_COEFF_DICT).data==(('x',), {core.IntegerList([1]):1})
+    assert x.to(heads.EXP_COEFF_DICT, x, y).data==(('x','y'), {core.IntegerList([1,0]):1})
 
 commutative_operations_results = '''\
 (1)+(2):3
