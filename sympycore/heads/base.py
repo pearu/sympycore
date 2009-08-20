@@ -79,6 +79,9 @@ class Head(object):
     op_rmth = None
     is_singleton = True
 
+    """
+    _cache contains unique instances of Head classes.
+    """
     _cache = {}
     
     def __new__(cls, *args):
@@ -175,6 +178,13 @@ class Head(object):
         creation.
         """
         return #pragma NO COVER
+
+    def nonzero(self, cls, data):
+        """
+        Return truth value of relational expression.  If the truth
+        value cannot be determined, return True,
+        """
+        raise NotImplementedError(not_implemented_error_msg % (self, 'nonzero(cls, data)')) #pragma NO COVER
 
     #def __todo_repr__(self):
     #    # TODO: undefined __repr__ should raise not implemented error
@@ -490,6 +500,18 @@ class Head(object):
         interval [a, b].  data is expr.data, x is str object.
         """
         raise NotImplementedError(not_implemented_error_msg % (self, 'integrate_definite(Algebra, data, expr, x, a, b)')) #pragma NO COVER
+
+    def apply(self, cls, data, func, args):
+        """
+        Return unevaluated function applied to arguments.
+        """
+        raise NotImplementedError(not_implemented_error_msg % (self, 'apply(Algebra, data, func, args)')) #pragma NO COVER
+
+    def diff_apply(self, cls, data, diff, expr):
+        """
+        Return unevaluated derivative applied to expr.
+        """
+        raise NotImplementedError(not_implemented_error_msg % (self, 'diff_apply(Algebra, data, diff, expr)')) #pragma NO COVER
     
     def expand(self, Algebra, expr):
         """
@@ -504,6 +526,11 @@ class Head(object):
         """
         return Algebra(POW, (base, exp))
 
+    def to_EXP_COEFF_DICT(self, Algebra, data, expr, variables = None):
+        """
+        Convert expr to an expression with EXP_COEFF_DICT head.
+        """
+        raise NotImplementedError(not_implemented_error_msg % (self, 'to_EXP_COEFF_DICT(Algebra, data, expr, variables=)')) #pragma NO COVER
 
     
 class AtomicHead(Head):

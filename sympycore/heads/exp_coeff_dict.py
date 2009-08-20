@@ -32,9 +32,6 @@ class ExpCoeffDict(ArithmeticHead):
                 exps_coeff_dict[exps] = coeff
                 #return 'data[1] keys must be IntegerList instances but got %r' % (type(exps).__name__)
         
-    def _reevaluate(self, cls, (variables, exp_coeff_dict)):
-        r = cls(self, Pair(variables, d))
-
     def __repr__(self): return 'EXP_COEFF_DICT'
 
     def data_to_str_and_precedence(self, cls, data):
@@ -80,6 +77,9 @@ class ExpCoeffDict(ArithmeticHead):
         return pair
 
     def combine_variables(self, *seq):
+        """
+        Return a tuple of sorted variables combining given variables.
+        """
         variables = set([])
         seq = list(seq)
         while seq:
@@ -100,6 +100,9 @@ class ExpCoeffDict(ArithmeticHead):
         return tuple(sorted(variables))
 
     def make_exponent(self, expr, variables):
+        """
+        Return exponent list such that expr == variables ** exp_list.
+        """
         i = list(variables).index(expr)
         exp = [0] * (i) + [1] + [0] * (len(variables)-i-1)
         return IntegerList(exp)

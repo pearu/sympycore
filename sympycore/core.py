@@ -91,11 +91,15 @@ def inheritdoc(obj, cls):
                 break
         if base_doc is not None:
             doc = obj.__doc__ or ''
-            title = '### doc-string inherited from %s.%s ###' % (base_cls.__name__, obj.__name__)
+            title = '### doc-string inherited from %s.%s ###'\
+                    % (base_cls.__name__, obj.__name__)
             if title not in doc:
-                obj.__doc__ = '%s\n%s\n%s' % (textwrap.dedent(doc), title, textwrap.dedent(base_doc).strip())
-        #elif obj.__doc__ is None:
-        #    print '%s.%s does not define documentation string' % (cls.__name__, obj.__name__)
+                obj.__doc__ = '%s\n%s\n%s' % (textwrap.dedent(doc),
+                                              title,
+                                              textwrap.dedent(base_doc).strip())
+        if obj.__doc__ is None:
+            print '%s.%s does not define documentation string'\
+                  % (cls.__name__, obj.__name__) 
     return obj
 
 def fcopy(func, name):
@@ -171,8 +175,6 @@ class MetaInheritDocs(type):
             attr = dict[name]
             if hasattr(attr, '__doc__'):
                 inheritdoc(attr, cls)
-                if 0 and attr.__doc__ is None:
-                    print '%s.%s does not define documentation string' % (cls.__name__, name)
 
 class MetaCopyMethodsInheritDocs(MetaCopyMethods, MetaInheritDocs):
     """

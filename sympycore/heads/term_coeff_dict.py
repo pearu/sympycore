@@ -55,9 +55,6 @@ class TermCoeffDictHead(ArithmeticHead):
             return dict_get_item(term_coeff_dict)
         return expr, 1
 
-    def iadd(self, cls, data, rhs):
-        self.add(cls, data, rhs, inplace=True)
-
     def inplace_add(self, cls, lhs, rhs):
         if lhs.is_writable:
             data = lhs.data
@@ -125,12 +122,9 @@ class TermCoeffDictHead(ArithmeticHead):
         term_coeff_dict_add_item(cls, data, cls(NUMBER, 1), -rhs)
         return term_coeff_dict_new(cls, data)
 
-    def isub(self, cls, data, rhs):
-        self.iadd(cls, data, -rhs)
-
     def sub(self, cls, lhs, rhs):
         d = lhs.data.copy()
-        self.isub(cls, d, rhs)
+        self.add(cls, d, -rhs, inplace=True)
         return term_coeff_dict_new(cls, d)
 
     def commutative_mul(self, cls, lhs, rhs):
@@ -264,7 +258,7 @@ class TermCoeffDictHead(ArithmeticHead):
     def walk(self, func, cls, data, target):
         d = {}
         flag = False
-        iadd = self.iadd
+        add = self.add
         for t, c in data.iteritems():
             t1 = t.head.walk(func, cls, t.data, t)
             if isinstance(c, Expr):
@@ -273,7 +267,7 @@ class TermCoeffDictHead(ArithmeticHead):
                 c1 = NUMBER.walk(func, cls, c, c)
             if t1 is not t or c1 is not c:
                 flag = True
-            iadd(cls, d, t1 * c1)
+            add(cls, d, t1 * c1, inplace=True)
         if flag:
             r = term_coeff_dict_new(cls, d)
             return func(cls, r.head, r.data, r)

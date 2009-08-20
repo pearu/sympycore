@@ -36,6 +36,9 @@ class NumberHead(AtomicHead):
         return data
 
     def to_SPARSE_POLY(self, cls, data, expr):
+        """
+        Obsolete method:  SPARSE_POLY will be removed in future.
+        """
         return cls(data)
         
     def to_EXP_COEFF_DICT(self, cls, data, expr, variables = None):

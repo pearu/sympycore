@@ -209,9 +209,6 @@ class PowHead(ArithmeticHead):
             return pow_new(cls, (base, exp-1))
         return base_exp_dict_new(cls, {base:exp, rhs:-1})
     
-    def as_term_coeff_dict(self, cls, expr):
-        return cls(TERM_COEFF_DICT, {expr:1})
-
     def base_exp(self, cls, expr):
         base, exp = expr.data
         return base, exp

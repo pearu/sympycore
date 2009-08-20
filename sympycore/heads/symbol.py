@@ -43,9 +43,6 @@ class SymbolHead(AtomicHead):
         assert len(exp)==len(variables), `exp, variables, i, data`
         return cls(EXP_COEFF_DICT, Pair(variables, {exp:1}))
 
-    def as_term_coeff_dict(self, cls, expr):
-        return cls(TERM_COEFF_DICT, {expr: 1})
-
     def pow(self, cls, base, exp):
         if type(exp) is cls and exp.head is NUMBER:
             exp = exp.data

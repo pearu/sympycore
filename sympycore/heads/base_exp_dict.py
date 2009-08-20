@@ -73,7 +73,10 @@ class BaseExpDictHead(ArithmeticHead):
         del data[coeff]
         return term_coeff_new(cls, (base_exp_dict_new(cls, data), -coeff))
 
-    def commutative_imul(self, cls, data, rhs):
+    def inplace_commutative_data_mul(self, cls, data, rhs):
+        """
+        Multiply base-exp-dictionary with rhs inplace.
+        """
         rhead, rdata = rhs.pair
         if rhead is SYMBOL or rhead is ADD or rhead is APPLY or rhead is DIFF or rhead is FDIFF:
             base_exp_dict_add_item(cls, data, rhs, 1)
@@ -95,7 +98,7 @@ class BaseExpDictHead(ArithmeticHead):
     
     def commutative_mul(self, cls, lhs, rhs):
         data = lhs.data.copy()
-        self.commutative_imul(cls, data, rhs)
+        self.inplace_commutative_data_mul(cls, data, rhs)
         return base_exp_dict_new(cls, data)
 
     def commutative_mul_number(self, cls, lhs, rhs):
@@ -154,7 +157,7 @@ class BaseExpDictHead(ArithmeticHead):
                 e1 = NUMBER.walk(func, cls, e, e)
             if b1 is not b or e1 is not e:
                 flag = True
-            self.commutative_imul(cls, d, b1**e1)
+            self.inplace_commutative_data_mul(cls, d, b1**e1)
         if flag:
             r = base_exp_dict_new(cls, d)
             return func(cls, r.head, r.data, r)

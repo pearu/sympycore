@@ -40,7 +40,7 @@ class DivHead(NaryHead):
 
     def commutative_mul(self, cls, lhs, rhs):
         d = {}
-        imul = BASE_EXP_DICT.commutative_imul
+        imul = BASE_EXP_DICT.inplace_commutative_data_mul
         for i, op in enumerate(lhs.data):
             if i:
                 imul(cls, d, 1/op)
