@@ -1,12 +1,9 @@
 
 __all__ = ['TERM_COEFF']
 
-
-
 from .base import heads_precedence, ArithmeticHead, Expr
 
 from ..core import init_module
-
 init_module.import_heads()
 init_module.import_numbers()
 init_module.import_lowlevel_operations()

@@ -3,7 +3,7 @@ __all__ = ['Head', 'UnaryHead', 'BinaryHead', 'NaryHead', 'HEAD']
 
 not_implemented_error_msg = '%s.%s method, report to http://code.google.com/p/sympycore/issues/'
 
-from ..core import Expr, heads, heads_precedence, Pair
+from ..core import Expr, heads, heads_precedence, Pair, MetaCopyMethodsInheritDocs
 
 from ..core import init_module
 init_module.import_heads()
@@ -15,15 +15,27 @@ class Head(object):
     """
     Head - base class for expression heads.
 
-    Recall that expression is represented as a pair: Expr(head, data).
-    The head part defines how the data part should be interpreted.
-    Various operations on expressions can be defined as Head methods
-    taking the data part as an argument.
+    Recall that any expression is represented as a pair: Expr(head,
+    data).  The head part defines how the data part should be
+    interpreted.  Various operations on expressions are defined as
+    Head methods taking the data part as an argument and returning the
+    result of the operation.
     """
 
     """
-    precedence defines the order of operations if they appear in the
-    same expression. Operations with higher precedence are applied
+    MetaCopyMethodsInheritDocs performs the following tasks:
+
+      * If a class defines a method foo and sets ``rfoo = foo`` then
+        make a copy of ``foo`` to ``rfoo``.
+
+      * Append documentation strings of base class methods to class
+        method documentation string.
+    """
+    __metaclass__ = MetaCopyMethodsInheritDocs
+    
+    """
+    precedence_map defines the order of operations if they appear in
+    the same expression. Operations with higher precedence are applied
     first. Operations with equal precedence are applied from left to
     right.
 
@@ -33,7 +45,6 @@ class Head(object):
     in a range [0.0, 1.0]. Lowest precedence value 0.0 is assigned
     for atomic expressions.
     """
-
     precedence_map = dict(
         LAMBDA = 0.0, ASSIGN = 0.0,
         ARG = 0.01, KWARG = 0.01, COLON = 0.01, COMMA = 0.01,
@@ -71,6 +82,11 @@ class Head(object):
     _cache = {}
     
     def __new__(cls, *args):
+        """ Creates a Head instance.
+
+        In most cases Head instances are singletons so that it can be
+        efficiently compared using Python ``is`` operator.
+        """
         if len(args)==1:
             arg = args[0]
             key = '%s(%s:%s)' % (cls.__name__, arg, id(arg))
@@ -87,51 +103,131 @@ class Head(object):
         return obj
 
     def init(self, *args):
-        # derived class may set attributes here
+        """ Initialize Head instance attributes.
+        """
         pass #pragma NO COVER
 
     def as_unique_head(self):
-        # used by the pickler support to make HEAD instances unique
+        """
+        Return unique instance of the head.
+
+        The method is used by pickler support to make Head instances
+        unique and ensure that unpickled heads are singletons.
+        """
         return self._cache.get(self._key, self)
 
+    def new(self, Algebra, data, evaluate=True):
+        """
+        Return a new Algebra expression instance containing data.  If
+        evaluate is True then return canonized expression.
+        """
+        return Algebra(self, data)
+
+    def reevaluate(self, Algebra, data):
+        """
+        Return reevaluated expression.
+        """
+        return self.new(Algebra, data, evaluate=True)
+
     def data_to_str_and_precedence(self, cls, data):
+        """
+        Return (<str>, <number>) where <str> is repr representation of
+        an expression cls(self, data) and <number> is precedence
+        number of the expression.
+        """
         return '%s(%r, %r)' % (cls.__name__, self, data), 1.0
 
     def to_lowlevel(self, cls, data, pair):
         """
-        Return a low-level representation of expression pair.  It is
-        used in object comparison and hash computation methods.
+        Return a low-level representation of an expression pair.  It
+        is used in object comparison and hash computation methods.
         """
         return pair
 
-    def scan(self, proc, cls, data, target):
+    def scan(self, proc, Algebra, data, target):
+        """
+        Apply proc function proc(Algebra, <head>, <data>, target) to the
+        content of data and then to data.
+        """
         raise NotImplementedError(not_implemented_error_msg % (self, 'scan(proc, cls, data, target)')) #pragma NO COVER
 
-    def walk(self, func, cls, data, target):
+    def walk(self, func, Algebra, data, target):
+        """
+        Apply func function func(Algebra, <head>, <data>, target) to
+        the operands of Algebra(self, data) expression and form a new
+        expression from the results of func calls.
+        """
         raise NotImplementedError(not_implemented_error_msg % (self, 'walk(func, cls, data, target)')) #pragma NO COVER        
 
     def is_data_ok(self, cls, data):
-        #print self, data
-        return
+        """
+        Check if data is valid object for current head.
 
-    def __todo_repr__(self):
-        # TODO: undefined __repr__ should raise not implemented error
-        raise NotImplementedError('Head subclass must implement __repr__ method returning singleton name')
+        If data object is valid, return None.  If data object is
+        invalid then return a string containing information which
+        validity test failed.
+
+        The ``is_data_ok`` method is called when creating expressions
+        in pure Python mode and an error will be raised when data is
+        invalid. When creating expressions in C mode then for
+        efficiency it is assumed that data is always valid and
+        ``is_data_ok`` method will be never called during expression
+        creation.
+        """
+        return #pragma NO COVER
+
+    #def __todo_repr__(self):
+    #    # TODO: undefined __repr__ should raise not implemented error
+    #    raise NotImplementedError('Head subclass must implement __repr__ method returning singleton name')
 
     def base_exp(self, cls, expr):
+        """
+        Return (base, exponent) form of an expression cls(self, expr)
+        so that
+
+          base ** exponent == expr
+
+        where exponent is a number.
+        
+        This method is used to collect powers of multiplication
+        operands.
+        """
         return expr, 1
 
     def term_coeff(self, cls, expr):
+        """
+        Return (term, coeff) form of an expression cls(self, expr)
+        so that
+
+          coeff * term == expr
+
+        where coeff is a number.
+        
+        This method is used to collect coefficients of addition
+        operands.
+        """
         return expr, 1
 
+    # We are not using ``rop_mth = op_mth`` because when derived class
+    # redefines ``op_mth`` then it must also set ``rop_mth =
+    # op_mth``. Not doing so may lead to bugs that are difficult to
+    # track down. However, final derived classes may define ``rop_mth
+    # = op_mth`` for efficiency.
+
     def neg(self, cls, expr):
+        """
+        Return the result of negation on given expression: -expr.
+        """
         return cls(TERM_COEFF, (expr, -1))
 
     def add_number(self, cls, lhs, rhs):
+        """
+        Return the sum of expressions: lhs + rhs, where rhs is a number.
+        """
         return cls(TERM_COEFF_DICT, {lhs:1, cls(NUMBER,1):rhs}) if rhs else lhs
 
     def add(self, cls, lhs, rhs):
-        """ Return a sum of expressions: lhs + rhs.
+        """ Return the sum of expressions: lhs + rhs.
         """
         rhead, rdata = rhs.pair
         if rhead is NUMBER:
@@ -160,13 +256,19 @@ class Head(object):
              % (self, rhs.head))) #pragma NO COVER
 
     def inplace_add(self, cls, lhs, rhs):
+        """ Return the sum of expressions: lhs + rhs. If lhs is
+        writable then lhs += rhs can be executed and lhs returned.
+        """
         return self.add(cls, lhs, rhs)
 
     def sub_number(self, cls, lhs, rhs):
+        """ Return the subtract of expressions: lhs - rhs, where rhs
+        is number.
+        """
         return cls(TERM_COEFF_DICT, {lhs:1, cls(NUMBER,1):-rhs}) if rhs else lhs
 
     def sub(self, cls, lhs, rhs):
-        """ Return a subtract of expressions: lhs - rhs.
+        """ Return the subtract of expressions: lhs - rhs.
         """
         rhead, rdata = rhs.pair
         if rhead is NUMBER:
@@ -195,18 +297,30 @@ class Head(object):
             (self, 'sub(cls, <%s expression>, <%s expression>)' \
              % (self, rhs.head))) #pragma NO COVER
 
-    inplace_sub = sub
+    def inplace_sub(self, cls, lhs, rhs):
+        """
+        Return the subtract of expressions: lhs - rhs. If lhs is
+        writable then lhs -= rhs can be executed and lhs returned.
+        """
+        return self.sub(cls, lhs, rhs)
 
     def commutative_mul_number(self, cls, lhs, rhs):
-        """ Return a commutative product of expressions: lhs * rhs
-        where rhs is a coefficient.
+        """
+        Return the commutative product of expressions: lhs * rhs
+        where rhs is a number.
         """
         return term_coeff_new(cls, (lhs, rhs))
 
-    commutative_rmul_number = commutative_mul_number
+    def commutative_rmul_number(self, cls, rhs, lhs):
+        """
+        Return the commutative product of expressions: lhs * rhs
+        where lhs is a number.
+        """
+        return self.commutative_mul_number(cls, rhs, lhs)
 
     def commutative_mul(self, cls, lhs, rhs):
-        """ Return a commutative product of expressions: lhs * rhs.
+        """
+        Return the commutative product of expressions: lhs * rhs.
         """
         rhead, rdata = rhs.pair
         if rhead is NUMBER:
@@ -235,19 +349,35 @@ class Head(object):
             (self, 'commutative_mul(cls, <%s expression>, <%s expression>)' \
              % (self, rhs.head))) #pragma NO COVER
 
-    inplace_commutative_mul = commutative_mul
+    def inplace_commutative_mul(self, cls, lhs, rhs):
+        """
+        Return the commutative product of expressions: lhs * rhs. If
+        lhs is writable then lhs *= rhs can be executed and lhs
+        returned.
+        """
+        return self.commutative_mul(cls, lhs, rhs)
 
     def commutative_div_number(self, cls, lhs, rhs):
+        """
+        Return the commutative division of expressions: lhs / rhs
+        where rhs is a number.
+        """
         r = number_div(cls, 1, rhs)
         if rhs==0:
             return r * lhs
         return term_coeff_new(cls, (lhs, r))
 
-    def commutative_rdiv_number(self, cls, lhs, rhs):
-        return term_coeff_new(cls, (cls(POW, (lhs, -1)), rhs))
+    def commutative_rdiv_number(self, cls, rhs, lhs):
+        """
+        Return the commutative division of expressions: lhs / rhs
+        where lhs is a number.
+        """
+        # ensure that rhs is such that rhs ** -1 == cls(POW,(rhs,-1)).
+        return term_coeff_new(cls, (cls(POW, (rhs, -1)), lhs))
 
     def commutative_div(self, cls, lhs, rhs):
-        """ Return a commutative division of expressions: lhs / rhs.
+        """
+        Return the commutative division of expressions: lhs / rhs.
         """
         rhead, rdata = rhs.pair
         if rhead is NUMBER:
@@ -278,14 +408,23 @@ class Head(object):
              % (self, rhs.head))) #pragma NO COVER
 
     def non_commutative_mul_number(self, cls, lhs, rhs):
-        """ Return a non-commutative product of expressions: lhs * rhs
-        where rhs is a coefficient (which is assumed to be commutator).
+        """
+        Return the non-commutative product of expressions: lhs * rhs
+        where rhs is a number (which is assumed to be commutator).
         """
         return term_coeff_new(cls, (lhs, rhs))
 
-    non_commutative_rmul_number = non_commutative_mul_number
+    def non_commutative_rmul_number(self, cls, rhs, lhs):
+        """
+        Return the non-commutative product of expressions: lhs * rhs
+        where rhs is a number (which is assumed to be commutator).
+        """
+        return self.non_commutative_mul_number(cls, rhs, lhs)
 
     def non_commutative_mul(self, cls, lhs, rhs):
+        """
+        Return the non-commutative product of expressions: lhs * rhs.
+        """
         rhead, rdata = rhs.pair
         if rhead is NUMBER:
             return term_coeff_new(cls, (lhs, rdata))
@@ -306,6 +445,67 @@ class Head(object):
             (self, 'non_commutative_mul(cls, <%s expression>, <%s expression>)' \
              % (self, rhs.head))) #pragma NO COVER
 
+    def non_commutative_div(self, cls, lhs, rhs):
+        """
+        Return the non-commutative division of expressions: lhs / rhs.
+        """
+        return lhs * (rhs**-1)
+
+    def pow_number(self, cls, base, exp):
+        """
+        Return the exponentiation: base ** exp, where exp is number.
+        """
+        return pow_new(cls, (base, exp))
+
+    def pow(self, cls, base, exp):
+        """
+        Return the exponentiation: base ** exp.
+        """
+        return pow_new(cls, (base, exp))
+
+    def diff(self, Algebra, data, expr, symbol, order):
+        """
+        Return the order-th derivative of expr with respect to symbol.
+        data is expr.data.
+        """
+        raise NotImplementedError(not_implemented_error_msg % (self, 'diff(Algebra, data, expr, symbol, order)')) #pragma NO COVER
+
+    def fdiff(self, Algebra, data, expr, argument_index, order):
+        """
+        Return the order-th derivative of a function expr with respect
+        to argument_index-th argument. data is expr.data.
+        """
+        raise NotImplementedError(not_implemented_error_msg % (self, 'fdiff(Algebra, data, expr, argument_index, order)')) #pragma NO COVER
+
+    def integrate_indefinite(self, Algebra, data, expr, x):
+        """
+        Return indefinite integral of expr with respect to x.
+        data is expr.data, x is str object.
+        """
+        raise NotImplementedError(not_implemented_error_msg % (self, 'integrate_indefinite(Algebra, data, expr, x)')) #pragma NO COVER
+
+    def integrate_definite(self, Algebra, data, expr, x, a, b):
+        """
+        Return definite integral of expr with respect to x in the
+        interval [a, b].  data is expr.data, x is str object.
+        """
+        raise NotImplementedError(not_implemented_error_msg % (self, 'integrate_definite(Algebra, data, expr, x, a, b)')) #pragma NO COVER
+    
+    def expand(self, Algebra, expr):
+        """
+        Return the expanded expression of expr, i.e. open parenthesis.
+        """
+        return self
+
+    def expand_intpow(self, Algebra, base, exp):
+        """
+        Return the expanded expression of base ** exp, where exp is
+        integer.
+        """
+        return Algebra(POW, (base, exp))
+
+
+    
 class AtomicHead(Head):
     """
     AtomicHead is a base class to atomic expression heads.

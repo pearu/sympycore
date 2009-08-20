@@ -8,6 +8,7 @@ __all__ = ['classes', 'Expr', 'defined_functions', 'DefinedFunction',
 import sys
 import types
 import inspect
+import textwrap
 
 using_C_Expr = False
 try:
@@ -59,6 +60,128 @@ if using_C_Expr:
     # Pickling Python classes derived from Expr should work fine
     # without this hack.
     pass
+
+def get_base_attribute(cls, name):
+    """
+    Get attribute from cls base classes.
+    """
+    if name in cls.__dict__:
+        return cls, cls.__dict__[name]
+    for base in cls.__bases__:
+        r = get_base_attribute(base, name)
+        if r is not None:
+            return r
+    return
+
+def inheritdoc(obj, cls):
+    """
+    If obj is a function intance then update its documentation string
+    from the corresponding function documentation string defined in
+    cls or one of its base classes.
+
+    Returns obj.
+    """
+    if isinstance(obj, types.FunctionType):
+        base_cls, base_func, base_doc = None, None, None
+        for base in cls.__bases__:
+            r = get_base_attribute(base, obj.__name__)
+            if r is not None:
+                base_cls, base_func = r
+                base_doc = base_func.__doc__
+                break
+        if base_doc is not None:
+            doc = obj.__doc__ or ''
+            title = '### doc-string inherited from %s.%s ###' % (base_cls.__name__, obj.__name__)
+            if title not in doc:
+                obj.__doc__ = '%s\n%s\n%s' % (textwrap.dedent(doc), title, textwrap.dedent(base_doc).strip())
+        #elif obj.__doc__ is None:
+        #    print '%s.%s does not define documentation string' % (cls.__name__, obj.__name__)
+    return obj
+
+def fcopy(func, name):
+    """
+    Return a copy of a function func with a new name.
+    """
+    return types.FunctionType(func.func_code, func.func_globals, name, func.func_closure)
+
+class MetaCopyMethods(type):
+    """
+    Metaclass that makes copies of class methods that are defined
+    by equality. For example,
+
+    class A:
+        __metaclass__ = MetaCopyMethods
+        def foo(self):
+            pass
+
+        bar = foo
+
+    is equivalent to
+
+    class A:
+        def foo(self):
+            pass
+
+        bar = fcopy(foo, 'bar')
+    """
+    def __init__(cls, name, bases, dict):
+        cls.copy_methods(dict)
+        type.__init__(cls, name, bases, dict)
+
+    def copy_methods(cls, dict):
+        for name in dict.keys():
+            attr = dict[name]
+            if isinstance(attr, types.FunctionType):
+                if name != attr.__name__:
+                    dict[name] = fcopy(attr, name)
+
+class MetaInheritDocs(type):
+    """
+    Metaclass that sets undefined documentation strings of methods to
+    the documentation strings of base class methods. For example,
+
+    class A:
+        def foo(self):
+            '''foo doc'''
+
+    class B(A):
+        __metaclass__ = MetaCopyMethods
+        def foo(self):
+            pass
+
+    is equivalent to
+
+    class A:
+        def foo(self):
+            '''foo doc'''
+
+    class B(A):
+        def foo(self):
+            '''### doc-string inherited from A.foo ###
+            foo doc
+            '''
+    """
+
+    def __init__(cls, name, bases, dict):
+        type.__init__(cls, name, bases, dict)
+        cls.inherit_docs(dict)
+
+    def inherit_docs(cls, dict):
+        for name in dict.keys():
+            attr = dict[name]
+            if hasattr(attr, '__doc__'):
+                inheritdoc(attr, cls)
+                if 0 and attr.__doc__ is None:
+                    print '%s.%s does not define documentation string' % (cls.__name__, name)
+
+class MetaCopyMethodsInheritDocs(MetaCopyMethods, MetaInheritDocs):
+    """
+    A composite of MetaCopyMethods and MetaInheritDocs meta classes.
+    """
+    def __init__(cls, name, bases, dict):
+        cls.copy_methods(dict)
+        type.__init__(cls, name, bases, dict)
+        cls.inherit_docs(dict)
 
 class Holder:
     """ Holds pairs ``(name, value)`` as instance attributes.
