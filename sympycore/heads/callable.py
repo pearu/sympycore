@@ -51,6 +51,9 @@ class CallableHead(AtomicHead):
             return s, heads_precedence.CALLABLE
         return s, 0.0 # force parenthesis
 
+    def commutative_mul_number(self, cls, lhs, rhs):
+        return term_coeff_new(cls, (lhs, rhs))
+
     def pow_number(self, cls, base, exp):
         return pow_new(cls, (base, exp))
 

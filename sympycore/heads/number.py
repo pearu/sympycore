@@ -40,11 +40,16 @@ class NumberHead(AtomicHead):
         Obsolete method:  SPARSE_POLY will be removed in future.
         """
         return cls(data)
+
+    def to_TERM_COEFF_DICT(self, cls, data, expr):
+        return expr
         
     def to_EXP_COEFF_DICT(self, cls, data, expr, variables = None):
         if variables is None:
             variables = ()
-        return cls(EXP_COEFF_DICT, Pair(variables, {(0,)*len(variables):data}))
+        if data:
+            return cls(EXP_COEFF_DICT, Pair(variables, {EXP_COEFF_DICT.make_exponent(0, variables):data}))
+        return cls(EXP_COEFF_DICT, Pair(variables, {}))
 
     def data_to_str_and_precedence(self, cls, data):
         if isinstance(data, complextypes):
@@ -82,10 +87,16 @@ class NumberHead(AtomicHead):
     non_commutative_rmul_number = commutative_mul_number
 
     def commutative_div_number(self, cls, lhs, rhs):
+        r = number_div(cls, lhs.data, rhs)
+        if rhs==0:
+            return r * lhs
         return cls(NUMBER, number_div(cls, lhs.data, rhs))
 
     def commutative_rdiv_number(self, cls, lhs, rhs):
-        return cls(NUMBER, number_div(cls, rhs, lhs.data))
+        r = number_div(cls, rhs, lhs.data)
+        if rhs==0:
+            return r * lhs
+        return cls(NUMBER, r)
 
     def commutative_div(self, cls, lhs, rhs):
         return rhs.head.commutative_rdiv_number(cls, rhs, lhs.data)
@@ -168,6 +179,10 @@ class NumberHead(AtomicHead):
         bd = base.data
         if bd==1:
             return base
+        if bd==0:
+            if exp>0: return base
+            # exp is negative
+            return number_div(cls, 1, 0)
         r, l = try_power(bd, exp)
         if not l:
             return cls(NUMBER, r)

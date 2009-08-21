@@ -164,7 +164,10 @@ class TermCoeff(ArithmeticHead):
 
     def commutative_rdiv_number(self, cls, lhs, rhs):
         term, coeff = lhs.data
-        return term_coeff_new(cls, (1/term, number_div(cls, rhs, coeff)))
+        r = number_div(cls, rhs, coeff)
+        if rhs==0:
+            return r * (1/term)
+        return term_coeff_new(cls, (1/term, r))
 
     def commutative_div(self, cls, lhs, rhs):
         rhead, rdata = rhs.pair

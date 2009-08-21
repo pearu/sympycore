@@ -106,41 +106,6 @@ class PolynomialRingFactory(type):
 
 AdditiveTuple = IntegerList
 
-class _AdditiveTuple(tuple):
-    """ A tuple that can be added element-wise.
-
-    Properties::
-    
-      AdditiveTuple(obj) -> obj
-      AdditiveTuple([obj]) -> obj
-      AdditiveTuple([obj1, obj2]) + [r1,r2] -> AdditiveTuple([obj1+r1, obj2+r2])
-
-    """
-
-    def __new__(cls, arg):
-        if isinstance(arg, (tuple, list, set)):
-            if len(arg)==1:
-                return arg[0]
-            return tuple.__new__(cls, arg)
-        return arg
-
-    def __str__(self):
-        return '(%s)' % (', '.join(map(str, self)))
-
-    def __add__(self, other):
-        l = [self[i] + other[i] for i in xrange(len(self))]
-        return tuple.__new__(self.__class__, l)
-    
-    def __mul__(self, other):
-        l = [self[i] * other for i in xrange(len(self))]
-        return tuple.__new__(self.__class__, l)
-    
-    def add(self, index, decr):
-        l = list(self)
-        l[index] += decr
-        return tuple.__new__(self.__class__, l)
-
-
 class PolynomialRing(CommutativeRing):
     """ Base class to polynomial rings that holds polynomial information
     using pairs ``(<exponents>: <coefficient>)`` stored in Python dictionary.

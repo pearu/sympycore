@@ -319,6 +319,7 @@ class Head(object):
         Return the commutative product of expressions: lhs * rhs
         where rhs is a number.
         """
+        raise NotImplementedError(not_implemented_error_msg % (self, 'commutative_mul_number(Algebra, lhs, rhs)')) #pragma NO COVER
         return term_coeff_new(cls, (lhs, rhs))
 
     def commutative_rmul_number(self, cls, rhs, lhs):
@@ -352,8 +353,10 @@ class Head(object):
             base_exp_dict_add_item(cls, data, lhs, 1)
             return base_exp_dict_new(cls, data)
         if rhead is SYMBOL or rhead is CALLABLE or rhead is APPLY \
-           or rhead is TERM_COEFF_DICT or head is ADD:
+           or rhead is TERM_COEFF_DICT or rhead is ADD:
             return cls(BASE_EXP_DICT, {lhs:1, rhs:1})
+        if rhead is EXP_COEFF_DICT:
+            return lhs * rhs.to(TERM_COEFF_DICT)
         raise NotImplementedError(\
             not_implemented_error_msg % \
             (self, 'commutative_mul(cls, <%s expression>, <%s expression>)' \
@@ -375,7 +378,7 @@ class Head(object):
         r = number_div(cls, 1, rhs)
         if rhs==0:
             return r * lhs
-        return term_coeff_new(cls, (lhs, r))
+        return self.commutative_mul_number(cls, lhs, r)
 
     def commutative_rdiv_number(self, cls, rhs, lhs):
         """
@@ -391,14 +394,17 @@ class Head(object):
         """
         rhead, rdata = rhs.pair
         if rhead is NUMBER:
-            return term_coeff_new(cls, (lhs, number_div(cls, 1, rdata)))
+            r = number_div(cls, 1, rdata)
+            if rdata==0:
+                return r * lhs
+            return term_coeff_new(cls, (lhs, r))
         if rhead is self:
             if lhs.data==rdata:
                 return cls(NUMBER, 1)
             return cls(BASE_EXP_DICT, {lhs:1, rhs:-1})
         if rhead is TERM_COEFF:
             term, coeff = rdata
-            return (lhs / term) * number_div(cls, 1, coeff)
+            return number_div(cls, 1, coeff) * (lhs / term) 
         if rhead is POW:
             rbase, rexp = rdata
             if lhs==rbase:
@@ -422,7 +428,7 @@ class Head(object):
         Return the non-commutative product of expressions: lhs * rhs
         where rhs is a number (which is assumed to be commutator).
         """
-        return term_coeff_new(cls, (lhs, rhs))
+        raise NotImplementedError(not_implemented_error_msg % (self, 'non_commutative_mul_number(Algebra, lhs, rhs)')) #pragma NO COVER
 
     def non_commutative_rmul_number(self, cls, rhs, lhs):
         """
@@ -454,6 +460,17 @@ class Head(object):
             not_implemented_error_msg % \
             (self, 'non_commutative_mul(cls, <%s expression>, <%s expression>)' \
              % (self, rhs.head))) #pragma NO COVER
+
+    def non_commutative_div_number(self, cls, lhs, rhs):
+        """
+        Return the non-commutative division of expressions: lhs / rhs
+        where rhs is a number (which is assumed to be commutator).
+        """
+        r = number_div(cls, 1, rhs)
+        if rhs==0:
+            # lhs/0 -> zoo * lhs
+            return r * lhs
+        return self.non_commutative_mul_number(cls, lhs, r)
 
     def non_commutative_div(self, cls, lhs, rhs):
         """
@@ -531,6 +548,15 @@ class Head(object):
         Convert expr to an expression with EXP_COEFF_DICT head.
         """
         raise NotImplementedError(not_implemented_error_msg % (self, 'to_EXP_COEFF_DICT(Algebra, data, expr, variables=)')) #pragma NO COVER
+
+    def to_TERM_COEFF_DICT(self, Algebra, data, expr):
+        """
+        Convert expr to an expression with TERM_COEFF_DICT head.
+        data is expr.data. Note that the returned result may have
+        actual head NUMBER, SYMBOL, TERM_COEFF, POW, BASE_EXP_DICT
+        instead of TERM_COEFF_DICT.
+        """
+        raise NotImplementedError(not_implemented_error_msg % (self, 'to_TERM_COEFF_DICT(Algebra, data, expr)')) #pragma NO COVER
 
     
 class AtomicHead(Head):

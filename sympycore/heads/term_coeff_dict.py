@@ -164,17 +164,10 @@ class TermCoeffDictHead(ArithmeticHead):
         dict_mul_value(cls, data, rhs)
         return cls(self, data)
 
+    non_commutative_mul_number = commutative_mul_number
+
     def commutative_rdiv_number(self, cls, lhs, rhs):
         return term_coeff_new(cls, (cls(POW, (lhs, -1)), rhs))
-
-    def commutative_div_number(self, cls, lhs, rhs):
-        r = number_div(cls, 1, rhs)
-        if rhs==0:
-            # lhs/0 -> zoo * lhs
-            return r * lhs        
-        data = lhs.data.copy()
-        dict_mul_value(cls, data, r)
-        return cls(self, data)
 
     def commutative_div(self, cls, lhs, rhs):
         rhead, rdata = rhs.pair
@@ -188,7 +181,7 @@ class TermCoeffDictHead(ArithmeticHead):
             return cls(BASE_EXP_DICT, {lhs:1, rhs:-1})
         if rhead is TERM_COEFF:
             term, coeff = rdata
-            return (lhs / term) * number_div(cls, 1, coeff)
+            return number_div(cls, 1, coeff) * (lhs / term)
         if rhead is POW:
             base, exp = rdata
             if lhs==base:

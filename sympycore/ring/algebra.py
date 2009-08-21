@@ -115,8 +115,7 @@ class Ring(Algebra, RingInterface):
         tother = type(other)
         if tother is not cls:
             if tother in numbertypes_set:
-                other = number_div(cls, 1, other)
-                return self.head.non_commutative_mul_number(cls, self, other)
+                return self.head.non_commutative_div_number(cls, self, other)
             other = cls.convert(other, typeerror=False)
             if other is NotImplemented: return NotImplemented
         return self * other**-1
@@ -183,15 +182,20 @@ class CommutativeRing(Ring):
         The following targets are recognized:
 
           EXP_COEFF_DICT - convert expression to exponents-coefficient
-                           representation, additional arguments are
-                           variables. When no arguments are specified,
-                           variables will be all symbols used in the
-                           expression.
-        
+            representation, additional arguments are variables. When
+            no arguments are specified, variables will be all symbols
+            and non-power expressions used in the expression.
+
+          TERM_COEFF_DICT - convert expression to term-coefficient
+            representation. Note that the returned result may have
+            actual head NUMBER, SYMBOL, TERM_COEFF, POW, or
+            BASE_EXP_DICT instead of TERM_COEFF_DICT.
         """
         head, data = self.pair
         if target is EXP_COEFF_DICT:
             return head.to_EXP_COEFF_DICT(type(self), data, self, args or None)
+        if target is TERM_COEFF_DICT:
+            return head.to_TERM_COEFF_DICT(type(self), data, self)
         raise NotImplementedError('%s.to(target=%r)' % (type(self), target))
 
     def diff(self, symbol, order=1):

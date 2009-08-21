@@ -43,6 +43,11 @@ class SymbolHead(AtomicHead):
         assert len(exp)==len(variables), `exp, variables, i, data`
         return cls(EXP_COEFF_DICT, Pair(variables, {exp:1}))
 
+    def commutative_mul_number(self, cls, lhs, rhs):
+        return term_coeff_new(cls, (lhs, rhs))
+
+    non_commutative_mul_number = commutative_mul_number
+
     def pow(self, cls, base, exp):
         if type(exp) is cls and exp.head is NUMBER:
             exp = exp.data

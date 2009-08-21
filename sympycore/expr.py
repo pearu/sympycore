@@ -411,7 +411,14 @@ def base_exp_dict_add_item(Algebra, d, base, exp):
         else:
             del d[base]
 
-term_coeff_dict_add_item = dict_add_item
+def term_coeff_dict_add_item(Algebra, d, key, value):
+    khead, kdata = key.pair
+    if khead is TERM_COEFF:
+        term, coeff = kdata
+        dict_add_item(Algebra, d, term, value * coeff)
+    else:
+        assert khead not in [TERM_COEFF_DICT],`Algebra, key.pair`
+        dict_add_item(Algebra, d, key, value)
 
 def dict_get_item(d):
     return d.items()[0]

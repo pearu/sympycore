@@ -44,6 +44,9 @@ class ApplyHead(FunctionalHead):
             func = fcls(CALLABLE, func)
         return cls(APPLY, (func, args))
 
+    def commutative_mul_number(self, cls, lhs, rhs):
+        return term_coeff_new(cls, (lhs, rhs))
+
     def pow(self, cls, base, exp):
         return POW.new(cls, (base, exp))
 

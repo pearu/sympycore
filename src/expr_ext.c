@@ -1074,6 +1074,22 @@ int algebra_dict_mul_dict(PyTypeObject *Algebra, PyObject *d, PyObject *d1, PyOb
   return 0;
 }
 
+int algebra_term_coeff_dict_add_item(PyTypeObject *Algebra, PyObject *d, PyObject *key, PyObject *value)
+{
+  PyObject *kdata = NULL;
+  PyObject *term = NULL;
+  PyObject *coeff = NULL;
+
+  if (EXPR_GET_HEAD(key)==TERM_COEFF)
+    {
+      kdata = EXPR_GET_DATA(key);
+      term = PyTuple_GET_ITEM(kdata, 0);
+      coeff = PyTuple_GET_ITEM(kdata, 1);
+      return algebra_dict_add_item(Algebra, d, term, PyNumber_Multiply(coeff, value));
+    }
+  return algebra_dict_add_item(Algebra, d, key, value);
+}
+
 int algebra_exp_coeff_dict_mul_dict(PyTypeObject *Algebra, PyObject *d, PyObject *d1, PyObject *d2)
 {
   PyObject *key1 = NULL;
@@ -1454,10 +1470,12 @@ ALGEBRA_DICT_PROC_WRAPPER_4(algebra_base_exp_dict_add_item, "base_exp_dict_add_i
 ALGEBRA_DICT_PROC_WRAPPER_4(algebra_base_exp_dict_sub_item, "base_exp_dict_sub_item");
 ALGEBRA_DICT_PROC_WRAPPER_3(algebra_base_exp_dict_add_dict, "base_exp_dict_add_dict");
 ALGEBRA_DICT_PROC_WRAPPER_3(algebra_base_exp_dict_sub_dict, "base_exp_dict_sub_dict");
+
 ALGEBRA_DICT_PROC_WRAPPER_4(algebra_dict_add_item, "dict_add_item");
 ALGEBRA_DICT_PROC_WRAPPER_4(algebra_dict_subtract_item, "dict_sub_item");
 ALGEBRA_DICT_PROC_WRAPPER_3(algebra_dict_mul_value, "dict_mul_value");
 ALGEBRA_DICT_PROC_WRAPPER_3(algebra_dict_add_dict, "dict_add_dict");
+ALGEBRA_DICT_PROC_WRAPPER_4(algebra_term_coeff_dict_add_item, "term_coeff_dict_add_item");
 
 ALGEBRA_DICT_PROC_WRAPPER_3(algebra_dict_subtract_dict, "dict_sub_dict");
 ALGEBRA_DICT_PROC_WRAPPER_4(algebra_dict_mul_dict, "dict_mul_dict");
@@ -1639,8 +1657,8 @@ static PyMethodDef module_methods[] = {
   {"exp_coeff_dict_mul_dict",  func_algebra_exp_coeff_dict_mul_dict, METH_VARARGS,
    "exp_coeff_dict_mul_dict(Algebra, dict, dict1, dict2) - multiply dict1 and dict2 values, add their keys, and finally add them to dict"},
 
-  {"term_coeff_dict_add_item",  func_algebra_dict_add_item, METH_VARARGS,
-   "dict_add_item(Algebra, dict, key, value) - add (key, value) pair to dict"},
+  {"term_coeff_dict_add_item",  func_algebra_term_coeff_dict_add_item, METH_VARARGS,
+   "tern_coeff_dict_add_item(Algebra, dict, key, value) - add (key, value) pair to dict"},
   {"term_coeff_dict_mul_item",  func_algebra_dict_mul_item, METH_VARARGS, 
    "term_coeff_dict_mul_item(dict, key, value) - multiply dict key value with value"},
   {"term_coeff_dict_mul_dict",  func_algebra_dict_mul_dict, METH_VARARGS,
