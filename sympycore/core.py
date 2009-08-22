@@ -315,6 +315,37 @@ class SymbolicEquality:
             cls.disable_symbolic_comparison()
         return tb is None
 
+class UnevaluatedAddition:
+    """ Contex for not evaluating additive group operations.
+
+    For example,
+
+    >>> x = Calculus('x')
+    >>> with UnevaluatedAddition(AdditiveGroup):
+    >>>     print x - x
+    ...     
+    ...     
+    x - x
+    >>> print x - x
+    0
+
+    Add ``from __future__ import with_statement`` to the header of
+    python file when using Python version 2.5.
+    
+    """
+
+    def __init__(self, *classes):
+        self.classes = classes
+
+    def __enter__(self):
+        for cls in self.classes:
+            cls.algebra_options['evaluate_addition'] = False
+
+    def __exit__(self, type, value, tb):
+        for cls in self.classes:
+            cls.algebra_options['evaluate_addition'] = True
+        return tb is None
+
 class InitModule:
     
     """ Holds a list of functions (or callable objects), composed by
@@ -393,6 +424,7 @@ class InitModule:
             module.numbertypes = numbers.numbertypes
             module.numbertypes_set = numbers.numbertypes_set
             module.inttypes = numbers.inttypes
+            module.inttypes_set = numbers.inttypes_set
             module.rationaltypes = numbers.rationaltypes
             module.realtypes = numbers.realtypes
             module.complextypes = numbers.complextypes

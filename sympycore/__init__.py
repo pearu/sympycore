@@ -21,7 +21,7 @@ from arithmetic import *
 from ring import *
 
 from basealgebra import *
-
+from algebras import *
 from logic import *
 from sets import *
 from calculus import *

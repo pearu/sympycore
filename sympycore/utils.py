@@ -122,5 +122,55 @@ class MATRIX(HEAD):
         else:
             raise NotImplementedError(`storage`) #pragma NO COVER
 
+def test_operations(operands, expected_results, unary_operations, binary_operations):
+    from sympycore import Expr
+
+    results = {}
+    for line in expected_results.split('\n'):
+        line = line.strip()
+        if ':' not in line: continue
+        expr, result = line.split(':')
+        for e in expr.split(';'):
+            e = e.strip()
+            results[e] = [r.strip() for r in result.split(';')]
+
+    for op1 in operands:
+        if isinstance(op1, Expr):
+            for op in unary_operations:
+                expr = '%s(%s)' % (op, op1) 
+
+                try:
+                    result = str(eval('%s(op1)' % (op)))
+                except Exception, msg:
+                    print  expr,'failed with %s' % (msg)
+                    raise
+                
+                if expr not in results:
+                    print '%s:%s' % (expr, result)
+                    continue
+                assert result in results[expr], `results[expr], result`
+        for op2 in operands:
+            if not (isinstance(op1, Expr) or isinstance(op2, Expr)):
+                continue
+            for op in binary_operations:
+                expr = '(%s)%s(%s)' % (op1, op, op2)
+
+                try:
+                    result = str(eval('(op1)%s(op2)' % op))
+                except Exception, msg:
+                    result = str(msg)
+                    if not result.startswith('unsupported'):
+                        print  expr,`op1,op,op2`,'failed with %s' % (msg)
+                        raise
+                
+                if expr not in results:
+                    print '%s:%s' % (expr, result)
+                    continue
+                if result.startswith('unsupported'):
+                    assert 'unsupported' in results[expr], `results[expr], result, op1, op2, expr`
+                else:
+                    assert result in results[expr], `results[expr], result, op1, op2`
+    
+
 
 from heads import *

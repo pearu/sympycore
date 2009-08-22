@@ -8,7 +8,7 @@ init_module.import_heads()
 init_module.import_numbers()
 init_module.import_lowlevel_operations()
 
-from .base import AtomicHead, heads_precedence, Expr, Pair, ArithmeticHead
+from .base import AtomicHead, heads_precedence, Expr, Pair, ArithmeticHead, NotImplementedHeadMethod
 
 _is_atomic = re.compile(r'\A\w+\Z').match
 
@@ -92,5 +92,78 @@ class SymbolHead(AtomicHead):
         if data==x:
             return (b**2-a**2)/2
         return expr*(b-a)
+
+    def algebra_neg(self, Algebra, expr):
+        if Algebra.algebra_options.get('is_additive_group_commutative'):
+            return Algebra(TERM_COEFF, (expr, -1))
+        return Algebra(NEG, expr)
+
+    def algebra_add_number(self, Algebra, lhs, rhs, inplace):
+        if Algebra.algebra_options.get('is_additive_group_commutative'):
+            if rhs==0:
+                return lhs
+            return Algebra(TERM_COEFF_DICT, {Algebra(NUMBER, 1): rhs, lhs:1})
+        else:
+            if Algebra.algebra_options.get('evaluate_addition'):
+                if rhs==0:
+                    return lhs            
+            data = [lhs, Algebra(NUMBER, rhs)]
+            return Algebra(ADD, [lhs, Algebra(NUMBER, rhs)])
+
+    def algebra_add(self, Algebra, lhs, rhs, inplace):
+        rhead, rdata = rhs.pair
+        if Algebra.algebra_options.get('is_additive_group_commutative'):
+            ldata = lhs.data
+            if rhead is ADD or rhead is EXP_COEFF_DICT or rhead is MUL:
+                rhead, rdata = rhs.to(TERM_COEFF_DICT).pair
+            if rhead is SYMBOL:
+                if ldata == rdata:
+                    return Algebra(TERM_COEFF, (lhs, 2))
+                return Algebra(TERM_COEFF_DICT, {lhs: 1, rhs: 1})
+            if rhead is NUMBER:
+                if rdata:
+                    return Algebra(TERM_COEFF_DICT, {Algebra(NUMBER, 1): rdata, lhs:1})
+                return lhs
+            if rhead is TERM_COEFF:
+                term, coeff = rdata
+                if term==lhs:
+                    return term_coeff_new(Algebra, (term, coeff+1))
+                return Algebra(TERM_COEFF_DICT, {term: coeff, lhs:1})
+            if rhead is TERM_COEFF_DICT:
+                d = rdata.copy()
+                term_coeff_dict_add_item(Algebra, d, lhs, 1)
+                return term_coeff_dict_new(Algebra, d)
+            if rhead is POW or rhead is BASE_EXP_DICT:
+                return Algebra(TERM_COEFF_DICT, {lhs:1, rhs:1})
+            return super(type(self), self).algebra_add(Algebra, lhs, rhs, inplace)
+        else:
+            if rhead is ADD:
+                data = [lhs] + rdata
+            elif rhead is TERM_COEFF_DICT or rhead is EXP_COEFF_DICT:
+                data = [lhs] + rhs.to(ADD).data
+            else:
+                data = [lhs, rhs]
+            if Algebra.algebra_options.get('evaluate_addition'):
+                ADD.combine_add_list(Algebra, data)
+            return add_new(Algebra, data)
+
+    def algebra_mul_number(self, Algebra, lhs, rhs, inplace):
+        if Algebra.algebra_options.get('is_additive_group_commutative'):
+            return term_coeff_new(Algebra, (lhs, rhs))
+        else:
+            if Algebra.algebra_options.get('evaluate_addition'):
+                return term_coeff_new(Algebra, (lhs, rhs))
+            return mul_new(Algebra, [lhs, Algebra(NUMBER, rhs)])
+
+    def algebra_mul(self, Algebra, lhs, rhs, inplace):
+        if Algebra.algebra_options.get('is_additive_group_commutative'):
+            return super(type(self), self).algebra_mul(Algebra, lhs, rhs, inplace)
+        else:
+            if Algebra.algebra_options.get('evaluate_addition'):
+                rhead, rdata = rhs.pair
+                if rhead is NUMBER:
+                    return term_coeff_new(Algebra, (lhs, rdata))
+                return super(type(self), self).algebra_mul(Algebra, lhs, rhs, inplace)
+            return mul_new(Algebra, [lhs, rhs])
 
 SYMBOL = SymbolHead()

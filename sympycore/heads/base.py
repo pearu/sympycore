@@ -10,6 +10,11 @@ init_module.import_heads()
 init_module.import_numbers()
 init_module.import_lowlevel_operations()
 
+class NotImplementedHeadMethod(NotImplementedError):
+
+    def __init__(self, head, signature):
+        NotImplementedError.__init__(self, not_implemented_error_msg % (head, signature))
+
 class Head(object):
 
     """
@@ -260,6 +265,8 @@ class Head(object):
         if rhead is SYMBOL or rhead is APPLY or rhead is CALLABLE\
                or rhead is BASE_EXP_DICT or rhead is POW:
             return cls(TERM_COEFF_DICT, {lhs:1, rhs:1})
+        if rhead is MUL:
+            return cls(ADD, [lhs, rhs])
         raise NotImplementedError(\
             not_implemented_error_msg % \
             (self, 'add(cls, <%s expression>, <%s expression>)' \
@@ -302,6 +309,8 @@ class Head(object):
         if rhead is SYMBOL or rhead is APPLY or rhead is CALLABLE\
                or rhead is BASE_EXP_DICT or rhead is POW:
             return cls(TERM_COEFF_DICT, {lhs:1, rhs:-1})
+        if rhead is MUL:
+            return cls(ADD, [lhs, -rhs])
         raise NotImplementedError(\
             not_implemented_error_msg % \
             (self, 'sub(cls, <%s expression>, <%s expression>)' \
@@ -455,7 +464,6 @@ class Head(object):
             return MUL.combine(cls, [lhs, rhs])
         if rhead is MUL:
             return MUL.combine(cls, [lhs] + rdata)
-
         raise NotImplementedError(\
             not_implemented_error_msg % \
             (self, 'non_commutative_mul(cls, <%s expression>, <%s expression>)' \
@@ -557,6 +565,36 @@ class Head(object):
         instead of TERM_COEFF_DICT.
         """
         raise NotImplementedError(not_implemented_error_msg % (self, 'to_TERM_COEFF_DICT(Algebra, data, expr)')) #pragma NO COVER
+
+    def algebra_neg(self, Algebra, expr):
+        """
+        Return the negation of an expression: -expr
+        """
+        raise NotImplementedHeadMethod(self, "algebra_neg(Algebra, expr)") #pragma NO COVER
+
+    def algebra_add_number(self, Algebra, lhs, rhs, inplace):
+        """
+        Return the sum of expressions: lhs + rhs, where rhs is a number.
+        """
+        raise NotImplementedHeadMethod(self, "algebra_add_number(Algebra, lhs, rhs, inplace)") #pragma NO COVER
+
+    def algebra_add(self, Algebra, lhs, rhs, inplace):
+        """
+        Return the sum of expressions: lhs + rhs.
+        """
+        raise NotImplementedHeadMethod(self, "algebra_add(Algebra, lhs, rhs, inplace)<=%s" % (rhs.head)) #pragma NO COVER
+
+    def algebra_mul_number(self, Algebra, lhs, rhs, inplace):
+        """
+        Return the product of expressions: lhs * rhs, where rhs is a number.
+        """
+        raise NotImplementedHeadMethod(self, "algebra_mul_number(Algebra, lhs, rhs, inplace)<=%s" % (rhs.head)) #pragma NO COVER
+
+    def algebra_mul(self, Algebra, lhs, rhs, inplace):
+        """
+        Return the product of expressions: lhs * rhs.
+        """
+        raise NotImplementedHeadMethod(self, "algebra_mul(Algebra, lhs, rhs, inplace)<=%s" % (rhs.head)) #pragma NO COVER
 
     
 class AtomicHead(Head):

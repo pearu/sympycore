@@ -142,6 +142,8 @@ class PowHead(ArithmeticHead):
             if base==rhs:
                 return pow_new(cls, (base, exp + 1))
             return MUL.combine(cls, [lhs, rhs])
+        if rhead is MUL:
+            return MUL.combine(cls, [lhs] + rdata)
         raise NotImplementedError(`self, cls, lhs.pair, rhs.pair`)
 
     def commutative_mul_number(self, cls, lhs, rhs):

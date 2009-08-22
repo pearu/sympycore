@@ -5,6 +5,7 @@ from .base import heads_precedence, ArithmeticHead
 from ..core import init_module
 
 init_module.import_heads()
+init_module.import_lowlevel_operations()
 init_module.import_numbers()
 
 class NegHead(ArithmeticHead):
@@ -37,9 +38,10 @@ class NegHead(ArithmeticHead):
         return -expr
 
     def data_to_str_and_precedence(self, cls, expr):
-        if expr.head is NEG:
-            expr = expr.data
-            return expr.head.data_to_str_and_precedence(cls, expr.data)
+        if cls.algebra_options.get('evaluate_addition'):
+            if expr.head is NEG:
+                expr = expr.data
+                return expr.head.data_to_str_and_precedence(cls, expr.data)
         s, s_p = expr.head.data_to_str_and_precedence(cls, expr.data)
         neg_p = heads_precedence.NEG
         if s_p < neg_p:
@@ -69,4 +71,48 @@ class NegHead(ArithmeticHead):
         r = self.new(cls, operand1)
         return func(cls, r.head, r.data, r)
 
+    def algebra_neg(self, Algebra, expr):
+        if Algebra.algebra_options.get('evaluate_addition'):
+            return expr.data
+        return Algebra(NEG, expr)
+
+    def algebra_add_number(self, Algebra, lhs, rhs, inplace):
+        return self.algebra_add(Algebra, lhs, Algebra(NUMBER, rhs), inplace)
+
+    def algebra_add(self, Algebra, lhs, rhs, inplace):
+        rhead, rdata = rhs.pair
+        if rhead is ADD:
+            data = [lhs] + rdata
+        elif rhead is TERM_COEFF_DICT or rhead is EXP_COEFF_DICT:
+            data = [lhs] + rhs.to(ADD).data
+        else:
+            data = [lhs, rhs]
+        if Algebra.algebra_options.get('evaluate_addition'):
+            ADD.combine_add_list(Algebra, data)
+        return add_new(Algebra, data)
+
+    def algebra_mul_number(self, Algebra, lhs, rhs, inplace):
+        if Algebra.algebra_options.get('is_additive_group_commutative'):
+            term, coeff = lhs.head.term_coeff(Algebra, lhs)
+            return term_coeff_new(Algebra, (term, coeff * rhs))
+        else:
+            if Algebra.algebra_options.get('evaluate_addition'):
+                if rhs == 0:
+                    return Algebra(NUMBER, 0)
+                term, coeff = lhs.head.term_coeff(Algebra, lhs)
+                return term_coeff_new(Algebra, (term, coeff * rhs))
+            return mul_new(Algebra, [lhs, Algebra(NUMBER, rhs)])
+
+    def algebra_mul(self, Algebra, lhs, rhs, inplace):
+        ldata = lhs.data
+        if Algebra.algebra_options.get('is_additive_group_commutative'):
+            return super(type(self), self).algebra_mul(Algebra, lhs, rhs, inplace)
+        else:
+            if Algebra.algebra_options.get('evaluate_addition'):
+                rhead, rdata = rhs.pair
+                if rhead is NUMBER:
+                    return ldata.head.algebra_mul_number(Algebra, ldata, -rdata, inplace)
+                return super(type(self), self).algebra_mul(Algebra, lhs, rhs, inplace)
+            return mul_new(Algebra, [lhs, rhs])
+    
 NEG = NegHead()

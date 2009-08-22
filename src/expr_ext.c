@@ -1460,10 +1460,44 @@ PyObject* algebra_base_exp_dict_new(PyTypeObject* Algebra, PyObject* data)
   return Expr_new_from_head_data(Algebra, BASE_EXP_DICT, data);
 }
 
+PyObject* algebra_add_new(PyTypeObject* Algebra, PyObject* data)
+{
+  PyObject* obj = NULL;
+  switch (PyList_Size(data))
+    {
+    case 0:
+      return Expr_new_from_head_data(Algebra, NUMBER, zero);
+    case 1:
+      obj = PyList_GetItem(data, 0);
+      Py_INCREF(obj);
+      return obj;
+    default:
+      return Expr_new_from_head_data(Algebra, ADD, data);
+    }
+}
+
+PyObject* algebra_mul_new(PyTypeObject* Algebra, PyObject* data)
+{
+  PyObject* obj = NULL;
+  switch (PyList_Size(data))
+    {
+    case 0:
+      return Expr_new_from_head_data(Algebra, NUMBER, one);
+    case 1:
+      obj = PyList_GetItem(data, 0);
+      Py_INCREF(obj);
+      return obj;
+    default:
+      return Expr_new_from_head_data(Algebra, MUL, data);
+    }
+}
+
 ALGEBRA_DATA_FUNC_WRAPPER_2(algebra_term_coeff_new, "term_coeff_new");
 ALGEBRA_DATA_FUNC_WRAPPER_2(algebra_term_coeff_dict_new, "term_coeff_dict_new");
 ALGEBRA_DATA_FUNC_WRAPPER_2(algebra_pow_new, "pow_new");
 ALGEBRA_DATA_FUNC_WRAPPER_2(algebra_base_exp_dict_new, "base_exp_dict_new");
+ALGEBRA_DATA_FUNC_WRAPPER_2(algebra_add_new, "add_new");
+ALGEBRA_DATA_FUNC_WRAPPER_2(algebra_mul_new, "mul_new");
 
 ALGEBRA_DICT_PROC_WRAPPER_4(algebra_dict_mul_item, "dict_mul_item");
 ALGEBRA_DICT_PROC_WRAPPER_4(algebra_base_exp_dict_add_item, "base_exp_dict_add_item");
@@ -1614,6 +1648,10 @@ static PyMethodDef module_methods[] = {
    "pow_new(Algebra, data) - create Algebra instance from POW data"},
   {"base_exp_dict_new",  func_algebra_base_exp_dict_new, METH_VARARGS, 
    "base_exp_dict_new(Algebra, data) - create Algebra instance from BASE_EXP_DICT data"},
+  {"add_new",  func_algebra_add_new, METH_VARARGS, 
+   "add_new(Algebra, data) - create Algebra instance from ADD data"},
+  {"mul_new",  func_algebra_mul_new, METH_VARARGS, 
+   "mul_new(Algebra, data) - create Algebra instance from MUL data"},
 
   {"dict_get_item", func_dict_get_item, METH_VARARGS, "dict_get_item(dict) - return the first (key, value) pair of a dict."},
 

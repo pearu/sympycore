@@ -83,6 +83,8 @@ class Algebra(Expr):
     coefftypes = (int, long)
     exptypes = (int, long)
 
+    algebra_options = dict(evaluate_addition = True)
+
     def __str__(self):
         h, d = self.pair
         return h.data_to_str_and_precedence(type(self), d)[0]

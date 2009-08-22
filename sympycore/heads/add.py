@@ -5,6 +5,7 @@ from .base import heads_precedence, ArithmeticHead
 
 from ..core import init_module
 init_module.import_heads()
+init_module.import_numbers()
 init_module.import_lowlevel_operations()
 
 @init_module
@@ -99,11 +100,12 @@ class AddHead(ArithmeticHead):
             return op.head.data_to_str_and_precedence(cls, op.data)
         add_p = heads_precedence.ADD
         r = ''
+        evaluate_addition = cls.algebra_options.get('evaluate_addition')
         for op in operands:
             t,t_p = op.head.data_to_str_and_precedence(cls, op.data)
             if not r:
                 r += '(' + t + ')' if t_p < add_p else t
-            elif t.startswith('-'):
+            elif evaluate_addition and t.startswith('-'):
                 r += ' - ' + t[1:]
             else:
                 r += ' + (' + t + ')' if t_p < add_p else ' + ' + t
@@ -210,4 +212,113 @@ class AddHead(ArithmeticHead):
             s += m
         return s
 
+    def algebra_neg(self, Algebra, expr):
+        if Algebra.algebra_options.get('evaluate_addition'):
+            return add_new(Algebra, [-op for op in expr.data[::-1]])
+        return Algebra(NEG, expr)
+
+    def combine_add_list(self, Algebra, data):
+        """
+        Combine add operands of an additive group in data.
+        data will be changed in place.
+        """
+        commutative = Algebra.algebra_options.get('is_additive_group_commutative')
+        if commutative:
+            d = {}
+            for op in data:
+                term, coeff = op.head.term_coeff(Algebra, op)
+                term_coeff_dict_add_item(Algebra, d, term, coeff)
+            data[:] = [term_coeff_new(Algebra, (term, coeff)) for term, coeff in d.iteritems()]
+        else:
+            n = len(data)
+            i0 = 0
+            while 1:
+                i = i0
+                if i+1 >= n:
+                    break
+                lhs = data[i]
+                rhs = data[i+1]
+                lterm, lcoeff = lhs.head.term_coeff(Algebra, lhs)
+                rterm, rcoeff = rhs.head.term_coeff(Algebra, rhs)
+                if lterm==rterm:
+                    coeff = lcoeff + rcoeff
+                    if coeff:
+                        del data[i+1]
+                        data[i] = term_coeff_new(Algebra, (lterm, coeff))
+                        i0 = i
+                        n -= 1
+                    else:
+                        del data[i:i+2]
+                        i0 = max(i - 1, 0)
+                        n -= 2
+                elif not rcoeff:
+                    del data[i+1]
+                    n -= 1
+                    i0 = i
+                elif not lcoeff:
+                    del data[i]
+                    n -= 1
+                    i0 = max(i-1,0)
+                else:
+                    i0 += 1
+        return data
+
+    def algebra_add_number(self, Algebra, lhs, rhs, inplace):
+        return self.algebra_add(Algebra, lhs, Algebra(NUMBER, rhs), inplace)
+        
+    def algebra_add(self, Algebra, lhs, rhs, inplace):
+        rhead, rdata = rhs.pair
+        if inplace and lhs.is_writable:
+            data = lhs.data
+        else:
+            data = lhs.data[:]
+        if rhead is ADD:
+            data.extend(rdata)
+        elif rhead is TERM_COEFF_DICT or rhead is EXP_COEFF_DICT:
+            rhs = rhs.to(ADD)
+            data.extend(rhs.data)
+        else:
+            data.append(rhs)
+        if Algebra.algebra_options.get('evaluate_addition'):
+            self.combine_add_list(Algebra, data)
+        return add_new(Algebra, data)
+
+    def algebra_mul_number(self, Algebra, lhs, rhs, inplace):
+        ntype = type(rhs)
+        if Algebra.algebra_options.get('is_additive_group_commutative'):
+            if rhs==0:
+                return Algebra(NUMBER, 0)
+            if rhs == 1:
+                return lhs
+            return super(type(self), self).algebra_mul_number(Algebra, lhs, rhs, inplace)
+        else:
+            if Algebra.algebra_options.get('evaluate_addition'):
+                if rhs == 0:
+                    return Algebra(NUMBER, 0)
+                if rhs == 1:
+                    return lhs
+                if ntype in inttypes_set:
+                    if rhs > 0:
+                        # (x+y)*3 = x+y+x+y+x+y
+                        # TODO: optimize (x+y+x)*3 = x+y+x+x+y++x+x+y+x = x+y+2*x+y+2*x+y+x
+                        data = lhs.data * rhs
+                    else:
+                        data = [-op for op in (lhs.data * (-rhs))[::-1]]
+                    self.combine_add_list(Algebra, data)
+                    return add_new(Algebra, data)
+                    
+            return mul_new(Algebra, [lhs, Algebra(NUMBER, rhs)])
+
+    def algebra_mul(self, Algebra, lhs, rhs, inplace):
+        ldata = lhs.data
+        if Algebra.algebra_options.get('is_additive_group_commutative'):
+            return super(type(self), self).algebra_mul(Algebra, lhs, rhs, inplace)
+        else:
+            if Algebra.algebra_options.get('evaluate_addition'):
+                rhead, rdata = rhs.pair
+                if rhead is NUMBER:
+                    return ADD.algebra_mul_number(Algebra, lhs, rdata, inplace)
+                return super(type(self), self).algebra_mul(Algebra, lhs, rhs, inplace)
+            return mul_new(Algebra, [lhs, rhs])
+    
 ADD = AddHead()

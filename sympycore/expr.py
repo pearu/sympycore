@@ -518,3 +518,19 @@ def base_exp_dict_new(Algebra, data):
         return Algebra(BASE_EXP_DICT, data)
     del data[coeff]
     return term_coeff_new(Algebra, (base_exp_dict_new(Algebra, data), coeff.data))
+
+def add_new(Algebra, data):
+    n = len(data)
+    if n==0:
+        return Algebra(NUMBER, 0)
+    if n==1:
+        return data[0]
+    return Algebra(ADD, data)
+
+def mul_new(Algebra, data):
+    n = len(data)
+    if n==0:
+        return Algebra(NUMBER, 1)
+    if n==1:
+        return data[0]
+    return Algebra(MUL, data)

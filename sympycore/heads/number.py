@@ -152,6 +152,8 @@ class NumberHead(AtomicHead):
             data = d.copy()
             dict_add_item(cls, data, cls(NUMBER,1), lhs.data)
             return term_coeff_dict_new(cls, data)
+        elif h is MUL:
+            return cls(ADD, [lhs, rhs])
         raise NotImplementedError(`self, lhs.pair, rhs.pair`)
 
     inplace_add = add
@@ -224,5 +226,63 @@ class NumberHead(AtomicHead):
         if data==1:
             return b-a
         return (b-a)*data
+
+    def algebra_neg(self, Algebra, expr):
+        if Algebra.algebra_options.get('evaluate_addition'):
+            return Algebra(NUMBER, -expr.data)
+        return Algebra(NEG, expr)
+
+    def algebra_add_number(self, Algebra, lhs, rhs, inplace):
+        if Algebra.algebra_options.get('evaluate_addition'):
+            return Algebra(NUMBER, lhs.data + rhs)
+        return add_new(ADD, [lhs, Algebra(NUMBER, rhs)])
+
+    def algebra_add(self, Algebra, lhs, rhs, inplace):
+        ldata = lhs.data
+        rhead, rdata = rhs.pair
+        if Algebra.algebra_options.get('is_additive_group_commutative'):
+            if ldata==0:
+                return rhs
+            if rhead is NUMBER:
+                return Algebra(NUMBER, lhs.data + rdata)
+            if rhead is SYMBOL:
+                return Algebra(TERM_COEFF_DICT, {Algebra(NUMBER, 1): ldata, rhs:1})
+            return super(type(self), self).algebra_add(Algebra, lhs, rhs, inplace)
+        else:
+            if rhead is ADD:
+                data = [lhs] + rdata
+            elif rhead is TERM_COEFF_DICT or rhead is EXP_COEFF_DICT:
+                data = [lhs] + rhs.to(ADD).data
+            else:
+                data = [lhs, rhs]
+            if Algebra.algebra_options.get('evaluate_addition'):
+                ADD.combine_add_list(Algebra, data)
+            return add_new(Algebra, data)
+
+    def algebra_mul_number(self, Algebra, lhs, rhs, inplace):
+        if Algebra.algebra_options.get('is_additive_group_commutative'):
+            return Algebra(NUMBER, lhs.data * rhs)
+        else:
+            if Algebra.algebra_options.get('evaluate_addition'):
+                return Algebra(NUMBER, lhs.data * rhs)
+            return mul_new(Algebra, [lhs, Algebra(NUMBER, rhs)])
+        return super(type(self), self).algebra_mul_number(Algebra, lhs, rhs, inplace)
+    
+    def algebra_mul(self, Algebra, lhs, rhs, inplace):
+        if Algebra.algebra_options.get('is_additive_group_commutative'):
+            return rhs.head.algebra_mul_number(Algebra, rhs, lhs.data, inplace)
+        else:
+            ldata = lhs.data
+            if Algebra.algebra_options.get('evaluate_addition'):
+                if ldata==0:
+                    return lhs
+                if ldata==1:
+                    return rhs
+                rhead, rdata = rhs.pair
+                if rhead is NUMBER:
+                    return Algebra(NUMBER, ldata * rdata)
+                return rhs.head.algebra_mul_number(Algebra, rhs, lhs.data, inplace)
+            return mul_new(Algebra, [lhs, rhs])
+
 
 NUMBER = NumberHead()
