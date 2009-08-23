@@ -1,7 +1,7 @@
 
 __all__ = ['Head', 'UnaryHead', 'BinaryHead', 'NaryHead', 'HEAD']
 
-not_implemented_error_msg = '%s.%s method, report to http://code.google.com/p/sympycore/issues/'
+not_implemented_error_msg = '%s.%s method\n  Please report this issue to http://code.google.com/p/sympycore/issues/ .'
 
 from ..core import Expr, heads, heads_precedence, Pair, MetaCopyMethodsInheritDocs
 
@@ -551,6 +551,13 @@ class Head(object):
         """
         return Algebra(POW, (base, exp))
 
+    def to_ADD(self, Algebra, data, expr):
+        """
+        Convert expr to an expression with ADD head.
+        data is expr.data.
+        """
+        raise NotImplementedError(not_implemented_error_msg % (self, 'to_ADD(Algebra, data, expr)')) #pragma NO COVER
+
     def to_EXP_COEFF_DICT(self, Algebra, data, expr, variables = None):
         """
         Convert expr to an expression with EXP_COEFF_DICT head.
@@ -576,25 +583,29 @@ class Head(object):
         """
         Return the sum of expressions: lhs + rhs, where rhs is a number.
         """
-        raise NotImplementedHeadMethod(self, "algebra_add_number(Algebra, lhs, rhs, inplace)") #pragma NO COVER
+        t = getattr(rhs, 'head', type(rhs).__name__)
+        raise NotImplementedHeadMethod(self, "algebra_add_number(Algebra, lhs, rhs, inplace)<=%s" % (t)) #pragma NO COVER
 
     def algebra_add(self, Algebra, lhs, rhs, inplace):
         """
         Return the sum of expressions: lhs + rhs.
         """
-        raise NotImplementedHeadMethod(self, "algebra_add(Algebra, lhs, rhs, inplace)<=%s" % (rhs.head)) #pragma NO COVER
+        t = getattr(rhs, 'head', type(rhs).__name__)
+        raise NotImplementedHeadMethod(self, "algebra_add(Algebra, lhs, rhs, inplace)<=%s" % (t)) #pragma NO COVER
 
     def algebra_mul_number(self, Algebra, lhs, rhs, inplace):
         """
         Return the product of expressions: lhs * rhs, where rhs is a number.
         """
-        raise NotImplementedHeadMethod(self, "algebra_mul_number(Algebra, lhs, rhs, inplace)<=%s" % (rhs.head)) #pragma NO COVER
+        t = getattr(rhs, 'head', type(rhs).__name__)
+        raise NotImplementedHeadMethod(self, "algebra_mul_number(Algebra, lhs, rhs, inplace)<=%s" % (t)) #pragma NO COVER
 
     def algebra_mul(self, Algebra, lhs, rhs, inplace):
         """
         Return the product of expressions: lhs * rhs.
         """
-        raise NotImplementedHeadMethod(self, "algebra_mul(Algebra, lhs, rhs, inplace)<=%s" % (rhs.head)) #pragma NO COVER
+        t = getattr(rhs, 'head', type(rhs).__name__)
+        raise NotImplementedHeadMethod(self, "algebra_mul(Algebra, lhs, rhs, inplace)<=%s" % (t)) #pragma NO COVER
 
     
 class AtomicHead(Head):

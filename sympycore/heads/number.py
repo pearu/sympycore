@@ -247,6 +247,8 @@ class NumberHead(AtomicHead):
                 return Algebra(NUMBER, lhs.data + rdata)
             if rhead is SYMBOL:
                 return Algebra(TERM_COEFF_DICT, {Algebra(NUMBER, 1): ldata, rhs:1})
+            if rhead is TERM_COEFF or rhead is TERM_COEFF_DICT:
+                return rhead.algebra_add_number(Algebra, rhs, ldata, inplace)
             return super(type(self), self).algebra_add(Algebra, lhs, rhs, inplace)
         else:
             if rhead is ADD:

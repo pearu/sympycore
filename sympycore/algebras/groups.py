@@ -81,7 +81,7 @@ class AdditiveGroup(Group):
         return other.head.algebra_add(cls, other, self, False)
 
     def __iadd__(self, other):
-        return self.__add__(other, True)
+        return self.__add__(other, self.is_writable)
 
     def __sub__(self, other, inplace=False):
         cls = type(self)
@@ -97,7 +97,7 @@ class AdditiveGroup(Group):
         return other + (-self)
 
     def __isub__(self, other):
-        return self.__add__(-other, True)
+        return self.__add__(-other, self.is_writable)
 
     def __mul__(self, other, inplace=False):
         cls = type(self)
@@ -125,6 +125,9 @@ class AdditiveGroup(Group):
             return other.head.algebra_mul(cls, other, self, False)
         raise TypeError('unsupported operand type(s) for *: %r and %r' \
                         % (type(other).__name__, cls.__name__))
+
+    def __imul__(self, other):
+        return self.__mul__(other, self.is_writable)
 
 class AdditiveAbelianGroup(AdditiveGroup):
     """

@@ -169,7 +169,7 @@ def test_operations(operands, expected_results, unary_operations, binary_operati
                 if result.startswith('unsupported'):
                     assert 'unsupported' in results[expr], `results[expr], result, op1, op2, expr`
                 else:
-                    assert result in results[expr], `results[expr], result, op1, op2`
+                    assert result in results[expr], `results[expr], result, op1, op2, expr`
     
 
 

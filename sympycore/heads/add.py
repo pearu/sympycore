@@ -268,19 +268,21 @@ class AddHead(ArithmeticHead):
         
     def algebra_add(self, Algebra, lhs, rhs, inplace):
         rhead, rdata = rhs.pair
-        if inplace and lhs.is_writable:
+        if rhead is TERM_COEFF_DICT or rhead is EXP_COEFF_DICT:
+            rhs = rhs.to(ADD)
+            rhead, rdata = rhs.pair
+        if inplace:
             data = lhs.data
         else:
             data = lhs.data[:]
         if rhead is ADD:
             data.extend(rdata)
-        elif rhead is TERM_COEFF_DICT or rhead is EXP_COEFF_DICT:
-            rhs = rhs.to(ADD)
-            data.extend(rhs.data)
         else:
             data.append(rhs)
         if Algebra.algebra_options.get('evaluate_addition'):
             self.combine_add_list(Algebra, data)
+        if inplace:
+            return add(Algebra, lhs)
         return add_new(Algebra, data)
 
     def algebra_mul_number(self, Algebra, lhs, rhs, inplace):

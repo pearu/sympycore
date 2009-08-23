@@ -404,7 +404,8 @@ class InitModule:
         
         def _import_lowlevel_operations(module):
             for n in dir(expr_module):
-                if 'dict' in n or 'new' in n and not n.startswith('_'):
+                if (('dict' in n or 'new' in n) and not n.startswith('_')) \
+                       or n in ['add', 'mul', 'term_coeff']:
                     setattr(module, n, getattr(expr_module, n))
             module.IntegerList = IntegerList
             

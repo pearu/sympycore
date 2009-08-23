@@ -1090,6 +1090,17 @@ int algebra_term_coeff_dict_add_item(PyTypeObject *Algebra, PyObject *d, PyObjec
   return algebra_dict_add_item(Algebra, d, key, value);
 }
 
+int algebra_term_coeff_dict_add_dict(PyTypeObject *Algebra, PyObject *d1, PyObject *d2)
+{
+  PyObject *key = NULL;
+  PyObject *value = NULL;
+  Py_ssize_t pos = 0;
+  while (PyDict_Next(d2, &pos, &key, &value))
+    if (algebra_term_coeff_dict_add_item(Algebra, d1, key, value)==-1)
+      return -1;
+  return 0;
+}
+
 int algebra_exp_coeff_dict_mul_dict(PyTypeObject *Algebra, PyObject *d, PyObject *d1, PyObject *d2)
 {
   PyObject *key1 = NULL;
@@ -1409,6 +1420,21 @@ PyObject* algebra_term_coeff_new(PyTypeObject* Algebra, PyObject* data)
   return Expr_new_from_head_data(Algebra, TERM_COEFF, data);
 }
 
+PyObject* algebra_term_coeff_dict(PyTypeObject* Algebra, PyObject* expr)
+{
+  PyObject* data = EXPR_GET_DATA(expr);
+  switch (PyDict_Size(data))
+    {
+    case 0:
+      return Expr_new_from_head_data(Algebra, NUMBER, zero);
+    case 1:
+      return algebra_term_coeff_new(Algebra, dict_get_item(data));
+    default:
+      Py_INCREF(expr);
+      return expr;
+    }
+}
+
 PyObject* algebra_term_coeff_dict_new(PyTypeObject* Algebra, PyObject* data)
 {
   switch (PyDict_Size(data))
@@ -1476,6 +1502,25 @@ PyObject* algebra_add_new(PyTypeObject* Algebra, PyObject* data)
     }
 }
 
+PyObject* algebra_add(PyTypeObject* Algebra, PyObject* expr)
+{
+  PyObject* data = EXPR_GET_DATA(expr);
+  PyObject* obj = NULL;
+  switch (PyList_Size(data))
+    {
+    case 0:
+      return Expr_new_from_head_data(Algebra, NUMBER, zero);
+    case 1:
+      obj = PyList_GetItem(data, 0);
+      Py_INCREF(obj);
+      return obj;
+    default:
+      Py_INCREF(expr);
+      return expr;
+    }
+}
+
+
 PyObject* algebra_mul_new(PyTypeObject* Algebra, PyObject* data)
 {
   PyObject* obj = NULL;
@@ -1494,9 +1539,11 @@ PyObject* algebra_mul_new(PyTypeObject* Algebra, PyObject* data)
 
 ALGEBRA_DATA_FUNC_WRAPPER_2(algebra_term_coeff_new, "term_coeff_new");
 ALGEBRA_DATA_FUNC_WRAPPER_2(algebra_term_coeff_dict_new, "term_coeff_dict_new");
+ALGEBRA_DATA_FUNC_WRAPPER_2(algebra_term_coeff_dict, "term_coeff_dict");
 ALGEBRA_DATA_FUNC_WRAPPER_2(algebra_pow_new, "pow_new");
 ALGEBRA_DATA_FUNC_WRAPPER_2(algebra_base_exp_dict_new, "base_exp_dict_new");
 ALGEBRA_DATA_FUNC_WRAPPER_2(algebra_add_new, "add_new");
+ALGEBRA_DATA_FUNC_WRAPPER_2(algebra_add, "add");
 ALGEBRA_DATA_FUNC_WRAPPER_2(algebra_mul_new, "mul_new");
 
 ALGEBRA_DICT_PROC_WRAPPER_4(algebra_dict_mul_item, "dict_mul_item");
@@ -1504,6 +1551,7 @@ ALGEBRA_DICT_PROC_WRAPPER_4(algebra_base_exp_dict_add_item, "base_exp_dict_add_i
 ALGEBRA_DICT_PROC_WRAPPER_4(algebra_base_exp_dict_sub_item, "base_exp_dict_sub_item");
 ALGEBRA_DICT_PROC_WRAPPER_3(algebra_base_exp_dict_add_dict, "base_exp_dict_add_dict");
 ALGEBRA_DICT_PROC_WRAPPER_3(algebra_base_exp_dict_sub_dict, "base_exp_dict_sub_dict");
+ALGEBRA_DICT_PROC_WRAPPER_3(algebra_term_coeff_dict_add_dict, "term_coeff_dict_add_dict");
 
 ALGEBRA_DICT_PROC_WRAPPER_4(algebra_dict_add_item, "dict_add_item");
 ALGEBRA_DICT_PROC_WRAPPER_4(algebra_dict_subtract_item, "dict_sub_item");
@@ -1644,12 +1692,16 @@ static PyMethodDef module_methods[] = {
    "term_coeff_new(Algebra, data) - create Algebra instance from TERM_COEFF data"},
   {"term_coeff_dict_new",  func_algebra_term_coeff_dict_new, METH_VARARGS, 
    "term_coeff_dict_new(Algebra, data) - create Algebra instance from TERM_COEFF_DICT data"},
+  {"term_coeff_dict",  func_algebra_term_coeff_dict, METH_VARARGS, 
+   "term_coeff_dict(Algebra, expr) - return canonicalized Algebra instance from TERM_COEFF_DICT expression"},
   {"pow_new",  func_algebra_pow_new, METH_VARARGS, 
    "pow_new(Algebra, data) - create Algebra instance from POW data"},
   {"base_exp_dict_new",  func_algebra_base_exp_dict_new, METH_VARARGS, 
    "base_exp_dict_new(Algebra, data) - create Algebra instance from BASE_EXP_DICT data"},
   {"add_new",  func_algebra_add_new, METH_VARARGS, 
    "add_new(Algebra, data) - create Algebra instance from ADD data"},
+  {"add",  func_algebra_add, METH_VARARGS, 
+   "add(Algebra, expr) - return canonicalized Algebra instance from ADD expression"},
   {"mul_new",  func_algebra_mul_new, METH_VARARGS, 
    "mul_new(Algebra, data) - create Algebra instance from MUL data"},
 
@@ -1701,6 +1753,8 @@ static PyMethodDef module_methods[] = {
    "term_coeff_dict_mul_item(dict, key, value) - multiply dict key value with value"},
   {"term_coeff_dict_mul_dict",  func_algebra_dict_mul_dict, METH_VARARGS,
    "term_coeff_dict_mul_dict(Algebra, dict, dict1, dict2) - multiply dict1 and dict2 items and add them to dict"},
+  {"term_coeff_dict_add_dict",  func_algebra_term_coeff_dict_add_dict, METH_VARARGS,
+   "term_coeff_dict_add_dict(Algebra, dict1, dict2) - add dict2 items to dict1"},
   {NULL}  /* Sentinel */
 };
 

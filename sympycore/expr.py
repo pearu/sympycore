@@ -420,6 +420,10 @@ def term_coeff_dict_add_item(Algebra, d, key, value):
         assert khead not in [TERM_COEFF_DICT],`Algebra, key.pair`
         dict_add_item(Algebra, d, key, value)
 
+def term_coeff_dict_add_dict(Algebra, dict1, dict2):
+    for key, value in dict2.iteritems():
+        term_coeff_dict_add_item(Algebra, dict1, key, value)
+
 def dict_get_item(d):
     return d.items()[0]
 
@@ -490,9 +494,28 @@ def term_coeff_new(Algebra, data):
     return Algebra(TERM_COEFF, data)
 
 def term_coeff_dict_new(Algebra, data):
+    """
+    Return canonicalized TERM_COEFF_DICT expression from data.
+    """
     n = len(data)
     if n>1:
         return Algebra(TERM_COEFF_DICT, data)
+    if n==0:
+        return Algebra(NUMBER, 0)
+    return term_coeff_new(Algebra, dict_get_item(data))
+
+def term_coeff_dict(Algebra, expr):
+    """
+    Return canonicalized TERM_COEFF_DICT expression from existing
+    expression:
+    
+      * if expr has no data, return 0
+      * if expr data has one item, return TERM_COEFF expression
+    """
+    data = expr.data
+    n = len(data)
+    if n>1:
+        return expr
     if n==0:
         return Algebra(NUMBER, 0)
     return term_coeff_new(Algebra, dict_get_item(data))
@@ -526,6 +549,15 @@ def add_new(Algebra, data):
     if n==1:
         return data[0]
     return Algebra(ADD, data)
+
+def add(Algebra, expr):
+    data = expr.data
+    n = len(data)
+    if n==0:
+        return Algebra(NUMBER, 0)
+    if n==1:
+        return data[0]
+    return expr
 
 def mul_new(Algebra, data):
     n = len(data)

@@ -17,6 +17,9 @@ class TermCoeffDictHead(ArithmeticHead):
 
     def is_data_ok(self, cls, data):
         if type(data) is dict:
+            n = len(data)
+            #if n<=1:
+            #    return 'data dictonary should have more than 1 item'
             for item in data.iteritems():
                 msg = TERM_COEFF.is_data_ok(cls, item)
                 if msg:
@@ -39,6 +42,9 @@ class TermCoeffDictHead(ArithmeticHead):
         for term, coeff in data.iteritems():
             r += term * coeff
         return r
+
+    def to_ADD(self, Algebra, data, expr):
+        return add_new(Algebra, [term_coeff_new(Algebra, term_coeff) for term_coeff in data.iteritems()])
 
     def to_EXP_COEFF_DICT(self, cls, data, expr, variables=None):
         if variables is None:
@@ -104,7 +110,7 @@ class TermCoeffDictHead(ArithmeticHead):
             dict_add_item(cls, data, rhs, 1)
 
         if inplace:
-            return
+            return lhs
 
         return term_coeff_dict_new(cls, data)
 
@@ -306,5 +312,73 @@ class TermCoeffDictHead(ArithmeticHead):
         for term, coeff in data.iteritems():
             result += term.head.integrate_definite(cls, term.data, term, x, a, b) * coeff
         return result
+
+    def algebra_neg(self, Algebra, expr):
+        if Algebra.algebra_options.get('evaluate_addition'):
+            d = expr.data.copy()
+            for key in d:
+                d[key] = -d[key]
+            return Algebra(TERM_COEFF_DICT, d)
+        return Algebra(NEG, expr)
+
+    def algebra_add_number(self, Algebra, lhs, rhs, inplace):
+        if not rhs:
+            return lhs
+        if inplace:
+            term_coeff_dict_add_item(Algebra, lhs.data, Algebra(NUMBER, 1), rhs)
+            return term_coeff_dict(Algebra, lhs)
+        d = lhs.data.copy()
+        term_coeff_dict_add_item(Algebra, d, Algebra(NUMBER, 1), rhs)
+        return term_coeff_dict_new(Algebra, d)
+
+    def algebra_add(self, Algebra, lhs, rhs, inplace):
+        rhead, rdata = rhs.pair
+        if Algebra.algebra_options.get('evaluate_addition'):
+            ldata = lhs.data
+            if rhead is NUMBER:
+                if not rdata:
+                    return lhs
+                rterm, rcoeff = Algebra(NUMBER, 1), rdata
+            elif rhead is SYMBOL:
+                rterm, rcoeff = rhs, 1
+            elif rhead is TERM_COEFF:
+                rterm, rcoeff = rdata
+            elif rhead is TERM_COEFF_DICT:
+                if inplace:
+                    term_coeff_dict_add_dict(Algebra, ldata, rdata)
+                    return term_coeff_dict(Algebra, lhs)
+                d = ldata.copy()
+                term_coeff_dict_add_dict(Algebra, d, rdata)
+                return term_coeff_dict_new(Algebra, d)
+            else:
+                return super(type(self), self).algebra_add(Algebra, lhs, rhs, inplace)
+
+            if inplace:
+                term_coeff_dict_add_item(Algebra, ldata, rterm, rcoeff)
+                return term_coeff_dict(Algebra, lhs)
+            d = ldata.copy()
+            term_coeff_dict_add_item(Algebra, d, rterm, rcoeff)
+            return term_coeff_dict_new(Algebra, d)
+        else:
+            return TERM_COEFF_DICT.to_ADD(Algebra, lhs.data, lhs) + rhs
+        return super(type(self), self).algebra_add(Algebra, lhs, rhs, inplace)
+
+    def algebra_mul_number(self, Algebra, lhs, rhs, inplace):
+        if not rhs:
+            return Algebra(NUMBER, 0)
+        if rhs==1:
+            return lhs
+        if inplace:
+            term_coeff_dict_mul_value(Algebra, lhs.data, rhs)
+            return lhs
+        d = lhs.data.copy()
+        term_coeff_dict_mul_value(Algebra, d, rhs)
+        return Algebra(TERM_COEFF_DICT, d)
+
+    def algebra_mul(self, Algebra, lhs, rhs, inplace):
+        rhead, rdata = rhs.pair
+        if rhead is NUMBER:
+            return self.algebra_mul_number(Algebra, lhs, rdata, inplace)
+        return super(type(self), self).algebra_mul(Algebra, lhs, rhs, inplace)
 
 TERM_COEFF_DICT = TermCoeffDictHead()
