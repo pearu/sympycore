@@ -257,6 +257,13 @@ class TermCoeff(ArithmeticHead):
         term, coeff = data
         return term.head.integrate_definite(cls, term.data, term, x, a, b) * coeff
 
+    def to_TERM_COEFF_DICT(self, Algebra, data, expr):
+        term, coeff = data
+        return term.head.to_TERM_COEFF_DICT(Algebra, term.data, term) * coeff
+
+    def algebra_pos(self, Algebra, expr):
+        return expr
+
     def algebra_neg(self, Algebra, expr):
         if Algebra.algebra_options.get('evaluate_addition'):
             term, coeff = expr.data
@@ -271,6 +278,9 @@ class TermCoeff(ArithmeticHead):
         if Algebra.algebra_options.get('is_additive_group_commutative'):
             lterm, lcoeff = lhs.data
             if Algebra.algebra_options.get('evaluate_addition'):
+                if rhead is ADD:
+                    rhs = rhead.to_TERM_COEFF_DICT(Algebra, rdata, rhs)
+                    rhead, rdata = rhs.pair
                 if rhead is NUMBER:
                     if rdata==0:
                         return lhs
@@ -309,31 +319,20 @@ class TermCoeff(ArithmeticHead):
             return add_new(Algebra, data)
 
     def algebra_mul_number(self, Algebra, lhs, rhs, inplace):
-        if Algebra.algebra_options.get('is_additive_group_commutative'):
+        if Algebra.algebra_options.get('evaluate_addition'):
+            if not rhs:
+                return Algebra(NUMBER, 0)
             term, coeff = lhs.data
             return term_coeff_new(Algebra, (term, coeff * rhs))
-        else:
-            if Algebra.algebra_options.get('evaluate_addition'):
-                if not rhs:
-                    return Algebra(NUMBER, 0)
-                term, coeff = lhs.data
-                return term_coeff_new(Algebra, (term, coeff * rhs))
-            return mul_new(Algebra, [lhs, Algebra(NUMBER, rhs)])
+        return mul_new(Algebra, [lhs, Algebra(NUMBER, rhs)])
 
     def algebra_mul(self, Algebra, lhs, rhs, inplace):
-        term, coeff = lhs.data
-        if Algebra.algebra_options.get('is_additive_group_commutative'):
+        if Algebra.algebra_options.get('evaluate_addition'):
+            term, coeff = lhs.data
             rhead, rdata = rhs.pair
             if rhead is NUMBER:
                 return term_coeff_new(Algebra, (term, coeff*rdata))
             return super(type(self), self).algebra_mul(Algebra, lhs, rhs, inplace)
-        else:
-            if Algebra.algebra_options.get('evaluate_addition'):
-                rhead, rdata = rhs.pair                
-                if rhead is NUMBER:
-                    return term_coeff_new(Algebra, (term, coeff*rdata))
-                return super(type(self), self).algebra_mul(Algebra, lhs, rhs, inplace)
-            return mul_new(Algebra, [lhs, rhs])
-
+        return mul_new(Algebra, [lhs, rhs])
 
 TERM_COEFF = TermCoeff()

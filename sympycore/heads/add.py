@@ -212,8 +212,22 @@ class AddHead(ArithmeticHead):
             s += m
         return s
 
+    def to_TERM_COEFF_DICT(self, Algebra, data, expr):
+        s = Algebra(NUMBER, 0)
+        for op in data:
+            s += op.head.to_TERM_COEFF_DICT(Algebra, op.data, op)
+        return s
+
+    def algebra_pos(self, Algebra, expr):
+        if Algebra.algebra_options.get('evaluate_addition'):
+            if Algebra.algebra_options.get('is_additive_group_commutative'):
+                return +ADD.to_TERM_COEFF_DICT(Algebra, expr.data, expr)
+        return expr
+
     def algebra_neg(self, Algebra, expr):
         if Algebra.algebra_options.get('evaluate_addition'):
+            if Algebra.algebra_options.get('is_additive_group_commutative'):
+                return -ADD.to_TERM_COEFF_DICT(Algebra, expr.data, expr)
             return add_new(Algebra, [-op for op in expr.data[::-1]])
         return Algebra(NEG, expr)
 
@@ -288,11 +302,9 @@ class AddHead(ArithmeticHead):
     def algebra_mul_number(self, Algebra, lhs, rhs, inplace):
         ntype = type(rhs)
         if Algebra.algebra_options.get('is_additive_group_commutative'):
-            if rhs==0:
+            if not rhs:
                 return Algebra(NUMBER, 0)
-            if rhs == 1:
-                return lhs
-            return super(type(self), self).algebra_mul_number(Algebra, lhs, rhs, inplace)
+            return ADD.to_TERM_COEFF_DICT(Algebra, lhs.data, lhs) * rhs
         else:
             if Algebra.algebra_options.get('evaluate_addition'):
                 if rhs == 0:
@@ -314,7 +326,7 @@ class AddHead(ArithmeticHead):
     def algebra_mul(self, Algebra, lhs, rhs, inplace):
         ldata = lhs.data
         if Algebra.algebra_options.get('is_additive_group_commutative'):
-            return super(type(self), self).algebra_mul(Algebra, lhs, rhs, inplace)
+            return ADD.to_TERM_COEFF_DICT(Algebra, lhs.data, lhs) * rhs
         else:
             if Algebra.algebra_options.get('evaluate_addition'):
                 rhead, rdata = rhs.pair

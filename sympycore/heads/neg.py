@@ -71,6 +71,12 @@ class NegHead(ArithmeticHead):
         r = self.new(cls, operand1)
         return func(cls, r.head, r.data, r)
 
+    def to_TERM_COEFF_DICT(self, Algebra, data, expr):
+        return -data.head.to_TERM_COEFF_DICT(Algebra, data.data, data)
+
+    def algebra_pos(self, Algebra, expr):
+        return expr
+
     def algebra_neg(self, Algebra, expr):
         if Algebra.algebra_options.get('evaluate_addition'):
             return expr.data

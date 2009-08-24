@@ -42,8 +42,8 @@ class MulHead(ArithmeticHead, Head):
         return cls(MUL, operands)
 
     def reevaluate(self, cls, operands):
-        r = cls(NUMBER, 1)
-        for op in operands:
+        r = operands[0]
+        for op in operands[1:]:
             r *= op
         return r
 
@@ -200,5 +200,26 @@ class MulHead(ArithmeticHead, Head):
         for operand in operands:
             operand.head.scan(proc, cls, operand.data, target)
         proc(cls, self, operands, target)
+
+    def algebra_neg(self, Algebra, expr):
+        if Algebra.algebra_options.get('evaluate_addition'):
+            return super(type(self), self).algebra_neg(Algebra, expr)
+        return Algebra(NEG, expr)
+
+    def algebra_add(self, Algebra, lhs, rhs, inplace):
+        if Algebra.algebra_options.get('evaluate_addition'):
+            return super(type(self), self).algebra_add(Algebra, lhs, rhs, inplace)
+        return Algebra(ADD, [lhs, rhs])
+
+    def algebra_mul(self, Algebra, lhs, rhs, inplace):
+        if Algebra.algebra_options.get('evaluate_addition'):
+            return super(type(self), self).algebra_mul(Algebra, lhs, rhs, inplace)
+        rhead, rdata = rhs.pair
+        if rhead is BASE_EXP_DICT:
+            rhs = rhs.to(MUL)
+            rhead, rdata = rhs.pair
+        if rhead is MUL:
+            return Algebra(MUL, lhs.data + rdata)
+        return Algebra(MUL, lhs.data + [rhs])
 
 MUL = MulHead()

@@ -573,6 +573,12 @@ class Head(object):
         """
         raise NotImplementedError(not_implemented_error_msg % (self, 'to_TERM_COEFF_DICT(Algebra, data, expr)')) #pragma NO COVER
 
+    def algebra_pos(self, Algebra, expr):
+        """
+        Return the position of an expression: +expr
+        """
+        raise NotImplementedHeadMethod(self, "algebra_pos(Algebra, expr)") #pragma NO COVER
+
     def algebra_neg(self, Algebra, expr):
         """
         Return the negation of an expression: -expr

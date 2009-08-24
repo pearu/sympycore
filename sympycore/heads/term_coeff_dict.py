@@ -313,6 +313,9 @@ class TermCoeffDictHead(ArithmeticHead):
             result += term.head.integrate_definite(cls, term.data, term, x, a, b) * coeff
         return result
 
+    def algebra_pos(self, Algebra, expr):
+        return expr
+
     def algebra_neg(self, Algebra, expr):
         if Algebra.algebra_options.get('evaluate_addition'):
             d = expr.data.copy()
@@ -335,6 +338,9 @@ class TermCoeffDictHead(ArithmeticHead):
         rhead, rdata = rhs.pair
         if Algebra.algebra_options.get('evaluate_addition'):
             ldata = lhs.data
+            if rhead is ADD or rhead is EXP_COEFF_DICT:
+                rhs = rhead.to_TERM_COEFF_DICT(Algebra, rdata, rhs)
+                rhead, rdata = rhs.pair
             if rhead is NUMBER:
                 if not rdata:
                     return lhs
@@ -364,16 +370,18 @@ class TermCoeffDictHead(ArithmeticHead):
         return super(type(self), self).algebra_add(Algebra, lhs, rhs, inplace)
 
     def algebra_mul_number(self, Algebra, lhs, rhs, inplace):
-        if not rhs:
-            return Algebra(NUMBER, 0)
-        if rhs==1:
-            return lhs
-        if inplace:
-            term_coeff_dict_mul_value(Algebra, lhs.data, rhs)
-            return lhs
-        d = lhs.data.copy()
-        term_coeff_dict_mul_value(Algebra, d, rhs)
-        return Algebra(TERM_COEFF_DICT, d)
+        if Algebra.algebra_options.get('evaluate_addition'):
+            if not rhs:
+                return Algebra(NUMBER, 0)
+            if rhs==1:
+                return lhs
+            if inplace:
+                term_coeff_dict_mul_value(Algebra, lhs.data, rhs)
+                return lhs
+            d = lhs.data.copy()
+            term_coeff_dict_mul_value(Algebra, d, rhs)
+            return Algebra(TERM_COEFF_DICT, d)
+        return Algebra(MUL, [lhs, Algebra(NUMBER, rhs)])
 
     def algebra_mul(self, Algebra, lhs, rhs, inplace):
         rhead, rdata = rhs.pair

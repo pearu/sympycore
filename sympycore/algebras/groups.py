@@ -59,7 +59,7 @@ class AdditiveGroup(Group):
     algebra_options.update(is_additive_group_commutative = False)
 
     def __pos__(self):
-        return self
+        return self.head.algebra_pos(type(self), self)
 
     def __neg__(self):
         return self.head.algebra_neg(type(self), self)
@@ -111,13 +111,10 @@ class AdditiveGroup(Group):
         if self.head is NUMBER or other.head is NUMBER:
             return self.head.algebra_mul(cls, self, other, inplace)
         raise TypeError('unsupported operand type(s) for *: %r and %r' \
-                        % (cls.__name__, type(other).__name__))
+                        % (self.pair, other.pair))
 
     def __rmul__(self, other):
         cls = type(self)
-        tother = type(other)
-        if tother in numbertypes_set:
-            return self.head.algebra_mul_number(cls, self, other, False)
         other = cls.convert(other, typeerror=False)
         if other is NotImplemented:
             return NotImplemented
