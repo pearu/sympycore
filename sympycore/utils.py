@@ -122,6 +122,21 @@ class MATRIX(HEAD):
         else:
             raise NotImplementedError(`storage`) #pragma NO COVER
 
+def totree(obj, tab=''):
+    from .core import Expr
+    if isinstance(obj, Expr):
+        head, data = obj.pair
+        s = '%s%s head:%r\n' % (tab, type(obj).__name__, head)
+        s += '%s' % (totree(data, tab+'  '))
+        return s
+    elif isinstance(obj, dict):
+        return '%s%s:\n%s' % (tab, type(obj).__name__, '\n'.join([totree(item, tab+'  ') for item in obj.iteritems()]))
+    elif isinstance(obj, (list, tuple)):
+        return '%s%s:\n%s' % (tab, type(obj).__name__, '\n'.join([totree(item, tab+'  ') for item in obj]))
+    else:
+        return '%s%s:%r' % (tab, type(obj).__name__, obj)
+
+
 def test_operations(operands, expected_results, unary_operations, binary_operations):
     from sympycore import Expr
 
@@ -140,7 +155,8 @@ def test_operations(operands, expected_results, unary_operations, binary_operati
                 expr = '%s(%s)' % (op, op1) 
 
                 try:
-                    result = str(eval('%s(op1)' % (op)))
+                    result_obj = eval('%s(op1)' % (op), dict(op1=op1))
+                    result = str(result_obj)
                 except Exception, msg:
                     print  expr,'failed with %s' % (msg)
                     raise
@@ -148,29 +164,47 @@ def test_operations(operands, expected_results, unary_operations, binary_operati
                 if expr not in results:
                     print '%s:%s' % (expr, result)
                     continue
-                assert result in results[expr], `results[expr], result`
+                try:
+                    assert result in results[expr], `results[expr], result`
+                except AssertionError:
+                    print 
+                    print 'op1: %s' % (op1)
+                    print totree(op1, '  ')
+                    print '%r result: %s' % (op, result_obj)
+                    print totree(result_obj, '  ')
+                    raise
         for op2 in operands:
             if not (isinstance(op1, Expr) or isinstance(op2, Expr)):
                 continue
             for op in binary_operations:
                 expr = '(%s)%s(%s)' % (op1, op, op2)
 
+                result_obj = None
                 try:
-                    result = str(eval('(op1)%s(op2)' % op))
+                    result_obj = eval('(op1)%s(op2)' % op, dict(op1=op1, op2=op2))
+                    result = str(result_obj)
                 except Exception, msg:
                     result = str(msg)
                     if not result.startswith('unsupported'):
                         print  expr,`op1,op,op2`,'failed with %s' % (msg)
                         raise
-                
                 if expr not in results:
                     print '%s:%s' % (expr, result)
                     continue
                 if result.startswith('unsupported'):
                     assert 'unsupported' in results[expr], `results[expr], result, op1, op2, expr`
                 else:
-                    assert result in results[expr], `results[expr], result, op1, op2, expr`
-    
+                    try:
+                        assert result in results[expr], `results[expr], result`
+                    except AssertionError:
+                        print
+                        print 'op1: %s' % (op1)
+                        print totree(op1, '  ')
+                        print 'op2: %s' % (op2)
+                        print totree(op2, '  ')
+                        print '%r result: %s' % (op, result_obj)
+                        print totree(result_obj, '  ')
+                        raise
 
 
 from heads import *

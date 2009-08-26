@@ -96,6 +96,12 @@ class SymbolHead(AtomicHead):
     def to_TERM_COEFF_DICT(self, Algebra, data, expr):
         return expr
 
+    def to_MUL(self, Algebra, data, expr):
+        return expr
+
+    def to_ADD(self, cls, data, expr):
+        return expr
+
     def algebra_pos(self, Algebra, expr):
         return expr
 
@@ -118,7 +124,7 @@ class SymbolHead(AtomicHead):
         if Algebra.algebra_options.get('is_additive_group_commutative'):
             ldata = lhs.data
             if Algebra.algebra_options.get('evaluate_addition'):
-                if rhead is ADD or rhead is EXP_COEFF_DICT or rhead is MUL:
+                if rhead is ADD or rhead is EXP_COEFF_DICT or rhead is MUL or rhead is NEG:
                     rhead, rdata = rhs.to(TERM_COEFF_DICT).pair
                 if rhead is SYMBOL:
                     if ldata == rdata:

@@ -43,6 +43,17 @@ class TermCoeff(ArithmeticHead):
     def to_EXP_COEFF_DICT(self, cls, (term, coeff), expr, variables=None):
         return term.head.to_EXP_COEFF_DICT(cls, term.data, term, variables) * coeff
 
+    def to_MUL(self, Algebra, (term, coeff), expr):
+        term = term.head.to_MUL(Algebra, term.data, term)
+        if term.head is MUL:
+            data = [Algebra(NUMBER, coeff)] + term.data
+        else:
+            data = [Algebra(NUMBER, coeff), term]
+        return Algebra(MUL, data)
+
+    def to_ADD(self, Algebra, (term, coeff), expr):
+        return coeff * term.head.to_ADD(Algebra, term.data, term)
+
     def data_to_str_and_precedence(self, cls, (term, coeff)):
         neg_p = heads_precedence.NEG
         mul_p = heads_precedence.MUL
@@ -278,7 +289,7 @@ class TermCoeff(ArithmeticHead):
         if Algebra.algebra_options.get('is_additive_group_commutative'):
             lterm, lcoeff = lhs.data
             if Algebra.algebra_options.get('evaluate_addition'):
-                if rhead is ADD:
+                if rhead is ADD or rhead is MUL or rhead is NEG:
                     rhs = rhead.to_TERM_COEFF_DICT(Algebra, rdata, rhs)
                     rhead, rdata = rhs.pair
                 if rhead is NUMBER:

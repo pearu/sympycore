@@ -74,6 +74,9 @@ class NegHead(ArithmeticHead):
     def to_TERM_COEFF_DICT(self, Algebra, data, expr):
         return -data.head.to_TERM_COEFF_DICT(Algebra, data.data, data)
 
+    def to_ADD(self, Algebra, data, expr):
+        return -data.head.to_ADD(Algebra, data.data, data)
+
     def algebra_pos(self, Algebra, expr):
         return expr
 

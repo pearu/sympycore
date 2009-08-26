@@ -218,6 +218,9 @@ class AddHead(ArithmeticHead):
             s += op.head.to_TERM_COEFF_DICT(Algebra, op.data, op)
         return s
 
+    def to_ADD(self, Algebra, data, expr):
+        return expr
+
     def algebra_pos(self, Algebra, expr):
         if Algebra.algebra_options.get('evaluate_addition'):
             if Algebra.algebra_options.get('is_additive_group_commutative'):
@@ -242,7 +245,7 @@ class AddHead(ArithmeticHead):
             for op in data:
                 term, coeff = op.head.term_coeff(Algebra, op)
                 term_coeff_dict_add_item(Algebra, d, term, coeff)
-            data[:] = [term_coeff_new(Algebra, (term, coeff)) for term, coeff in d.iteritems()]
+            data[:] = [term_coeff_new(Algebra, term_coeff) for term_coeff in d.iteritems()]
         else:
             n = len(data)
             i0 = 0
@@ -282,7 +285,7 @@ class AddHead(ArithmeticHead):
         
     def algebra_add(self, Algebra, lhs, rhs, inplace):
         rhead, rdata = rhs.pair
-        if rhead is TERM_COEFF_DICT or rhead is EXP_COEFF_DICT:
+        if rhead is TERM_COEFF_DICT or rhead is EXP_COEFF_DICT or rhead is MUL or rhead is NEG:
             rhs = rhs.to(ADD)
             rhead, rdata = rhs.pair
         if inplace:

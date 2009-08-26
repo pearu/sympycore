@@ -969,13 +969,20 @@ int algebra_dict_add_item(PyTypeObject *Algebra, PyObject *d, PyObject *key, PyO
 {
   PyObject* obj = PyDict_GetItem(d, key);
   PyObject* sum = NULL;
-  if (obj==NULL) 
-    return PyDict_SetItem(d, key, value);
-  if ((sum = PyNumber_Add(obj, value))==NULL)
-    return -1;
-  if (PyInt_CheckExact(sum) ? PyInt_AS_LONG(sum) : PyObject_IsTrue(sum)) 
-    return PyDict_SetItem(d, key, sum);
-  return PyDict_DelItem(d, key);
+  if (obj==NULL)
+    {
+      if (PyInt_CheckExact(value) ? PyInt_AS_LONG(value) : PyObject_IsTrue(value)) 
+	return PyDict_SetItem(d, key, value);
+      return 0;
+    }
+  else
+    {
+      if ((sum = PyNumber_Add(obj, value))==NULL)
+	return -1;
+      if (PyInt_CheckExact(sum) ? PyInt_AS_LONG(sum) : PyObject_IsTrue(sum)) 
+	return PyDict_SetItem(d, key, sum);
+      return PyDict_DelItem(d, key);
+    }
 }
 
 int algebra_dict_subtract_item(PyTypeObject *Algebra, PyObject *d, PyObject *key, PyObject *value)

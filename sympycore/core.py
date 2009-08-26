@@ -340,10 +340,12 @@ class UnevaluatedAddition:
     def __enter__(self):
         for cls in self.classes:
             cls.algebra_options['evaluate_addition'] = False
+            cls.algebra_options['evaluate_multiplication'] = False
 
     def __exit__(self, type, value, tb):
         for cls in self.classes:
             cls.algebra_options['evaluate_addition'] = True
+            cls.algebra_options['evaluate_multiplication'] = True
         return tb is None
 
 class InitModule:

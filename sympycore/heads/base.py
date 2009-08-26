@@ -558,6 +558,13 @@ class Head(object):
         """
         raise NotImplementedError(not_implemented_error_msg % (self, 'to_ADD(Algebra, data, expr)')) #pragma NO COVER
 
+    def to_MUL(self, Algebra, data, expr):
+        """
+        Convert expr to an expression with MUL head.
+        data is expr.data.
+        """
+        raise NotImplementedError(not_implemented_error_msg % (self, 'to_MUL(Algebra, data, expr)')) #pragma NO COVER
+
     def to_EXP_COEFF_DICT(self, Algebra, data, expr, variables = None):
         """
         Convert expr to an expression with EXP_COEFF_DICT head.

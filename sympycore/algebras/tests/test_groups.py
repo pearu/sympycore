@@ -47,7 +47,7 @@ def test_additive_abelian_group_operations():
     unary_operations = ['+', '-']
     binary_operations = ['+','-', '*']
     with core.UnevaluatedAddition(Group):
-        operands.append(x-x)
+        operands.extend([x-x, x+x, 2*x, 2, Group(2), 0, x-z])
 
     utils.test_operations(operands, expected_results_additive_abelian_group+expected_results_numbers, unary_operations, binary_operations)    
 
@@ -168,7 +168,7 @@ expected_results_additive_abelian_group_unevaluated = '''
 (y + x)-(y):y + x + -y
 (y + x)*(y):unsupported
 (y + x)+(2*x):y + x + 2*x
-(y + x)-(2*x):y + x + -(2*x)
+(y + x)-(2*x):y + x + -(2*x); y + x + -(x*2)
 (y + x)*(2*x):unsupported
 (y + x)+(y + x):y + x + y + x
 (y + x)-(y + x):y + x + -(y + x)
@@ -624,6 +624,168 @@ expected_results_additive_abelian_group = '''
 (x - x)+(x - x):0
 (x - x)-(x - x):0
 (x - x)*(x - x):unsupported
+
+(x)+(x + x):3*x
+(x)-(x + x):-x
+(x)*(x + x):unsupported
+(y)+(x + x):y + 2*x
+(y)-(x + x):y - 2*x
+(y)*(x + x):unsupported
+(-z)+(x + x):2*x - z
+(-z)-(x + x):-2*x - z
+(-z)*(x + x):unsupported
+(y + x)+(x + x):y + 3*x
+(y + x)-(x + x):y - x
+(y + x)*(x + x):unsupported
+(2*x)+(x + x):4*x
+(2*x)-(x + x):0
+(2*x)*(x + x):unsupported
+(0)+(x + x):2*x
+(0)-(x + x):-2*x
+(0)*(x + x):0
+(2)+(x + x):2*x + 2
+(2)-(x + x):-2*x + 2
+(2)*(x + x):4*x
+(1)+(x + x):2*x + 1
+(1)-(x + x):-2*x + 1
+
+(1)*(x + x):2*x
+(-x + z)+(x + x):x + z
+(-x + z)-(x + x):-3*x + z
+(-x + z)*(x + x):unsupported
+(x - x)+(x + x):2*x
+(x - x)-(x + x):-2*x
+(x - x)*(x + x):unsupported
++(x + x):2*x
+-(x + x):-2*x
+(x + x)+(x):3*x
+(x + x)-(x):x
+(x + x)*(x):unsupported
+(x + x)+(y):y + 2*x
+(x + x)-(y):-y + 2*x
+(x + x)*(y):unsupported
+(x + x)+(-z):2*x - z
+(x + x)-(-z):2*x + z
+(x + x)*(-z):unsupported
+(x + x)+(y + x):y + 3*x
+(x + x)-(y + x):-y + x
+(x + x)*(y + x):unsupported
+(x + x)+(2*x):4*x
+(x + x)-(2*x):0
+(x + x)*(2*x):unsupported
+
+(x + x)+(0):2*x
+(x + x)-(0):2*x
+(x + x)*(0):0
+(x + x)+(2):2*x + 2
+(x + x)-(2):2*x - 2
+(x + x)*(2):4*x
+(x + x)+(1):2*x + 1
+(x + x)-(1):2*x - 1
+(x + x)*(1):2*x
+(x + x)+(2):2*x + 2
+(x + x)-(2):2*x - 2
+(x + x)*(2):4*x
+(x + x)+(0):2*x
+(x + x)-(0):2*x
+(x + x)*(0):0
+(x + x)+(-x + z):x + z
+(x + x)-(-x + z):3*x - z
+(x + x)*(-x + z):unsupported
+(x + x)+(x - x):2*x
+(x + x)-(x - x):2*x
+(x + x)*(x - x):unsupported
+(x + x)+(x + x):4*x
+(x + x)-(x + x):0
+(x + x)*(x + x):unsupported
+
+(x)+(x - z):2*x - z
+(x)-(x - z):z
+(x)*(x - z):unsupported
+(y)+(x - z):y + x - z
+(y)-(x - z):y - x + z
+(y)*(x - z):unsupported
+(-z)+(x - z):x - 2*z
+(-z)-(x - z):-x
+(-z)*(x - z):unsupported
+(y + x)+(x - z):y + 2*x - z
+(y + x)-(x - z):y + z
+(y + x)*(x - z):unsupported
+(2*x)+(x - z):3*x - z
+(2*x)-(x - z):x + z
+
+(2*x)*(x - z):unsupported
+(0)+(x - z):x - z
+(0)-(x - z):-x + z
+(0)*(x - z):0
+(2)+(x - z):x - z + 2
+(2)-(x - z):-x + z + 2
+(2)*(x - z):2*x - 2*z
+(1)+(x - z):x - z + 1
+(1)-(x - z):-x + z + 1
+(1)*(x - z):x - z
+(2)+(x - z):x - z + 2
+(2)-(x - z):-x + z + 2
+(2)*(x - z):2*x - 2*z
+(0)+(x - z):x - z
+(0)-(x - z):-x + z
+(0)*(x - z):0
+(-x + z)+(x - z):0
+(-x + z)-(x - z):-2*x + 2*z
+(-x + z)*(x - z):unsupported
+(x - x)+(x - z):x - z
+(x - x)-(x - z):-x + z
+(x - x)*(x - z):unsupported
+(x + x)+(x - z):3*x - z
+(x + x)-(x - z):x + z
+(x + x)*(x - z):unsupported
+(2*x)*(x - z):unsupported
+
++(x - z):x - z
+-(x - z):-x + z
+(x - z)+(x):2*x - z
+(x - z)-(x):-z
+(x - z)*(x):unsupported
+(x - z)+(y):y + x - z
+(x - z)-(y):-y + x - z
+(x - z)*(y):unsupported
+(x - z)+(-z):x - 2*z
+(x - z)-(-z):x
+(x - z)*(-z):unsupported
+(x - z)+(y + x):y + 2*x - z
+(x - z)-(y + x):-y - z
+(x - z)*(y + x):unsupported
+(x - z)+(2*x):3*x - z
+(x - z)-(2*x):-x - z
+(x - z)*(2*x):unsupported
+(x - z)+(0):x - z
+(x - z)-(0):x - z
+(x - z)*(0):0
+(x - z)+(2):x - z + 2
+(x - z)-(2):x - z - 2
+(x - z)*(2):2*x - 2*z
+(x - z)+(1):x - z + 1
+(x - z)-(1):x - z - 1
+(x - z)*(1):x - z
+(x - z)+(2):x - z + 2
+(x - z)-(2):x - z - 2
+(x - z)*(2):2*x - 2*z
+(x - z)+(0):x - z
+(x - z)-(0):x - z
+(x - z)*(0):0
+
+(x - z)+(-x + z):0
+(x - z)-(-x + z):2*x - 2*z
+(x - z)*(-x + z):unsupported
+(x - z)+(x - x):x - z
+(x - z)-(x - x):x - z
+(x - z)*(x - x):unsupported
+(x - z)+(x + x):3*x - z
+(x - z)-(x + x):-x - z
+(x - z)*(x + x):unsupported
+(x - z)+(x - z):2*x - 2*z
+(x - z)-(x - z):0
+(x - z)*(x - z):unsupported
 '''
 
 expected_unevaluated_results_additive_group = '''
@@ -697,7 +859,7 @@ expected_unevaluated_results_additive_group = '''
 (-z)-(3*x):-z + -(3*x)
 (-z)*(3*x):unsupported
 (x + y)+(3*x):x + y + 3*x
-(x + y)-(3*x):x + y + -(3*x)
+(x + y)-(3*x):x + y + -(3*x);x + y + -(x*3)
 (x + y)*(3*x):unsupported
 +(3*x):3*x
 -(3*x):-(3*x)

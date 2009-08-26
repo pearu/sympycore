@@ -12,7 +12,8 @@ class Group(Algebra):
     operation that is associative, G contains identity element and
     have inverse elements.
     """
-    algebra_options = dict(evaluate_addition = True)
+    algebra_options = dict(evaluate_addition = True,
+                           evaluate_multiplication = True)
 
     def to(self, target, *args):
         """ Convert expression to target representation.
@@ -36,6 +37,8 @@ class Group(Algebra):
             return head.to_TERM_COEFF_DICT(type(self), data, self)
         if target is ADD:
             return head.to_ADD(type(self), data, self)
+        if target is MUL:
+            return head.to_MUL(type(self), data, self)
         raise NotImplementedError('%s.to(target=%r)' % (type(self), target))
 
 class AdditiveGroup(Group):

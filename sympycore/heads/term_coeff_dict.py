@@ -338,7 +338,7 @@ class TermCoeffDictHead(ArithmeticHead):
         rhead, rdata = rhs.pair
         if Algebra.algebra_options.get('evaluate_addition'):
             ldata = lhs.data
-            if rhead is ADD or rhead is EXP_COEFF_DICT:
+            if rhead is ADD or rhead is EXP_COEFF_DICT or rhead is MUL or rhead is NEG:
                 rhs = rhead.to_TERM_COEFF_DICT(Algebra, rdata, rhs)
                 rhead, rdata = rhs.pair
             if rhead is NUMBER:

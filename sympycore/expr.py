@@ -332,7 +332,8 @@ def term_coeff_dict_mul_item(Algebra, d, key, value):
 def dict_add_item(Algebra, d, key, value):
     c = d.get(key)
     if c is None:
-        d[key] = value
+        if value:
+            d[key] = value
     else:
         c = c + value
         if c:

@@ -43,6 +43,9 @@ class NumberHead(AtomicHead):
 
     def to_TERM_COEFF_DICT(self, cls, data, expr):
         return expr
+
+    def to_ADD(self, cls, data, expr):
+        return expr
         
     def to_EXP_COEFF_DICT(self, cls, data, expr, variables = None):
         if variables is None:
@@ -245,7 +248,7 @@ class NumberHead(AtomicHead):
         rhead, rdata = rhs.pair
         if Algebra.algebra_options.get('is_additive_group_commutative'):
             if Algebra.algebra_options.get('evaluate_addition'):
-                if rhead is ADD or rhead is EXP_COEFF_DICT:
+                if rhead is ADD or rhead is EXP_COEFF_DICT or rhead is MUL or rhead is NEG:
                     rhs = rhead.to_TERM_COEFF_DICT(Algebra, rdata, rhs)
                     rhead, rdata = rhs.pair
                 if not ldata:

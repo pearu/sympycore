@@ -72,8 +72,22 @@ class MulHead(ArithmeticHead, Head):
             return '1', heads_precedence.NUMBER
         return r, mul_p
 
-    def term_coeff(self, cls, expr):
-        return expr, 1
+    def term_coeff(self, Algebra, expr):
+        data = []
+        coeff = 1
+        for op in expr.data:
+            t, c = op.head.term_coeff(Algebra, op)
+            if c is not 1:
+                coeff *= c
+                if t.head is NUMBER:
+                    assert t.data==1,`t`
+                else:
+                    data.append(t)
+            else:
+                data.append(op)
+        if coeff is 1:
+            return expr, 1
+        return mul_new(Algebra, data), coeff
 
     def combine(self, cls, factors_list):
         """ Combine factors in a list and return result.
@@ -201,25 +215,127 @@ class MulHead(ArithmeticHead, Head):
             operand.head.scan(proc, cls, operand.data, target)
         proc(cls, self, operands, target)
 
+    def combine_mul_list(self, Algebra, data):
+        """
+        Combine mul operands of an multiplicative group in data.
+        data will be changed in place.
+        """
+        commutative = Algebra.algebra_options.get('is_multiplicative_group_commutative')
+        coeff = 1
+        if commutative:
+            d = {}
+            for op in data:
+                base, exp = op.head.base_exp(Algebra, op)
+                base_exp_dict_add_item(Algebra, d, base, exp)
+            data[:] = [pow_new(Algebra, base_exp) for base_exp in d.iteritems()]
+        else:
+            n = len(data)
+            i0 = 0
+            while 1:
+                i = i0
+                if i+1 >= n:
+                    break
+                lhs = data[i]
+                if lhs.head is NUMBER:
+                    coeff *= lhs.data
+                    del data[i]
+                    n -= 1
+                    continue
+                rhs = data[i+1]
+                if rhs.head is NUMBER:
+                    coeff *= rhs.data
+                    del data[i+1]
+                    n -= 1
+                    continue
+                lbase, lexp = lhs.head.base_exp(Algebra, lhs)
+                rbase, rexp = rhs.head.base_exp(Algebra, rhs)
+                if lbase==rexp:
+                    exp = lexp + rexp
+                    if exp:
+                        del data[i+1]
+                        data[i] = pow_new(Algebra, (lbase, exp))
+                        i0 = i
+                        n -= 1
+                    else:
+                        del data[i:i+2]
+                        i0 = max(i - 1, 0)
+                        n -= 2
+                elif not rexp:
+                    del data[i+1]
+                    n -= 1
+                    i0 = i
+                elif not lexp:
+                    del data[i]
+                    n -= 1
+                    i0 = max(i-1,0)
+                else:
+                    i0 += 1
+        return coeff
+
+    def to_TERM_COEFF_DICT(self, Algebra, data, expr):
+        m = data[0].to(TERM_COEFF_DICT)
+        for op in data[1:]:
+            m *= op.to(TERM_COEFF_DICT)
+        return m
+
+    def to_ADD(self, Algebra, data, expr):
+        m = data[0].to(ADD)
+        for op in data[1:]:
+            m *= op.head.to_ADD(Algebra, op.data, op)
+        return m
+
+    def algebra_pos(self, Algebra, expr):
+        return expr
+
     def algebra_neg(self, Algebra, expr):
         if Algebra.algebra_options.get('evaluate_addition'):
-            return super(type(self), self).algebra_neg(Algebra, expr)
+            return self.algebra_mul_number(Algebra, expr, -1, False)
         return Algebra(NEG, expr)
+
+    def algebra_add_number(self, Algebra, lhs, rhs, inplace):
+        return self.algebra_add(Algebra, lhs, Algebra(NUMBER, rhs), inplace)
 
     def algebra_add(self, Algebra, lhs, rhs, inplace):
         if Algebra.algebra_options.get('evaluate_addition'):
-            return super(type(self), self).algebra_add(Algebra, lhs, rhs, inplace)
+            rhead, rdata = rhs.pair
+            if rhead is TERM_COEFF_DICT or rhead is EXP_COEFF_DICT:
+                rhs = rhs.head.to_ADD(Algebra, rdata, rhs)
+                rhead, rdata = rhs.pair
+            if rhead is ADD:
+                data = [lhs] + rdata
+            else:
+                data = [lhs, rhs]
+            ADD.combine_add_list(Algebra, data)
+            return add_new(Algebra, data)
         return Algebra(ADD, [lhs, rhs])
 
+    def algebra_mul_number(self, Algebra, lhs, rhs, inplace):
+        return self.algebra_mul(Algebra, lhs, Algebra(NUMBER, rhs), inplace)
+
     def algebra_mul(self, Algebra, lhs, rhs, inplace):
-        if Algebra.algebra_options.get('evaluate_addition'):
-            return super(type(self), self).algebra_mul(Algebra, lhs, rhs, inplace)
         rhead, rdata = rhs.pair
-        if rhead is BASE_EXP_DICT:
+        if rhead is BASE_EXP_DICT or rhead is TERM_COEFF:
             rhs = rhs.to(MUL)
             rhead, rdata = rhs.pair
+        if inplace:
+            data = lhs.data
+        else:
+            data = lhs.data[:]
         if rhead is MUL:
-            return Algebra(MUL, lhs.data + rdata)
-        return Algebra(MUL, lhs.data + [rhs])
+            data.extend(rdata)
+        else:
+            data.append(rhs)
+        if Algebra.algebra_options.get('evaluate_multiplication'):
+            coeff = self.combine_mul_list(Algebra, data)
+            if not coeff:
+                return Algebra(NUMBER, 0)
+            if coeff != 1:
+                if len(data)==1:
+                    return Algebra(TERM_COEFF, (data[0], coeff))
+                data.insert(0, Algebra(NUMBER, coeff))
+        if inplace:
+            return mul(Algebra, lhs)
+        return mul_new(Algebra, data)
+
 
 MUL = MulHead()
