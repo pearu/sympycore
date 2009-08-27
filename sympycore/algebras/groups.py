@@ -13,7 +13,10 @@ class Group(Algebra):
     have inverse elements.
     """
     algebra_options = dict(evaluate_addition = True,
-                           evaluate_multiplication = True)
+                           evaluate_multiplication = True,
+                           is_additive_group = False,
+                           is_multiplicative_group = False,
+                           )
 
     def to(self, target, *args):
         """ Convert expression to target representation.
@@ -59,7 +62,8 @@ class AdditiveGroup(Group):
     UnevaluatedAddition context) then MUL head will be used as well.
     """
     algebra_options = Group.algebra_options.copy()
-    algebra_options.update(is_additive_group_commutative = False)
+    algebra_options.update(is_additive_group_commutative = False,
+                           is_additive_group = True)
 
     def __pos__(self):
         return self.head.algebra_pos(type(self), self)
@@ -147,31 +151,54 @@ class MultiplicativeGroup(Group):
     MultiplicativeGroup is a Group with * operation, 1 is identity element
     and ``**(-1)`` denotes inverse. 
     """
+    algebra_options = Group.algebra_options.copy()
+    algebra_options.update(is_multiplicative_group_commutative = False,
+                           is_multiplicative_group = True)
 
-    def __mul__(self, other):
+    def __mul__(self, other, inplace=False):
         cls = type(self)
         tother = type(other)
         if tother is not cls:
             if tother in numbertypes_set:
-                return self.head.mul_number(cls, self, other)
+                return self.head.algebra_mul_number(cls, self, other, inplace)
             other = cls.convert(other, typeerror=False)
             if other is NotImplemented: return NotImplemented
-        return self.head.mul(cls, self, other)
+        return self.head.algebra_mul(cls, self, other, inplace)
+
+    def __rmul__(self, other):
+        cls = type(self)
+        other = cls.convert(other, typeerror=False)
+        if other is NotImplemented: return NotImplemented
+        return other.head.algebra_mul(cls, other, self, False)
 
     def __div__(self, other):
-        return self * other ** (-1)
-
-    def __pow__(self, other):
         cls = type(self)
         tother = type(other)
         if tother is not cls:
             if tother in numbertypes_set:
-                return self.head.pow_number(cls, self, other)
+                pass
             other = cls.convert(other, typeerror=False)
             if other is NotImplemented: return NotImplemented
-        return self.head.pow(cls, self, other)
+        return self * other ** (-1)
+
+    def __rdiv__(self, other):
+        cls = type(self)
+        other = cls.convert(other, typeerror=False)
+        if other is NotImplemented: return NotImplemented
+        return other * self ** (-1)
+
+    def __pow__(self, other, inplace=False):
+        cls = type(self)
+        tother = type(other)
+        if tother is not cls:
+            if tother in numbertypes_set:
+                return self.head.algebra_pow_number(cls, self, other, inplace)
+            other = cls.convert(other, typeerror=False)
+            if other is NotImplemented: return NotImplemented
+        return self.head.algebra_pow(cls, self, other, inplace)
 
 classes.Group = Group
 classes.AdditiveGroup = AdditiveGroup
+classes.AdditiveAbelianGroup = AdditiveAbelianGroup
 classes.MultiplicativeGroup = MultiplicativeGroup
 

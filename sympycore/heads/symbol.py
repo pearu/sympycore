@@ -173,11 +173,50 @@ class SymbolHead(AtomicHead):
         return mul_new(Algebra, [lhs, Algebra(NUMBER, rhs)])
 
     def algebra_mul(self, Algebra, lhs, rhs, inplace):
-        if Algebra.algebra_options.get('evaluate_addition'):
-            rhead, rdata = rhs.pair
-            if rhead is NUMBER:
-                return term_coeff_new(Algebra, (lhs, rdata))
-            return super(type(self), self).algebra_mul(Algebra, lhs, rhs, inplace)
-        return mul_new(Algebra, [lhs, rhs])
+        if Algebra.algebra_options.get('is_additive_group'):
+            if Algebra.algebra_options.get('evaluate_addition'):
+                rhead, rdata = rhs.pair
+                if rhead is NUMBER:
+                    return term_coeff_new(Algebra, (lhs, rdata))
+            else:
+                return mul_new(Algebra, [lhs, rhs])
+        if Algebra.algebra_options.get('is_multiplicative_group'):
+            if Algebra.algebra_options.get('evaluate_multiplication'):
+                rhead, rdata = rhs.pair
+                if Algebra.algebra_options.get('is_multiplicative_group_commutative'):
+                    if rhead is MUL or EXP_COEFF_DICT:
+                        rhs = rhead.to_BASE_EXP_DICT(Algebra, rdata, rhs)
+                        rhead, rdata = rhs.pair
+                    if rhead is NUMBER:
+                        return term_coeff_new(Algebra, (lhs, rdata))
+                    if rhead is BASE_EXP_DICT:
+                        data = rdata.copy()
+                        base_exp_dict_add_item(Algebra, data, lhs, 1)
+                        return base_exp_dict_new(Algebra, data)
+                    if lhs==rhs:
+                        return Algebra(POW, (lhs, 2))
+                    return Algebra(BASE_EXP_DICT, {lhs:1, rhs:1})
+                else:
+                    if rhead is MUL:
+                        data = [lhs] + rdata
+                    else:
+                        data = [lhs, rhs]
+                    coeff = MUL.combine_mul_list(Algebra, data)
+                    assert coeff is 1,`coeff`
+                    return mul_new(Algebra, data)
+            else:
+                pass
+        return super(type(self), self).algebra_mul(Algebra, lhs, rhs, inplace)
+
+    def algebra_pow_number(self, Algebra, lhs, rhs, inplace):
+        if Algebra.algebra_options.get('is_multiplicative_group'):
+            if Algebra.algebra_options.get('evaluate_multiplication'):
+                if Algebra.algebra_options.get('is_multiplicative_group_commutative'):
+                    return pow_new(Algebra, (lhs, rhs))
+                else:
+                    return pow_new(Algebra, (lhs, rhs))
+            else:
+                return cls(POW, (lhs, rhs))
+        return super(type(self), self).algebra_pow_number(Algebra, lhs, rhs, inplace)
 
 SYMBOL = SymbolHead()

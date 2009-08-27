@@ -282,5 +282,34 @@ class NumberHead(AtomicHead):
             return rhs.head.algebra_mul_number(Algebra, rhs, lhs.data, inplace)
         return mul_new(Algebra, [lhs, rhs])
 
-
+    def algebra_pow_number(self, Algebra, lhs, rhs, inplace):
+        if Algebra.algebra_options.get('evaluate_multiplication'):
+            if rhs==1:
+                return lhs
+            if not rhs:
+                return Algebra(NUMBER, 1)
+            ldata = lhs.data
+            if ldata==1:
+                return lhs
+            if not ldata:
+                if rhs>0:
+                    return lhs
+                return number_div(cls, 1, 0)
+            r, l = try_power(ldata, rhs)
+            if not l:
+                return Algebra(NUMBER, r)
+            if Algebra.algebra_options.get('is_multiplicative_group_commutative'):
+                d = {}
+                for b, e in l:
+                    b = Algebra(NUMBER, b)
+                    d[b] = e
+                p = base_exp_dict_new(Algebra, d)
+                return term_coeff_new(Algrbra, (p, r))
+            else:
+                d = []
+                for b, e in l:
+                    b = Algebra(NUMBER, b)
+                    d.append(Algebra(POW, (b,e)))
+                return mul_new(Algebra, d)
+        return super(type(self), self).algebra_pow_number(Algebra, lhs, rhs, inplace)
 NUMBER = NumberHead()

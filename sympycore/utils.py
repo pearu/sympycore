@@ -149,7 +149,12 @@ def test_operations(operands, expected_results, unary_operations, binary_operati
             e = e.strip()
             results[e] = [r.strip() for r in result.split(';')]
 
-    for op1 in operands:
+    if isinstance(operands, tuple):
+        operands1, operands2 = operands
+    else:
+        operands1 = operands2 = operands
+
+    for op1 in operands1:
         if isinstance(op1, Expr):
             for op in unary_operations:
                 expr = '%s(%s)' % (op, op1) 
@@ -173,7 +178,7 @@ def test_operations(operands, expected_results, unary_operations, binary_operati
                     print '%r result: %s' % (op, result_obj)
                     print totree(result_obj, '  ')
                     raise
-        for op2 in operands:
+        for op2 in operands2:
             if not (isinstance(op1, Expr) or isinstance(op2, Expr)):
                 continue
             for op in binary_operations:

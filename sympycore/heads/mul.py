@@ -249,7 +249,7 @@ class MulHead(ArithmeticHead, Head):
                     continue
                 lbase, lexp = lhs.head.base_exp(Algebra, lhs)
                 rbase, rexp = rhs.head.base_exp(Algebra, rhs)
-                if lbase==rexp:
+                if lbase==rbase:
                     exp = lexp + rexp
                     if exp:
                         del data[i+1]
@@ -337,5 +337,14 @@ class MulHead(ArithmeticHead, Head):
             return mul(Algebra, lhs)
         return mul_new(Algebra, data)
 
+    def algebra_pow_number(self, Algebra, lhs, rhs, inplace):
+        if Algebra.algebra_options.get('evaluate_multiplication'):
+            if rhs==1:
+                return lhs
+            if not rhs:
+                return Algebra(NUMBER, 1)
+            if rhs==-1:
+                return Algebra(MUL, [op**-1 for op in lhs.data[::-1]])
+        return super(type(self), self).algebra_pow_number(Algebra, lhs, rhs, inplace)
 
 MUL = MulHead()

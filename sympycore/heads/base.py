@@ -620,7 +620,20 @@ class Head(object):
         t = getattr(rhs, 'head', type(rhs).__name__)
         raise NotImplementedHeadMethod(self, "algebra_mul(Algebra, lhs, rhs, inplace)<=%s" % (t)) #pragma NO COVER
 
-    
+    def algebra_pow_number(self, Algebra, lhs, rhs, inplace):
+        """
+        Return the exponentiation of expressions: lhs ** rhs, where rhs is a number
+        """
+        t = getattr(rhs, 'head', type(rhs).__name__)
+        raise NotImplementedHeadMethod(self, "algebra_pow_number(Algebra, lhs, rhs, inplace)<=%s" % (t)) #pragma NO COVER
+
+    def algebra_pow(self, Algebra, lhs, rhs, inplace):
+        """
+        Return the exponentiation of expressions: lhs ** rhs.
+        """
+        t = getattr(rhs, 'head', type(rhs).__name__)
+        raise NotImplementedHeadMethod(self, "algebra_pow(Algebra, lhs, rhs, inplace)<=%s" % (t)) #pragma NO COVER
+
 class AtomicHead(Head):
     """
     AtomicHead is a base class to atomic expression heads.

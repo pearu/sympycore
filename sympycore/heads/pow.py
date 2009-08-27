@@ -401,6 +401,35 @@ class PowHead(ArithmeticHead):
             if x not in exp_symbols_data:
                 return expr * (b - a)
         raise NotImplementedError("don't know how to integrate %s over %s in [%s, %s]" % (expr, x, a, b))
-    
 
+    def algebra_mul_number(self, Algebra, lhs, rhs, inplace):
+        return self.algebra_mul(Algebra, lhs, Algebra(NUMBER, rhs), inplace)
+    
+    def algebra_mul(self, Algebra, lhs, rhs, inplace):
+        if Algebra.algebra_options.get('is_multiplicative_group'):
+            if Algebra.algebra_options.get('evaluate_multiplication'):
+                rhead, rdata = rhs.pair
+                if Algebra.algebra_options.get('is_multiplicative_group_commutative'):
+                    pass
+                else:
+                    if rhead is MUL:
+                        data = [lhs] + rdata
+                    else:
+                        data = [lhs, rhs]
+                    coeff = MUL.combine_mul_list(Algebra, data)
+                    assert coeff is 1,`coeff`
+                    return mul_new(Algebra, data)
+                        
+        return super(type(self), self).algebra_mul(Algebra, lhs, rhs, inplace)
+
+    def algebra_pow_number(self, Algebra, lhs, rhs, inplace):
+        if Algebra.algebra_options.get('evaluate_multiplication'):
+            if rhs==1:
+                return lhs
+            if not rhs:
+                return Algebra(NUMBER, 1)
+            if rhs==-1:
+                base, exp = lhs.data
+                return pow_new(Algebra, (base, -exp))
+        return super(type(self), self).algebra_pow_number(Algebra, lhs, rhs, inplace)
 POW = PowHead()
