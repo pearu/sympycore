@@ -168,7 +168,7 @@ class MatrixBase(Algebra):
             for i in xrange(rows):
                 s = str(self[i,j])
                 col.append(s)
-            width = max(map(len,col))
+            width = max(map(len,col)+[0])
             fmt = ' %'+str(width)+'s '
             col = [fmt % (s) for s in col]
             columns.append(col)
