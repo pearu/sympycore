@@ -32,6 +32,7 @@ extensions = [expr_ext,
               ]
 
 packages = ['sympycore',
+            'sympycore.algebras',
             'sympycore.arithmetic',
             'sympycore.arithmetic.mpmath',
             'sympycore.basealgebra',

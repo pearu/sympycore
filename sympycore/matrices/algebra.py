@@ -408,6 +408,8 @@ class MatrixDict(MatrixBase):
                     key = j, i
                 elif head.is_diagonal:
                     raise NotImplementedError(`head`)
+                if i>=head.rows or j>=head.cols:
+                    raise IndexError (`i,j,head.cols,head.rows`)
                 return data.get(key, 0)
             if ti is slice and tj is int:
                 row_indices = dict([(i0,k) for k,i0 in enumerate(xrange(*i.indices(head.rows)))])
@@ -439,6 +441,8 @@ class MatrixDict(MatrixBase):
                             newdata[ki, kj] = x
             return Matrix(len(row_indices), len(col_indices), newdata)
         elif tkey is int or tkey is slice:
+            if key>=head.rows:
+                raise IndexError (`key, head.rows`)
             return self[key, :]
         raise NotImplementedError(`key`)
 
