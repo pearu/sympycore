@@ -440,9 +440,11 @@ class MatrixDict(MatrixBase):
                         if kj is not None:
                             newdata[ki, kj] = x
             return Matrix(len(row_indices), len(col_indices), newdata)
-        elif tkey is int or tkey is slice:
+        elif tkey is int:
             if key>=head.rows:
                 raise IndexError (`key, head.rows`)
+            return self[key, :]
+        elif tkey is slice:
             return self[key, :]
         raise NotImplementedError(`key`)
 
