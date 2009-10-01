@@ -1,7 +1,7 @@
 # Author: Pearu Peterson
 # Created: March 2008
 
-from ..utils import MATRIX, MATRIX_DICT
+from ..utils import MATRIX, MATRIX_DICT, MATRIX_DICT_T
 from ..arithmetic.numbers import div
 from .algebra import MatrixDict, Matrix
 
@@ -175,7 +175,7 @@ def lu_MATRIX_T(m, n, k, ldata, udata):
             swap_rows_MATRIX(ldata, i, j)
         for j in xrange(i+1,m):
             u_ji = udata_get((i,j))
-            if u_ki is None:
+            if u_ji is None:
                 continue
             c = div(u_ji, a_ii)
             for p in xrange(i,n):
