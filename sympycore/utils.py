@@ -27,7 +27,11 @@ class HEAD(object):
 
     def as_unique_head(self):
         # used by the pickler support to make HEAD instances unique
-        return self._cache[self._key]
+        try:
+            return self._cache[self._key]
+        except KeyError:
+            self._cache[self._key] = self
+            return self
 
     def is_data_ok(self, cls, expr):
         return
