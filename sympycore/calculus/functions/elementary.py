@@ -234,6 +234,11 @@ def get_pi_shift(arg, N):
         return zero, N
     return arg, 0
 
+def is_odd (expr):
+    if isinstance(expr, int) and expr % 2:
+        return True
+    return False
+
 def has_leading_sign(arg):
     """Detect symmetry cases for odd/even functions."""
     if arg.head is NUMBER:
@@ -242,6 +247,17 @@ def has_leading_sign(arg):
     if arg.head is TERM_COEFF:
         if arg.data[1] < 0:
             return True
+        return has_leading_sign(arg.data[0])
+    if arg.head is TERM_COEFF_DICT:
+        for t,c in arg.data.iteritems():
+            if not c < 0:
+                return False
+        return True
+    if arg.head is BASE_EXP_DICT:
+        for b,e in arg.data.iteritems():
+            if is_odd(e):
+                if has_leading_sign(b):
+                    return True
     return None
 
 class TrigonometricFunction(CalculusDefinedFunction):

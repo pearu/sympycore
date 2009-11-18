@@ -80,6 +80,10 @@ class ApplyHead(FunctionalHead):
         return func(cls, self, data, target)
 
     def expand(self, cls, expr):
+        f, args = expr.data
+        new_f = f
+        new_args = [a.expand() for a in args]
+        return new_f (*new_args)
         return expr
 
     def expand_intpow(self, cls, base, exp):
