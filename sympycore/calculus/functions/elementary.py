@@ -5,7 +5,7 @@
 """
 
 __all__ = ['Sqrt', 'Exp', 'Log', 'Sin', 'Cos', 'Tan', 'Cot', 'Sign', 'Mod', 'Factorial',
-           'E', 'pi', 'gamma', 'Ln']
+           'E', 'pi', 'gamma', 'Ln', 'ArgSin']
 __docformat__ = "restructuredtext"
 
 from ...core import init_module
@@ -274,6 +274,13 @@ class TrigonometricFunction(CalculusDefinedFunction):
                 return Apply(cls, arg)
             else:
                 arg = Calculus.convert(arg)
+        head, data = arg.pair
+        if head is APPLY:
+            func, args = data
+            if func == cls.get_inverse_function():
+                assert len (args)==1,`args`
+                return args[0]
+
         x, m = get_pi_shift(arg, 12)
         m %= (12*cls.period)
         if x == zero:
@@ -303,9 +310,14 @@ class TrigonometricFunction(CalculusDefinedFunction):
         else:
             return Apply(cls, arg)
 
+    @classmethod
+    def get_inverse_function(cls):
+        return
+
 class Sin(TrigonometricFunction):
     parity = 'odd'
     period = 2
+
     @classmethod
     def eval_direct(cls, m):
         return sine_table[m % 24]
@@ -337,6 +349,10 @@ class Sin(TrigonometricFunction):
         order = order.data
         func = lambda x: Sin(x + order * pi/2)
         return FAlgebra(CALLABLE, func)
+
+    @classmethod
+    def get_inverse_function(cls):
+        return CalculusFunctionRing(CALLABLE, ArcSin)
 
 class Cos(TrigonometricFunction):
     parity = 'even'
@@ -434,3 +450,8 @@ conjugates = {
   Cot : Tan
 }
 
+class ArcSin(CalculusDefinedFunction):
+    def __new__(cls, x):
+        if not isinstance(x, Calculus):
+            x = Calculus.convert(x)
+        return Apply(cls, x)

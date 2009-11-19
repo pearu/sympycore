@@ -88,6 +88,7 @@ FD = FDFactory(CalculusDifferentialRing)
 D = DFactory(CalculusDifferentialRing)
 
 sin = CalculusFunctionRing(heads.CALLABLE, Sin)
+arcsin = CalculusFunctionRing(heads.CALLABLE, ArcSin)
 cos = CalculusFunctionRing(heads.CALLABLE, Cos)
 tan = CalculusFunctionRing(heads.CALLABLE, Tan)
 cot = CalculusFunctionRing(heads.CALLABLE, Cot)
