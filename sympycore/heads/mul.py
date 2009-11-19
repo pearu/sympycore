@@ -65,7 +65,7 @@ class MulHead(ArithmeticHead, Head):
             if not r or r=='-':
                 r += '('+f+')' if f_p<mul_p else f
             elif f.startswith('1/'):
-                r += f[1:]
+                r += '*('+f+')' if f_p<mul_p else f[1:]
             else:
                 r += '*('+f+')' if f_p<mul_p else '*'+f
         if not r:
