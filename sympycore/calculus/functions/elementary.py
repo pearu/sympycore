@@ -5,7 +5,7 @@
 """
 
 __all__ = ['Sqrt', 'Exp', 'Log', 'Sin', 'Cos', 'Tan', 'Cot', 'Sign', 'Mod', 'Factorial',
-           'E', 'pi', 'gamma', 'Ln', 'ArgSin']
+           'E', 'pi', 'gamma', 'Ln', 'ArcSin']
 __docformat__ = "restructuredtext"
 
 from ...core import init_module

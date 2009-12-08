@@ -128,6 +128,8 @@ class Ring(Algebra, RingInterface):
             if other is NotImplemented: return NotImplemented
         return other * self**-1
 
+    __truediv__ = __div__
+
     def expand(self):
         return self.head.expand(type(self), self)
 

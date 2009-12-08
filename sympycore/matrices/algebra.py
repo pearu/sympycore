@@ -375,6 +375,12 @@ class MatrixDict(MatrixBase):
         """Convert matrix to a list of lists."""
         rows, cols = self.head.shape
         return [[self[i,j] for j in xrange(cols)] for i in xrange(rows)]
+    
+    def flatten(self):
+        rows, cols = self.head.shape
+        for i in xrange (rows):
+            for j in xrange (cols):
+                yield self[i,j]
 
     def _get_diagonal(self, key):
         head, data = self.pair
@@ -701,6 +707,15 @@ class MatrixDict(MatrixBase):
             else:
                 d[ij] = x
         return type(self)(head, d)
+
+    def subs (self, subexpr, newexpr = None):
+        data = {}
+        for key, value in self.data.items():
+            if isinstance (value, classes.Expr):
+                value = value.subs(subexpr, newexpr)
+            if value:
+                data[key] = value
+        return type(self)(self.head, data)
     
 from .matrix_operations import MATRIX_DICT_iadd, MATRIX_DICT_imul
 from .linalg import (MATRIX_DICT_swap_rows, MATRIX_DICT_swap_cols,
