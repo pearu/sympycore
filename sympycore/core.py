@@ -365,6 +365,8 @@ class InitModule:
         """
         if callable(init_module_func):
             self.func_list.append(init_module_func)
+        else:
+            raise NotImplementedError(`init_module_func`)
 
     def execute(self):
         """ Execute registered functions and discard them.
@@ -421,9 +423,10 @@ class InitModule:
         """
         frame = sys._getframe(1)
         module_name = frame.f_locals['__name__']
-        
+
         def _import_numbers(module):
             from sympycore.arithmetic import numbers
+            from sympycore.arithmetic import number_theory
             module.numbertypes = numbers.numbertypes
             module.numbertypes_set = numbers.numbertypes_set
             module.inttypes = numbers.inttypes
@@ -435,6 +438,7 @@ class InitModule:
             module.number_div = numbers.number_div
             module.mpq = numbers.mpq
             module.try_power = numbers.try_power
+            module.gcd = number_theory.gcd
             
         _import_numbers.__module__ = module_name
 

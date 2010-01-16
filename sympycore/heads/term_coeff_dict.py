@@ -389,4 +389,32 @@ class TermCoeffDictHead(ArithmeticHead):
             return self.algebra_mul_number(Algebra, lhs, rdata, inplace)
         return super(type(self), self).algebra_mul(Algebra, lhs, rhs, inplace)
 
+    def algebra_div_number(self, Algebra, lhs, rhs, inplace):
+        if Algebra.algebra_options.get('evaluate_addition'):
+            if rhs==1:
+                return lhs
+            d1 = gcd(*lhs.data.values())
+            d2 = gcd(d1, rhs)
+            d3 = rhs / d2
+            d = {}
+            rd = 0
+            for t,c in lhs.data.items():
+                c /= d2
+                q, c = divmod(c, d3)
+                if c:
+                    d[t] = c
+                rd += q
+            s = term_coeff_dict_new(Algebra, d)
+            if rhs==d2:
+                assert rd==0,`lsh, rhs, s,rd`
+                return s
+            return Algebra(DIV, [s, Algebra(NUMBER, d3)]) + rd
+        return Algebra(DIV, [lhs, Algebra(NUMBER, rhs)])
+
+    def algebra_div(self, Algebra, lhs, rhs, inplace):
+        rhead, rdata = rhs.pair
+        if rhead is NUMBER:
+            return self.algebra_div_number(Algebra, lhs, rdata, inplace)
+        return super(type(self), self).algebra_div(Algebra, lhs, rhs, inplace)
+
 TERM_COEFF_DICT = TermCoeffDictHead()

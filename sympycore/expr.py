@@ -36,10 +36,11 @@ __all__ = ['Expr', 'Pair']
 def init_module(m):
     from .core import heads
     for n,h in heads.iterNameValue(): setattr(m, n, h)
-    from .arithmetic.numbers import inttypes, numbertypes, try_power
+    from .arithmetic.numbers import inttypes, numbertypes, try_power, gcd
     m.inttypes = inttypes
     m.numbertypes = numbertypes
     m.try_power = try_power
+    m.gcd = gcd
 
 class Expr(object):
     """Represents an symbolic expression in a pair form: (head, data)	

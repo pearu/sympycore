@@ -54,4 +54,9 @@ class DivHead(NaryHead):
         l = [data[0]] + [1/d for d in data[1:]]
         return cls(MUL, l) ** rhs
 
+    def algebra_add_number(self, Algebra, lhs, rhs, inplace):
+        if not rhs:
+            return lhs
+        return Algebra(ADD, [lhs, Algebra(NUMBER, rhs)])
+        
 DIV = DivHead()
