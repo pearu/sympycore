@@ -7,30 +7,66 @@ __docformat__ = 'plaintext'
 import math
 
 from bisect import bisect
-from random import getrandbits
 
-from .settings import (\
-    MP_BASE, MP_ZERO, MP_ONE, MP_TWO, MP_FIVE, MODE, STRICT, gmpy,
-    round_floor, round_ceiling, round_down, round_up,
-    round_nearest, round_fast,
-    MP_BASE_TYPE,
-)
+# Importing random is slow
+#from random import getrandbits
+getrandbits = None
+
+from backend import (MPZ, MPZ_TYPE, MPZ_ZERO, MPZ_ONE, MPZ_TWO, MPZ_FIVE,
+    BACKEND, STRICT, gmpy, sage)
+
+from libintmath import (giant_steps,
+    trailtable, bctable, lshift, rshift, bitcount, trailing,
+    sqrt_fixed, numeral, isqrt, isqrt_fast, sqrtrem,
+    bin_to_radix)
 
 # We don't pickle tuples directly for the following reasons:
 #   1: pickle uses str() for ints, which is inefficient when they are large
 #   2: pickle doesn't work for gmpy mpzs
 # Both problems are solved by using hex()
 
-def to_pickable(x):
-    sign, man, exp, bc = x
-    return sign, hex(man)[2:], exp, bc
+if BACKEND == 'sage':
+    def to_pickable(x):
+        sign, man, exp, bc = x
+        return sign, hex(man), exp, bc
+else:
+    def to_pickable(x):
+        sign, man, exp, bc = x
+        return sign, hex(man)[2:], exp, bc
 
 def from_pickable(x):
     sign, man, exp, bc = x
-    return (sign, MP_BASE(man, 16), exp, bc)
+    return (sign, MPZ(man, 16), exp, bc)
 
 class ComplexResult(ValueError):
     pass
+
+# All supported rounding modes
+round_nearest = intern('n')
+round_floor = intern('f')
+round_ceiling = intern('c')
+round_up = intern('u')
+round_down = intern('d')
+round_fast = round_down
+
+def prec_to_dps(n):
+    """Return number of accurate decimals that can be represented
+    with a precision of n bits."""
+    return max(1, int(round(int(n)/3.3219280948873626)-1))
+
+def dps_to_prec(n):
+    """Return the number of bits required to represent n decimals
+    accurately."""
+    return max(1, int(round((int(n)+1)*3.3219280948873626)))
+
+def repr_dps(n):
+    """Return the number of decimal digits required to represent
+    a number with n-bit precision so that it can be uniquely
+    reconstructed from the representation."""
+    dps = prec_to_dps(n)
+    if dps == 15:
+        return 17
+    return dps + 3
 
 #----------------------------------------------------------------------------#
 #                    Some commonly needed float values                       #
@@ -38,110 +74,26 @@ class ComplexResult(ValueError):
 
 # Regular number format:
 # (-1)**sign * mantissa * 2**exponent, plus bitcount of mantissa
-fzero = (0, MP_ZERO, 0, 0)
-fnzero = (1, MP_ZERO, 0, 0)
-fone = (0, MP_ONE, 0, 1)
-fnone = (1, MP_ONE, 0, 1)
-ftwo = (0, MP_ONE, 1, 1)
-ften = (0, MP_FIVE, 1, 3)
-fhalf = (0, MP_ONE, -1, 1)
+fzero = (0, MPZ_ZERO, 0, 0)
+fnzero = (1, MPZ_ZERO, 0, 0)
+fone = (0, MPZ_ONE, 0, 1)
+fnone = (1, MPZ_ONE, 0, 1)
+ftwo = (0, MPZ_ONE, 1, 1)
+ften = (0, MPZ_FIVE, 1, 3)
+fhalf = (0, MPZ_ONE, -1, 1)
 
 # Arbitrary encoding for special numbers: zero mantissa, nonzero exponent
-fnan = (0, MP_ZERO, -123, -1)
-finf = (0, MP_ZERO, -456, -2)
-fninf = (1, MP_ZERO, -789, -3)
+fnan = (0, MPZ_ZERO, -123, -1)
+finf = (0, MPZ_ZERO, -456, -2)
+fninf = (1, MPZ_ZERO, -789, -3)
 
 # Was 1e1000; this is broken in Python 2.4
 math_float_inf = 1e300 * 1e300
 
-#----------------------------------------------------------------------------#
-#           Various utilities related to precision and bit-fiddling          #
-#----------------------------------------------------------------------------#
-
-def giant_steps(start, target):
-    """Return a list of integers ~= [start, 2*start, ..., target/2,
-    target] describing suitable precision steps for Newton's method."""
-    L = [target]
-    while L[-1] > start*2:
-        L = L + [L[-1]//2 + 1]
-    return L[::-1]
-
-def giant_steps2(start, target):
-    """Return a list of integers ~= [start, 3*start, ..., target/3,
-    target] describing suitable precision steps for Halley's method."""
-    L = [target]
-    while L[-1] > start*3:
-        L = L + [L[-1]//3 + 1]
-    return L[::-1]
-
-def giant_stepsn(start, target, n):
-    """Return a list of integers ~= [start, n*start, ..., target/n,
-    target] describing suitable precision steps for Halley's method."""
-    L = [target]
-    while L[-1] > start*n:
-        L = L + [L[-1]//n + 1]
-    return L[::-1]
-
-def rshift(x, n):
-    """For an integer x, calculate x >> n with the fastest (floor)
-    rounding. Unlike the plain Python expression (x >> n), n is
-    allowed to be negative, in which case a left shift is performed."""
-    if n >= 0: return x >> n
-    else:      return x << (-n)
-
-def lshift(x, n):
-    """For an integer x, calculate x << n. Unlike the plain Python
-    expression (x << n), n is allowed to be negative, in which case a
-    right shift with default (floor) rounding is performed."""
-    if n >= 0: return x << n
-    else:      return x >> (-n)
-
-def python_trailing(n):
-    """Count the number of trailing zero bits in abs(n)."""
-    if not n:
-        return 0
-    t = 0
-    while not n & 1:
-        n >>= 1
-        t += 1
-    return t
-
-def gmpy_trailing(n):
-    """Count the number of trailing zero bits in abs(n) using gmpy."""
-    if n: return MP_BASE(n).scan1()
-    else: return 0
-
-# Small powers of 2
-powers = [1<<_ for _ in range(300)]
-
-def python_bitcount(n):
-    """Calculate bit size of the nonnegative integer n."""
-    bc = bisect(powers, n)
-    if bc != 300:
-        return bc
-    bc = int(math.log(n, 2)) - 4
-    return bc + bctable[n>>bc]
-
-def gmpy_bitcount(n):
-    """Calculate bit size of the nonnegative integer n."""
-    if n: return MP_BASE(n).numdigits(2)
-    else: return 0
-
-if MODE == 'gmpy':
-    bitcount = gmpy_bitcount
-    trailing = gmpy_trailing
-else:
-    bitcount = python_bitcount
-    trailing = python_trailing
-
-# Used to avoid slow function calls as far as possible
-trailtable = map(trailing, range(256))
-bctable = map(bitcount, range(1024))
 
 #----------------------------------------------------------------------------#
 #                                  Rounding                                  #
 #----------------------------------------------------------------------------#
-
 
 # This function can be used to round a mantissa generally. However,
 # we will try to do most rounding inline for efficiency.
@@ -172,9 +124,9 @@ def round_int(x, n, rnd):
 # which direction to round when rounding to nearest.
 class h_mask_big:
     def __getitem__(self, n):
-        return (MP_ONE<<(n-1))-1
+        return (MPZ_ONE<<(n-1))-1
 
-h_mask_small = [0]+[((MP_ONE<<(_-1))-1) for _ in range(1, 300)]
+h_mask_small = [0]+[((MPZ_ONE<<(_-1))-1) for _ in range(1, 300)]
 h_mask = [h_mask_big(), h_mask_small]
 
 # The >> operator rounds to floor. shifts_down[rnd][sign]
@@ -290,7 +242,7 @@ def _normalize1(sign, man, exp, bc, prec, rnd):
 def strict_normalize(sign, man, exp, bc, prec, rnd):
     """Additional checks on the components of an mpf. Enable tests by setting
        the environment variable MPMATH_STRICT to Y."""
-    assert type(man) == MP_BASE_TYPE
+    assert type(man) == MPZ_TYPE
     assert type(bc) in (int, long)
     assert type(exp) in (int, long)
     assert bc == bitcount(man)
@@ -299,12 +251,16 @@ def strict_normalize(sign, man, exp, bc, prec, rnd):
 def strict_normalize1(sign, man, exp, bc, prec, rnd):
     """Additional checks on the components of an mpf. Enable tests by setting
        the environment variable MPMATH_STRICT to Y."""
-    assert type(man) == MP_BASE_TYPE
+    assert type(man) == MPZ_TYPE
     assert type(bc) in (int, long)
     assert type(exp) in (int, long)
     assert bc == bitcount(man)
     assert (not man) or (man & 1)
     return _normalize1(sign, man, exp, bc, prec, rnd)
+
+if BACKEND == 'gmpy' and '_mpmath_normalize' in dir(gmpy):
+    _normalize = gmpy._mpmath_normalize
+    _normalize1 = gmpy._mpmath_normalize
 
 if STRICT:
     normalize = strict_normalize
@@ -313,10 +269,6 @@ else:
     normalize = _normalize
     normalize1 = _normalize1
 
-if MODE == "gmpy" and gmpy.version() > '1.03':
-    normalize = gmpy._mpmath_normalize
-    normalize1 = gmpy._mpmath_normalize
-
 #----------------------------------------------------------------------------#
 #                            Conversion functions                            #
 #----------------------------------------------------------------------------#
@@ -324,7 +276,7 @@ if MODE == "gmpy" and gmpy.version() > '1.03':
 def from_man_exp(man, exp, prec=None, rnd=round_fast):
     """Create raw mpf from (man, exp) pair. The mantissa may be signed.
     If no precision is specified, the mantissa is stored exactly."""
-    man = MP_BASE(man)
+    man = MPZ(man)
     sign = 0
     if man < 0:
         sign = 1
@@ -336,16 +288,30 @@ def from_man_exp(man, exp, prec=None, rnd=round_fast):
     if not prec:
         if not man:
             return fzero
-        while not man & 1:
-            man >>= 1
-            exp += 1
-            bc -= 1
+        if not man & 1:
+            if man & 2:
+                return (sign, man >> 1, exp + 1, bc - 1)
+            t = trailtable[int(man & 255)]
+            if not t:
+                while not man & 255:
+                    man >>= 8
+                    exp += 8
+                    bc -= 8
+                t = trailtable[int(man & 255)]
+            man >>= t
+            exp += t
+            bc -= t
         return (sign, man, exp, bc)
     return normalize(sign, man, exp, bc, prec, rnd)
 
+
+
+if BACKEND == 'gmpy' and '_mpmath_create' in dir(gmpy):
+    from_man_exp = gmpy._mpmath_create
+
 int_cache = dict((n, from_man_exp(n, 0)) for n in range(-10, 257))
 
-def from_int(n, prec=None, rnd=round_fast):
+def from_int(n, prec=0, rnd=round_fast):
     """Create a raw mpf from an integer. If no precision is specified,
     the mantissa is stored exactly."""
     if not prec:
@@ -460,7 +426,7 @@ def to_float(s, strict=False):
         return 0.0
 
 def from_rational(p, q, prec, rnd=round_fast):
-    """Create a raw mpf from a rational number p/q, rnd if
+    """Create a raw mpf from a rational number p/q, round if
     necessary."""
     return mpf_div(from_int(p), from_int(q), prec, rnd)
 
@@ -499,6 +465,10 @@ def to_fixed(s, prec):
 def mpf_rand(prec):
     """Return a raw mpf chosen randomly from [0, 1), with prec bits
     in the mantissa."""
+    global getrandbits
+    if not getrandbits:
+        import random
+        getrandbits = random.getrandbits
     return from_man_exp(getrandbits(prec), -prec, prec, round_floor)
 
 def mpf_eq(s, t):
@@ -512,7 +482,7 @@ def mpf_eq(s, t):
 def mpf_hash(s):
     try:
         # Try to be compatible with hash values for floats and ints
-        return hash(to_float(s))
+        return hash(to_float(s, strict=1))
     except OverflowError:
         # We must unfortunately sacrifice compatibility with ints here. We
         # could do hash(man << exp) when the exponent is positive, but
@@ -537,6 +507,7 @@ def mpf_cmp(s, t):
         # Follow same convention as Python's cmp for float nan
         if t == fnan: return 1
         if s == finf: return 1
+        if t == fninf: return 1
         return -1
     # Different sides of zero
     if ssign != tsign:
@@ -617,7 +588,7 @@ def mpf_abs(s, prec=None, rnd=round_fast):
         return s
     if not prec:
         if sign:
-            return (not sign, man, exp, bc)
+            return (0, man, exp, bc)
         return s
     return normalize1(0, man, exp, bc, prec, rnd)
 
@@ -631,74 +602,74 @@ def mpf_sign(s):
         return 0
     return (-1) ** sign
 
-def mpf_add(s, t, prec, rnd=round_fast):
-    if t[2] > s[2]:
-        s, t = t, s
+def mpf_add(s, t, prec=0, rnd=round_fast, _sub=0):
+    """
+    Add the two raw mpf values s and t.
+
+    With prec=0, no rounding is performed. Note that this can
+    produce a very large mantissa (potentially too large to fit
+    in memory) if exponents are far apart.
+    """
     ssign, sman, sexp, sbc = s
     tsign, tman, texp, tbc = t
-
-    if not sman:
-        if sexp:
-            if s == t or tman or not texp:
-                return s
-            return fnan
-        if tman:
-            return normalize1(tsign, tman, texp, tbc, prec, rnd)
-        return t
-    if not tman:
-        if texp:
-            return t
-        if sman:
-            return normalize1(ssign, sman, sexp, sbc, prec, rnd)
-        return s
-
-    # More generally, if one number is huge and the other is small,
-    # and in particular, if their mantissas don't overlap at all at
-    # the current precision level, we can avoid work.
-    #         precision
-    #      |            |
-    #       111111111
-    #    +                    222222222
-    #       ------------------------
-    #       1111111110000... (222)
-    offset = sexp - texp
-    if offset > 100:
-        delta = sbc + sexp - tbc - texp
-        if delta > prec + 4:
-            offset = min(delta, prec) + 4
-            sman <<= offset
-            if tsign: sman -= 1
-            else:     sman += 1
-            # TODO: use that bc ~= sbc+offset
-            bc = bitcount(sman)
-            return normalize1(ssign, sman, sexp-offset, bc, prec, rnd)
-    if offset:
-        if ssign == tsign:
-            man = tman + (sman << offset)
-            sbc += offset
-            if tbc > sbc:
-                bc = tbc + int(man>>tbc)
-            else:
-                bc = sbc + int(man>>sbc)
-            return normalize1(ssign, man, texp, bc, prec, rnd)
-        else:
-            if ssign: man = tman - (sman << offset)
-            else:     man = (sman << offset) - tman
-            if man >= 0:
-                ssign = 0
-            else:
-                man = -man
-                ssign = 1
-            bc = bitcount(man)
-            return normalize1(ssign, man, texp, bc, prec, rnd)
-    else:
+    tsign ^= _sub
+    # Standard case: two nonzero, regular numbers
+    if sman and tman:
+        offset = sexp - texp
+        if offset:
+            if offset > 0:
+                # Outside precision range; only need to perturb
+                if offset > 100 and prec:
+                    delta = sbc + sexp - tbc - texp
+                    if delta > prec + 4:
+                        offset = prec + 4
+                        sman <<= offset
+                        if tsign == ssign: sman += 1
+                        else:              sman -= 1
+                        return normalize1(ssign, sman, sexp-offset,
+                            bitcount(sman), prec, rnd)
+                # Add
+                if ssign == tsign:
+                    man = tman + (sman << offset)
+                # Subtract
+                else:
+                    if ssign: man = tman - (sman << offset)
+                    else:     man = (sman << offset) - tman
+                    if man >= 0:
+                        ssign = 0
+                    else:
+                        man = -man
+                        ssign = 1
+                bc = bitcount(man)
+                return normalize1(ssign, man, texp, bc, prec or bc, rnd)
+            elif offset < 0:
+                # Outside precision range; only need to perturb
+                if offset < -100 and prec:
+                    delta = tbc + texp - sbc - sexp
+                    if delta > prec + 4:
+                        offset = prec + 4
+                        tman <<= offset
+                        if ssign == tsign: tman += 1
+                        else:              tman -= 1
+                        return normalize1(tsign, tman, texp-offset,
+                            bitcount(tman), prec, rnd)
+                # Add
+                if ssign == tsign:
+                    man = sman + (tman << -offset)
+                # Subtract
+                else:
+                    if tsign: man = sman - (tman << -offset)
+                    else:     man = (tman << -offset) - sman
+                    if man >= 0:
+                        ssign = 0
+                    else:
+                        man = -man
+                        ssign = 1
+                bc = bitcount(man)
+                return normalize1(ssign, man, sexp, bc, prec or bc, rnd)
+        # Equal exponents; no shifting necessary
         if ssign == tsign:
             man = tman + sman
-            if tbc > sbc:
-                bc = tbc + int(man>>tbc)
-            else:
-                bc = sbc + int(man>>sbc)
-            return normalize(ssign, man, texp, bc, prec, rnd)
         else:
             if ssign: man = tman - sman
             else:     man = sman - tman
@@ -707,18 +678,113 @@ def mpf_add(s, t, prec, rnd=round_fast):
             else:
                 man = -man
                 ssign = 1
-            bc = bitcount(man)
-            return normalize(ssign, man, texp, bc, prec, rnd)
+        bc = bitcount(man)
+        return normalize(ssign, man, texp, bc, prec or bc, rnd)
+    # Handle zeros and special numbers
+    if _sub:
+        t = mpf_neg(t)
+    if not sman:
+        if sexp:
+            if s == t or tman or not texp:
+                return s
+            return fnan
+        if tman:
+            return normalize1(tsign, tman, texp, tbc, prec or tbc, rnd)
+        return t
+    if texp:
+        return t
+    if sman:
+        return normalize1(ssign, sman, sexp, sbc, prec or sbc, rnd)
+    return s
 
-def mpf_sub(s, t, prec, rnd=round_fast):
+def mpf_sub(s, t, prec=0, rnd=round_fast):
     """Return the difference of two raw mpfs, s-t. This function is
     simply a wrapper of mpf_add that changes the sign of t."""
-    if t[1]:
-        sign, man, exp, bc = t
-        return mpf_add(s, (1-sign, man, exp, bc), prec, rnd)
-    return mpf_add(s, mpf_neg(t), prec, rnd)
+    return mpf_add(s, t, prec, rnd, 1)
 
-def mpf_mul(s, t, prec=0, rnd=round_fast):
+def mpf_sum(xs, prec=0, rnd=round_fast, absolute=False):
+    """
+    Sum a list of mpf values efficiently and accurately
+    (typically no temporary roundoff occurs). If prec=0,
+    the final result will not be rounded either.
+
+    There may be roundoff error or cancellation if extremely
+    large exponent differences occur.
+
+    With absolute=True, sums the absolute values.
+    """
+    man = 0
+    exp = 0
+    max_extra_prec = prec*2 or 1000000  # XXX
+    special = None
+    for x in xs:
+        xsign, xman, xexp, xbc = x
+        if xman:
+            if xsign and not absolute:
+                xman = -xman
+            delta = xexp - exp
+            if xexp >= exp:
+                # x much larger than existing sum?
+                # first: quick test
+                if (delta > max_extra_prec) and \
+                    ((not man) or delta-bitcount(abs(man)) > max_extra_prec):
+                    man = xman
+                    exp = xexp
+                else:
+                    man += (xman << delta)
+            else:
+                delta = -delta
+                # x much smaller than existing sum?
+                if delta-xbc > max_extra_prec:
+                    if not man:
+                        man, exp = xman, xexp
+                else:
+                    man = (man << delta) + xman
+                    exp = xexp
+        elif xexp:
+            if absolute:
+                x = mpf_abs(x)
+            special = mpf_add(special or fzero, x, 1)
+    # Will be inf or nan
+    if special:
+        return special
+    return from_man_exp(man, exp, prec, rnd)
+
+def gmpy_mpf_mul(s, t, prec=0, rnd=round_fast):
+    """Multiply two raw mpfs"""
+    ssign, sman, sexp, sbc = s
+    tsign, tman, texp, tbc = t
+    sign = ssign ^ tsign
+    man = sman*tman
+    if man:
+        bc = bitcount(man)
+        if prec:
+            return normalize1(sign, man, sexp+texp, bc, prec, rnd)
+        else:
+            return (sign, man, sexp+texp, bc)
+    s_special = (not sman) and sexp
+    t_special = (not tman) and texp
+    if not s_special and not t_special:
+        return fzero
+    if fnan in (s, t): return fnan
+    if (not tman) and texp: s, t = t, s
+    if t == fzero: return fnan
+    return {1:finf, -1:fninf}[mpf_sign(s) * mpf_sign(t)]
+
+def gmpy_mpf_mul_int(s, n, prec, rnd=round_fast):
+    """Multiply by a Python integer."""
+    sign, man, exp, bc = s
+    if not man:
+        return mpf_mul(s, from_int(n), prec, rnd)
+    if not n:
+        return fzero
+    if n < 0:
+        sign ^= 1
+        n = -n
+    man *= n
+    return normalize(sign, man, exp, bitcount(man), prec, rnd)
+
+def python_mpf_mul(s, t, prec=0, rnd=round_fast):
     """Multiply two raw mpfs"""
     ssign, sman, sexp, sbc = s
     tsign, tman, texp, tbc = t
@@ -740,7 +806,7 @@ def mpf_mul(s, t, prec=0, rnd=round_fast):
     if t == fzero: return fnan
     return {1:finf, -1:fninf}[mpf_sign(s) * mpf_sign(t)]
 
-def mpf_mul_int(s, n, prec, rnd=round_fast):
+def python_mpf_mul_int(s, n, prec, rnd=round_fast):
     """Multiply by a Python integer."""
     sign, man, exp, bc = s
     if not man:
@@ -758,6 +824,19 @@ def mpf_mul_int(s, n, prec, rnd=round_fast):
         bc += bitcount(n) - 1
     bc += int(man>>bc)
     return normalize(sign, man, exp, bc, prec, rnd)
+
+
+if BACKEND == 'gmpy':
+    mpf_mul = gmpy_mpf_mul
+    mpf_mul_int = gmpy_mpf_mul_int
+elif BACKEND == 'sage':
+    # Like gmpy, take advantage of fast bitcount. Needs
+    # to be changed if gmpy_mpf_mul implementation changes
+    mpf_mul = gmpy_mpf_mul
+    mpf_mul_int = gmpy_mpf_mul_int
+else:
+    mpf_mul = python_mpf_mul
+    mpf_mul_int = python_mpf_mul_int
 
 def mpf_shift(s, n):
     """Quickly multiply the raw mpf s by 2**n without rounding."""
@@ -798,50 +877,36 @@ def mpf_div(s, t, prec, rnd=round_fast):
                 return fnan
             return {1:finf, -1:fninf}[mpf_sign(s) * mpf_sign(t)]
         return fzero
+    sign = ssign ^ tsign
     if tman == 1:
-        return normalize1(ssign^tsign, sman, sexp-texp, sbc, prec, rnd)
-    if ssign:
-        sman = -sman
-    if tsign:
-        tman = -tman
+        return normalize1(sign, sman, sexp-texp, sbc, prec, rnd)
     # Same strategy as for addition: if there is a remainder, perturb
     # the result a few bits outside the precision range before rounding
     extra = prec - sbc + tbc + 5
     if extra < 5:
         extra = 5
     quot, rem = divmod(sman<<extra, tman)
-    if quot >= 0:
-        sign = 0
-    else:
-        quot = -quot
-        sign = 1
     if rem:
-        quot = (quot << 5) + 1
-        extra += 5
-    bc = sbc+extra-tbc-4
-    if bc < 4: bc = bctable[int(quot)]
-    else:      bc += bctable[int(quot>>bc)]
-    return normalize(sign, quot, sexp-texp-extra, bc, prec, rnd)
+        quot = (quot<<1) + 1
+        extra += 1
+        return normalize1(sign, quot, sexp-texp-extra, bitcount(quot), prec, rnd)
+    return normalize(sign, quot, sexp-texp-extra, bitcount(quot), prec, rnd)
 
 def mpf_rdiv_int(n, t, prec, rnd=round_fast):
-    """Floating-point division with a Python integer as numerator"""
-    tsign, tman, texp, tbc = t
-    if not n or not tman:
+    """Floating-point division n/t with a Python integer as numerator"""
+    sign, man, exp, bc = t
+    if not n or not man:
         return mpf_div(from_int(n), t, prec, rnd)
-    if tsign:
-        tman = -tman
-    extra = prec + tbc + 5
-    quot, rem = divmod(n<<extra, tman)
-    if quot >= 0:
-        sign = 0
-    else:
-        quot = -quot
-        sign = 1
+    if n < 0:
+        sign ^= 1
+        n = -n
+    extra = prec + bc + 5
+    quot, rem = divmod(n<<extra, man)
     if rem:
-        quot = (quot << 5) + 1
-        extra += 5
-        return normalize1(sign, quot, -texp-extra, bitcount(quot), prec, rnd)
-    return normalize(sign, quot, -texp-extra, bitcount(quot), prec, rnd)
+        quot = (quot<<1) + 1
+        extra += 1
+        return normalize1(sign, quot, -exp-extra, bitcount(quot), prec, rnd)
+    return normalize(sign, quot, -exp-extra, bitcount(quot), prec, rnd)
 
 def mpf_mod(s, t, prec, rnd=round_fast):
     ssign, sman, sexp, sbc = s
@@ -906,7 +971,7 @@ def mpf_pow_int(s, n, prec, rnd=round_fast):
             return fzero
         man = man*man
         if man == 1:
-            return (0, MP_ONE, exp+exp, 1)
+            return (0, MPZ_ONE, exp+exp, 1)
         bc = bc + bc - 2
         bc += bctable[int(man>>bc)]
         return normalize1(0, man, exp+exp, bc, prec, rnd)
@@ -919,7 +984,7 @@ def mpf_pow_int(s, n, prec, rnd=round_fast):
 
     # Use exact integer power when the exact mantissa is small
     if man == 1:
-        return (result_sign, MP_ONE, exp*n, 1)
+        return (result_sign, MPZ_ONE, exp*n, 1)
     if bc*n < 1000:
         man **= n
         return normalize1(result_sign, man, exp*n, bitcount(man), prec, rnd)
@@ -978,7 +1043,7 @@ def mpf_perturb(x, eps_sign, prec, rnd):
     if rnd is round_nearest:
         return mpf_pos(x, prec, rnd)
     sign, man, exp, bc = x
-    eps = (eps_sign, MP_ONE, exp+bc-prec-1, 1)
+    eps = (eps_sign, MPZ_ONE, exp+bc-prec-1, 1)
     if sign:
         away = (rnd in (round_down, round_ceiling)) ^ eps_sign
     else:
@@ -989,79 +1054,9 @@ def mpf_perturb(x, eps_sign, prec, rnd):
         return mpf_pos(x, prec, rnd)
 
 
-##############################################################################
-##############################################################################
-
 #----------------------------------------------------------------------------#
 #                              Radix conversion                              #
 #----------------------------------------------------------------------------#
-
-# TODO: speed up for bases 2, 4, 8, 16, ...
-
-def bin_to_radix(x, xbits, base, bdigits):
-    """Changes radix of a fixed-point number; i.e., converts
-    x * 2**xbits to floor(x * 10**bdigits)."""
-    return x * (MP_BASE(base)**bdigits) >> xbits
-
-stddigits = '0123456789abcdefghijklmnopqrstuvwxyz'
-
-def small_numeral(n, base=10, digits=stddigits):
-    """Return the string numeral of a positive integer in an arbitrary
-    base. Most efficient for small input."""
-    if base == 10:
-        return str(n)
-    digs = []
-    while n:
-        n, digit = divmod(n, base)
-        digs.append(digits[digit])
-    return "".join(digs[::-1])
-
-def numeral_python(n, base=10, size=0, digits=stddigits):
-    """Represent the integer n as a string of digits in the given base.
-    Recursive division is used to make this function about 3x faster
-    than Python's str() for converting integers to decimal strings.
-
-    The 'size' parameters specifies the number of digits in n; this
-    number is only used to determine splitting points and need not be
-    exact."""
-    if n < 0:
-        return "-" + numeral(-n, base, size, digits)
-    # Fast enough to do directly
-    if size < 250:
-        return small_numeral(n, base, digits)
-    # Divide in half
-    half = (size // 2) + (size & 1)
-    A, B = divmod(n, base**half)
-    ad = numeral(A, base, half, digits)
-    bd = numeral(B, base, half, digits).rjust(half, "0")
-    return ad + bd
-
-def numeral_gmpy(n, base=10, size=0, digits=stddigits):
-    """Represent the integer n as a string of digits in the given base.
-    Recursive division is used to make this function about 3x faster
-    than Python's str() for converting integers to decimal strings.
-
-    The 'size' parameters specifies the number of digits in n; this
-    number is only used to determine splitting points and need not be
-    exact."""
-    if n < 0:
-        return "-" + numeral(-n, base, size, digits)
-    # gmpy.digits() may cause a segmentation fault when trying to convert
-    # extremely large values to a string. The size limit may need to be
-    # adjusted on some platforms, but 1500000 works on Windows and Linux.
-    if size < 1500000:
-        return gmpy.digits(n, base)
-    # Divide in half
-    half = (size // 2) + (size & 1)
-    A, B = divmod(n, MP_BASE(base)**half)
-    ad = numeral(A, base, half, digits)
-    bd = numeral(B, base, half, digits).rjust(half, "0")
-    return ad + bd
-
-if MODE == "gmpy":
-    numeral = numeral_gmpy
-else:
-    numeral = numeral_python
 
 def to_digits_exp(s, dps):
     """Helper function for representing the floating-point number s as
@@ -1115,26 +1110,46 @@ def to_digits_exp(s, dps):
     exponent += len(digits) - fixdps - 1
     return sign, digits, exponent
 
-def to_str(s, dps, strip_zeros=True):
-    """Convert a raw mpf to a decimal floating-point literal with at
+def to_str(s, dps, strip_zeros=True, min_fixed=None, max_fixed=None,
+    show_zero_exponent=False):
+    """
+    Convert a raw mpf to a decimal floating-point literal with at
     most `dps` decimal digits in the mantissa (not counting extra zeros
     that may be inserted for visual purposes).
 
+    The number will be printed in fixed-point format if the position
+    of the leading digit is strictly between min_fixed
+    (default = min(-dps/3,-5)) and max_fixed (default = dps).
+
+    To force fixed-point format always, set min_fixed = -inf,
+    max_fixed = +inf. To force floating-point format, set
+    min_fixed >= max_fixed.
+
     The literal is formatted so that it can be parsed back to a number
-    by to_str, float() or Decimal()."""
+    by to_str, float() or Decimal().
+    """
 
     # Special numbers
     if not s[1]:
-        if s == fzero: return '0.0'
+        if s == fzero:
+            if dps: t = '0.0'
+            else:   t = '.0'
+            if show_zero_exponent:
+                t += 'e+0'
+            return t
         if s == finf: return '+inf'
         if s == fninf: return '-inf'
         if s == fnan: return 'nan'
         raise ValueError
 
+    if min_fixed is None: min_fixed = min(-(dps//3), -5)
+    if max_fixed is None: max_fixed = dps
+
     # to_digits_exp rounds to floor.
     # This sometimes kills some instances of "...00001"
     sign, digits, exponent = to_digits_exp(s, dps+3)
 
+    # No digits: show only .0; round exponent to nearest
     if not dps:
         if digits[0] in '56789':
             exponent += 1
@@ -1153,12 +1168,14 @@ def to_str(s, dps, strip_zeros=True):
             digits = digits[:dps]
 
         # Prettify numbers close to unit magnitude
-        if -(dps//3) < exponent < dps:
+        if min_fixed < exponent < max_fixed:
             if exponent < 0:
                 digits = ("0"*int(-exponent)) + digits
                 split = 1
             else:
                 split = exponent + 1
+                if split > dps:
+                    digits += "0"*(split-dps)
             exponent = 0
         else:
             split = 1
@@ -1171,7 +1188,7 @@ def to_str(s, dps, strip_zeros=True):
             if digits[-1] == ".":
                 digits += "0"
 
-    if exponent == 0 and dps: return sign + digits
+    if exponent == 0 and dps and not show_zero_exponent: return sign + digits
     if exponent >= 0: return sign + digits + "e+" + str(exponent)
     if exponent < 0: return sign + digits + "e" + str(exponent)
 
@@ -1193,7 +1210,7 @@ def str_to_man_exp(x, base=10):
         a, b = parts[0], parts[1].rstrip('0')
         exp -= len(b)
         x = a + b
-    x = MP_BASE(int(x, base))
+    x = MPZ(int(x, base))
     return x, exp
 
 special_str = {'inf':finf, '+inf':finf, '-inf':fninf, 'nan':fnan}
@@ -1207,6 +1224,7 @@ def from_str(x, prec, rnd=round_fast):
 
     TODO: the rounding does not work properly for large exponents.
     """
+    x = x.strip()
     if x in special_str:
         return special_str[x]
 
@@ -1229,7 +1247,7 @@ def from_str(x, prec, rnd=round_fast):
 
 def from_bstr(x):
     man, exp = str_to_man_exp(x, base=2)
-    man = MP_BASE(man)
+    man = MPZ(man)
     sign = 0
     if man < 0:
         man = -man
@@ -1242,225 +1260,38 @@ def to_bstr(x):
     return ['','-'][sign] + numeral(man, size=bitcount(man), base=2) + ("e%i" % exp)
 
 
-
-
-
-##############################################################################
-##############################################################################
-
 #----------------------------------------------------------------------------#
 #                                Square roots                                #
 #----------------------------------------------------------------------------#
 
 
-def sqrt_initial(y, prec):
-    """Given y = floor(x * 2**prec), compute floor(sqrt(x) * 2**50),
-    i.e. calculate a 50-bit approximation of the square root. This is
-    done quickly using regular floating-point arithmetic. It is
-    assumed that x ~= 1."""
-
-    # Two cases; the second avoids overflow
-    if prec < 200: return MP_BASE(y**0.5 * 2.0**(50 - prec*0.5))
-    else:          return MP_BASE((y >> (prec-100))**0.5)
-
-# XXX: doesn't work
-def invsqrt_initial(y, prec):
-    """Like sqrt_initial, but computes 1/sqrt(y) instead of sqrt(y)."""
-    if prec < 200: return MP_BASE(y**-0.5 * 2.0**(50 + prec*0.5))
-    else:          return MP_BASE((y >> (prec-100)) ** -0.5)
-
-
-
-# We start from a 50-bit estimate for r generated with ordinary
-# floating-point arithmetic, and then refines the value to full
-# accuracy using the iteration
-
-#             1  /        y  \
-#    r     = --- | r  +  --- |
-#     n+1     2  \ n     r_n /
-
-# which is simply Newton's method applied to the equation r**2 = y.
-
-# Newton's method doubles the accuracy with each step. We make use of
-# this fact by only using a precision corresponding to the current
-# accuracy during intermediate iterations. For example, with a 50-bit
-# accurate r_1, r_2 can be computed using 100-bit precision, r_3
-# using 200-bit precision, and so on. (In practice, the precision
-# levels must be chosen slightly more conservatively to account for
-# rounding errors in the last one or two bits.)
-
-# It is assumed that x ~= 1 (the main mpf_sqrt() function fiddles with
-# the exponent of the input to reduce it to unit magnitude before
-# passing it here.)
-
-# TODO: it would be possible to specify separate precision levels
-# for the input and output, which could be useful when calculating
-# pure-integer square roots.
-
-# This is the reference implementation. In sqrt_fixed below we
-# do the steps inline at low precision for a ~15% speedup
-def _sqrt_fixed(y, prec):
-    r = sqrt_initial(y, prec)
-    extra = 10
-    prevp = 50
-    for p in giant_steps(50, prec+extra):
-        # In the first term, we shift by the appropriate number of bits to
-        # convert r from the previous precision to the current one.
-        # The "-1" divides by two in the same step.
-
-        # In the second term, we do a fixed-point division using the usual
-        # formula (y<<precision)//r. The precision term is a bit messy and
-        # takes into account the fact that y, r_n and r_{n+1} all have
-        # different precision levels. As before, the "-1" divides by two.
-        r = lshift(r, p-prevp-1) + (lshift(y, p+prevp-prec-1)//r)
-        prevp = p
-    return r >> extra
-
-def gmpy_sqrt_fixed(y, prec, shifted=True):
-    if shifted:
-        return gmpy.sqrt(y << prec)
-    else:
-        extra = 10
-        return gmpy.sqrt(y << (prec + 2 * extra)), extra
-
-def python_sqrt_fixed(y, prec, shifted=True):
-    """
-    Square root of a fixed-point number. Given the big integer
-    y = floor(x * 2**prec), this function returns floor(r * 2**prec)
-    where r = sqrt(x).
-
-    It is assumed that x ~= 1.
-    """
-    r = sqrt_initial(y, prec)
-    extra = 10
-    prevp = 50
-    prec2 = prec + extra
-    # unwind giant_steps; for prec2 <= 100 giant_steps(50, prec2)
-    # has one element, for 100 < prec2 < 200 it has at 2 elements
-    if prec2 <= 100:
-        r = lshift(r, prec2-51) + ((y << 59)//r)
-    elif prec2 <= 199:
-        p = prec2//2 + 1
-        r = (r << (p-51)) + (lshift(y, p+59-prec2)//r)
-        r = (r << (prec2-p-1)) + ((y << (p+9))//r)
-    else:
-        prevp1 = prec2//2 + 1
-        for p in giant_steps(50, prevp1):
-            r = (r << (p-prevp-1)) + (y >> (prec2-p-prevp-9))//r
-            prevp = p
-        r = (r << (prec2-prevp1-1)) + (y << (prevp1+9))//r
-    if shifted: return r >> extra
-    else:       return r, extra
-
-def gmpy_sqrt_fixed2(y, prec):
-    return gmpy.sqrt(y << prec)
-
-def sqrt_newton(x, guard_bits=0):
-    """
-    Approximately compute floor(sqrt(x)) for a positive integer x.
-    The result may be off by a few units.
-
-    If a few ``guard_bits`` are specified, the returned root is
-    either exact or 1 unit smaller than the true root.
-
-    Algorithm
-    =========
-
-    Instead of using Newton's method to calculate sqrt(y) directly,
-    we calculate 1/sqrt(y) with Newton's method and multiply by y to
-    obtain sqrt(y). The Newton iteration for 1/sqrt(y) is::
-
-                   r
-                    n      /            2 \
-          r    =  ----  *  | 3  - y * r   |.
-           n+1      2      \           n  /
-
-    This is slightly slower at low precision levels since it requires
-    three multiplications in each step, as opposed to the single
-    division in the Newton iteration for sqrt(y). However, since
-    Python uses Karatsuba algorithm for multiplication, three
-    multiplications can be performed much more quickly than a
-    single division at high precision.
-
-    The Newton iteration is performed with dynamically increasing
-    precision for optimal speed. Each step roughly doubles the
-    numerical accuracy, so we need to perform roughly log_2(n)
-    steps, at precision ...n/4, n/2, n, where n = log_2(sqrt(x)).
-
-    The bitwise shifts force rounding downwards. Adding guard bits
-    ensures that the only final error (if any) is the downward
-    rounding error from the final shift.
-    """
-    if guard_bits:
-        x <<= guard_bits*2
-    bc = int(math.log(x,2))
-    bc += bc & 1
-    hbc = bc // 2
-    startprec = min(50, hbc)
-    r = int(2.0**(2*startprec) * (x >> (bc-2*startprec)) ** -0.5)
-    pp = startprec
-    for p in giant_steps(startprec, hbc):
-        # r**2, scaled from real size 2**(-bc) to 2**p
-        r2 = (r*r) >> (2*pp - p)
-        # x*r**2, scaled from real size ~1.0 to 2**p
-        xr2 = ((x >> (bc - p)) * r2) >> p
-        # New value of r, scaled from real size 2**(-bc/2) to 2**p
-        #r = (r * ((3<<p) - xr2)) >> (pp + 1)
-        r = (r * ((1<<p) - xr2) + (r << (p+1))) >> (pp + 1)
-        pp = p
-    return (r*(x>>hbc)) >> (p + guard_bits)
-
-def python_sqrt_fixed2(y, prec):
-    return sqrt_newton(y << prec, 20)
-
-
-if MODE == 'gmpy':
-    sqrt_fixed = gmpy_sqrt_fixed
-    sqrt_fixed2 = gmpy_sqrt_fixed2
-else:
-    sqrt_fixed = python_sqrt_fixed
-    sqrt_fixed2 = python_sqrt_fixed2
-
 def mpf_sqrt(s, prec, rnd=round_fast):
-    """Compute the square root of a raw mpf.
-
-    Returns a tuple representing the square root of s, rounded to the
-    nearest floating-point number in the specified rounding direction.
-    The input must be a tuple representing a nonnegative floating-point
-    number."""
-
-    if s == fone:
-        return fone
+    """
+    Compute the square root of a nonnegative mpf value. The
+    result is correctly rounded.
+    """
     sign, man, exp, bc = s
     if sign:
         raise ComplexResult("square root of a negative number")
     if not man:
         return s
-
-    # Convert to a fixed-point number with prec2 bits. Adjust
-    # exponents to be even so that they can be divided in half
-    prec2 = prec + 12 + (prec & 1)
-
     if exp & 1:
         exp -= 1
         man <<= 1
         bc += 1
-
-    # Mantissa may have more bits than we need. Trim it down.
-    shift = bc - prec2
-    shift -= shift & 1
-    man = rshift(man, shift)
-
-    rnd_shift = 0
-    if rnd == 'd' or rnd == 'f':
-        rnd_shift = 1
-    if prec < 20000:
-        man, extra = sqrt_fixed(man+rnd_shift, prec2, False)
+    elif man == 1:
+        return normalize1(sign, man, exp//2, bc, prec, rnd)
+    shift = max(4, 2*prec-bc+4)
+    shift += shift & 1
+    if rnd in 'fd':
+        man = isqrt(man<<shift)
     else:
-        man = sqrt_fixed2(man+rnd_shift, prec2)
-        extra = 0
-
-    return from_man_exp(man, ((exp+shift-prec2)>>1) - extra, prec, rnd)
+        man, rem = sqrtrem(man<<shift)
+        # Perturb up
+        if rem:
+            man = (man<<1)+1
+            shift += 2
+    return from_man_exp(man, (exp-shift)//2, prec, rnd)
 
 def mpf_hypot(x, y, prec, rnd=round_fast):
     """Compute the Euclidean norm sqrt(x**2 + y**2) of two raw mpfs

@@ -1,19 +1,18 @@
 from bisect import bisect
 
-from .mptypes import mp, mpf, mpmathify
-from .functions import ldexp, nthroot, log, fac
-from .calculus import polyval
+class ODEMethods(object):
+    pass
 
-def ode_taylor(derivs, x0, y0, tol_prec, n):
-    h = tol = ldexp(1, -tol_prec)
+def ode_taylor(ctx, derivs, x0, y0, tol_prec, n):
+    h = tol = ctx.ldexp(1, -tol_prec)
     dim = len(y0)
     xs = [x0]
     ys = [y0]
     x = x0
     y = y0
-    orig = mp.prec
+    orig = ctx.prec
     try:
-        mp.prec = orig*(1+n)
+        ctx.prec = orig*(1+n)
         # Use n steps with Euler's method to get
         # evaluation points for derivatives
         for i in range(n):
@@ -33,22 +32,22 @@ def ode_taylor(derivs, x0, y0, tol_prec, n):
                     s[d] += b * ys[i][d]
                 b = (b * (j-k+1)) // (-k)
                 k += 1
-            scale = h**(-j) / fac(j)
+            scale = h**(-j) / ctx.fac(j)
             for d in range(dim):
                 s[d] = s[d] * scale
                 ser[d].append(s[d])
     finally:
-        mp.prec = orig
-    # Estimate radius for which we can get full accuracy. 
+        ctx.prec = orig
+    # Estimate radius for which we can get full accuracy.
     # XXX: do this right for zeros
-    radius = mpf(1)
+    radius = ctx.one
     for ts in ser:
         if ts[-1]:
-            radius = min(radius, nthroot(tol/abs(ts[-1]), n))
+            radius = min(radius, ctx.nthroot(tol/abs(ts[-1]), n))
     radius /= 2  # XXX
     return ser, x0+radius
 
-def odefun(F, x0, y0, tol=None, degree=None, method='taylor', verbose=False):
+def odefun(ctx, F, x0, y0, tol=None, degree=None, method='taylor', verbose=False):
     r"""
     Returns a function `y(x) = [y_0(x), y_1(x), \ldots, y_n(x)]`
     that is a numerical solution of the `n+1`-dimensional first-order
@@ -123,7 +122,7 @@ def odefun(F, x0, y0, tol=None, degree=None, method='taylor', verbose=False):
     which has explicit solution `y(x) = \exp(x)`::
 
         >>> from mpmath import *
-        >>> mp.dps = 15
+        >>> mp.dps = 15; mp.pretty = True
         >>> f = odefun(lambda x, y: y, 0, 1)
         >>> for x in [0, 1, 2.5]:
         ...     print f(x), exp(x)
@@ -136,9 +135,9 @@ def odefun(F, x0, y0, tol=None, degree=None, method='taylor', verbose=False):
 
         >>> mp.dps = 50
         >>> f = odefun(lambda x, y: y, 0, 1)
-        >>> print f(1)
+        >>> f(1)
         2.7182818284590452353602874713526624977572470937
-        >>> print exp(1)
+        >>> exp(1)
         2.7182818284590452353602874713526624977572470937
 
     Using the more general vectorized form, the test problem
@@ -146,7 +145,7 @@ def odefun(F, x0, y0, tol=None, degree=None, method='taylor', verbose=False):
 
         >>> mp.dps = 15
         >>> f = odefun(lambda x, y: [y[0]], 0, [1])
-        >>> nprint(f(1), 15)
+        >>> f(1)
         [2.71828182845905]
 
     :func:`odefun` can solve nonlinear ODEs, which are generally
@@ -170,9 +169,9 @@ def odefun(F, x0, y0, tol=None, degree=None, method='taylor', verbose=False):
 
         >>> f = lambda x: (1+x**2)/(1+x**3)
         >>> g = odefun(lambda x, y: f(x), pi, 0)
-        >>> print g(2*pi)
+        >>> g(2*pi)
         0.72128263801696
-        >>> print quad(f, [pi, 2*pi])
+        >>> quad(f, [pi, 2*pi])
         0.72128263801696
 
     **Examples of second-order ODEs**
@@ -228,11 +227,11 @@ def odefun(F, x0, y0, tol=None, degree=None, method='taylor', verbose=False):
 
     """
     if tol:
-        tol_prec = int(-log(mpmathify(tol), 2))+10
+        tol_prec = int(-ctx.log(tol, 2))+10
     else:
-        tol_prec = mp.prec+10
-    degree = degree or (3 + int(3*mp.dps/2.))
-    workprec = mp.prec + 40
+        tol_prec = ctx.prec+10
+    degree = degree or (3 + int(3*ctx.dps/2.))
+    workprec = ctx.prec + 40
     try:
         len(y0)
         return_vector = True
@@ -241,12 +240,12 @@ def odefun(F, x0, y0, tol=None, degree=None, method='taylor', verbose=False):
         F = lambda x, y: [F_(x, y[0])]
         y0 = [y0]
         return_vector = False
-    ser, xb = ode_taylor(F, x0, y0, tol_prec, degree)
+    ser, xb = ode_taylor(ctx, F, x0, y0, tol_prec, degree)
     series_boundaries = [x0, xb]
     series_data = [(ser, x0, xb)]
     # We will be working with vectors of Taylor series
     def mpolyval(ser, a):
-        return [polyval(s[::-1], a) for s in ser]
+        return [ctx.polyval(s[::-1], a) for s in ser]
     # Find nearest expansion point; compute if necessary
     def get_series(x):
         if x < x0:
@@ -260,26 +259,28 @@ def odefun(F, x0, y0, tol=None, degree=None, method='taylor', verbose=False):
                 print "Computing Taylor series for [%f, %f]" % (xa, xb)
             y = mpolyval(ser, xb-xa)
             xa = xb
-            ser, xb = ode_taylor(F, xb, y, tol_prec, degree)
+            ser, xb = ode_taylor(ctx, F, xb, y, tol_prec, degree)
             series_boundaries.append(xb)
             series_data.append((ser, xa, xb))
             if x <= xb:
                 return series_data[-1]
     # Evaluation function
     def interpolant(x):
-        x = mpmathify(x)
-        orig = mp.prec
+        x = ctx.convert(x)
+        orig = ctx.prec
         try:
-            mp.prec = workprec
+            ctx.prec = workprec
             ser, xa, xb = get_series(x)
             y = mpolyval(ser, x-xa)
         finally:
-            mp.prec = orig
+            ctx.prec = orig
         if return_vector:
             return [+yk for yk in y]
         else:
             return +y[0]
     return interpolant
+
+ODEMethods.odefun = odefun
 
 if __name__ == "__main__":
     import doctest

@@ -58,7 +58,7 @@ from ..utils import str_SUM, str_PRODUCT, str_POWER, str_APPLY, str_SYMBOL, str_
 inttypes = (int, long)
 
 from .mpmath import mpf, mpc, mp
-from .mpmath.lib import from_rational, round_nearest
+from .mpmath.libmp import from_rational, round_nearest
 
 
 

@@ -1,14 +1,9 @@
 # TODO: interpret list as vectors (for multiplication)
 
-from __future__ import division
-
-from .mptypes import (mpmathify, absmax, mpf, mpc, rand, inf, nstr)
-from .functions import nthroot, sqrt
-
 rowsep = '\n'
 colsep = '  '
 
-class matrix(object):
+class _matrix(object):
     """
     Numerical matrix.
 
@@ -34,11 +29,11 @@ class matrix(object):
         >>> matrix(2)
         matrix(
         [['0.0', '0.0'],
-        ['0.0', '0.0']])
+         ['0.0', '0.0']])
         >>> matrix(2, 3)
         matrix(
         [['0.0', '0.0', '0.0'],
-        ['0.0', '0.0', '0.0']])
+         ['0.0', '0.0', '0.0']])
 
     Calling ``matrix`` with one dimension will create a square matrix.
 
@@ -48,8 +43,8 @@ class matrix(object):
         >>> A
         matrix(
         [['0.0', '0.0'],
-        ['0.0', '0.0'],
-        ['0.0', '0.0']])
+         ['0.0', '0.0'],
+         ['0.0', '0.0']])
         >>> A.rows
         3
         >>> A.cols
@@ -63,7 +58,7 @@ class matrix(object):
         >>> A
         matrix(
         [['0.0', '0.0'],
-        ['0.0', '0.0']])
+         ['0.0', '0.0']])
 
     Internally ``mpmathify`` is used every time an element is set. This
     is done using the syntax A[row,column], counting from 0:
@@ -73,22 +68,22 @@ class matrix(object):
         >>> A
         matrix(
         [['0.0', '0.0'],
-        ['0.0', mpc(real='1.0', imag='1.0')]])
+         ['0.0', '(1.0 + 1.0j)']])
 
-    You can use the keyword ``force_type`` to change the function which is 
+    You can use the keyword ``force_type`` to change the function which is
     called on every new element:
 
         >>> matrix(2, 5, force_type=int)
         matrix(
         [[0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0]])
+         [0, 0, 0, 0, 0]])
 
     A more comfortable way to create a matrix lets you use nested lists:
 
         >>> matrix([[1, 2], [3, 4]])
         matrix(
         [['1.0', '2.0'],
-        ['3.0', '4.0']])
+         ['3.0', '4.0']])
 
     If you want to preserve the type of the elements you can use
     ``force_type=None``:
@@ -96,7 +91,7 @@ class matrix(object):
         >>> matrix([[1, 2.5], [1j, mpf(2)]], force_type=None)
         matrix(
         [[1, 2.5],
-        [1j, '2.0']])
+         [1j, '2.0']])
 
     Convenient advanced functions are available for creating various standard
     matrices, see ``zeros``, ``ones``, ``diag``, ``eye``, ``randmatrix`` and
@@ -112,8 +107,8 @@ class matrix(object):
         >>> matrix([1, 2, 3])
         matrix(
         [['1.0'],
-        ['2.0'],
-        ['3.0']])
+         ['2.0'],
+         ['3.0']])
         >>> matrix([[1, 2, 3]])
         matrix(
         [['1.0', '2.0', '3.0']])
@@ -151,17 +146,17 @@ class matrix(object):
         >>> A
         matrix(
         [['0.0', '0.0'],
-        ['0.0', '0.0']])
+         ['0.0', '0.0']])
         >>> B = A.copy()
         >>> B[0,0] = 1
         >>> B
         matrix(
         [['1.0', '0.0'],
-        ['0.0', '0.0']])
+         ['0.0', '0.0']])
         >>> A
         matrix(
         [['0.0', '0.0'],
-        ['0.0', '0.0']])
+         ['0.0', '0.0']])
 
     Finally, it is possible to convert a matrix to a nested list. This is very useful,
     as most Python libraries involving matrices or arrays (namely NumPy or SymPy)
@@ -174,23 +169,21 @@ class matrix(object):
     Matrix operations
     -----------------
 
-    You can add and substract matrices of compatible dimensions::
+    You can add and subtract matrices of compatible dimensions::
 
         >>> A = matrix([[1, 2], [3, 4]])
         >>> B = matrix([[-2, 4], [5, 9]])
         >>> A + B
         matrix(
         [['-1.0', '6.0'],
-        ['8.0', '13.0']])
+         ['8.0', '13.0']])
         >>> A - B
         matrix(
         [['3.0', '-2.0'],
-        ['-2.0', '-5.0']])
+         ['-2.0', '-5.0']])
         >>> A + ones(3) # doctest:+ELLIPSIS
         Traceback (most recent call last):
-        File "<stdin>", line 1, in <module>
-        File "...", line 238, in __add__
-            raise ValueError('incompatible dimensions for addition')
+          ...
         ValueError: incompatible dimensions for addition
 
     It is possible to multiply or add matrices and scalars. In the latter case the
@@ -199,15 +192,15 @@ class matrix(object):
         >>> A * 2
         matrix(
         [['2.0', '4.0'],
-        ['6.0', '8.0']])
+         ['6.0', '8.0']])
         >>> A / 4
         matrix(
         [['0.25', '0.5'],
-        ['0.75', '1.0']])
+         ['0.75', '1.0']])
         >>> A - 1
         matrix(
         [['0.0', '1.0'],
-        ['2.0', '3.0']])
+         ['2.0', '3.0']])
 
     Of course you can perform matrix multiplication, if the dimensions are
     compatible::
@@ -215,7 +208,7 @@ class matrix(object):
         >>> A * B
         matrix(
         [['8.0', '22.0'],
-        ['14.0', '48.0']])
+         ['14.0', '48.0']])
         >>> matrix([[1, 2, 3]]) * matrix([[-6], [7], [-2]])
         matrix(
         [['2.0']])
@@ -225,18 +218,18 @@ class matrix(object):
         >>> A**2
         matrix(
         [['7.0', '10.0'],
-        ['15.0', '22.0']])
+         ['15.0', '22.0']])
 
     Negative powers will calculate the inverse::
 
         >>> A**-1
         matrix(
         [['-2.0', '1.0'],
-        ['1.5', '-0.5']])
+         ['1.5', '-0.5']])
         >>> A * A**-1
         matrix(
-        [['1.0', '0.0'],
-        ['0.0', '1.0']])
+        [['1.0', '1.0842021724855e-19'],
+         ['-2.16840434497101e-19', '1.0']])
 
     Matrix transposition is straightforward::
 
@@ -244,12 +237,12 @@ class matrix(object):
         >>> A
         matrix(
         [['1.0', '1.0', '1.0'],
-        ['1.0', '1.0', '1.0']])
+         ['1.0', '1.0', '1.0']])
         >>> A.T
         matrix(
         [['1.0', '1.0'],
-        ['1.0', '1.0'],
-        ['1.0', '1.0']])
+         ['1.0', '1.0'],
+         ['1.0', '1.0']])
 
     Norms
     .....
@@ -263,11 +256,11 @@ class matrix(object):
     used.
 
         >>> x = matrix([-10, 2, 100])
-        >>> norm_p(x, 1)
+        >>> norm(x, 1)
         mpf('112.0')
-        >>> norm_p(x, 2)
+        >>> norm(x, 2)
         mpf('100.5186549850325')
-        >>> norm_p(x, inf)
+        >>> norm(x, inf)
         mpf('100.0')
 
     Please note that the 2-norm is the most used one, though it is more expensive
@@ -276,11 +269,11 @@ class matrix(object):
     It is possible to generalize some vector norms to matrix norm::
 
         >>> A = matrix([[1, -1000], [100, 50]])
-        >>> mnorm_1(A)
+        >>> mnorm(A, 1)
         mpf('1050.0')
-        >>> mnorm_oo(A)
+        >>> mnorm(A, inf)
         mpf('1001.0')
-        >>> mnorm_F(A)
+        >>> mnorm(A, 'F')
         mpf('1006.2310867787777')
 
     The last norm (the "Frobenius-norm") is an approximation for the 2-norm, which
@@ -294,10 +287,7 @@ class matrix(object):
         # multiple times, when calculating the inverse and when calculating the
         # determinant
         self._LU = None
-        if 'force_type' in kwargs:
-            self.force_type = kwargs['force_type']
-        else:
-            self.force_type = mpmathify
+        convert = kwargs.get('force_type', self.ctx.convert)
         if isinstance(args[0], (list, tuple)):
             if isinstance(args[0][0], (list, tuple)):
                 # interpret nested list as matrix
@@ -306,7 +296,7 @@ class matrix(object):
                 self.__cols = len(A[0])
                 for i, row in enumerate(A):
                     for j, a in enumerate(row):
-                        self[i, j] = a
+                        self[i, j] = convert(a)
             else:
                 # interpret list as row vector
                 v = args[0]
@@ -322,28 +312,34 @@ class matrix(object):
                 assert isinstance(args[1], int), 'expected int'
                 self.__rows = args[0]
                 self.__cols = args[1]
-        elif isinstance(args[0], matrix):
+        elif isinstance(args[0], _matrix):
             A = args[0].copy()
             self.__data = A._matrix__data
             self.__rows = A._matrix__rows
             self.__cols = A._matrix__cols
-            # only copy force_type when not specified
-            if not 'force_type' in kwargs:
-                self.force_type = A.force_type
-            elif self.force_type:
-                # apply specified force_type
-                for i in xrange(A.__rows):
-                    for j in xrange(A.__cols):
-                        A[i,j] = self.force_type(A[i,j])
+            convert = kwargs.get('force_type', self.ctx.convert)
+            for i in xrange(A.__rows):
+                for j in xrange(A.__cols):
+                    A[i,j] = convert(A[i,j])
         elif hasattr(args[0], 'tolist'):
-            A = matrix(args[0].tolist())
+            A = self.ctx.matrix(args[0].tolist())
             self.__data = A._matrix__data
             self.__rows = A._matrix__rows
             self.__cols = A._matrix__cols
         else:
             raise TypeError('could not interpret given arguments')
 
-    def __nstr__(self, n=None):
+    def apply(self, f):
+        """
+        Return a copy of self with the function `f` applied elementwise.
+        """
+        new = self.ctx.matrix(self.__rows, self.__cols)
+        for i in xrange(self.__rows):
+            for j in xrange(self.__cols):
+                new[i,j] = f(self[i,j])
+        return new
+
+    def __nstr__(self, n=None, **kwargs):
         # Build table of string representations of the elements
         res = []
         # Track per-column max lengths for pretty alignment
@@ -352,7 +348,7 @@ class matrix(object):
             res.append([])
             for j in range(self.cols):
                 if n:
-                    string = nstr(self[i,j], n)
+                    string = self.ctx.nstr(self[i,j], n, **kwargs)
                 else:
                     string = str(self[i,j])
                 res[-1].append(string)
@@ -374,11 +370,13 @@ class matrix(object):
 
         If avoid_type: avoid multiple 'mpf's.
         """
+        # XXX: should be something like self.ctx._types
+        typ = self.ctx.mpf
         s = '['
         for i in xrange(self.__rows):
             s += '['
             for j in xrange(self.__cols):
-                if not avoid_type or not isinstance(self[i,j], (mpf, mpc)):
+                if not avoid_type or not isinstance(self[i,j], typ):
                     a = repr(self[i,j])
                 else:
                     a = "'" + str(self[i,j]) + "'"
@@ -393,15 +391,17 @@ class matrix(object):
         """
         Convert the matrix to a nested list.
         """
-        return eval(self._toliststr())
+        return [[self[i,j] for j in range(self.__cols)] for i in range(self.__rows)]
 
     def __repr__(self):
+        if self.ctx.pretty:
+            return self.__str__()
         s = 'matrix(\n'
         s += self._toliststr(avoid_type=True) + ')'
         return s
 
     def __getitem__(self, key):
-        if isinstance(key, int):
+        if type(key) is int:
             # only sufficent for vectors
             if self.__rows == 1:
                 key = (0, key)
@@ -414,13 +414,10 @@ class matrix(object):
         else:
             if key[0] >= self.__rows or key[1] >= self.__cols:
                 raise IndexError('matrix index out of range')
-            if self.force_type:
-                return self.force_type(0)
-            else:
-                return 0
+            return self.ctx.zero
 
     def __setitem__(self, key, value):
-        if isinstance(key, int):
+        if type(key) is int:
             # only sufficent for vectors
             if self.__rows == 1:
                 key = (0, key)
@@ -430,8 +427,7 @@ class matrix(object):
                 raise IndexError('insufficient indices for matrix')
         if key[0] >= self.__rows or key[1] >= self.__cols:
             raise IndexError('matrix index out of range')
-        if self.force_type: # and not isinstance(value, self.force_type):
-            value = self.force_type(value)
+        value = self.ctx.convert(value)
         if value: # only store non-zeros
             self.__data[key] = value
         elif key in self.__data:
@@ -446,21 +442,19 @@ class matrix(object):
                 yield self[i,j]
 
     def __mul__(self, other):
-        if isinstance(other, matrix):
+        if isinstance(other, self.ctx.matrix):
             # dot multiplication  TODO: use Strassen's method?
             if self.__cols != other.__rows:
                 raise ValueError('dimensions not compatible for multiplication')
-            new = matrix(self.__rows, other.__cols)
+            new = self.ctx.matrix(self.__rows, other.__cols)
             for i in xrange(self.__rows):
                 for j in xrange(other.__cols):
-                    s = 0
-                    for k in xrange(other.__rows):
-                        s += self[i,k] * other[k,j]
-                    new[i, j] = s
+                    new[i, j] = self.ctx.fdot((self[i,k], other[k,j])
+                                     for k in xrange(other.__rows))
             return new
         else:
             # try scalar multiplication
-            new = matrix(self.__rows, self.__cols)
+            new = self.ctx.matrix(self.__rows, self.__cols)
             for i in xrange(self.__rows):
                 for j in xrange(self.__cols):
                     new[i, j] = other * self[i, j]
@@ -468,19 +462,19 @@ class matrix(object):
 
     def __rmul__(self, other):
         # assume other is scalar and thus commutative
-        assert not isinstance(other, matrix)
+        assert not isinstance(other, self.ctx.matrix)
         return self.__mul__(other)
 
     def __pow__(self, other):
         # avoid cyclic import problems
-        from linalg import inverse
+        #from linalg import inverse
         if not isinstance(other, int):
             raise ValueError('only integer exponents are supported')
         if not self.__rows == self.__cols:
             raise ValueError('only powers of square matrices are defined')
         n = other
         if n == 0:
-            return eye(self.__rows)
+            return self.ctx.eye(self.__rows)
         if n < 0:
             n = -n
             neg = True
@@ -495,13 +489,13 @@ class matrix(object):
             z = z*z
             i = i // 2
         if neg:
-            y = inverse(y)
+            y = self.ctx.inverse(y)
         return y
 
     def __div__(self, other):
         # assume other is scalar and do element-wise divison
-        assert not isinstance(other, matrix)
-        new = matrix(self.__rows, self.__cols)
+        assert not isinstance(other, self.ctx.matrix)
+        new = self.ctx.matrix(self.__rows, self.__cols)
         for i in xrange(self.__rows):
             for j in xrange(self.__cols):
                 new[i,j] = self[i,j] / other
@@ -510,17 +504,17 @@ class matrix(object):
     __truediv__ = __div__
 
     def __add__(self, other):
-        if isinstance(other, matrix):
+        if isinstance(other, self.ctx.matrix):
             if not (self.__rows == other.__rows and self.__cols == other.__cols):
                 raise ValueError('incompatible dimensions for addition')
-            new = matrix(self.__rows, self.__cols)
+            new = self.ctx.matrix(self.__rows, self.__cols)
             for i in xrange(self.__rows):
                 for j in xrange(self.__cols):
                     new[i,j] = self[i,j] + other[i,j]
             return new
         else:
             # assume other is scalar and add element-wise
-            new = matrix(self.__rows, self.__cols)
+            new = self.ctx.matrix(self.__rows, self.__cols)
             for i in xrange(self.__rows):
                 for j in xrange(self.__cols):
                     new[i,j] += self[i,j] + other
@@ -530,7 +524,7 @@ class matrix(object):
         return self.__add__(other)
 
     def __sub__(self, other):
-        if isinstance(other, matrix) and not (self.__rows == other.__rows
+        if isinstance(other, self.ctx.matrix) and not (self.__rows == other.__rows
                                               and self.__cols == other.__cols):
             raise ValueError('incompatible dimensions for substraction')
         return self.__add__(other * (-1))
@@ -576,7 +570,7 @@ class matrix(object):
     cols = property(__getcols, __setcols, doc='number of columns')
 
     def transpose(self):
-        new = matrix(self.__cols, self.__rows)
+        new = self.ctx.matrix(self.__cols, self.__rows)
         for i in xrange(self.__rows):
             for j in xrange(self.__cols):
                 new[j,i] = self[i,j]
@@ -584,198 +578,281 @@ class matrix(object):
 
     T = property(transpose)
 
+    def conjugate(self):
+        return self.apply(self.ctx.conj)
+
+    def transpose_conj(self):
+        return self.conjugate().transpose()
+
+    H = property(transpose_conj)
+
     def copy(self):
-        new = matrix(self.__rows, self.__cols, force_type=self.force_type)
+        new = self.ctx.matrix(self.__rows, self.__cols)
         new.__data = self.__data.copy()
         return new
 
     __copy__ = copy
 
     def column(self, n):
-        m = matrix(self.rows, 1)
+        m = self.ctx.matrix(self.rows, 1)
         for i in range(self.rows):
             m[i] = self[i,n]
         return m
 
-def eye(n, **kwargs):
-    """
-    Create square identity matrix n x n.
-    """
-    A = matrix(n, **kwargs)
-    for i in xrange(n):
-        A[i,i] = 1
-    return A
+class MatrixMethods(object):
 
-def diag(diagonal, **kwargs):
-    """
-    Create square diagonal matrix using given list.
+    def __init__(ctx):
+        # XXX: subclass
+        ctx.matrix = type('matrix', (_matrix,), {})
+        ctx.matrix.ctx = ctx
+        ctx.matrix.convert = ctx.convert
 
-    Example:
-    >>> from mpmath import diag
-    >>> diag([1, 2, 3])
-    matrix(
-    [['1.0', '0.0', '0.0'],
-     ['0.0', '2.0', '0.0'],
-     ['0.0', '0.0', '3.0']])
-    """
-    A = matrix(len(diagonal), **kwargs)
-    for i in xrange(len(diagonal)):
-        A[i,i] = diagonal[i]
-    return A
+    def eye(ctx, n, **kwargs):
+        """
+        Create square identity matrix n x n.
+        """
+        A = ctx.matrix(n, **kwargs)
+        for i in xrange(n):
+            A[i,i] = 1
+        return A
 
-def zeros(*args, **kwargs):
-    """
-    Create matrix m x n filled with zeros.
-    One given dimension will create square matrix n x n.
+    def diag(ctx, diagonal, **kwargs):
+        """
+        Create square diagonal matrix using given list.
 
-    Example:
-    >>> from mpmath import zeros
-    >>> zeros(2)
-    matrix(
-    [['0.0', '0.0'],
-     ['0.0', '0.0']])
-    """
-    if len(args) == 1:
-        m = n = args[0]
-    elif len(args) == 2:
-        m = args[0]
-        n = args[1]
-    else:
-        raise TypeError('zeros expected at most 2 arguments, got %i' % len(args))
-    A = matrix(m, n, **kwargs)
-    for i in xrange(m):
-        for j in xrange(n):
-            A[i,j] = 0
-    return A
+        Example:
+        >>> from mpmath import diag, mp
+        >>> mp.pretty = False
+        >>> diag([1, 2, 3])
+        matrix(
+        [['1.0', '0.0', '0.0'],
+         ['0.0', '2.0', '0.0'],
+         ['0.0', '0.0', '3.0']])
+        """
+        A = ctx.matrix(len(diagonal), **kwargs)
+        for i in xrange(len(diagonal)):
+            A[i,i] = diagonal[i]
+        return A
 
-def ones(*args, **kwargs):
-    """
-    Create matrix m x n filled with ones.
-    One given dimension will create square matrix n x n.
+    def zeros(ctx, *args, **kwargs):
+        """
+        Create matrix m x n filled with zeros.
+        One given dimension will create square matrix n x n.
 
-    Example:
-    >>> from mpmath import ones
-    >>> ones(2)
-    matrix(
-    [['1.0', '1.0'],
-     ['1.0', '1.0']])
-    """
-    if len(args) == 1:
-        m = n = args[0]
-    elif len(args) == 2:
-        m = args[0]
-        n = args[1]
-    else:
-        raise TypeError('ones expected at most 2 arguments, got %i' % len(args))
-    A = matrix(m, n, **kwargs)
-    for i in xrange(m):
-        for j in xrange(n):
-            A[i,j] = 1
-    return A
+        Example:
+        >>> from mpmath import zeros, mp
+        >>> mp.pretty = False
+        >>> zeros(2)
+        matrix(
+        [['0.0', '0.0'],
+         ['0.0', '0.0']])
+        """
+        if len(args) == 1:
+            m = n = args[0]
+        elif len(args) == 2:
+            m = args[0]
+            n = args[1]
+        else:
+            raise TypeError('zeros expected at most 2 arguments, got %i' % len(args))
+        A = ctx.matrix(m, n, **kwargs)
+        for i in xrange(m):
+            for j in xrange(n):
+                A[i,j] = 0
+        return A
 
-def hilbert(m, n=None):
-    """
-    Create (pseudo) hilbert matrix m x n.
-    One given dimension will create hilbert matrix n x n.
+    def ones(ctx, *args, **kwargs):
+        """
+        Create matrix m x n filled with ones.
+        One given dimension will create square matrix n x n.
 
-    The matrix is very ill-conditioned and symmetric, positive definit if
-    square.
-    """
-    if n is None:
-        n = m
-    A = matrix(m, n)
-    for i in xrange(m):
-        for j in xrange(n):
-            A[i,j] = 1./ (i + j + 1)
-    return A
+        Example:
+        >>> from mpmath import ones, mp
+        >>> mp.pretty = False
+        >>> ones(2)
+        matrix(
+        [['1.0', '1.0'],
+         ['1.0', '1.0']])
+        """
+        if len(args) == 1:
+            m = n = args[0]
+        elif len(args) == 2:
+            m = args[0]
+            n = args[1]
+        else:
+            raise TypeError('ones expected at most 2 arguments, got %i' % len(args))
+        A = ctx.matrix(m, n, **kwargs)
+        for i in xrange(m):
+            for j in xrange(n):
+                A[i,j] = 1
+        return A
 
-def randmatrix(m, n=None, min=0, max=1, **kwargs):
-    """
-    Create a random m x n matrix.
+    def hilbert(ctx, m, n=None):
+        """
+        Create (pseudo) hilbert matrix m x n.
+        One given dimension will create hilbert matrix n x n.
 
-    All values are >= min and <max.
-    n defaults to m.
+        The matrix is very ill-conditioned and symmetric, positive definite if
+        square.
+        """
+        if n is None:
+            n = m
+        A = ctx.matrix(m, n)
+        for i in xrange(m):
+            for j in xrange(n):
+                A[i,j] = ctx.one / (i + j + 1)
+        return A
 
-    Example:
-    >>> from mpmath import randmatrix
-    >>> randmatrix(2) # doctest:+SKIP
-    matrix(
-    [['0.53491598236191806', '0.57195669543302752'],
-     ['0.85589992269513615', '0.82444367501382143']])
-    """
-    if not n:
-        n = m
-    A = matrix(m, n, **kwargs)
-    for i in xrange(m):
-        for j in xrange(n):
-            A[i,j] = rand() * (max - min) + min
-    return A
+    def randmatrix(ctx, m, n=None, min=0, max=1, **kwargs):
+        """
+        Create a random m x n matrix.
 
-def swap_row(A, i, j):
-    """
-    Swap row i with row j.
-    """
-    if i == j:
-        return
-    if isinstance(A, matrix):
-        for k in xrange(A.cols):
-            A[i,k], A[j,k] = A[j,k], A[i,k]
-    elif isinstance(A, list):
-        A[i], A[j] = A[j], A[i]
-    else:
-        raise TypeError('could not interpret type')
+        All values are >= min and <max.
+        n defaults to m.
 
-def extend(A, b):
-    """
-    Extend matrix A with column b and return result.
-    """
-    assert isinstance(A, matrix)
-    assert A.rows == len(b)
-    A = A.copy()
-    A.cols += 1
-    for i in xrange(A.rows):
-        A[i, A.cols-1] = b[i]
-    return A
+        Example:
+        >>> from mpmath import randmatrix
+        >>> randmatrix(2) # doctest:+SKIP
+        matrix(
+        [['0.53491598236191806', '0.57195669543302752'],
+         ['0.85589992269513615', '0.82444367501382143']])
+        """
+        if not n:
+            n = m
+        A = ctx.matrix(m, n, **kwargs)
+        for i in xrange(m):
+            for j in xrange(n):
+                A[i,j] = ctx.rand() * (max - min) + min
+        return A
 
-def mnorm_1(A):
-    """
-    Calculate the 1-norm (maximal column sum) of a matrix.
-    """
-    assert isinstance(A, matrix)
-    m, n = A.rows, A.cols
-    return max((sum((absmax(A[i,j]) for i in xrange(m))) for j in xrange(n)))
+    def swap_row(ctx, A, i, j):
+        """
+        Swap row i with row j.
+        """
+        if i == j:
+            return
+        if isinstance(A, ctx.matrix):
+            for k in xrange(A.cols):
+                A[i,k], A[j,k] = A[j,k], A[i,k]
+        elif isinstance(A, list):
+            A[i], A[j] = A[j], A[i]
+        else:
+            raise TypeError('could not interpret type')
 
-def mnorm_oo(A):
-    """
-    Calculate the oo-norm (maximal row sum) of a matrix.
-    """
-    assert isinstance(A, matrix)
-    m, n = A.rows, A.cols
-    return max((sum((absmax(A[i,j]) for j in xrange(n))) for i in xrange(m)))
+    def extend(ctx, A, b):
+        """
+        Extend matrix A with column b and return result.
+        """
+        assert isinstance(A, ctx.matrix)
+        assert A.rows == len(b)
+        A = A.copy()
+        A.cols += 1
+        for i in xrange(A.rows):
+            A[i, A.cols-1] = b[i]
+        return A
 
-def mnorm_F(A):
-    """
-    Calculate the Frobenius norm (root of sum of squares) of a matrix.
+    def norm(ctx, x, p=2):
+        r"""
+        Gives the entrywise `p`-norm of an iterable *x*, i.e. the vector norm
+        `\left(\sum_k |x_k|^p\right)^{1/p}`, for any given `1 \le p \le \infty`.
 
-    It can be useful for estimating the spectral norm (which is difficult to
-    calculate):
-    mnorm_F(A) / sqrt(rank(A)) <= mnorm_2(A) <= mnorm_F(A)
-    """
-    return norm_p(A, 2)
+        Special cases:
 
-def norm_p(x, p=2):
-    """
-    Calculate the p-norm of a vector.
-    0 < p <= oo
+        If *x* is not iterable, this just returns ``absmax(x)``.
 
-    Note: you may want to use float('inf') or mpmath's equivalent to specify oo.
-    """
-    if p == inf:
-        return max((absmax(i) for i in x))
-    elif p > 1:
-        return nthroot(sum((abs(i)**p for i in x)), p)
-    elif p == 1:
-        return sum((abs(i) for i in x))
-    else:
-        raise ValueError('p has to be an integer greater than 0')
+        ``p=1`` gives the sum of absolute values.
 
+        ``p=2`` is the standard Euclidean vector norm.
+
+        ``p=inf`` gives the magnitude of the largest element.
+
+        For *x* a matrix, ``p=2`` is the Frobenius norm.
+        For operator matrix norms, use :func:`mnorm` instead.
+
+        You can use the string 'inf' as well as float('inf') or mpf('inf')
+        to specify the infinity norm.
+
+        **Examples**
+
+            >>> from mpmath import *
+            >>> mp.dps = 15; mp.pretty = False
+            >>> x = matrix([-10, 2, 100])
+            >>> norm(x, 1)
+            mpf('112.0')
+            >>> norm(x, 2)
+            mpf('100.5186549850325')
+            >>> norm(x, inf)
+            mpf('100.0')
+
+        """
+        try:
+            iter(x)
+        except TypeError:
+            return ctx.absmax(x)
+        if type(p) is not int:
+            p = ctx.convert(p)
+        if p == ctx.inf:
+            return max(ctx.absmax(i) for i in x)
+        elif p == 1:
+            return ctx.fsum(x, absolute=1)
+        elif p == 2:
+            return ctx.sqrt(ctx.fsum(x, absolute=1, squared=1))
+        elif p > 1:
+            return ctx.nthroot(ctx.fsum(abs(i)**p for i in x), p)
+        else:
+            raise ValueError('p has to be >= 1')
+
+    def mnorm(ctx, A, p=1):
+        r"""
+        Gives the matrix (operator) `p`-norm of A. Currently ``p=1`` and ``p=inf``
+        are supported:
+
+        ``p=1`` gives the 1-norm (maximal column sum)
+
+        ``p=inf`` gives the `\infty`-norm (maximal row sum).
+        You can use the string 'inf' as well as float('inf') or mpf('inf')
+
+        ``p=2`` (not implemented) for a square matrix is the usual spectral
+        matrix norm, i.e. the largest singular value.
+
+        ``p='f'`` (or 'F', 'fro', 'Frobenius, 'frobenius') gives the
+        Frobenius norm, which is the elementwise 2-norm. The Frobenius norm is an
+        approximation of the spectral norm and satisfies
+
+        .. math ::
+
+            \frac{1}{\sqrt{\mathrm{rank}(A)}} \|A\|_F \le \|A\|_2 \le \|A\|_F
+
+        The Frobenius norm lacks some mathematical properties that might
+        be expected of a norm.
+
+        For general elementwise `p`-norms, use :func:`norm` instead.
+
+        **Examples**
+
+            >>> from mpmath import *
+            >>> mp.dps = 15; mp.pretty = False
+            >>> A = matrix([[1, -1000], [100, 50]])
+            >>> mnorm(A, 1)
+            mpf('1050.0')
+            >>> mnorm(A, inf)
+            mpf('1001.0')
+            >>> mnorm(A, 'F')
+            mpf('1006.2310867787777')
+
+        """
+        A = ctx.matrix(A)
+        if type(p) is not int:
+            if type(p) is str and 'frobenius'.startswith(p.lower()):
+                return ctx.norm(A, 2)
+            p = ctx.convert(p)
+        m, n = A.rows, A.cols
+        if p == 1:
+            return max(ctx.fsum((A[i,j] for i in xrange(m)), absolute=1) for j in xrange(n))
+        elif p == ctx.inf:
+            return max(ctx.fsum((A[i,j] for j in xrange(n)), absolute=1) for i in xrange(m))
+        else:
+            raise NotImplementedError("matrix p-norm for arbitrary p")
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
