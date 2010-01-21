@@ -266,6 +266,8 @@ def fraction_add(self, other, cls=mpq, inttypes_set=inttypes_set):
         @ADD_FRACTION_INT(LHS=self; RHS=other)
     elif t is cls:
         @ADD_FRACTION_FRACTION(LHS=self; RHS=other)
+    @IF_CHECK_FLOAT(T=t)
+        return self + mpf(other)
     return NotImplemented
 
 def fraction_sub(self, other, cls=mpq, inttypes_set=inttypes_set):
@@ -274,12 +276,16 @@ def fraction_sub(self, other, cls=mpq, inttypes_set=inttypes_set):
         @SUB_FRACTION_INT(LHS=self; RHS=other)
     elif t is cls:
         @SUB_FRACTION_FRACTION(LHS=self; RHS=other)
+    @IF_CHECK_FLOAT(T=t)
+        return self - mpf(other)
     return NotImplemented
 
 def fraction_rsub(self, other, cls=mpq, inttypes_set=inttypes_set):
     t = type(other)
     @IF_CHECK_INT(T=t)
         @SUB_INT_FRACTION(RHS=self; LHS=other)
+    @IF_CHECK_FLOAT(T=t)
+        return mpf(other) - self
     return NotImplemented
 
 def fraction_mul(self, other, cls=mpq, inttypes_set=inttypes_set):
@@ -288,6 +294,8 @@ def fraction_mul(self, other, cls=mpq, inttypes_set=inttypes_set):
         @MUL_FRACTION_FRACTION(LHS=self; RHS=other; MOD=%)
     @IF_CHECK_INT(T=t)
         @MUL_FRACTION_INT(LHS=self; RHS=other; MOD=%)
+    @IF_CHECK_FLOAT(T=t)
+        return self * mpf(other)
     return NotImplemented
 
 def fraction_div(self, other, cls=mpq, inttypes_set=inttypes_set):
@@ -296,12 +304,16 @@ def fraction_div(self, other, cls=mpq, inttypes_set=inttypes_set):
         @DIV_FRACTION_INT(LHS=self; RHS=other; MOD=%)
     elif t is cls:
         @DIV_FRACTION_FRACTION(LHS=self; RHS=other; MOD=%)
+    @IF_CHECK_FLOAT(T=t)
+        return self / mpf(other)
     return NotImplemented
 
 def fraction_rdiv(self, other, cls=mpq, inttypes_set=inttypes_set):
     t = type(other)
     @IF_CHECK_INT(T=t)
         @DIV_INT_FRACTION(RHS=self; LHS=other; MOD=%)
+    @IF_CHECK_FLOAT(T=t)
+        return mpf(other) / self
     return NotImplemented
 
 def fraction_pow(self, other, m=None, cls=mpq, inttypes_set=inttypes_set):
@@ -312,6 +324,8 @@ def fraction_pow(self, other, m=None, cls=mpq, inttypes_set=inttypes_set):
         if other==1:
             return self
         @POW_FRACTION_INT(LHS=self; RHS=other)
+    @IF_CHECK_FLOAT(T=t)
+        return self ** mpf(other)
     return NotImplemented
 
 def complex_add(self, other, new=object.__new__, cls=mpqc, realtypes_set=realtypes_set, complextypes_set=complextypes_set):

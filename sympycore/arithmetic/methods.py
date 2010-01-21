@@ -42,6 +42,9 @@ def fraction_add(self, other, cls=mpq, inttypes_set=inttypes_set):
             return _p
         #RETURN_FRACTION(NUMER=_p; DENOM=_q)
         return cls((_p, _q))
+    #IF_CHECK_FLOAT(T=t)
+    if t is float:
+        return self + mpf(other)
     return NotImplemented
 
 def fraction_sub(self, other, cls=mpq, inttypes_set=inttypes_set):
@@ -57,12 +60,12 @@ def fraction_sub(self, other, cls=mpq, inttypes_set=inttypes_set):
         #ADDOP_FRACTION_FRACTION(LHS=self; RHS=other; SIGN=-; MOD=%)
         p, q = self
         r, s = other
-        _tmp86 = p*s - q*r
-        if not _tmp86:
+        _tmp93 = p*s - q*r
+        if not _tmp93:
             return 0
-        #RETURN_FRACTION2(NUMER=_tmp86; DENOM=q*s; MOD=%)
-        #FRACTION_NORMALIZE(NUMER=_tmp86; DENOM=q*s; RNUMER=_p; RDENOM=_q; MOD=%)
-        _p = _x = _tmp86
+        #RETURN_FRACTION2(NUMER=_tmp93; DENOM=q*s; MOD=%)
+        #FRACTION_NORMALIZE(NUMER=_tmp93; DENOM=q*s; RNUMER=_p; RDENOM=_q; MOD=%)
+        _p = _x = _tmp93
         _q = _y = q*s
         while 1:
             _x, _y = _y, _x % _y
@@ -75,6 +78,9 @@ def fraction_sub(self, other, cls=mpq, inttypes_set=inttypes_set):
             return _p
         #RETURN_FRACTION(NUMER=_p; DENOM=_q)
         return cls((_p, _q))
+    #IF_CHECK_FLOAT(T=t)
+    if t is float:
+        return self - mpf(other)
     return NotImplemented
 
 def fraction_rsub(self, other, cls=mpq, inttypes_set=inttypes_set):
@@ -85,6 +91,9 @@ def fraction_rsub(self, other, cls=mpq, inttypes_set=inttypes_set):
         p, q = self
         #RETURN_FRACTION(NUMER=q*(other) - p; DENOM=q)
         return cls((q*(other) - p, q))
+    #IF_CHECK_FLOAT(T=t)
+    if t is float:
+        return mpf(other) - self
     return NotImplemented
 
 def fraction_mul(self, other, cls=mpq, inttypes_set=inttypes_set):
@@ -127,6 +136,9 @@ def fraction_mul(self, other, cls=mpq, inttypes_set=inttypes_set):
             return _p
         #RETURN_FRACTION(NUMER=_p; DENOM=_q)
         return cls((_p, _q))
+    #IF_CHECK_FLOAT(T=t)
+    if t is float:
+        return self * mpf(other)
     return NotImplemented
 
 def fraction_div(self, other, cls=mpq, inttypes_set=inttypes_set):
@@ -169,6 +181,9 @@ def fraction_div(self, other, cls=mpq, inttypes_set=inttypes_set):
             return _p
         #RETURN_FRACTION(NUMER=_p; DENOM=_q)
         return cls((_p, _q))
+    #IF_CHECK_FLOAT(T=t)
+    if t is float:
+        return self / mpf(other)
     return NotImplemented
 
 def fraction_rdiv(self, other, cls=mpq, inttypes_set=inttypes_set):
@@ -192,6 +207,9 @@ def fraction_rdiv(self, other, cls=mpq, inttypes_set=inttypes_set):
             return _p
         #RETURN_FRACTION(NUMER=_p; DENOM=_q)
         return cls((_p, _q))
+    #IF_CHECK_FLOAT(T=t)
+    if t is float:
+        return mpf(other) / self
     return NotImplemented
 
 def fraction_pow(self, other, m=None, cls=mpq, inttypes_set=inttypes_set):
@@ -203,17 +221,20 @@ def fraction_pow(self, other, m=None, cls=mpq, inttypes_set=inttypes_set):
         if other==1:
             return self
         #POW_FRACTION_INT(LHS=self; RHS=other)
-        _tmp303 = other
+        _tmp345 = other
         p, q = self
-        if _tmp303 > 0:
-            #RETURN_FRACTION(NUMER=p**_tmp303; DENOM=q**_tmp303)
-            return cls((p**_tmp303, q**_tmp303))
-        _tmp303 = -_tmp303
+        if _tmp345 > 0:
+            #RETURN_FRACTION(NUMER=p**_tmp345; DENOM=q**_tmp345)
+            return cls((p**_tmp345, q**_tmp345))
+        _tmp345 = -_tmp345
         if p > 0:
-            #RETURN_FRACTION(NUMER=q**_tmp303; DENOM=p**_tmp303)
-            return cls((q**_tmp303, p**_tmp303))
-        #RETURN_FRACTION(NUMER=(-q)**_tmp303; DENOM=(-p)**_tmp303)
-        return cls(((-q)**_tmp303, (-p)**_tmp303))
+            #RETURN_FRACTION(NUMER=q**_tmp345; DENOM=p**_tmp345)
+            return cls((q**_tmp345, p**_tmp345))
+        #RETURN_FRACTION(NUMER=(-q)**_tmp345; DENOM=(-p)**_tmp345)
+        return cls(((-q)**_tmp345, (-p)**_tmp345))
+    #IF_CHECK_FLOAT(T=t)
+    if t is float:
+        return self ** mpf(other)
     return NotImplemented
 
 def complex_add(self, other, new=object.__new__, cls=mpqc, realtypes_set=realtypes_set, complextypes_set=complextypes_set):
@@ -222,22 +243,22 @@ def complex_add(self, other, new=object.__new__, cls=mpqc, realtypes_set=realtyp
     if t in realtypes_set:
         #ADD_COMPLEX_REAL(LHS=self; RHS=other)
         #RETURN_COMPLEX(REAL=self.real + other; IMAG=self.imag)
-        _tmp345 = new(cls)
-        _tmp345.real = self.real + other
-        _tmp345.imag = self.imag
-        return _tmp345
+        _tmp394 = new(cls)
+        _tmp394.real = self.real + other
+        _tmp394.imag = self.imag
+        return _tmp394
     #IF_CHECK_COMPLEX(T=t)
     if t in complextypes_set:
         #ADD_COMPLEX_COMPLEX(LHS=self; RHS=other)
         #RETURN_COMPLEX2(REAL=self.real + other.real; IMAG=self.imag + other.imag)
-        _tmp366 = self.imag + other.imag
-        if not _tmp366:
+        _tmp415 = self.imag + other.imag
+        if not _tmp415:
             return self.real + other.real
-        #RETURN_COMPLEX(REAL=self.real + other.real; IMAG=_tmp366)
-        _tmp373 = new(cls)
-        _tmp373.real = self.real + other.real
-        _tmp373.imag = _tmp366
-        return _tmp373
+        #RETURN_COMPLEX(REAL=self.real + other.real; IMAG=_tmp415)
+        _tmp422 = new(cls)
+        _tmp422.real = self.real + other.real
+        _tmp422.imag = _tmp415
+        return _tmp422
     return NotImplemented
 
 def complex_sub(self, other, new=object.__new__, cls=mpqc, realtypes_set=realtypes_set, complextypes_set=complextypes_set):
@@ -246,22 +267,22 @@ def complex_sub(self, other, new=object.__new__, cls=mpqc, realtypes_set=realtyp
     if t in realtypes_set:
         #SUB_COMPLEX_REAL(LHS=self; RHS=other)
         #RETURN_COMPLEX(REAL=self.real - other; IMAG=self.imag)
-        _tmp394 = new(cls)
-        _tmp394.real = self.real - other
-        _tmp394.imag = self.imag
-        return _tmp394
+        _tmp443 = new(cls)
+        _tmp443.real = self.real - other
+        _tmp443.imag = self.imag
+        return _tmp443
     #IF_CHECK_COMPLEX(T=t)
     if t in complextypes_set:
         #SUB_COMPLEX_COMPLEX(LHS=self; RHS=other)
         #RETURN_COMPLEX2(REAL=self.real - other.real; IMAG=self.imag - other.imag)
-        _tmp415 = self.imag - other.imag
-        if not _tmp415:
+        _tmp464 = self.imag - other.imag
+        if not _tmp464:
             return self.real - other.real
-        #RETURN_COMPLEX(REAL=self.real - other.real; IMAG=_tmp415)
-        _tmp422 = new(cls)
-        _tmp422.real = self.real - other.real
-        _tmp422.imag = _tmp415
-        return _tmp422
+        #RETURN_COMPLEX(REAL=self.real - other.real; IMAG=_tmp464)
+        _tmp471 = new(cls)
+        _tmp471.real = self.real - other.real
+        _tmp471.imag = _tmp464
+        return _tmp471
     return NotImplemented
 
 def complex_rsub(self, other, new=object.__new__, cls=mpqc, realtypes_set=realtypes_set):
@@ -270,21 +291,21 @@ def complex_rsub(self, other, new=object.__new__, cls=mpqc, realtypes_set=realty
     if t in realtypes_set:
         #SUB_REAL_COMPLEX(LHS=other; RHS=self)
         #RETURN_COMPLEX(REAL=other - self.real; IMAG=-self.imag)
-        _tmp443 = new(cls)
-        _tmp443.real = other - self.real
-        _tmp443.imag = -self.imag
-        return _tmp443
+        _tmp492 = new(cls)
+        _tmp492.real = other - self.real
+        _tmp492.imag = -self.imag
+        return _tmp492
     if t is complex:
         #SUB_COMPLEX_COMPLEX(LHS=other; RHS=self)
         #RETURN_COMPLEX2(REAL=other.real - self.real; IMAG=other.imag - self.imag)
-        _tmp457 = other.imag - self.imag
-        if not _tmp457:
+        _tmp506 = other.imag - self.imag
+        if not _tmp506:
             return other.real - self.real
-        #RETURN_COMPLEX(REAL=other.real - self.real; IMAG=_tmp457)
-        _tmp464 = new(cls)
-        _tmp464.real = other.real - self.real
-        _tmp464.imag = _tmp457
-        return _tmp464
+        #RETURN_COMPLEX(REAL=other.real - self.real; IMAG=_tmp506)
+        _tmp513 = new(cls)
+        _tmp513.real = other.real - self.real
+        _tmp513.imag = _tmp506
+        return _tmp513
     return NotImplemented
 
 def complex_mul(self, other, new=object.__new__, cls=mpqc, realtypes_set=realtypes_set, complextypes_set=complextypes_set):
@@ -295,24 +316,24 @@ def complex_mul(self, other, new=object.__new__, cls=mpqc, realtypes_set=realtyp
         a, b = self.real, self.imag
         c, d = other.real, other.imag
         #RETURN_COMPLEX2(REAL=a*c-b*d; IMAG=b*c+a*d)
-        _tmp485 = b*c+a*d
-        if not _tmp485:
+        _tmp534 = b*c+a*d
+        if not _tmp534:
             return a*c-b*d
-        #RETURN_COMPLEX(REAL=a*c-b*d; IMAG=_tmp485)
-        _tmp492 = new(cls)
-        _tmp492.real = a*c-b*d
-        _tmp492.imag = _tmp485
-        return _tmp492
+        #RETURN_COMPLEX(REAL=a*c-b*d; IMAG=_tmp534)
+        _tmp541 = new(cls)
+        _tmp541.real = a*c-b*d
+        _tmp541.imag = _tmp534
+        return _tmp541
     #IF_CHECK_REAL(T=t)
     if t in realtypes_set:
         #MUL_COMPLEX_REAL(LHS=self; RHS=other)
         if not other:
             return 0
         #RETURN_COMPLEX(REAL=self.real*other; IMAG=self.imag*other)
-        _tmp513 = new(cls)
-        _tmp513.real = self.real*other
-        _tmp513.imag = self.imag*other
-        return _tmp513
+        _tmp562 = new(cls)
+        _tmp562.real = self.real*other
+        _tmp562.imag = self.imag*other
+        return _tmp562
     return NotImplemented
 
 def complex_div(self, other, new=object.__new__, cls=mpqc, realtypes_set=realtypes_set, complextypes_set=complextypes_set):
@@ -367,17 +388,17 @@ def complex_div(self, other, new=object.__new__, cls=mpqc, realtypes_set=realtyp
         else:
             im = _p / _q
         #RETURN_COMPLEX(REAL=re; IMAG=im)
-        _tmp590 = new(cls)
-        _tmp590.real = re
-        _tmp590.imag = im
-        return _tmp590
+        _tmp639 = new(cls)
+        _tmp639.real = re
+        _tmp639.imag = im
+        return _tmp639
     #IF_CHECK_COMPLEX(T=t)
     if t in complextypes_set:
         #DIV_COMPLEX_COMPLEX(LHS=self; RHS=other; MOD=%)
         a, b = self.real, self.imag
         c, d = other.real, other.imag
         mag = c*c + d*d
-        _tmp604 = b*c-a*d
+        _tmp653 = b*c-a*d
         #DIV_VALUE_VALUE(LHS=a*c+b*d; RHS=mag; RESULT=re; MOD=%)
         _p, _q = a*c+b*d, mag
         if not _q:
@@ -401,12 +422,12 @@ def complex_div(self, other, new=object.__new__, cls=mpqc, realtypes_set=realtyp
                 re = _p / _q
         else:
             re = _p / _q
-        if not _tmp604:
+        if not _tmp653:
             return re
-        #DIV_VALUE_VALUE(LHS=_tmp604; RHS=mag; RESULT=im; MOD=%)
-        _p, _q = _tmp604, mag
+        #DIV_VALUE_VALUE(LHS=_tmp653; RHS=mag; RESULT=im; MOD=%)
+        _p, _q = _tmp653, mag
         if not _q:
-            raise ZeroDivisionError(repr(_tmp604) + " / " + repr(mag))
+            raise ZeroDivisionError(repr(_tmp653) + " / " + repr(mag))
         #IF_CHECK_INT(T=type(_p))
         if type(_p) in inttypes_set:
             #IF_CHECK_INT(T=type(_q))
@@ -427,10 +448,10 @@ def complex_div(self, other, new=object.__new__, cls=mpqc, realtypes_set=realtyp
         else:
             im = _p / _q
         #RETURN_COMPLEX(REAL=re; IMAG=im)
-        _tmp667 = new(cls)
-        _tmp667.real = re
-        _tmp667.imag = im
-        return _tmp667
+        _tmp716 = new(cls)
+        _tmp716.real = re
+        _tmp716.imag = im
+        return _tmp716
     return NotImplemented
 
 def complex_rdiv(self, other, new=object.__new__, cls=mpqc, realtypes_set=realtypes_set):
@@ -438,13 +459,13 @@ def complex_rdiv(self, other, new=object.__new__, cls=mpqc, realtypes_set=realty
     #IF_CHECK_REAL(T=t)
     if t in realtypes_set:
         #DIV_REAL_COMPLEX(LHS=other; RHS=self; MOD=%)
-        _tmp681 = other
+        _tmp730 = other
         c, d = self.real, self.imag
         mag = c*c + d*d
-        #DIV_VALUE_VALUE(LHS=-_tmp681*d; RHS=mag; RESULT=im; MOD=%)
-        _p, _q = -_tmp681*d, mag
+        #DIV_VALUE_VALUE(LHS=-_tmp730*d; RHS=mag; RESULT=im; MOD=%)
+        _p, _q = -_tmp730*d, mag
         if not _q:
-            raise ZeroDivisionError(repr(-_tmp681*d) + " / " + repr(mag))
+            raise ZeroDivisionError(repr(-_tmp730*d) + " / " + repr(mag))
         #IF_CHECK_INT(T=type(_p))
         if type(_p) in inttypes_set:
             #IF_CHECK_INT(T=type(_q))
@@ -464,10 +485,10 @@ def complex_rdiv(self, other, new=object.__new__, cls=mpqc, realtypes_set=realty
                 im = _p / _q
         else:
             im = _p / _q
-        #DIV_VALUE_VALUE(LHS= _tmp681*c; RHS=mag; RESULT=re; MOD=%)
-        _p, _q = _tmp681*c, mag
+        #DIV_VALUE_VALUE(LHS= _tmp730*c; RHS=mag; RESULT=re; MOD=%)
+        _p, _q = _tmp730*c, mag
         if not _q:
-            raise ZeroDivisionError(repr(_tmp681*c) + " / " + repr(mag))
+            raise ZeroDivisionError(repr(_tmp730*c) + " / " + repr(mag))
         #IF_CHECK_INT(T=type(_p))
         if type(_p) in inttypes_set:
             #IF_CHECK_INT(T=type(_q))
@@ -488,16 +509,16 @@ def complex_rdiv(self, other, new=object.__new__, cls=mpqc, realtypes_set=realty
         else:
             re = _p / _q
         #RETURN_COMPLEX(REAL=re; IMAG=im)
-        _tmp744 = new(cls)
-        _tmp744.real = re
-        _tmp744.imag = im
-        return _tmp744
+        _tmp793 = new(cls)
+        _tmp793.real = re
+        _tmp793.imag = im
+        return _tmp793
     if t is complex:
         #DIV_COMPLEX_COMPLEX(LHS=other; RHS=self; MOD=%)
         a, b = other.real, other.imag
         c, d = self.real, self.imag
         mag = c*c + d*d
-        _tmp751 = b*c-a*d
+        _tmp800 = b*c-a*d
         #DIV_VALUE_VALUE(LHS=a*c+b*d; RHS=mag; RESULT=re; MOD=%)
         _p, _q = a*c+b*d, mag
         if not _q:
@@ -521,12 +542,12 @@ def complex_rdiv(self, other, new=object.__new__, cls=mpqc, realtypes_set=realty
                 re = _p / _q
         else:
             re = _p / _q
-        if not _tmp751:
+        if not _tmp800:
             return re
-        #DIV_VALUE_VALUE(LHS=_tmp751; RHS=mag; RESULT=im; MOD=%)
-        _p, _q = _tmp751, mag
+        #DIV_VALUE_VALUE(LHS=_tmp800; RHS=mag; RESULT=im; MOD=%)
+        _p, _q = _tmp800, mag
         if not _q:
-            raise ZeroDivisionError(repr(_tmp751) + " / " + repr(mag))
+            raise ZeroDivisionError(repr(_tmp800) + " / " + repr(mag))
         #IF_CHECK_INT(T=type(_p))
         if type(_p) in inttypes_set:
             #IF_CHECK_INT(T=type(_q))
@@ -547,10 +568,10 @@ def complex_rdiv(self, other, new=object.__new__, cls=mpqc, realtypes_set=realty
         else:
             im = _p / _q
         #RETURN_COMPLEX(REAL=re; IMAG=im)
-        _tmp814 = new(cls)
-        _tmp814.real = re
-        _tmp814.imag = im
-        return _tmp814
+        _tmp863 = new(cls)
+        _tmp863.real = re
+        _tmp863.imag = im
+        return _tmp863
     return NotImplemented
 
 def complex_pow(self, other, m=None, new=object.__new__, cls=mpqc, inttypes_set=inttypes_set):
@@ -576,18 +597,18 @@ def complex_pow(self, other, m=None, new=object.__new__, cls=mpqc, inttypes_set=
                 return b**n
             elif case == 1:
                 #RETURN_COMPLEX(REAL=0; IMAG=b**n)
-                _tmp835 = new(cls)
-                _tmp835.real = 0
-                _tmp835.imag = b**n
-                return _tmp835
+                _tmp884 = new(cls)
+                _tmp884.real = 0
+                _tmp884.imag = b**n
+                return _tmp884
             elif case == 2:
                 return -(b**n)
             else:
                 #RETURN_COMPLEX(REAL=0; IMAG=-b**n)
-                _tmp842 = new(cls)
-                _tmp842.real = 0
-                _tmp842.imag = -b**n
-                return _tmp842
+                _tmp891 = new(cls)
+                _tmp891.real = 0
+                _tmp891.imag = -b**n
+                return _tmp891
         ta, tb = type(a), type(b)
         m = 1
         if ta is mpq:
@@ -614,14 +635,14 @@ def complex_pow(self, other, m=None, new=object.__new__, cls=mpqc, inttypes_set=
             n //= 2
         if m==1:
             #RETURN_COMPLEX2(REAL=c; IMAG=d)
-            _tmp863 = d
-            if not _tmp863:
+            _tmp912 = d
+            if not _tmp912:
                 return c
-            #RETURN_COMPLEX(REAL=c; IMAG=_tmp863)
-            _tmp870 = new(cls)
-            _tmp870.real = c
-            _tmp870.imag = _tmp863
-            return _tmp870
+            #RETURN_COMPLEX(REAL=c; IMAG=_tmp912)
+            _tmp919 = new(cls)
+            _tmp919.real = c
+            _tmp919.imag = _tmp912
+            return _tmp919
         # c,d,m are integers
         #FRACTION_NORMALIZE(NUMER=c; DENOM=m; RNUMER=re_p; RDENOM=re_q; MOD=%)
         re_p = _x = c
@@ -651,10 +672,10 @@ def complex_pow(self, other, m=None, new=object.__new__, cls=mpqc, inttypes_set=
         else:
             im = mpq((im_p, im_q))
         #RETURN_COMPLEX(REAL=re; IMAG=im)
-        _tmp891 = new(cls)
-        _tmp891.real = re
-        _tmp891.imag = im
-        return _tmp891
+        _tmp940 = new(cls)
+        _tmp940.real = re
+        _tmp940.imag = im
+        return _tmp940
     return NotImplemented
     
 def fraction_lt(self, other, cls=mpq, inttypes_set=inttypes_set):

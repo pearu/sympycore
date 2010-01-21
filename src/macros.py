@@ -82,6 +82,8 @@ IF_CHECK_REAL = 'if %(T)s in realtypes_set:'
 IF_CHECK_COMPLEX = 'if %(T)s in complextypes_set:'
 ELIF_CHECK_NUMBER = 'elif %(T)s in numbertypes_set:'
 
+IF_CHECK_FLOAT = 'if %(T)s is float:'
+
 ADD_TERM_VALUE_DICT='''\
 %(TMP)s = %(DICT_GET)s(%(TERM)s)
 if %(TMP)s is None:
