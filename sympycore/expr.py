@@ -493,6 +493,10 @@ def term_coeff_new(Algebra, data):
         return Algebra(NUMBER, coeff)
     if coeff==0:
         return Algebra(NUMBER, 0)
+    h,d = term.pair
+    if h is TERM_COEFF:
+        t, c = d
+        return term_coeff_new(Algebra, (t, c * coeff))
     return Algebra(TERM_COEFF, data)
 
 def term_coeff_dict_new(Algebra, data):

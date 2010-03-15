@@ -19,6 +19,8 @@ class TermCoeff(ArithmeticHead):
             term, coeff = data
             if isinstance(term, cls):
                 if isinstance(coeff, numbertypes) or type(coeff) is not cls:
+                    if term.head is self:
+                        return 'data[0].head cannot be %s' %(self)
                     return
                 elif isinstance(coeff, cls):
                     if coeff.head is NUMBER:

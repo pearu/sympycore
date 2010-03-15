@@ -100,6 +100,9 @@ static PyObject* algebra_base_exp_dict_get_coefficient(PyTypeObject* Algebra, Py
 #define EXPR_IS_NUMBER(OBJ) \
   (Expr_Check(OBJ) && EXPR_GET_HEAD(OBJ)==NUMBER)
 
+#define EXPR_IS_TERM_COEFF(OBJ) \
+  (Expr_Check(OBJ) && EXPR_GET_HEAD(OBJ)==TERM_COEFF)
+
 #define EXPR_IS_ONE(OBJ) \
   (EXPR_IS_NUMBER(OBJ) && EXPR_GET_DATA(OBJ)==one)
 
@@ -1423,6 +1426,14 @@ PyObject* algebra_term_coeff_new(PyTypeObject* Algebra, PyObject* data)
     {
       PyObject* obj = PyNumber_Multiply(EXPR_GET_DATA(term), coeff);
       return Expr_new_from_head_data(Algebra, NUMBER, obj);
+    }
+  if (EXPR_IS_TERM_COEFF(term))
+    {
+      PyObject* d = EXPR_GET_DATA(term);
+      PyObject* t = PyTuple_GET_ITEM(d, 0);
+      PyObject* c = PyTuple_GET_ITEM(d, 1);
+      PyObject* obj = PyNumber_Multiply(c, coeff);
+      return algebra_term_coeff_new(Algebra, PyTuple_Pack(2, t, obj));
     }
   return Expr_new_from_head_data(Algebra, TERM_COEFF, data);
 }
