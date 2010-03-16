@@ -21,7 +21,7 @@ class TermCoeffDictHead(ArithmeticHead):
             #if n<=1:
             #    return 'data dictonary should have more than 1 item'
             for item in data.iteritems():
-                msg = TERM_COEFF.is_data_ok(cls, item)
+                msg = TERM_COEFF.is_data_ok(cls, item, allow_number_term=True)
                 if msg:
                     return 'TERM_COEFF data=%s: %s' % (item, msg) #pragma: no cover
         else:

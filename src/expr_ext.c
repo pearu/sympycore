@@ -1435,6 +1435,12 @@ PyObject* algebra_term_coeff_new(PyTypeObject* Algebra, PyObject* data)
       PyObject* obj = PyNumber_Multiply(c, coeff);
       return algebra_term_coeff_new(Algebra, PyTuple_Pack(2, t, obj));
     }
+  if (EXPR_IS_NUMBER(term))
+    {
+      PyObject* c = EXPR_GET_DATA(term);
+      PyObject* obj = PyNumber_Multiply(c, coeff);
+      return Expr_new_from_head_data(Algebra, NUMBER, obj);
+    }
   return Expr_new_from_head_data(Algebra, TERM_COEFF, data);
 }
 

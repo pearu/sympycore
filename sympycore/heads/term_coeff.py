@@ -14,13 +14,13 @@ class TermCoeff(ArithmeticHead):
     symbolic expression.
     """
 
-    def is_data_ok(self, cls, data):
+    def is_data_ok(self, cls, data, allow_number_term=True):
         if type(data) is tuple and len(data)==2:
             term, coeff = data
             if isinstance(term, cls):
                 if isinstance(coeff, numbertypes) or type(coeff) is not cls:
-                    if term.head is self:
-                        return 'data[0].head cannot be %s' %(self)
+                    if term.head is self or (not allow_number_term and term.head is NUMBER):
+                        return 'data[0].head cannot be %s' %(term.head)
                     return
                 elif isinstance(coeff, cls):
                     if coeff.head is NUMBER:

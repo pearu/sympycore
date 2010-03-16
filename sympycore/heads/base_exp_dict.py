@@ -81,11 +81,11 @@ class BaseExpDictHead(ArithmeticHead):
         if rhead is SYMBOL or rhead is ADD or rhead is APPLY or rhead is DIFF or rhead is FDIFF:
             base_exp_dict_add_item(cls, data, rhs, 1)
         elif rhead is NUMBER:
-            base_exp_dict_mul_item(cls, data, rhs, 1)
+            base_exp_dict_add_item(cls, data, rhs, 1)
         elif rhead is TERM_COEFF:
             term, coeff = rdata
             base_exp_dict_add_item(cls, data, term, 1)
-            base_exp_dict_mul_item(cls, data, cls(NUMBER, coeff), 1)
+            base_exp_dict_add_item(cls, data, cls(NUMBER, coeff), 1)
         elif rhead is BASE_EXP_DICT:
             base_exp_dict_add_dict(cls, data, rdata)
         elif rhead is POW:
