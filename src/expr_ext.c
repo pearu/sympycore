@@ -1175,8 +1175,11 @@ int algebra_base_exp_dict_add_item(PyTypeObject* Algebra, PyObject* d, PyObject*
 		}
 	      else
 		{
+		  Py_INCREF(coeff);
 		  PyDict_DelItem(d, coeff);
-		  coeff = PyNumber_Multiply(coeff, base);
+		  PyObject *coeff2 = PyNumber_Multiply(coeff, base);
+		  Py_DECREF(coeff);
+		  coeff = coeff2;
 		  if (coeff==NULL) return -1;
 		  if (!EXPR_IS_ONE(coeff))
 		    PyDict_SetItem(d, coeff, one);
@@ -1433,12 +1436,16 @@ PyObject* algebra_term_coeff_new(PyTypeObject* Algebra, PyObject* data)
       PyObject* t = PyTuple_GET_ITEM(d, 0);
       PyObject* c = PyTuple_GET_ITEM(d, 1);
       PyObject* obj = PyNumber_Multiply(c, coeff);
+      if (obj==NULL)
+	return NULL;
       return algebra_term_coeff_new(Algebra, PyTuple_Pack(2, t, obj));
     }
   if (EXPR_IS_NUMBER(term))
     {
       PyObject* c = EXPR_GET_DATA(term);
       PyObject* obj = PyNumber_Multiply(c, coeff);
+      if (obj==NULL)
+	return NULL;
       return Expr_new_from_head_data(Algebra, NUMBER, obj);
     }
   return Expr_new_from_head_data(Algebra, TERM_COEFF, data);
