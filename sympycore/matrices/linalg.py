@@ -10,7 +10,6 @@ def MATRIX_DICT_gauss_jordan_elimination(self, overwrite=False):
 
     Outputs::
 
-      P - m x m permutation matrix
       B - m x n matrix where the lhs part is unit matrix
     """
     head, data = self.pair
@@ -21,9 +20,10 @@ def MATRIX_DICT_gauss_jordan_elimination(self, overwrite=False):
     else:
         udata = dict(data)
     if head.is_transpose:
-        raise NotImplementedError(`head`)
+        B = MatrixDict(MATRIX(k, n, MATRIX_DICT), udata)
+        gauss_jordan_elimination_MATRIX_T(m, n, udata)
     elif head.is_diagonal:
-        raise NotImplementedError(`head`)
+        raise NotImplementedError(`head, head.is_diagonal`)
     else:
         B = MatrixDict(MATRIX(k, n, MATRIX_DICT), udata)
         gauss_jordan_elimination_MATRIX(m, n, udata)
@@ -105,6 +105,47 @@ def gauss_jordan_elimination_MATRIX(m, n, data):
         data[i,i] = 1
         for p in range(i+1, n):
             ip = i,p
+            u_ip = data_get(ip)
+            if u_ip is None:
+                continue
+            data[ip] = div(u_ip, a_ii)
+
+def gauss_jordan_elimination_MATRIX_T(m, n, data):
+    data_get = data.get
+    for i in xrange(m):
+        a_ii = data_get((i,i))
+        if a_ii is None:
+            for j in xrange(i+1, m):
+                a_ii = data_get((i,j))
+                if a_ii is not None:
+                    break
+            if a_ii is None:
+                continue
+            swap_rows_MATRIX_T(data, i, j)
+        for j in range(m):
+            if j==i:
+                continue
+            u_ji = data_get((i,j))
+            if u_ji is None:
+                continue
+            c = div(u_ji, a_ii)
+            for p in range(i,n):
+                u_ip = data_get((p,i))
+                if u_ip is None:
+                    continue
+                jp = p,j
+                b = data_get(jp)
+                if b is None:
+                    data[jp] = -u_ip*c
+                else:
+                    b -= u_ip*c
+                    if b:
+                        data[jp] = b
+                    else:
+                        del data[jp]
+        data[i,i] = 1
+        for p in range(i+1, n):
+            ip = p,i
             u_ip = data_get(ip)
             if u_ip is None:
                 continue
@@ -266,6 +307,7 @@ def swap_cols_MATRIX(data, i, j):
 swap_rows_MATRIX_T = swap_cols_MATRIX
 swap_cols_MATRIX_T = swap_rows_MATRIX
 
+
 def MATRIX_DICT_swap_rows(self, i, j):
     if not self.is_writable:
         raise TypeError('Cannot swap rows of a read-only matrix')
@@ -294,10 +336,13 @@ def MATRIX_DICT_trace(self):
     head, data = self.pair
     m, n = head.shape
     s = 0
-    if m != n:
-        raise ValueError("matrix trace is only defined for square matrices")
     if head.is_diagonal:
-        raise NotImplementedError(`head`)
+        dget = data.get
+        for i in xrange(min(n,m)):
+            s += dget((i, i), 0)
+        return s
+    if m != n:
+        raise ValueError("matrix trace is only defined for square matrices but got %sx%s" % (m,n))
     sparse = len(data) < m
     if sparse:
         for (i, j), element in data.items():

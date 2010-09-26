@@ -12,10 +12,18 @@ def MATRIX_DICT_determinant(self, overwrite=False):
     For n<=3, direct expressions are used.
     """
     head, data = self.pair
-    if head.is_diagonal:
-        raise NotImplementedError(`head`)
+
     m, n = head.shape
     assert m==n,`m,n`
+    if head.is_diagonal:
+        dget = data.get
+        d = 1
+        for i in range (m):
+            v = dget((i,i))
+            if v is None:
+                return 0
+            d *= v
+        return d
     if not (overwrite and self.is_writable):
         data = dict(data)
 

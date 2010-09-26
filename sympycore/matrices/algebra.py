@@ -306,6 +306,25 @@ class MatrixDict(MatrixBase):
         return all(i==j and x==1 for (i,j),x in data.iteritems())
 
     @property
+    def is_empty (self):
+        head, data = self.pair
+        m, n = head.shape
+        return m == n == 0
+
+    @property
+    def is_zero(self):
+        head, data = self.pair
+        if not data:
+            return True
+        m, n = head.shape
+        for (i,j),x in data.iteritems ():
+            if (i<0 or i>=m): continue
+            if (j<0 or j>=n): continue
+            return False
+        return True
+
+
+    @property
     def T(self):
         """ Return transposed view of a matrix.
         """
@@ -648,16 +667,20 @@ class MatrixDict(MatrixBase):
         return b[:,m:]
 
     def solve(self, rhs):
-        """ Solve system of linear equations A * x = b.
+        """ Solve a system of linear equations A * x = rhs
 
-        Usage:
+        where A is square matrix. Alternative usage::
 
-          A // b -> x
+          A // rhs -> x
         
         For example::
 
           Matrix([[1,2], [3,4]]) // [1,2] -> Matrix([[0],[1/2]])
         
+        See also
+        --------
+        solve_null
+
         """
         t = type(rhs)
         if t is tuple or t is list:
@@ -717,6 +740,66 @@ class MatrixDict(MatrixBase):
                 data[key] = value
         return type(self)(self.head, data)
     
+    def solve_null(self, labels):
+        """ Solve a system of homogeneous equations: A * x = 0
+
+        where A is m x n matrix, x is n vector.
+
+        Parameters
+        ----------
+        labels : {list, tuple}
+          A list of column symbols.
+
+        Returns
+        -------
+        xd : dict
+          A dictionary of null solutions. xd keys are labels of
+          columns and xd values are lists of coefficients that
+          form the rows of basis of A null space. That is, let
+          us define::
+
+            ker = Matrix([xd[l] for l in labels])
+
+          then::
+
+            A * ker = 0
+
+          or equivalently, if
+
+            x = ker * Matrix(labels)
+
+          then
+
+            A * x = 0.
+
+        See also
+        --------
+        solve
+        """
+        m, n = self.head.shape
+        p1,l1,u1 = self.T.lu()
+        p, u, l = p1.T, l1.T, u1.T
+        u_rank = len([v for v in u.D[0].T.tolist()[0] if v != 0])
+        l_rank = len([v for v in l.D[0].T.tolist()[0] if v != 0])
+        nullity = (n - u_rank) + (m - l_rank)
+        if nullity <= 0:
+            return {}
+        rank = n - nullity
+        u[rank:,rank:] = 0
+        gj = u[:].gauss_jordan_elimination()
+        gj = (-gj[:,rank:]).tolist()
+
+        xd = {}
+        for i in range(n):
+            j = p[i].data.keys()[0][1]
+            if i < rank:
+                xd[labels[j]] = gj[i]
+            else:
+                l = [0]*nullity
+                l[i-rank] = 1
+                xd[labels[j]] = l
+        return xd
+
 from .matrix_operations import MATRIX_DICT_iadd, MATRIX_DICT_imul
 from .linalg import (MATRIX_DICT_swap_rows, MATRIX_DICT_swap_cols,
                      MATRIX_DICT_lu, MATRIX_DICT_crop,

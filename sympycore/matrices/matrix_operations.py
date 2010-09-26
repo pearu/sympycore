@@ -270,7 +270,7 @@ def mul_MATRIX_MATRIX_MM(data1, data2, rows, cols, n):
     data2_get = data2.get
     for i in xrange(rows):
         for j in xrange(cols):
-            c_ij = 0
+            c_ij = None
             for k in indices:
                 a_ik = data1_get((i,k))
                 if a_ik is None:
@@ -278,7 +278,10 @@ def mul_MATRIX_MATRIX_MM(data1, data2, rows, cols, n):
                 b_kj = data2_get((k,j))
                 if b_kj is None:
                     continue
-                c_ij += a_ik * b_kj
+                if c_ij is None:
+                    c_ij = a_ik * b_kj
+                else:
+                    c_ij += a_ik * b_kj
             if c_ij:
                 d[i,j] = c_ij
     return MatrixDict(MATRIX(rows, cols, MATRIX_DICT), d)
@@ -290,7 +293,7 @@ def mul_MATRIX_MATRIX_TM(data1, data2, rows, cols, n):
     data2_get = data2.get
     for i in xrange(rows):
         for j in xrange(cols):
-            c_ij = 0
+            c_ij = None
             for k in indices:
                 a_ik = data1_get((k,i))
                 if a_ik is None:
@@ -298,7 +301,10 @@ def mul_MATRIX_MATRIX_TM(data1, data2, rows, cols, n):
                 b_kj = data2_get((k,j))
                 if b_kj is None:
                     continue
-                c_ij += a_ik * b_kj
+                if c_ij is None:
+                    c_ij = a_ik * b_kj
+                else:
+                    c_ij += a_ik * b_kj
             if c_ij:
                 d[i,j] = c_ij
     return MatrixDict(MATRIX(rows, cols, MATRIX_DICT), d)
@@ -310,7 +316,7 @@ def mul_MATRIX_MATRIX_MT(data1, data2, rows, cols, n):
     data2_get = data2.get
     for i in xrange(rows):
         for j in xrange(cols):
-            c_ij = 0
+            c_ij = None
             for k in indices:
                 a_ik = data1_get((i,k))
                 if a_ik is None:
@@ -318,7 +324,10 @@ def mul_MATRIX_MATRIX_MT(data1, data2, rows, cols, n):
                 b_kj = data2_get((j,k))
                 if b_kj is None:
                     continue
-                c_ij += a_ik * b_kj
+                if c_ij is None:
+                    c_ij = a_ik * b_kj
+                else:
+                    c_ij += a_ik * b_kj
             if c_ij:
                 d[i,j] = c_ij
     return MatrixDict(MATRIX(rows, cols, MATRIX_DICT), d)
@@ -331,7 +340,7 @@ def mul_MATRIX_MATRIX_MTT(data1, data2, rows, cols, n):
     data2_get = data2.get
     for i in xrange(rows):
         for j in col_indices:
-            c_ij = 0
+            c_ij = None
             for k in indices:
                 a_ik = data1_get((k,i))
                 if a_ik is None:
@@ -339,7 +348,10 @@ def mul_MATRIX_MATRIX_MTT(data1, data2, rows, cols, n):
                 b_kj = data2_get((j,k))
                 if b_kj is None:
                     continue
-                c_ij += a_ik * b_kj
+                if c_ij is None:
+                    c_ij = a_ik * b_kj
+                else:
+                    c_ij += a_ik * b_kj
             if c_ij:
                 d[i,j] = c_ij
     return MatrixDict(MATRIX(rows, cols, MATRIX_DICT), d)
