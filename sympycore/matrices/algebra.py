@@ -786,6 +786,7 @@ class MatrixDict(MatrixBase):
         """
         m, n = self.head.shape
         p1,l1,u1 = self.T.lu()
+        #assert not (p1*l1*u1-self.T).data
         p, u, l = p1.T, l1.T, u1.T
         u_rank = len([v for v in u.D[0].T.tolist()[0] if v != 0])
         l_rank = len([v for v in l.D[0].T.tolist()[0] if v != 0])

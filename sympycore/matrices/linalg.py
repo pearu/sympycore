@@ -5,6 +5,9 @@ from ..utils import MATRIX, MATRIX_DICT, MATRIX_DICT_T
 from ..arithmetic.numbers import div
 from .algebra import MatrixDict, Matrix
 
+from ..core import init_module
+init_module.import_lowlevel_operations()
+
 def MATRIX_DICT_gauss_jordan_elimination(self, overwrite=False):
     """ Perform Gauss-Jordan elimination of a m x n matrix A.
 
@@ -71,6 +74,7 @@ def MATRIX_DICT_lu(self, overwrite=False):
 
 def gauss_jordan_elimination_MATRIX(m, n, data):
     data_get = data.get
+    rows = get_rc_map(data)
     for i in xrange(m):
         a_ii = data_get((i,i))
         if a_ii is None:
@@ -81,6 +85,8 @@ def gauss_jordan_elimination_MATRIX(m, n, data):
             if a_ii is None:
                 continue
             swap_rows_MATRIX(data, i, j)
+            swap_rc_map(rows, i, j)
+        irow = rows[i]
         for j in range(m):
             if j==i:
                 continue
@@ -88,7 +94,9 @@ def gauss_jordan_elimination_MATRIX(m, n, data):
             if u_ji is None:
                 continue
             c = div(u_ji, a_ii)
-            for p in range(i,n):
+            jrow = rows[j]
+            for p in irow:
+                if p < i: continue
                 u_ip = data_get((i,p))
                 if u_ip is None:
                     continue
@@ -96,14 +104,20 @@ def gauss_jordan_elimination_MATRIX(m, n, data):
                 b = data_get(jp)
                 if b is None:
                     data[jp] = -u_ip*c
+                    jrow.add(p)
                 else:
                     b -= u_ip*c
                     if b:
                         data[jp] = b
                     else:
                         del data[jp]
+                        jrow.remove(p)
+            if not jrow:
+                del rows[j]
         data[i,i] = 1
-        for p in range(i+1, n):
+        
+        for p in irow:
+            if p <= i: continue
             ip = i,p
             u_ip = data_get(ip)
             if u_ip is None:
@@ -151,16 +165,46 @@ def gauss_jordan_elimination_MATRIX_T(m, n, data):
                 continue
             data[ip] = div(u_ip, a_ii)
 
+def get_rc_map(data):
+    rows = {}
+    for i, j in data:
+        s = rows.get (i)
+        if s is None:
+            s = rows[i] = set ()
+        s.add(j)
+    return rows
+
+def get_cr_map(data):
+    cols = {}
+    for i, j in data:
+        s = cols.get (j)
+        if s is None:
+            s = cols[j] = set ()
+        s.add(i)
+    return cols
+
+def swap_rc_map(rows, i, j):
+    ri = rows.get(i)
+    rj = rows.get(j)
+    if rj is not None: del rows[j]
+    if ri is not None: del rows[i]
+    if rj is not None:
+        rows[i] = rj
+    if ri is not None:
+        rows[j] = ri
+
 def lu_MATRIX(m, n, k, ldata, udata):
     if m>n:
         for i in xrange(n,m):
             udata[(i,i)] = 1
     pivot_table = range(m)
     udata_get = udata.get
+
+    urows = get_rc_map(udata)
     for i in xrange(m-1):
         a_ii = udata_get((i,i))
         if a_ii is None:
-            for j in xrange(i+1, m):
+            for j in range(i+1,m):
                 a_ii = udata_get((j,i))
                 if a_ii is not None:
                     break
@@ -169,25 +213,32 @@ def lu_MATRIX(m, n, k, ldata, udata):
             pivot_table[i], pivot_table[j] = pivot_table[j], pivot_table[i]
             swap_rows_MATRIX(udata, i, j)
             swap_rows_MATRIX(ldata, i, j)
-        for j in xrange(i+1,m):
+            swap_rc_map(urows, i, j)
+
+        irow = urows[i]
+        for j in range (i+1,m):
             u_ji = udata_get((j,i))
             if u_ji is None:
                 continue
             c = div(u_ji, a_ii)
-            for p in xrange(i,n):
-                u_ip = udata_get((i,p))
-                if u_ip is None:
-                    continue
+            jrow = urows[j]
+            for p in irow:
+                if p < i: continue
+                u_ip = udata[i,p]
                 jp = j,p
                 b = udata_get(jp)
                 if b is None:
                     udata[jp] = -u_ip*c
+                    jrow.add(p)
                 else:
                     b -= u_ip*c
                     if b:
                         udata[jp] = b
                     else:
                         del udata[jp]
+                        jrow.remove(p)
+            if not jrow:
+                del urows[j]
             if i<k and j<m and c:
                 ldata[j, i] = c
     for i in xrange(min(m, k)):
