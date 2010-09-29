@@ -2,6 +2,9 @@
 from ..utils import MATRIX, MATRIX_DICT
 from .algebra import Matrix, MatrixBase, MatrixDict
 
+from ..core import init_module
+init_module.import_lowlevel_operations()
+
 def MATRIX_DICT_iadd(self, other):
     """ Inplace matrix add.
     """
@@ -264,94 +267,86 @@ def mul_MATRIX_MATRIX_ATT(data1, data2, rows, cols):
     return MatrixDict(MATRIX(rows, cols, MATRIX_DICT), d)
 
 def mul_MATRIX_MATRIX_MM(data1, data2, rows, cols, n):
-    indices = range(n)
     d = {}
-    data1_get = data1.get
-    data2_get = data2.get
-    for i in xrange(rows):
-        for j in xrange(cols):
-            c_ij = None
-            for k in indices:
-                a_ik = data1_get((i,k))
-                if a_ik is None:
-                    continue
-                b_kj = data2_get((k,j))
-                if b_kj is None:
-                    continue
-                if c_ij is None:
-                    c_ij = a_ik * b_kj
-                else:
-                    c_ij += a_ik * b_kj
-            if c_ij:
-                d[i,j] = c_ij
+    left_indices = {}
+    right_indices = {}
+    for i,j in data1.keys():
+        s = left_indices.get(i)
+        if s is None:
+            s = left_indices[i] = set()
+        s.add(j)
+    for j,k in data2.keys():
+        s = right_indices.get(k)
+        if s is None:
+            s = right_indices[k] = set()
+        s.add(j)
+
+    for i,ji in left_indices.items ():
+        for k,jk in right_indices.items ():
+            for j in ji.intersection(jk):
+                dict_add_item(None, d, (i,k), data1[(i,j)] * data2[(j,k)])
     return MatrixDict(MATRIX(rows, cols, MATRIX_DICT), d)
 
 def mul_MATRIX_MATRIX_TM(data1, data2, rows, cols, n):
-    indices = range(n)
     d = {}
-    data1_get = data1.get
-    data2_get = data2.get
-    for i in xrange(rows):
-        for j in xrange(cols):
-            c_ij = None
-            for k in indices:
-                a_ik = data1_get((k,i))
-                if a_ik is None:
-                    continue
-                b_kj = data2_get((k,j))
-                if b_kj is None:
-                    continue
-                if c_ij is None:
-                    c_ij = a_ik * b_kj
-                else:
-                    c_ij += a_ik * b_kj
-            if c_ij:
-                d[i,j] = c_ij
+    left_indices = {}
+    right_indices = {}
+    for j,i in data1.keys():
+        s = left_indices.get(i)
+        if s is None:
+            s = left_indices[i] = set()
+        s.add(j)
+    for j,k in data2.keys():
+        s = right_indices.get(k)
+        if s is None:
+            s = right_indices[k] = set()
+        s.add(j)
+
+    for i,ji in left_indices.items ():
+        for k,jk in right_indices.items ():
+            for j in ji.intersection(jk):
+                dict_add_item(None, d, (i,k), data1[(j,i)] * data2[(j,k)])
     return MatrixDict(MATRIX(rows, cols, MATRIX_DICT), d)
 
 def mul_MATRIX_MATRIX_MT(data1, data2, rows, cols, n):
-    indices = range(n)
     d = {}
-    data1_get = data1.get
-    data2_get = data2.get
-    for i in xrange(rows):
-        for j in xrange(cols):
-            c_ij = None
-            for k in indices:
-                a_ik = data1_get((i,k))
-                if a_ik is None:
-                    continue
-                b_kj = data2_get((j,k))
-                if b_kj is None:
-                    continue
-                if c_ij is None:
-                    c_ij = a_ik * b_kj
-                else:
-                    c_ij += a_ik * b_kj
-            if c_ij:
-                d[i,j] = c_ij
+    left_indices = {}
+    right_indices = {}
+    for i,j in data1.keys():
+        s = left_indices.get(i)
+        if s is None:
+            s = left_indices[i] = set()
+        s.add(j)
+    for k,j in data2.keys():
+        s = right_indices.get(k)
+        if s is None:
+            s = right_indices[k] = set()
+        s.add(j)
+
+    for i,ji in left_indices.items ():
+        for k,jk in right_indices.items ():
+            for j in ji.intersection(jk):
+                dict_add_item(None, d, (i,k), data1[(i,j)] * data2[(k,j)])
     return MatrixDict(MATRIX(rows, cols, MATRIX_DICT), d)
 
 def mul_MATRIX_MATRIX_MTT(data1, data2, rows, cols, n):
-    indices = range(n)
-    col_indices = range(cols)
     d = {}
-    data1_get = data1.get
-    data2_get = data2.get
-    for i in xrange(rows):
-        for j in col_indices:
-            c_ij = None
-            for k in indices:
-                a_ik = data1_get((k,i))
-                if a_ik is None:
-                    continue
-                b_kj = data2_get((j,k))
-                if b_kj is None:
-                    continue
-                if c_ij is None:
-                    c_ij = a_ik * b_kj
-                else:
-                    c_ij += a_ik * b_kj
-            if c_ij:
-                d[i,j] = c_ij
+    left_indices = {}
+    right_indices = {}
+    for j,i in data1.keys():
+        s = left_indices.get(i)
+        if s is None:
+            s = left_indices[i] = set()
+        s.add(j)
+    for k,j in data2.keys():
+        s = right_indices.get(k)
+        if s is None:
+            s = right_indices[k] = set()
+        s.add(j)
+
+    for i,ji in left_indices.items ():
+        for k,jk in right_indices.items ():
+            for j in ji.intersection(jk):
+                dict_add_item(None, d, (i,k), data1[(j,i)] * data2[(k,j)])
     return MatrixDict(MATRIX(rows, cols, MATRIX_DICT), d)
+

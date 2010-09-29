@@ -325,7 +325,7 @@ def test_imul():
 
 def test_mul():
     a = Matrix([[1,2], [3,4]])
-    assert (a*a).tolist() == [[7,10],[15,22]]
+    assert (a*a).tolist() == [[7,10],[15,22]],`(a*a).tolist()`
     assert (a.A*a).tolist() == [[1,4],[9,16]]
     assert (a*a.A).tolist() == [[1,4],[9,16]]
     assert (a*a.T).tolist() == [[5,11],[11,25]]
