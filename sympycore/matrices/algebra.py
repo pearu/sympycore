@@ -758,7 +758,7 @@ class MatrixDict(MatrixBase):
           form the rows of basis of A null space. That is, let
           us define::
 
-            ker = Matrix([xd[l] for l in labels])
+            ker = Matrix([xd[l][0] for l in labels])
 
           then::
 
@@ -771,6 +771,14 @@ class MatrixDict(MatrixBase):
           then
 
             A * x = 0.
+
+        dependent, independent : list
+          Lists of dependent and independent column labels, respectively.
+
+          If
+            x_dep = [sum(dot(xd[l], dependent)) for l in dependent]
+          then
+            A * x_dep = 0
 
         See also
         --------
@@ -790,15 +798,19 @@ class MatrixDict(MatrixBase):
         gj = (-gj[:,rank:]).tolist()
 
         xd = {}
-        for i in range(n):
+        dep, indep = [], []
+        for i in range (n):
             j = p[i].data.keys()[0][1]
+            label = labels[j]
             if i < rank:
-                xd[labels[j]] = gj[i]
+                xd[label] = gj[i]
+                dep.append(label)
             else:
                 l = [0]*nullity
                 l[i-rank] = 1
-                xd[labels[j]] = l
-        return xd
+                xd[label] = l
+                indep.append(label)
+        return xd, dep, indep
 
 from .matrix_operations import MATRIX_DICT_iadd, MATRIX_DICT_imul
 from .linalg import (MATRIX_DICT_swap_rows, MATRIX_DICT_swap_cols,

@@ -453,28 +453,30 @@ def test_lu_issue63():
     assert p*l*u == a
     assert (p*l*u - a).data == {}
 
-def test_solve_kernel():
+def test_solve_null():
     x = ['x1', 'x2', 'x3', 'x4', 'x5', 'x6']
     a = Matrix ([[2,3,5],[-4,2,3]])
-    xd = a.solve_null(x)
+    xd,dep,indep = a.solve_null(x)
     assert xd['x1'] == [mpq((-1, 16))],`xd`
     assert xd['x2'] == [mpq((-13, 8))],`xd`
     assert xd['x3'] == [1],`xd`
+    assert dep == ['x1', 'x2'],`dep`
+    assert indep == ['x3'],`dep`
 
     ker = Matrix([xd[s] for s in x[:3]])
     assert (a*ker).is_zero,`a*ker`
 
     a = Matrix(2,3,random=True)
-    xd = a.solve_null(x)
+    xd,dep,indep = a.solve_null(x)
     ker = Matrix([xd[s] for s in x[:3]])
     assert (a*ker).is_zero,`a*ker`
 
     a = Matrix ([[1,0,-3,0,2,-8],[0,1,5,0,-1,4],[0,0,0,1,7,-9],[0,0,0,0,0,0]])
-    xd = a.solve_null(x)
+    xd,dep,indep = a.solve_null(x)
     ker = Matrix([xd[s] for s in x[:6]])
     assert (a*ker).is_zero,`a*ker`
 
     a = Matrix(4,6,random=True)
-    xd = a.solve_null(x)
+    xd,dep,indep = a.solve_null(x)
     ker = Matrix([xd[s] for s in x[:6]])
     assert (a*ker).is_zero,`a*ker`
