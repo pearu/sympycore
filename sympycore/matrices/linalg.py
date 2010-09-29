@@ -199,17 +199,26 @@ def lu_MATRIX(m, n, k, ldata, udata):
             udata[(i,i)] = 1
     pivot_table = range(m)
     udata_get = udata.get
+    udata_has = udata.has_key
 
     urows = get_rc_map(udata)
     for i in xrange(m-1):
         a_ii = udata_get((i,i))
         if a_ii is None:
+            ncols = n
+            opt_j = None
             for j in range(i+1,m):
-                a_ii = udata_get((j,i))
-                if a_ii is not None:
-                    break
-            if a_ii is None:
+                if udata_has((j,i)):
+                    l = len (urows[j])
+                    if l < ncols:
+                        ncols = l
+                        opt_j = j
+            if opt_j is None:
                 continue
+            j = opt_j
+            a_ii = udata_get ((j,i))
+            #if a_ii is None:
+            #    continue
             pivot_table[i], pivot_table[j] = pivot_table[j], pivot_table[i]
             swap_rows_MATRIX(udata, i, j)
             swap_rows_MATRIX(ldata, i, j)
