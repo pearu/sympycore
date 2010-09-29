@@ -460,7 +460,7 @@ def test_solve_null():
     assert xd['x1'] == [mpq((-1, 16))],`xd`
     assert xd['x2'] == [mpq((-13, 8))],`xd`
     assert xd['x3'] == [1],`xd`
-    assert dep == ['x1', 'x2'],`dep`
+    assert set(dep) == set(['x1', 'x2']),`dep`
     assert indep == ['x3'],`dep`
 
     ker = Matrix([xd[s] for s in x[:3]])

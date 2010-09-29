@@ -73,19 +73,35 @@ def MATRIX_DICT_lu(self, overwrite=False):
     return P, L, U
 
 def gauss_jordan_elimination_MATRIX(m, n, data):
+    print 'gauss_jordan_elimination_MATRIX'
     data_get = data.get
+    data_has = data.has_key
     rows = get_rc_map(data)
     for i in xrange(m):
-        a_ii = data_get((i,i))
-        if a_ii is None:
-            for j in xrange(i+1, m):
-                a_ii = data_get((j,i))
-                if a_ii is not None:
-                    break
-            if a_ii is None:
+        if 0:
+            ncols, j = n, None
+            for j1 in range(i,m):
+                if data_has((j1,i)):
+                    l = len(rows[j1])
+                    if l <= ncols:
+                        ncols, j = l, j1
+            if j is None:
                 continue
-            swap_rows_MATRIX(data, i, j)
-            swap_rc_map(rows, i, j)
+            a_ii = data[j,i]
+            if i!=j:
+                swap_rows_MATRIX(data, i, j)
+                swap_rc_map(rows, i, j)
+        else:
+            a_ii = data_get((i,i))
+            if a_ii is None:
+                for j in xrange(i+1, m):
+                    a_ii = data_get((j,i))
+                    if a_ii is not None:
+                        break
+                if a_ii is None:
+                    continue
+                swap_rows_MATRIX(data, i, j)
+                swap_rc_map(rows, i, j)
         irow = rows[i]
         for j in range(m):
             if j==i:
@@ -95,23 +111,22 @@ def gauss_jordan_elimination_MATRIX(m, n, data):
                 continue
             c = div(u_ji, a_ii)
             jrow = rows[j]
+            jrow_add = jrow.add
+            jrow_remove = jrow.remove
             for p in irow:
                 if p < i: continue
-                u_ip = data_get((i,p))
-                if u_ip is None:
-                    continue
+                u_ip_c = data[i,p] * c
                 jp = j,p
                 b = data_get(jp)
                 if b is None:
-                    data[jp] = -u_ip*c
-                    jrow.add(p)
+                    data[jp] = -u_ip_c
+                    jrow_add(p)
                 else:
-                    b -= u_ip*c
-                    if b:
-                        data[jp] = b
-                    else:
+                    if u_ip_c==b:
                         del data[jp]
-                        jrow.remove(p)
+                        jrow_remove(p)
+                    else:
+                        data[jp] = b - u_ip_c
             if not jrow:
                 del rows[j]
         data[i,i] = 1
@@ -126,6 +141,7 @@ def gauss_jordan_elimination_MATRIX(m, n, data):
 
 def gauss_jordan_elimination_MATRIX_T(m, n, data):
     data_get = data.get
+    rows = get_rc_map_T(data)
     for i in xrange(m):
         a_ii = data_get((i,i))
         if a_ii is None:
@@ -136,6 +152,8 @@ def gauss_jordan_elimination_MATRIX_T(m, n, data):
             if a_ii is None:
                 continue
             swap_rows_MATRIX_T(data, i, j)
+            swap_rc_map(rows, i, j)
+        irow = rows[i]
         for j in range(m):
             if j==i:
                 continue
@@ -143,6 +161,7 @@ def gauss_jordan_elimination_MATRIX_T(m, n, data):
             if u_ji is None:
                 continue
             c = div(u_ji, a_ii)
+            jrow = rows[j]
             for p in range(i,n):
                 u_ip = data_get((p,i))
                 if u_ip is None:
@@ -151,12 +170,16 @@ def gauss_jordan_elimination_MATRIX_T(m, n, data):
                 b = data_get(jp)
                 if b is None:
                     data[jp] = -u_ip*c
+                    jrow.add(p)
                 else:
                     b -= u_ip*c
                     if b:
                         data[jp] = b
                     else:
                         del data[jp]
+                        jrow.remove(p)
+            if not jrow:
+                del rows[j]
         data[i,i] = 1
         for p in range(i+1, n):
             ip = p,i
@@ -174,14 +197,14 @@ def get_rc_map(data):
         s.add(j)
     return rows
 
-def get_cr_map(data):
-    cols = {}
-    for i, j in data:
-        s = cols.get (j)
+def get_rc_map_T(data):
+    rows = {}
+    for j, i in data:
+        s = rows.get (i)
         if s is None:
-            s = cols[j] = set ()
-        s.add(i)
-    return cols
+            s = rows[i] = set ()
+        s.add(j)
+    return rows
 
 def swap_rc_map(rows, i, j):
     ri = rows.get(i)
@@ -203,27 +226,20 @@ def lu_MATRIX(m, n, k, ldata, udata):
 
     urows = get_rc_map(udata)
     for i in xrange(m-1):
-        a_ii = udata_get((i,i))
-        if a_ii is None:
-            ncols = n
-            opt_j = None
-            for j in range(i+1,m):
-                if udata_has((j,i)):
-                    l = len (urows[j])
-                    if l < ncols:
-                        ncols = l
-                        opt_j = j
-            if opt_j is None:
-                continue
-            j = opt_j
-            a_ii = udata_get ((j,i))
-            #if a_ii is None:
-            #    continue
+        ncols, j = n, None
+        for j1 in range(i,m):
+            if udata_has((j1,i)):
+                l = len(urows[j1])
+                if l <= ncols:
+                    ncols, j = l, j1
+        if j is None:
+            continue
+        a_ii = udata[j,i]
+        if i!=j:
             pivot_table[i], pivot_table[j] = pivot_table[j], pivot_table[i]
             swap_rows_MATRIX(udata, i, j)
             swap_rows_MATRIX(ldata, i, j)
             swap_rc_map(urows, i, j)
-
         irow = urows[i]
         for j in range (i+1,m):
             u_ji = udata_get((j,i))
@@ -231,24 +247,25 @@ def lu_MATRIX(m, n, k, ldata, udata):
                 continue
             c = div(u_ji, a_ii)
             jrow = urows[j]
+            jrow_add = jrow.add
+            jrow_remove = jrow.remove
             for p in irow:
                 if p < i: continue
-                u_ip = udata[i,p]
+                u_ip_c = udata[i,p] * c
                 jp = j,p
                 b = udata_get(jp)
                 if b is None:
-                    udata[jp] = -u_ip*c
-                    jrow.add(p)
+                    udata[jp] = -u_ip_c
+                    jrow_add(p)
                 else:
-                    b -= u_ip*c
-                    if b:
-                        udata[jp] = b
-                    else:
+                    if b==u_ip_c:
                         del udata[jp]
-                        jrow.remove(p)
+                        jrow_remove(p)
+                    else:
+                        udata[jp] = b - u_ip_c
             if not jrow:
                 del urows[j]
-            if i<k and j<m and c:
+            if i<k and j<m:
                 ldata[j, i] = c
     for i in xrange(min(m, k)):
         ldata[i,i] = 1
@@ -262,38 +279,50 @@ def lu_MATRIX_T(m, n, k, ldata, udata):
             udata[(i,i)] = 1    
     pivot_table = range(m)
     udata_get = udata.get
+    udata_has = udata.has_key
+    urows = get_rc_map_T(udata)
     for i in xrange(m-1):
-        a_ii = udata_get((i,i))
-        if a_ii is None:
-            for j in xrange(i+1, m):
-                a_ii = udata_get((i,j))
-                if a_ii is not None:
-                    break
-            if a_ii is None:
-                continue
+        ncols, j = n, None
+        for j1 in range(i, m):
+            if udata_has((i,j1)):
+                l = len(urows[j1])
+                if l <= ncols:
+                    ncols, j = l, j1
+        if j is None:
+            continue
+        a_ii = udata[i,j]
+        if i!=j:
             pivot_table[i], pivot_table[j] = pivot_table[j], pivot_table[i]
             swap_rows_MATRIX_T(udata, i, j)
             swap_rows_MATRIX(ldata, i, j)
+            swap_rc_map(urows, i, j)
+
+        irow = urows[i]
         for j in xrange(i+1,m):
             u_ji = udata_get((i,j))
             if u_ji is None:
                 continue
             c = div(u_ji, a_ii)
-            for p in xrange(i,n):
-                u_ip = udata_get((p,i))
-                if u_ip is None:
-                    continue
+            jrow = urows[j]
+            jrow_add = jrow.add
+            jrow_remove = jrow.remove
+            for p in irow:
+                if p < i: continue
+                u_ip_c = udata[p,i] * c
                 jp = p,j
                 b = udata_get(jp)
                 if b is None:
-                    udata[jp] = -u_ip*c
+                    udata[jp] = -u_ip_c
+                    jrow_add(p)
                 else:
-                    b -= u_ip*c
-                    if b:
-                        udata[jp] = b
-                    else:
+                    if b==u_ip_c:
                         del udata[jp]
-            if i<k and j<m and c:
+                        jrow_remove(p)
+                    else:
+                        udata[jp] = b - u_ip_c
+            if not jrow:
+                del urows[j]
+            if i<k and j<m:
                 ldata[j, i] = c
     for i in xrange(min(m, k)):
         ldata[i,i] = 1

@@ -795,12 +795,12 @@ class MatrixDict(MatrixBase):
             return {}
         rank = n - nullity
         u[rank:,rank:] = 0
-        gj = u[:].gauss_jordan_elimination()
+        gj = u[:].gauss_jordan_elimination(overwrite=True)
         gj = (-gj[:,rank:]).tolist()
 
         xd = {}
         dep, indep = [], []
-        for i in range (n):
+        for i in range(n):
             j = p[i].data.keys()[0][1]
             label = labels[j]
             if i < rank:
