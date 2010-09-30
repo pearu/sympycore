@@ -457,9 +457,9 @@ def test_solve_null():
     x = ['x1', 'x2', 'x3', 'x4', 'x5', 'x6']
     a = Matrix ([[2,3,5],[-4,2,3]])
     xd,dep,indep = a.solve_null(x)
-    assert xd['x1'] == [mpq((-1, 16))],`xd`
-    assert xd['x2'] == [mpq((-13, 8))],`xd`
-    assert xd['x3'] == [1],`xd`
+    assert xd['x1'] == Matrix([mpq((-1, 16))]),`xd`
+    assert xd['x2'] == Matrix([mpq((-13, 8))]),`xd`
+    assert xd['x3'] == Matrix([1]),`xd`
     assert set(dep) == set(['x1', 'x2']),`dep`
     assert indep == ['x3'],`dep`
 
@@ -478,5 +478,7 @@ def test_solve_null():
 
     a = Matrix(4,6,random=True)
     xd,dep,indep = a.solve_null(x)
+
     ker = Matrix([xd[s] for s in x[:6]])
+    print ker
     assert (a*ker).is_zero,`a*ker`

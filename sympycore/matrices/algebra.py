@@ -754,9 +754,8 @@ class MatrixDict(MatrixBase):
         -------
         xd : dict
           A dictionary of null solutions. xd keys are labels of
-          columns and xd values are lists of coefficients that
-          form the rows of basis of A null space. That is, let
-          us define::
+          columns and xd values are rows of A null space basis
+          matrix. That is, let us define::
 
             ker = Matrix([xd[l][0] for l in labels])
 
@@ -796,7 +795,6 @@ class MatrixDict(MatrixBase):
         rank = n - nullity
         u[rank:,rank:] = 0
         gj = u[:].gauss_jordan_elimination(overwrite=True)
-        gj = (-gj[:,rank:]).tolist()
 
         xd = {}
         dep, indep = [], []
@@ -804,12 +802,10 @@ class MatrixDict(MatrixBase):
             j = p[i].data.keys()[0][1]
             label = labels[j]
             if i < rank:
-                xd[label] = gj[i]
+                xd[label] = -gj[i, rank:]
                 dep.append(label)
             else:
-                l = [0]*nullity
-                l[i-rank] = 1
-                xd[label] = l
+                xd[label] = Matrix(1, nullity, {(0,i-rank):1})
                 indep.append(label)
         return xd, dep, indep
 
