@@ -795,7 +795,6 @@ class MatrixDict(MatrixBase):
         rank = n - nullity
         u[rank:,rank:] = 0
         gj = u[:].gauss_jordan_elimination(overwrite=True)
-
         xd = {}
         dep, indep = [], []
         for i in range(n):
@@ -808,6 +807,31 @@ class MatrixDict(MatrixBase):
                 xd[label] = Matrix(1, nullity, {(0,i-rank):1})
                 indep.append(label)
         return xd, dep, indep
+
+def switch_dep_indep_variables (xd, dep, indep, dep_label, indep_label):
+    m = rank = len (dep)
+    nullity = len (indep)
+    n = m + nullity
+    u = Matrix(m,n)
+    for i in range(m):
+        u[i,i] = 1
+    for i,label in enumerate(dep):
+        u[i,m:] = -xd[label]
+    j1 = dep.index (dep_label)
+    j2 = m + indep.index (indep_label)
+    dep, indep = dep[:], indep[:]
+    dep[j1] = indep_label
+    indep[j2-m] = dep_label
+    u.swap_cols (j1, j2)
+    gj = u[:].gauss_jordan_elimination(overwrite=True)
+    new_xd = {}
+    for i in range (m):
+        label = dep[i]
+        new_xd[label] = -gj[i, rank:]
+    for i in range (nullity):
+        label = indep[i]
+        new_xd[label] = Matrix(1, nullity, {(0,i):1})
+    return new_xd, dep, indep
 
 from .matrix_operations import MATRIX_DICT_iadd, MATRIX_DICT_imul
 from .linalg import (MATRIX_DICT_swap_rows, MATRIX_DICT_swap_cols,

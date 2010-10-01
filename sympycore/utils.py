@@ -80,6 +80,9 @@ class MATRIX(HEAD):
                        MATRIX_DICT_D, MATRIX_DICT_DT
     """
 
+    def __str__ (self):
+        return '%s (%r, %r, %r)' % (self.__class__.__name__, self.rows, self.cols, self.storage)
+
     def to_lowlevel(self, cls, data, pair):
         return pair
     
