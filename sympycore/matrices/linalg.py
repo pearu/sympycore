@@ -23,12 +23,12 @@ def MATRIX_DICT_gauss_jordan_elimination(self, overwrite=False):
     else:
         udata = dict(data)
     if head.is_transpose:
-        B = MatrixDict(MATRIX(k, n, MATRIX_DICT), udata)
+        B = MatrixDict(MATRIX(m, n, MATRIX_DICT), udata)
         gauss_jordan_elimination_MATRIX_T(m, n, udata)
     elif head.is_diagonal:
         raise NotImplementedError(`head, head.is_diagonal`)
     else:
-        B = MatrixDict(MATRIX(k, n, MATRIX_DICT), udata)
+        B = MatrixDict(MATRIX(m, n, MATRIX_DICT), udata)
         gauss_jordan_elimination_MATRIX(m, n, udata)
     return B
 
@@ -178,7 +178,8 @@ def gauss_jordan_elimination_MATRIX_T(m, n, data):
             if not jrow:
                 del rows[j]
         data[i,i] = 1
-        for p in range(i+1, n):
+        for p in irow:
+            if p <= i: continue
             ip = p,i
             data[ip] = div(data[ip], a_ii)
 
