@@ -364,18 +364,18 @@ class MatrixDict(MatrixBase):
         """
         head, data = self.pair
         m, n = head.shape
-        expect_i, max_j, pivot_i, pivot_j = 0,n+1, -1, -1
+        expect_i, pivot_i, pivot_j = 0,-1, -1
         for (i,j) in sorted(data.keys()):
             if pivot_i==i:
-                max_j = min(max_j, j)
                 continue
-            if expect_i!=i or pivot_j>=j or j>=max_j:
+            if expect_i!=i or pivot_j>=j:
                 return False
             x = data[i,j]
             if x!=1:
                 return False
+            if not self[:i, j].is_zero:
+                return False
             pivot_i, pivot_j, expect_i = i,j,i+1
-            max_j = n+1
         return True
 
     @property

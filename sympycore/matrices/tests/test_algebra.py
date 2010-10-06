@@ -66,7 +66,8 @@ def test_Matrix_properties():
     assert Matrix([[1,1],[0,1]]).is_row_echelon_form
     assert not Matrix([[1,1],[0,1]]).is_row_canonical_form
     assert Matrix([[1,1,0],[0,0,1],[0,0,0]]).is_row_echelon_form
-    assert not Matrix([[1,1,0],[0,0,1],[0,0,0]]).is_row_canonical_form
+    a = Matrix([[1,1,0],[0,0,1],[0,0,0]])
+    assert a.is_row_canonical_form
     assert not Matrix([[1,1,0],[0,0,0],[0,0,1]]).is_row_echelon_form
     assert Matrix([[0,1,0],[0,0,1],[0,0,0]]).is_row_echelon_form
     assert Matrix([[0,1,0],[0,0,1],[0,0,0]]).is_row_canonical_form
@@ -75,6 +76,9 @@ def test_Matrix_properties():
     assert not Matrix([[0,1,0,1],[0,0,1,1],[0,0,0,1]]).is_row_canonical_form
     assert Matrix([[0,1,0,0],[0,0,1,0],[0,0,0,1]]).is_row_canonical_form
 
+    a = Matrix([[1,2,0,0,3,4,0,5,0],[0,0,1,0,2,3,0,4,0],[0,0,0,1,2,3,0,4,0],[0.0,0,0,0,0,0,1,2,0],[0,0,0,0,0,0,0,0,0,1],[0,0,0,0,0,0,0,0,0,0]])
+    assert a.is_row_echelon_form
+    assert a.is_row_canonical_form
 
 def test_Matrix2():
     a = Matrix(2, 3)
