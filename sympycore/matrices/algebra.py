@@ -323,6 +323,60 @@ class MatrixDict(MatrixBase):
             return False
         return True
 
+    @property
+    def is_row_echelon_form(self):
+        """ Return True if matrix is in row echelon form, that is,
+
+        (i) All nonzero rows (rows with at least one nonzero element)
+        are above any rows of all zeroes, and
+        
+        (ii) The leading coefficient (the first nonzero number from
+        the left, also called the pivot) of a nonzero row is always
+        strictly to the right of the leading coefficient of the row
+        above it.
+        """
+        head, data = self.pair
+        m, n = head.shape
+        expect_i, pivot_i, pivot_j = 0, -1, -1
+        for (i,j) in sorted(data.keys()):
+            if pivot_i==i:
+                continue
+            if expect_i!=i or pivot_j>=j:
+                return False
+            pivot_i, pivot_j, expect_i = i,j,i+1
+        return True
+
+    @property
+    def is_row_canonical_form(self):
+        """ Return True if matrix is in reduced row echelon form, that
+        is,
+
+        (i) All nonzero rows (rows with at least one nonzero element)
+        are above any rows of all zeroes, and
+        
+        (ii) The leading coefficient (the first nonzero number from
+        the left, also called the pivot) of a nonzero row is always
+        strictly to the right of the leading coefficient of the row
+        above it.
+
+        (iii) Every leading coefficient is 1 and is the only nonzero
+        entry in its column.
+        """
+        head, data = self.pair
+        m, n = head.shape
+        expect_i, max_j, pivot_i, pivot_j = 0,n+1, -1, -1
+        for (i,j) in sorted(data.keys()):
+            if pivot_i==i:
+                max_j = min(max_j, j)
+                continue
+            if expect_i!=i or pivot_j>=j or j>=max_j:
+                return False
+            x = data[i,j]
+            if x!=1:
+                return False
+            pivot_i, pivot_j, expect_i = i,j,i+1
+            max_j = n+1
+        return True
 
     @property
     def T(self):

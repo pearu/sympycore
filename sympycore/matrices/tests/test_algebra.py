@@ -48,6 +48,7 @@ def test_Matrix_properties():
     assert a.is_lower
     assert not a.is_upper
     assert a.T.is_upper
+    assert not a.is_row_echelon_form
     a[0,2] = 1
     assert not a.is_lower
     assert not a.is_upper
@@ -57,6 +58,23 @@ def test_Matrix_properties():
     assert Matrix([[0,0,0,1],[0,0,1,0],[1,0,0,0],[0,1,0,0]]).is_orthogonal
     assert not Matrix([[1,0],[2,-1]]).is_orthogonal
     assert not Matrix([[1,0],[0,1],[0,1]]).is_orthogonal
+
+    assert Matrix([[1,0],[0,1]]).is_row_echelon_form
+    assert Matrix([[1,0],[0,1]]).is_row_canonical_form
+    assert not Matrix([[1,0],[1,1]]).is_row_echelon_form
+    assert not Matrix([[1,0],[1,1]]).is_row_canonical_form
+    assert Matrix([[1,1],[0,1]]).is_row_echelon_form
+    assert not Matrix([[1,1],[0,1]]).is_row_canonical_form
+    assert Matrix([[1,1,0],[0,0,1],[0,0,0]]).is_row_echelon_form
+    assert not Matrix([[1,1,0],[0,0,1],[0,0,0]]).is_row_canonical_form
+    assert not Matrix([[1,1,0],[0,0,0],[0,0,1]]).is_row_echelon_form
+    assert Matrix([[0,1,0],[0,0,1],[0,0,0]]).is_row_echelon_form
+    assert Matrix([[0,1,0],[0,0,1],[0,0,0]]).is_row_canonical_form
+    assert Matrix([[0,1,0,1],[0,0,1,1],[0,0,0,2]]).is_row_echelon_form
+    assert not Matrix([[0,1,0,1],[0,0,1,1],[0,0,0,2]]).is_row_canonical_form
+    assert not Matrix([[0,1,0,1],[0,0,1,1],[0,0,0,1]]).is_row_canonical_form
+    assert Matrix([[0,1,0,0],[0,0,1,0],[0,0,0,1]]).is_row_canonical_form
+
 
 def test_Matrix2():
     a = Matrix(2, 3)
@@ -480,5 +498,15 @@ def test_solve_null():
     xd,dep,indep = a.solve_null(x)
 
     ker = Matrix([xd[s] for s in x[:6]])
-    print ker
     assert (a*ker).is_zero,`a*ker`
+
+def test_gauss_jordan_elimination():
+    a = Matrix([[1,0,0,0,-1,-1,-1,0,0,0,0],
+                [0,1,0,0,1,-1,-1,0,0,0,0],
+                [0,0,-1,0,0,1,0,1,0,0,0],
+                [0,0,0,-1,0,0,1,-1,0,0,0],
+                [0,0,0,0,0,0,0,0,1,-1,0],
+                [0,0,0,0,0,0,0,0,-1,0,1]])
+
+    b = a.gauss_jordan_elimination()
+    print b
