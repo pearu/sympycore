@@ -23,7 +23,7 @@ def MATRIX_DICT_gauss_jordan_elimination(self, overwrite=False):
     else:
         udata = dict(data)
     if head.is_transpose:
-        B = MatrixDict(MATRIX(m, n, MATRIX_DICT), udata)
+        B = MatrixDict(MATRIX(m, n, MATRIX_DICT_T), udata)
         gauss_jordan_elimination_MATRIX_T(m, n, udata)
     elif head.is_diagonal:
         raise NotImplementedError(`head, head.is_diagonal`)
@@ -76,37 +76,27 @@ def gauss_jordan_elimination_MATRIX(m, n, data):
     data_get = data.get
     data_has = data.has_key
     rows = get_rc_map(data)
+    jpiv = 0
     for i in xrange(m):
-        if 0:
-            # for upper diagonal sparse matrix this is a bit slower..
-            ncols, j = n, None
-            for j1 in range(i,m):
-                if data_has((j1,i)):
-                    l = len(rows[j1])
-                    if l <= ncols:
-                        ncols, j = l, j1
-            if j is None:
-                continue
-            a_ii = data[j,i]
-            if i!=j:
-                swap_rows_MATRIX(data, i, j, rows)
-                swap_rc_map(rows, i, j)
-        else:
-            a_ii = data_get((i,i))
-            if a_ii is None:
-                for j in xrange(i+1, m):
-                    a_ii = data_get((j,i))
-                    if a_ii is not None:
-                        break
-                if a_ii is None:
-                    continue
-                swap_rows_MATRIX(data, i, j, rows)
-                swap_rc_map(rows, i, j)
+        ipiv = i
+        while not data_has((ipiv, jpiv)):
+            ipiv += 1
+            if ipiv==m:
+                ipiv = i
+                jpiv += 1
+                if jpiv==n:
+                    break
+        a_ii = data_get((ipiv, jpiv))
+        if a_ii is None:
+            break
+        if i!=ipiv:
+            swap_rows_MATRIX(data, i, ipiv, rows)
+            swap_rc_map(rows, i, ipiv)
         irow = rows[i]
         for j in range(m):
-            if j==i:
+            if j==ipiv:
                 continue
-            u_ji = data_get((j,i))
+            u_ji = data_get((j,jpiv))
             if u_ji is None:
                 continue
             c = div(u_ji, a_ii)
@@ -114,7 +104,8 @@ def gauss_jordan_elimination_MATRIX(m, n, data):
             jrow_add = jrow.add
             jrow_remove = jrow.remove
             for p in irow:
-                if p < i: continue
+                if p < jpiv: 
+                    continue
                 u_ip_c = data[i,p] * c
                 jp = j,p
                 b = data_get(jp)
@@ -129,59 +120,71 @@ def gauss_jordan_elimination_MATRIX(m, n, data):
                         data[jp] = b - u_ip_c
             if not jrow:
                 del rows[j]
-        data[i,i] = 1
+        data[i,jpiv] = 1
         
         for p in irow:
-            if p <= i: continue
+            if p <= jpiv: 
+                continue
             ip = i,p
             data[ip] = div(data[ip], a_ii)
 
 def gauss_jordan_elimination_MATRIX_T(m, n, data):
     data_get = data.get
+    data_has = data.has_key
     rows = get_rc_map_T(data)
+    jpiv = 0
     for i in xrange(m):
-        a_ii = data_get((i,i))
-        if a_ii is None:
-            for j in xrange(i+1, m):
-                a_ii = data_get((i,j))
-                if a_ii is not None:
+        ipiv = i
+        while not data_has((jpiv, ipiv)):
+            ipiv += 1
+            if ipiv==m:
+                ipiv = i
+                jpiv += 1
+                if jpiv==n:
                     break
-            if a_ii is None:
-                continue
-            swap_rows_MATRIX_T(data, i, j, rows)
-            swap_rc_map(rows, i, j)
+        a_ii = data_get((jpiv, ipiv))
+        if a_ii is None:
+            break
+        if i!=ipiv:
+            swap_rows_MATRIX_T(data, i, ipiv, rows)
+            swap_rc_map(rows, i, ipiv)
         irow = rows[i]
-        for j in range(m):
-            if j==i:
+        for k in range(m):
+            if k==ipiv:
                 continue
-            u_ji = data_get((i,j))
+            u_ji = data_get((jpiv,k))
             if u_ji is None:
                 continue
             c = div(u_ji, a_ii)
-            jrow = rows[j]
-            for p in range(i,n):
-                u_ip = data_get((p,i))
-                if u_ip is None:
+            jrow = rows[k]
+            jrow_add = jrow.add
+            jrow_remove = jrow.remove
+            for p in irow:
+                if p < jpiv: 
                     continue
-                jp = p,j
-                b = data_get(jp)
+                u_ip_c = data[p,i] * c
+                kp = p,k
+                b = data_get(kp)
                 if b is None:
-                    data[jp] = -u_ip*c
-                    jrow.add(p)
+                    data[kp] = -u_ip_c
+                    jrow_add(p)
                 else:
-                    b -= u_ip*c
-                    if b:
-                        data[jp] = b
+                    if u_ip_c==b:
+                        del data[kp]
+                        jrow_remove(p)
                     else:
-                        del data[jp]
-                        jrow.remove(p)
+                        data[kp] = b - u_ip_c
             if not jrow:
-                del rows[j]
-        data[i,i] = 1
+                del rows[k]
+        data[jpiv,i] = 1
+        
         for p in irow:
-            if p <= i: continue
+            if p <= jpiv: 
+                continue
             ip = p,i
             data[ip] = div(data[ip], a_ii)
+
+    return
 
 def get_rc_map(data):
     rows = {}
