@@ -504,6 +504,16 @@ def test_solve_null():
     ker = Matrix([xd[s] for s in x[:6]])
     assert (a*ker).is_zero,`a*ker`
 
+    a = Matrix([[1,0,0,0,-1,-1,-1,0,0,0,0],
+                [0,1,0,0,1,-1,-1,0,0,0,0],
+                [0,0,-1,0,0,1,0,1,0,0,0],
+                [0,0,0,-1,0,0,1,-1,0,0,0],
+                [0,0,0,0,0,0,0,0,1,-1,0],
+                [0,0,0,0,0,0,0,0,-1,0,1]])
+    xd,dep,indep = a.solve_null()
+    ker = Matrix([xd[s] for s in sorted (dep+indep)])
+    assert (a*ker).is_zero,`a*ker`
+
 def test_gauss_jordan_elimination():
     a = Matrix([[1,0,0,0,-1,-1,-1,0,0,0,0],
                 [0,1,0,0,1,-1,-1,0,0,0,0],

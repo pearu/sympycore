@@ -119,12 +119,19 @@ def Matrix(*args, **kws):
         elif is_sequence(data):
             k = 0
             d = {}
-            for i in range(m):
-                for j in xrange(n):
-                    x = data[k]
-                    if x:
-                        d[i,j] = x
-                    k += 1
+            if data and is_sequence(data[k]):
+                for i in range(m):
+                    for j in xrange(n):
+                        x = data[i][j]
+                        if x:
+                            d[i,j] = x
+            else:
+                for i in range(m):
+                    for j in xrange(n):
+                        x = data[k]
+                        if x:
+                            d[i,j] = x
+                        k += 1
             data = d
         else:
             flag = False
@@ -173,6 +180,10 @@ class MatrixBase(Algebra):
             col = [fmt % (s) for s in col]
             columns.append(col)
         return '\n'.join([''.join(row).rstrip() for row in zip(*columns)])
+
+    def __repr__ (self):
+        rows, cols = self.rows, self.cols
+        return 'Matrix (%s, %s, %r)' % (rows, cols, self.tolist())
 
     def __iadd__(self, other):
         raise NotImplementedError('%s must implement __iadd__' % (type(self)))
@@ -794,7 +805,7 @@ class MatrixDict(MatrixBase):
                 data[key] = value
         return type(self)(self.head, data)
     
-    def solve_null(self, labels):
+    def solve_null(self, labels = None):
         """ Solve a system of homogeneous equations: A * x = 0
 
         where A is m x n matrix, x is n vector.
@@ -837,10 +848,14 @@ class MatrixDict(MatrixBase):
         --------
         solve
         """
+
         m, n = self.head.shape
+        if labels is None:
+            labels = range(n)
         p1,l1,u1 = self.T.lu()
-        #assert not (p1*l1*u1-self.T).data
+        assert not (p1*l1*u1-self.T).data
         p, u, l = p1.T, l1.T, u1.T
+        assert not (l*u*p-self).data
         u_rank = len([v for v in u.D[0].T.tolist()[0] if v != 0])
         l_rank = len([v for v in l.D[0].T.tolist()[0] if v != 0])
         nullity = (n - u_rank) + (m - l_rank)

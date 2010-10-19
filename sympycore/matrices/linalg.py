@@ -92,9 +92,10 @@ def gauss_jordan_elimination_MATRIX(m, n, data):
         if i!=ipiv:
             swap_rows_MATRIX(data, i, ipiv, rows)
             swap_rc_map(rows, i, ipiv)
+            ipiv = i
         irow = rows[i]
         for j in range(m):
-            if j==ipiv:
+            if j==i:
                 continue
             u_ji = data_get((j,jpiv))
             if u_ji is None:
@@ -148,6 +149,7 @@ def gauss_jordan_elimination_MATRIX_T(m, n, data):
         if i!=ipiv:
             swap_rows_MATRIX_T(data, i, ipiv, rows)
             swap_rc_map(rows, i, ipiv)
+            ipiv = i
         irow = rows[i]
         for k in range(m):
             if k==ipiv:
