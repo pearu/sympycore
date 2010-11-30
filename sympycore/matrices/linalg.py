@@ -8,12 +8,29 @@ from .algebra import MatrixDict, Matrix
 from ..core import init_module
 init_module.import_lowlevel_operations()
 
-def MATRIX_DICT_gauss_jordan_elimination(self, overwrite=False):
+def MATRIX_DICT_gauss_jordan_elimination(self, swap_columns = False, overwrite=False):
     """ Perform Gauss-Jordan elimination of a m x n matrix A.
 
-    Outputs::
+    Parameters
+    ----------
 
-      B - m x n matrix where the lhs part is unit matrix
+    swap_columns : bool
+
+      When True then ensure that row echelon form has maximum number
+      of nonzero diagonal elements by swapping columns.
+
+    overwrite : bool
+      When True then discard the content of matrix A.
+
+    Returns
+    -------
+    B : MatrixDict
+      m1 x n matrix that is in row echelon form. m1 is the number of non-zero rows.
+
+    pivot_table : list
+      A n-list of column indices. pivot_table is returned only when
+      swap_columns is True.
+
     """
     head, data = self.pair
     m, n = head.shape
@@ -23,27 +40,36 @@ def MATRIX_DICT_gauss_jordan_elimination(self, overwrite=False):
     else:
         udata = dict(data)
     if head.is_transpose:
+        m, pivot_table = gauss_jordan_elimination_MATRIX_T(m, n, udata, swap_columns = swap_columns)
         B = MatrixDict(MATRIX(m, n, MATRIX_DICT_T), udata)
-        gauss_jordan_elimination_MATRIX_T(m, n, udata)
     elif head.is_diagonal:
         raise NotImplementedError(`head, head.is_diagonal`)
     else:
+        m, pivot_table = gauss_jordan_elimination_MATRIX(m, n, udata, swap_columns = swap_columns)
         B = MatrixDict(MATRIX(m, n, MATRIX_DICT), udata)
-        gauss_jordan_elimination_MATRIX(m, n, udata)
+    if swap_columns:
+        return B, pivot_table
     return B
 
 def MATRIX_DICT_lu(self, overwrite=False):
     """ Perform LU factorization of a m x n matrix A.
 
-    Parameters::
+    Parameters
+    ----------
 
-      overwrite=False - if True then discard the content of matrix A
+      overwrite : bool
+        When True then discard the content of matrix A.
 
-    Outputs::
-    
-      P, L, U - LU decomposition matrices of A.
+    Returns
+    -------
 
-    Definitions::
+      P : MatrixDict
+      L : MatrixDict
+      U : MatrixDict
+        LU decomposition matrices of A.
+
+    Notes
+    -----
         
       P - m x m permuation matrix
       L - m x k lower triangular or trapezoidal matrix with unit-diagonal
@@ -72,13 +98,18 @@ def MATRIX_DICT_lu(self, overwrite=False):
     P = Matrix(pivot_table, permutation=True).T
     return P, L, U
 
-def gauss_jordan_elimination_MATRIX(m, n, data):
+def gauss_jordan_elimination_MATRIX(m, n, data, swap_columns = False):
     data_get = data.get
     data_has = data.has_key
     rows = get_rc_map(data)
-    jpiv = 0
+    if swap_columns:
+        pivot_table = range(n)
+    else:
+        pivot_table = None
+    jpiv = 0    
     for i in xrange(m):
         ipiv = i
+
         while not data_has((ipiv, jpiv)):
             ipiv += 1
             if ipiv==m:
@@ -86,9 +117,18 @@ def gauss_jordan_elimination_MATRIX(m, n, data):
                 jpiv += 1
                 if jpiv==n:
                     break
+
         a_ii = data_get((ipiv, jpiv))
         if a_ii is None:
             break
+
+        if swap_columns:
+            if jpiv != i:
+                swap_cols_MATRIX(data, jpiv, i)
+                pivot_table[i], pivot_table[jpiv] = pivot_table[jpiv], pivot_table[i]
+                rows = get_rc_map(data)
+                jpiv = i
+
         if i!=ipiv:
             swap_rows_MATRIX(data, i, ipiv, rows)
             swap_rc_map(rows, i, ipiv)
@@ -128,14 +168,20 @@ def gauss_jordan_elimination_MATRIX(m, n, data):
                 continue
             ip = i,p
             data[ip] = div(data[ip], a_ii)
+    return max(rows)+1, pivot_table
 
-def gauss_jordan_elimination_MATRIX_T(m, n, data):
+def gauss_jordan_elimination_MATRIX_T(m, n, data, swap_columns = False):
     data_get = data.get
     data_has = data.has_key
     rows = get_rc_map_T(data)
+    if swap_columns:
+        pivot_table = range(n)
+    else:
+        pivot_table = None
     jpiv = 0
     for i in xrange(m):
         ipiv = i
+
         while not data_has((jpiv, ipiv)):
             ipiv += 1
             if ipiv==m:
@@ -146,6 +192,14 @@ def gauss_jordan_elimination_MATRIX_T(m, n, data):
         a_ii = data_get((jpiv, ipiv))
         if a_ii is None:
             break
+
+        if swap_columns:
+            if jpiv != i:
+                swap_cols_MATRIX_T(data, jpiv, i)
+                pivot_table[i], pivot_table[jpiv] = pivot_table[jpiv], pivot_table[i]
+                rows = get_rc_map_T(data)
+                jpiv = i
+
         if i!=ipiv:
             swap_rows_MATRIX_T(data, i, ipiv, rows)
             swap_rc_map(rows, i, ipiv)
@@ -186,7 +240,7 @@ def gauss_jordan_elimination_MATRIX_T(m, n, data):
             ip = p,i
             data[ip] = div(data[ip], a_ii)
 
-    return
+    return max(rows)+1, pivot_table
 
 def get_rc_map(data):
     rows = {}

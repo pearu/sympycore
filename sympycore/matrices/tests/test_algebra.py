@@ -519,6 +519,7 @@ def test_gauss_jordan_elimination():
                 [0,1,0,0,1,-1,-1,0,0,0,0],
                 [0,0,-1,0,0,1,0,1,0,0,0],
                 [0,0,0,-1,0,0,1,-1,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0],
                 [0,0,0,0,0,0,0,0,1,-1,0],
                 [0,0,0,0,0,0,0,0,-1,0,1]])
     r = Matrix([[1,0,0,0,-1,-1,-1,0,0,0,0],
@@ -534,3 +535,29 @@ def test_gauss_jordan_elimination():
     a = a.T[:].T
     b = a.gauss_jordan_elimination()
     assert (b-r).is_zero,'\n%s==\n%s' % (b,r)
+
+def test_gauss_jordan_elimination_swap_columns():
+    a = Matrix([[1,0,0,0,-1,-1,-1,0,0,0,0],
+                [0,1,0,0,1,-1,-1,0,0,0,0],
+                [0,0,-1,0,0,1,0,1,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,-1,0,0,1,-1,0,0,0],
+                [0,0,0,0,0,0,0,0,1,-1,0],
+                [0,0,0,0,0,0,0,0,-1,0,1],
+                ])
+    r = Matrix([[1,0,0,0,-1,-1,-1,0,0,0,0],
+                [0,1,0,0,1,-1,-1,0,0,0,0],
+                [0,0,1,0,0,-1,0,-1,0,0,0],
+                [0,0,0,1,0,0,-1,1,0,0,0],
+                [0,0,0,0,0,0,0,0,1,0,-1],
+                [0,0,0,0,0,0,0,0,0,1,-1]
+                ])
+    b,p = a.gauss_jordan_elimination(swap_columns=True)
+
+    for k,j in enumerate (p):
+        assert (b[:,k]==r[:,j])
+
+    a = a.T[:].T
+    b,p = a.gauss_jordan_elimination(swap_columns=True)
+    for k,j in enumerate (p):
+        assert (b[:,k]==r[:,j])
