@@ -805,7 +805,7 @@ class MatrixDict(MatrixBase):
                 data[key] = value
         return type(self)(self.head, data)
     
-    def solve_null(self, labels = None):
+    def solve_null(self, labels = None, check=False):
         """ Solve a system of homogeneous equations: A * x = 0
 
         where A is m x n matrix, x is n vector.
@@ -814,6 +814,9 @@ class MatrixDict(MatrixBase):
         ----------
         labels : {list, tuple}
           A list of column symbols.
+        check : bool
+          When True the check the definitions and raise a runtime
+          exception on invalid results.
 
         Returns
         -------
@@ -822,7 +825,7 @@ class MatrixDict(MatrixBase):
           columns and xd values are rows of A null space basis
           matrix. That is, let us define::
 
-            ker = Matrix([xd[l][0] for l in labels])
+            ker = Matrix([xd[l].tolist()[0] for l in labels])
 
           then::
 
@@ -840,7 +843,7 @@ class MatrixDict(MatrixBase):
           Lists of dependent and independent column labels, respectively.
 
           If
-            x_dep = [sum(dot(xd[l], dependent)) for l in dependent]
+            x_dep = [sum(dot(xd[l], independent)) for l in labels]
           then
             A * x_dep = 0
 
@@ -848,33 +851,35 @@ class MatrixDict(MatrixBase):
         --------
         solve
         """
-
         m, n = self.head.shape
         if labels is None:
             labels = range(n)
-        p1,l1,u1 = self.T.lu()
-        assert not (p1*l1*u1-self.T).data
-        p, u, l = p1.T, l1.T, u1.T
-        assert not (l*u*p-self).data
-        u_rank = len([v for v in u.D[0].T.tolist()[0] if v != 0])
-        l_rank = len([v for v in l.D[0].T.tolist()[0] if v != 0])
-        nullity = (n - u_rank) + (m - l_rank)
-        if nullity <= 0:
-            return {}
-        rank = n - nullity
-        u[rank:,rank:] = 0
-        gj = u[:].gauss_jordan_elimination(overwrite=True)
+        gj, pivot = self.gauss_jordan_elimination(swap_columns=True)
         xd = {}
         dep, indep = [], []
+        rank = gj.rows
+        nullity = n - rank
         for i in range(n):
-            j = p[i].data.keys()[0][1]
+            j = pivot[i]
             label = labels[j]
             if i < rank:
                 xd[label] = -gj[i, rank:]
-                dep.append(label)
+                dep.append (label)
             else:
-                xd[label] = Matrix(1, nullity, {(0,i-rank):1})
+                xd[label] = Matrix (1,nullity, {(0,i-rank):1})
                 indep.append(label)
+
+        if check:
+            ker = Matrix([xd[l].tolist () [0] for l in labels])
+            null = self * ker
+            if not null.is_zero:
+                raise RuntimeError('%s.solve_null: A*ker=0 test failed' % (self.__class__.__name__))
+            c = Matrix([classes.Calculus('X%s'%(label)) for label in indep])
+            x = ker * c
+            null = self*x
+            if not null.is_zero:
+                raise RuntimeError('%s.solve_null: A*(ker*indep)=0 test failed' % (self.__class__.__name__))
+
         return xd, dep, indep
 
 def switch_dep_indep_variables (xd, dep, indep, dep_label, indep_label):
