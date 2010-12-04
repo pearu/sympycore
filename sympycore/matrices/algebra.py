@@ -882,6 +882,30 @@ class MatrixDict(MatrixBase):
 
         return xd, dep, indep
 
+    def gram_schmidt_process(self):
+        """ Orthogonalized matrix columns using Gram-Schmidt process.
+
+        Returns
+        -------
+        U : Matrix
+
+        Notes
+        -----
+        U columns are orthogonal (but not orthonormal). U * self
+        produces upper triangular matrix.
+        """
+        m, n = self.head.shape
+        U = Matrix(m,n)
+        for k in range(n):
+            ak = self[:,k]
+            uk = ak
+            for j in range(k):
+                uj = r[:,j]
+                c = div((uj.T*ak)[0,0], (uj.T*uj)[0,0])
+                uk = uk - c * uj
+            U[:,k] = uk
+        return U
+
 def switch_dep_indep_variables (xd, dep, indep, dep_label, indep_label):
     m = rank = len (dep)
     nullity = len (indep)
