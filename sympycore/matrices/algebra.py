@@ -29,6 +29,16 @@ def is_sequence(obj):
     except TypeError:
         return False
 
+def is_integer(obj):
+    t = type(obj)
+    if t is int or t is long:
+        return True
+    try:
+        int(obj)
+    except TypeError:
+        pass
+    return False
+
 def Matrix(*args, **kws):
     """ Construct a matrix instance.
 
@@ -257,7 +267,7 @@ class MatrixBase(Algebra):
                     return type(self)(head, dict([(ij,div(1,x)**(-other)) for ij,x in data.iteritems()]))
                 return type(self)(head, dict([(ij,x**other) for ij,x in data.iteritems()]))
             if head.is_diagonal:
-                raise NotImplementedError(`head`)
+                raise NotImplementedError(`head, str(head)`)
             if other < 0:
                 return self.inv() ** (-other)
             if other==1:
@@ -483,7 +493,9 @@ class MatrixDict(MatrixBase):
                     k = min(i,j)
                     d[k,0] = x
             return Matrix(m, 1, d)
-        raise NotImplementedError(`head, key`)
+        elif is_integer(key):
+            return self._get_diagonal[int(key)]
+        raise NotImplementedError(`head, key, t`)
 
     def __getitem__(self, key):
         tkey = type(key)
@@ -497,7 +509,7 @@ class MatrixDict(MatrixBase):
                 if head.is_transpose:
                     key = j, i
                 elif head.is_diagonal:
-                    raise NotImplementedError(`head`)
+                    raise NotImplementedError(`head, str(head)`)
                 if i>=head.rows or j>=head.cols:
                     raise IndexError (`i,j,head.cols,head.rows`)
                 return data.get(key, 0)
@@ -510,8 +522,12 @@ class MatrixDict(MatrixBase):
             elif ti is slice and tj is slice:
                 row_indices = dict([(i0,k) for k,i0 in enumerate(xrange(*i.indices(head.rows)))])
                 col_indices = dict([(j0,k) for k,j0 in enumerate(xrange(*j.indices(head.cols)))])
+            elif is_integer(i):
+                return self[int(i), j]
+            elif is_integer(j):
+                return self[i, int (j)]
             else:
-                raise NotImplementedError(`key`)
+                raise IndexError('tuple index must contain int or slice, got %s' % ((`ti, tj`)))
             newdata = {}
             if head.is_transpose:
                 for (j,i), x in data.items():
@@ -521,7 +537,7 @@ class MatrixDict(MatrixBase):
                         if kj is not None:
                             newdata[ki, kj] = x
             elif head.is_diagonal:
-                raise NotImplementedError(`head`)
+                raise NotImplementedError(`head, str(head)`)
             else:
                 for (i,j), x in data.items():
                     ki = row_indices.get(i)
@@ -536,7 +552,9 @@ class MatrixDict(MatrixBase):
             return self[key, :]
         elif tkey is slice:
             return self[key, :]
-        raise NotImplementedError(`key`)
+        elif is_integer(key):
+            return self[int(key)]
+        raise IndexError('index must be int, slice, or tuple, got %s' % (tkey))
 
     def _set_diagonal(self, key, value):
         head, data = self.pair
@@ -578,7 +596,7 @@ class MatrixDict(MatrixBase):
         tkey = type(key)
         if tkey is int or tkey is slice:
             if head.is_diagonal:
-                raise NotImplementedError(`head`)
+                raise NotImplementedError(`head, str(head)`)
             self[key, :] = value
             return
         i, j = key
@@ -587,7 +605,7 @@ class MatrixDict(MatrixBase):
             if head.is_transpose:
                 key = j,i
             elif head.is_diagonal:
-                raise NotImplementedError(`head`)
+                raise NotImplementedError(`head, str(head)`)
             if value:
                 data[key] = value
             else:
@@ -605,8 +623,12 @@ class MatrixDict(MatrixBase):
         elif ti is slice and tj is slice:
             row_indices = [(i0,k) for k,i0 in enumerate(xrange(*i.indices(head.rows)))]
             col_indices = [(j0,k) for k,j0 in enumerate(xrange(*j.indices(head.cols)))]
+        elif is_integer(i):
+            return self.__setitem__((int(i),j), value)
+        elif is_integer(j):
+            return self.__setitem__((i,int(j)), value)
         else:
-            raise NotImplementedError(`key`)
+            raise IndexError('tuple index must contain int or slice but got %r' % ((ti, tj),))
         if isinstance(value, MatrixBase):
             m, n = value.head.shape
             assert len(row_indices)==m,`len(row_indices),m`
@@ -623,7 +645,7 @@ class MatrixDict(MatrixBase):
                             except KeyError:
                                 pass
             elif head.is_diagonal:
-                raise NotImplementedError(`head`)
+                raise NotImplementedError(`head, str (head)`)
             else:
                 for i,ki in row_indices:
                     for j,kj in col_indices:
