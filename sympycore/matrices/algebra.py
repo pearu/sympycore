@@ -35,6 +35,7 @@ def is_integer(obj):
         return True
     try:
         int(obj)
+        return True
     except TypeError:
         pass
     return False
