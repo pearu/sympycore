@@ -827,7 +827,17 @@ class MatrixDict(MatrixBase):
             if value:
                 data[key] = value
         return type(self)(self.head, data)
-    
+
+    @property
+    def rank(self):
+        """ Return row-rank of a matrix.
+        """
+        return self.gauss_jordan_elimination().rows
+
+    @property
+    def nullity (self):
+        return self.cols - self.rank
+
     def solve_null(self, labels = None, check=False):
         """ Solve a system of homogeneous equations: A * x = 0
 
@@ -877,21 +887,14 @@ class MatrixDict(MatrixBase):
         m, n = self.head.shape
         if labels is None:
             labels = range(n)
-        gj, pivot = self.gauss_jordan_elimination(swap_columns=True)
+        gj, (dep, indep) = self.gauss_jordan_elimination(labels = labels)
         xd = {}
-        dep, indep = [], []
         rank = gj.rows
         nullity = n - rank
-        for i in range(n):
-            j = pivot[i]
-            label = labels[j]
-            if i < rank:
-                xd[label] = -gj[i, rank:]
-                dep.append (label)
-            else:
-                xd[label] = Matrix (1,nullity, {(0,i-rank):1})
-                indep.append(label)
-
+        for i, label in enumerate (dep):
+            xd[label] = -gj[i, rank:]
+        for i, label in enumerate (indep):
+            xd[label] = Matrix(1,nullity, {(0,i):1})
         if check:
             ker = Matrix([xd[l].tolist () [0] for l in labels])
             null = self * ker

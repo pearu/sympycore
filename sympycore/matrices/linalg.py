@@ -8,7 +8,7 @@ from .algebra import MatrixDict, Matrix
 from ..core import init_module
 init_module.import_lowlevel_operations()
 
-def MATRIX_DICT_gauss_jordan_elimination(self, swap_columns = False, overwrite=False):
+def MATRIX_DICT_gauss_jordan_elimination(self, swap_columns=False, overwrite=False, labels = None):
     """ Perform Gauss-Jordan elimination of a m x n matrix A.
 
     Parameters
@@ -22,6 +22,9 @@ def MATRIX_DICT_gauss_jordan_elimination(self, swap_columns = False, overwrite=F
     overwrite : bool
       When True then discard the content of matrix A.
 
+    labels : {None,list}
+      A list of column labels.
+
     Returns
     -------
     B : MatrixDict
@@ -29,7 +32,12 @@ def MATRIX_DICT_gauss_jordan_elimination(self, swap_columns = False, overwrite=F
 
     pivot_table : list
       A n-list of column indices. pivot_table is returned only when
-      swap_columns is True.
+      swap_columns is True and labels is not specified.
+
+    (dep, indep) : tuple
+      A 2-tuple of column labels corresponding to dependent and
+      independent variables. The 2-tuple is returned only when labels
+      is specified.
 
     """
     head, data = self.pair
@@ -39,6 +47,8 @@ def MATRIX_DICT_gauss_jordan_elimination(self, swap_columns = False, overwrite=F
         udata = data
     else:
         udata = dict(data)
+    if labels:
+        swap_columns = True
     if head.is_transpose:
         m, pivot_table = gauss_jordan_elimination_MATRIX_T(m, n, udata, swap_columns = swap_columns)
         B = MatrixDict(MATRIX(m, n, MATRIX_DICT_T), udata)
@@ -47,6 +57,10 @@ def MATRIX_DICT_gauss_jordan_elimination(self, swap_columns = False, overwrite=F
     else:
         m, pivot_table = gauss_jordan_elimination_MATRIX(m, n, udata, swap_columns = swap_columns)
         B = MatrixDict(MATRIX(m, n, MATRIX_DICT), udata)
+    if labels:
+        dep = [labels[pivot_table[i]] for i in range (B.rows)]
+        indep = [labels[pivot_table[i]] for i in range (B.rows, B.cols)]
+        return B, (dep, indep)
     if swap_columns:
         return B, pivot_table
     return B
