@@ -182,7 +182,9 @@ def gauss_jordan_elimination_MATRIX(m, n, data, swap_columns = False):
                 continue
             ip = i,p
             data[ip] = div(data[ip], a_ii)
-    return max(rows)+1, pivot_table
+    if rows:
+        return max(rows)+1, pivot_table
+    return 0, pivot_table
 
 def gauss_jordan_elimination_MATRIX_T(m, n, data, swap_columns = False):
     data_get = data.get
@@ -254,7 +256,9 @@ def gauss_jordan_elimination_MATRIX_T(m, n, data, swap_columns = False):
             ip = p,i
             data[ip] = div(data[ip], a_ii)
 
-    return max(rows)+1, pivot_table
+    if rows:
+        return max(rows)+1, pivot_table
+    return 0, pivot_table
 
 def get_rc_map(data):
     rows = {}
