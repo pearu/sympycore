@@ -8,7 +8,7 @@ from .algebra import MatrixDict, Matrix
 from ..core import init_module
 init_module.import_lowlevel_operations()
 
-def MATRIX_DICT_gauss_jordan_elimination(self, swap_columns=False, overwrite=False, labels = None):
+def MATRIX_DICT_gauss_jordan_elimination(self, swap_columns=False, overwrite=False, labels = None, return_pivot_info = False):
     """ Perform Gauss-Jordan elimination of a m x n matrix A.
 
     Parameters
@@ -25,6 +25,9 @@ def MATRIX_DICT_gauss_jordan_elimination(self, swap_columns=False, overwrite=Fal
     labels : {None,list}
       A list of column labels.
 
+    return_pivot_info : bool
+      When True, return pivot information, see below.
+
     Returns
     -------
     B : MatrixDict
@@ -39,6 +42,9 @@ def MATRIX_DICT_gauss_jordan_elimination(self, swap_columns=False, overwrite=Fal
       independent variables. The 2-tuple is returned only when labels
       is specified.
 
+    (row_pivot_table, column_pivot_table) : tuple
+      A 2-tuple of lists corresponding to row and column pivot tables.
+      The 2-tuple is returned only when return_pivot_info is True.
     """
     head, data = self.pair
     m, n = head.shape
@@ -50,19 +56,25 @@ def MATRIX_DICT_gauss_jordan_elimination(self, swap_columns=False, overwrite=Fal
     if labels:
         swap_columns = True
     if head.is_transpose:
-        m, pivot_table = gauss_jordan_elimination_MATRIX_T(m, n, udata, swap_columns = swap_columns)
+        m, row_pivot_table, pivot_table = gauss_jordan_elimination_MATRIX_T(m, n, udata, swap_columns = swap_columns)
         B = MatrixDict(MATRIX(m, n, MATRIX_DICT_T), udata)
     elif head.is_diagonal:
         raise NotImplementedError(`head, head.is_diagonal`)
     else:
-        m, pivot_table = gauss_jordan_elimination_MATRIX(m, n, udata, swap_columns = swap_columns)
+        m, row_pivot_table, pivot_table = gauss_jordan_elimination_MATRIX(m, n, udata, swap_columns = swap_columns)
         B = MatrixDict(MATRIX(m, n, MATRIX_DICT), udata)
     if labels:
         dep = [labels[pivot_table[i]] for i in range (B.rows)]
         indep = [labels[pivot_table[i]] for i in range (B.rows, B.cols)]
+        if return_pivot_info:
+            return B, (dep, indep), (row_pivot_table, pivot_table)
         return B, (dep, indep)
     if swap_columns:
+        if return_pivot_info:
+            return B, (row_pivot_table, pivot_table)
         return B, pivot_table
+    if return_pivot_info:
+        return B, (row_pivot_table, pivot_table)
     return B
 
 def MATRIX_DICT_lu(self, overwrite=False):
@@ -116,6 +128,7 @@ def gauss_jordan_elimination_MATRIX(m, n, data, swap_columns = False):
     data_get = data.get
     data_has = data.has_key
     rows = get_rc_map(data)
+    row_pivot_table = range(m)
     if swap_columns:
         pivot_table = range(n)
     else:
@@ -145,6 +158,7 @@ def gauss_jordan_elimination_MATRIX(m, n, data, swap_columns = False):
 
         if i!=ipiv:
             swap_rows_MATRIX(data, i, ipiv, rows)
+            row_pivot_table[i], row_pivot_table[ipiv] = row_pivot_table[ipiv], row_pivot_table[i]
             swap_rc_map(rows, i, ipiv)
             ipiv = i
         irow = rows[i]
@@ -183,13 +197,14 @@ def gauss_jordan_elimination_MATRIX(m, n, data, swap_columns = False):
             ip = i,p
             data[ip] = div(data[ip], a_ii)
     if rows:
-        return max(rows)+1, pivot_table
-    return 0, pivot_table
+        return max(rows)+1,row_pivot_table, pivot_table
+    return 0, row_pivot_table, pivot_table
 
 def gauss_jordan_elimination_MATRIX_T(m, n, data, swap_columns = False):
     data_get = data.get
     data_has = data.has_key
     rows = get_rc_map_T(data)
+    row_pivot_table = range(m)
     if swap_columns:
         pivot_table = range(n)
     else:
@@ -218,6 +233,7 @@ def gauss_jordan_elimination_MATRIX_T(m, n, data, swap_columns = False):
 
         if i!=ipiv:
             swap_rows_MATRIX_T(data, i, ipiv, rows)
+            row_pivot_table[i], row_pivot_table[ipiv] = row_pivot_table[ipiv], row_pivot_table[i]
             swap_rc_map(rows, i, ipiv)
             ipiv = i
         irow = rows[i]
@@ -257,8 +273,8 @@ def gauss_jordan_elimination_MATRIX_T(m, n, data, swap_columns = False):
             data[ip] = div(data[ip], a_ii)
 
     if rows:
-        return max(rows)+1, pivot_table
-    return 0, pivot_table
+        return max(rows)+1, row_pivot_table, pivot_table
+    return 0, row_pivot_table, pivot_table
 
 def get_rc_map(data):
     rows = {}
