@@ -588,3 +588,42 @@ def test_get_gauss_jordan_elimination_operations():
     assert b[:]==ab
     a1 = a.apply_row_operations(ops)
     assert a1[:]==ab
+
+def test_general_solver():
+    a = Matrix([[1,0,0,0,-1,-1,-1,0,0,0,0],
+                [0,1,0,0,1,-1,-1,0,0,0,0],
+                [0,0,-1,0,0,1,0,1,0,0,0],
+                [0,0,-1,0,0,1,0,1,0,0,0],
+                [0,0,0,-1,0,0,1,-1,0,0,0],
+                [0,0,0,0,0,0,0,0,1,-1,0],
+                [0,0,0,0,0,0,0,0,-1,0,1],
+                ])
+    cols = ['A_D','A_B','AB_C','B_D','C_DE','Eout','Ain','Dout','Cin']
+    a = Matrix([[-1,-1,-1,0 ,0 ,0, 1, 0,0],    # A
+                [0 ,1 ,-1,-1,0 ,0, 0, 0,0],    # B
+                [0 ,0 ,1 ,0 ,-1,0, 0, 0,1],    # C
+                [1 ,0 ,0 ,1 ,1 ,0, 0,-1,0],    # D
+                [0 ,0 ,0 ,0 ,1 ,-1,0, 0,0],    # E
+                [0 ,0 ,0 ,0 ,0 ,0,-1, 0,0],    # Asrc
+                [0 ,0 ,0 ,0 ,0 ,0, 0, 1,0],    # Dt
+                [0 ,0 ,0 ,0 ,0 ,0, 0, 0,-1],    # Csrc
+                ])
+    print
+    print 'a'
+    print a
+
+    for i,row in enumerate(a):
+        break
+        if len(row.data)<=1:
+            a[i] = 0
+
+    print "a'"
+    print a
+    
+    b, ops, r, c, z = a.get_gauss_jordan_elimination_operations(leading_cols=range(5),
+                                                                leading_column_selection='sparsest first'
+                                                                )
+    print b
+    print r
+    print c
+    print z
