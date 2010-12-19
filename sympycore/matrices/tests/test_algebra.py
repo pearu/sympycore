@@ -561,3 +561,30 @@ def test_gauss_jordan_elimination_swap_columns():
     b,p = a.gauss_jordan_elimination(swap_columns=True)
     for k,j in enumerate (p):
         assert (b[:,k]==r[:,j])
+
+def test_get_gauss_jordan_elimination_operations():
+    a = Matrix([[1,0,0,0,-1,-1,-1,0,0,0,0],
+                [0,1,0,0,1,-1,-1,0,0,0,0],
+                [0,0,-1,0,0,1,0,1,0,0,0],
+                [0,0,-1,0,0,1,0,1,0,0,0],
+                [0,0,0,-1,0,0,1,-1,0,0,0],
+                [0,0,0,0,0,0,0,0,1,-1,0],
+                [0,0,0,0,0,0,0,0,-1,0,1],
+                [0,0,0,0,0,0,0,0,0,0,0],
+                ]).T[:].T
+    ab = Matrix ([[1, 0, 0, 0, -1, -1, -1, 0, 0, 0, 0],
+                  [0, 1, 0, 0, 1, -1, -1, 0, 0, 0, 0],
+                  [0, 0, 1, 0, 0, -1, 0, -1, 0, 0, 0],
+                  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                  [0, 0, 0, 1, 0, 0, -1, 1, 0, 0, 0],
+                  [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1],
+                  [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, -1],
+                  [0,0,0,0,0,0,0,0,0,0,0],
+                  ])
+    b, ops, r, c, z = a.get_gauss_jordan_elimination_operations()
+    assert r==[0, 1, 2, 4, 5, 6],`r`
+    assert z==[7, 3],`z`
+    assert c==[0, 1, 2, 3, 8, 9]
+    assert b[:]==ab
+    a1 = a.apply_row_operations(ops)
+    assert a1[:]==ab

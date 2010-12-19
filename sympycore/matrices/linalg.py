@@ -8,6 +8,110 @@ from .algebra import MatrixDict, Matrix
 from ..core import init_module
 init_module.import_lowlevel_operations()
 
+def MATRIX_DICT_get_gauss_jordan_elimination_operations(self, overwrite=False):
+    """ Compute the row operations of Gauss-Jordan elimination of a m x n matrix A.
+
+    Parameters
+    ----------
+    overwrite : bool
+      When True then discard the content of matrix A.
+
+    Returns
+    -------
+    B : MatrixDict
+      m x n matrix
+
+    row_operations : list
+    
+      A list of row operations. A row operation is represented as 2-
+      or 3-tuple: (k, c) denotes multiplication of k-th row by scalar
+      c; (k, c, j) denotes adding j-th row multiplied by c to k-th
+      row.
+
+    leading_rows : list
+      A list of leading row indices.
+
+    leading_cols : list
+      A list of leading column indices. leading_cols list is
+      equivalent to a list of dependent variables.
+
+    zero_rows : list
+      A list of row indices that correspond to rows that Gauss-Jordan
+      elimination zerod out or were zero, that is, B[i,:]==0 for i in
+      zero_rows. The rest of the B rows are linearly independent.
+
+    Notes
+    -----
+    
+    The used algorithm does not swap rows nor columns. One can use
+    leading_rows information to turn the matrix B to row-echelon
+    form. However, then also the data in row_operations must be
+    updated accordingly.
+
+    See also
+    --------
+    apply_row_operations
+    """
+    head, data = self.pair
+    m, n = head.shape
+    k = min(m,n)
+    if overwrite and self.is_writable:
+        new_data = data
+    else:
+        new_data = dict(data)
+    if head.is_transpose:
+        ops, leading_rows, leading_cols, zero_rows = get_gauss_jordan_elimination_operations_MATRIX_T(m, n, new_data)
+    elif head.is_diagonal:
+        raise NotImplementedError(`head, head.is_diagonal`)
+    else:
+        ops, leading_rows, leading_cols, zero_rows = get_gauss_jordan_elimination_operations_MATRIX(m, n, new_data)
+    if new_data is data:
+        B = self
+    else:
+        B = MatrixDict(head, new_data)
+    return B, ops, leading_rows, leading_cols, zero_rows
+
+def MATRIX_DICT_apply_row_operations(self, row_operations, overwrite=False):
+    """ Apply row operations to a m x n matrix A.
+
+    Parameters
+    ----------
+    row_operations : list
+    
+      A list of row operations. A row operation is represented as 2-
+      or 3-tuple: (k, c) denotes multiplication of k-th row by scalar
+      c; (k, c, j) denotes adding j-th row multiplied by c to k-th
+      row.
+
+    overwrite : bool
+      When True then discard the content of matrix A.
+
+    Results
+    -------
+    B : MatrixDict
+      m x n matrix
+
+    See also
+    --------
+    get_gauss_jordan_elimination_operations
+    
+    """
+    head, data = self.pair
+    m, n = head.shape
+    if overwrite and self.is_writable:
+        new_data = data
+    else:
+        new_data = dict(data)    
+    if head.is_transpose:
+        apply_row_operations_MATRIX_T(m, n, new_data, row_operations)
+    elif head.is_diagonal:
+        raise NotImplementedError(`head, head.is_diagonal`)
+    else:
+        apply_row_operations_MATRIX(m, n, new_data, row_operations)
+    if new_data is data:
+        return self
+    return MatrixDict(head, new_data)
+
 def MATRIX_DICT_gauss_jordan_elimination(self, swap_columns=False, overwrite=False, labels = None, return_pivot_info = False):
     """ Perform Gauss-Jordan elimination of a m x n matrix A.
 
@@ -45,24 +149,32 @@ def MATRIX_DICT_gauss_jordan_elimination(self, swap_columns=False, overwrite=Fal
     (row_pivot_table, column_pivot_table) : tuple
       A 2-tuple of lists corresponding to row and column pivot tables.
       The 2-tuple is returned only when return_pivot_info is True.
+
+    See also
+    --------
+    get_gauss_jordan_elimination_operations, apply_row_operations
     """
     head, data = self.pair
     m, n = head.shape
-    k = min(m,n)
     if overwrite and self.is_writable:
-        udata = data
+        new_data = data
     else:
-        udata = dict(data)
+        new_data = dict(data)
     if labels:
         swap_columns = True
     if head.is_transpose:
-        m, row_pivot_table, pivot_table = gauss_jordan_elimination_MATRIX_T(m, n, udata, swap_columns = swap_columns)
-        B = MatrixDict(MATRIX(m, n, MATRIX_DICT_T), udata)
+        m, row_pivot_table, pivot_table = gauss_jordan_elimination_MATRIX_T(m, n, new_data, swap_columns = swap_columns)
+        new_head = MATRIX(m, n, MATRIX_DICT_T)
     elif head.is_diagonal:
         raise NotImplementedError(`head, head.is_diagonal`)
     else:
-        m, row_pivot_table, pivot_table = gauss_jordan_elimination_MATRIX(m, n, udata, swap_columns = swap_columns)
-        B = MatrixDict(MATRIX(m, n, MATRIX_DICT), udata)
+        m, row_pivot_table, pivot_table = gauss_jordan_elimination_MATRIX(m, n, new_data, swap_columns = swap_columns)
+        new_head = MATRIX(m, n, MATRIX_DICT)
+    if data is new_data:
+        B = self
+    else:
+        B = MatrixDict(new_head, new_data)
+
     if labels:
         dep = [labels[pivot_table[i]] for i in range (B.rows)]
         indep = [labels[pivot_table[i]] for i in range (B.rows, B.cols)]
@@ -123,6 +235,200 @@ def MATRIX_DICT_lu(self, overwrite=False):
         pivot_table = lu_MATRIX(m, n, k, ldata, udata)
     P = Matrix(pivot_table, permutation=True).T
     return P, L, U
+
+def get_gauss_jordan_elimination_operations_MATRIX(m, n, data):
+    data_get = data.get
+    data_has = data.has_key
+    rows = get_rc_map(data)
+    leading_rows = []
+    leading_cols = []
+    zero_rows = sorted(set(range(m)).difference(rows))
+    ops = []
+    maxi = min(m,n)-1
+    i = -1
+    while i<maxi:
+        i += 1
+        k = 0
+        while k in leading_rows or not data_has((k, i)):
+            k += 1
+            if k==m:
+                break
+
+        a_ki = data_get((k, i))
+        if a_ki is None:
+            if i<n-1:
+                maxi += 1
+            continue
+
+        leading_rows.append(k)
+        leading_cols.append(i)
+
+        krow = rows[k]
+        for j in range(m):
+            if j==k:
+                continue
+            u_ji = data_get((j,i))
+            if u_ji is None:
+                continue
+            c = div(u_ji, a_ki)
+            ops.append((j, -c, k)) # add (-c) times k-th row to j-th row
+            jrow = rows[j]
+            jrow_add = jrow.add
+            jrow_remove = jrow.remove
+            for p in krow:
+                if p < i: 
+                    continue
+                u_kp_c = data[k,p] * c
+                jp = j,p
+                b = data_get(jp)
+                if b is None:
+                    data[jp] = -u_kp_c
+                    jrow_add(p)
+                else:
+                    if u_kp_c==b:
+                        del data[jp]
+                        jrow_remove(p)
+                    else:
+                        data[jp] = b - u_kp_c
+            if not jrow:
+                zero_rows.append(j)
+                del rows[j]
+        data[k,i] = 1
+        if a_ki==1:
+            continue
+        ops.append((k, div(1,a_ki))) # multiply k-th row with 1/a_ki
+        for p in krow:
+            if p <= i: 
+                continue
+            kp = k,p
+            data[kp] = div(data[kp], a_ki)
+    return ops, leading_rows, leading_cols, zero_rows
+
+def get_gauss_jordan_elimination_operations_MATRIX_T(m, n, data):
+    data_get = data.get
+    data_has = data.has_key
+    rows = get_rc_map_T(data)
+    leading_rows = []
+    leading_cols = []
+    zero_rows = sorted(set(range(m)).difference(rows))
+    ops = []
+    maxi = min(m,n)-1
+    i = -1
+    while i<maxi:
+        i += 1
+        k = 0
+        while k in leading_rows or not data_has((i, k)):
+            k += 1
+            if k==m:
+                break
+
+        a_ki = data_get((i, k))
+        if a_ki is None:
+            if i<n-1:
+                maxi += 1
+            continue
+
+        leading_rows.append(k)
+        leading_cols.append(i)
+
+        krow = rows[k]
+        for j in range(m):
+            if j==k:
+                continue
+            u_ji = data_get((i,j))
+            if u_ji is None:
+                continue
+            c = div(u_ji, a_ki)
+            ops.append((j, -c, k)) # add (-c) times k-th row to j-th row
+            jrow = rows[j]
+            jrow_add = jrow.add
+            jrow_remove = jrow.remove
+            for p in krow:
+                if p < i: 
+                    continue
+                u_kp_c = data[p,k] * c
+                jp = p,j
+                b = data_get(jp)
+                if b is None:
+                    data[jp] = -u_kp_c
+                    jrow_add(p)
+                else:
+                    if u_kp_c==b:
+                        del data[jp]
+                        jrow_remove(p)
+                    else:
+                        data[jp] = b - u_kp_c
+            if not jrow:
+                zero_rows.append(j)
+                del rows[j]
+        data[i,k] = 1
+        if a_ki==1:
+            continue
+        ops.append((k, div(1,a_ki))) # multiply k-th row with 1/a_ki
+        for p in krow:
+            if p <= i: 
+                continue
+            kp = p,k
+            data[kp] = div(data[kp], a_ki)
+    return ops, leading_rows, leading_cols, zero_rows
+
+
+def apply_row_operations_MATRIX(m, n, data, ops):
+    for op in ops:
+        if len(op)==2:
+            # multiply k-th row with c
+            k, c = op
+            for i, j in data:
+                if i==k:
+                    data[i,j] *= c
+        elif len(op)==3:
+            # add c times k-th row to j-th row
+            p, c, k = op
+            assert p!=k,`op`
+            for i, j in data.keys():
+                if i==k:
+                    ck = data[k,j] * c
+                    pj = p,j
+                    a_pj = data.get(pj)
+                    if a_pj is None:
+                        data[pj] = ck
+                    else:
+                        a_pj += ck
+                        if a_pj:
+                            data[pj] = a_pj
+                        else:
+                            del data[pj]
+        else:
+            raise ValueError('unknown row operation: %r' % (ops,))
+
+def apply_row_operations_MATRIX_T(m, n, data, ops):
+    for op in ops:
+        if len(op)==2:
+            # multiply k-th row with c
+            k, c = op
+            for j,i in data:
+                if i==k:
+                    data[j,i] *= c
+        elif len(op)==3:
+            # add c times k-th row to j-th row
+            p, c, k = op
+            assert p!=k,`op`
+            for j,i in data.keys():
+                if i==k:
+                    ck = data[j,k] * c
+                    pj = j,p
+                    a_pj = data.get(pj)
+                    if a_pj is None:
+                        data[pj] = ck
+                    else:
+                        a_pj += ck
+                        if a_pj:
+                            data[pj] = a_pj
+                        else:
+                            del data[pj]
+        else:
+            raise ValueError('unknown row operation: %r' % (ops,))
+
 
 def gauss_jordan_elimination_MATRIX(m, n, data, swap_columns = False):
     data_get = data.get
@@ -560,3 +866,4 @@ def MATRIX_DICT_trace(self):
         for i in xrange(n):
             s += dget((i, i), 0)
     return s
+
