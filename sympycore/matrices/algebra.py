@@ -514,21 +514,26 @@ class MatrixDict(MatrixBase):
                 if i>=head.rows or j>=head.cols:
                     raise IndexError (`i,j,head.cols,head.rows`)
                 return data.get(key, 0)
-            if ti is slice and tj is int:
+            if ti is slice:
                 row_indices = dict([(i0,k) for k,i0 in enumerate(xrange(*i.indices(head.rows)))])
-                col_indices = {j:0}
-            elif ti is int and tj is slice:
+            elif ti is int:
                 row_indices = {i:0}
-                col_indices = dict([(j0,k) for k,j0 in enumerate(xrange(*j.indices(head.cols)))])
-            elif ti is slice and tj is slice:
-                row_indices = dict([(i0,k) for k,i0 in enumerate(xrange(*i.indices(head.rows)))])
-                col_indices = dict([(j0,k) for k,j0 in enumerate(xrange(*j.indices(head.cols)))])
+            elif ti is tuple:
+                row_indices = dict([(i0,k) for k,i0 in enumerate(i)])                
             elif is_integer(i):
                 return self[int(i), j]
+            else:
+                raise IndexError('first index must contain int or slice or tuple, got %s' % ((`ti`)))
+            if tj is slice:
+                col_indices = dict([(j0,k) for k,j0 in enumerate(xrange(*j.indices(head.cols)))])
+            elif tj is int:
+                col_indices = {j:0}
+            elif tj is tuple:
+                col_indices = dict([(j0,k) for k,j0 in enumerate(j)])
             elif is_integer(j):
                 return self[i, int (j)]
             else:
-                raise IndexError('tuple index must contain int or slice, got %s' % ((`ti, tj`)))
+                raise IndexError('second index must contain int or slice or tuple, got %s' % ((`tj`)))
             newdata = {}
             if head.is_transpose:
                 for (j,i), x in data.items():
