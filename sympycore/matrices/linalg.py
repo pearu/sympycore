@@ -1,6 +1,8 @@
 # Author: Pearu Peterson
 # Created: March 2008
 
+import sys
+
 from ..utils import MATRIX, MATRIX_DICT, MATRIX_DICT_T
 from ..arithmetic.numbers import div
 from .algebra import MatrixDict, Matrix
@@ -9,7 +11,8 @@ from ..core import init_module
 init_module.import_lowlevel_operations()
 
 def MATRIX_DICT_get_gauss_jordan_elimination_operations(self, overwrite=False, leading_cols = None,
-                                                        leading_column_selection = None):
+                                                        leading_column_selection = None,
+                                                        swap_rows = False, verbose = False):
     """ Compute the row operations of Gauss-Jordan elimination of a m x n matrix A.
 
     Parameters
@@ -26,6 +29,9 @@ def MATRIX_DICT_get_gauss_jordan_elimination_operations(self, overwrite=False, l
       A rule to select the leading column index. By default, the order
       of leading columns is defined by the leading_cols list.
 
+    swap_rows : bool
+      When True then enable row swapping. [NOT IMPLEMENTED]
+
     Returns
     -------
     B : MatrixDict
@@ -33,10 +39,12 @@ def MATRIX_DICT_get_gauss_jordan_elimination_operations(self, overwrite=False, l
 
     row_operations : list
     
-      A list of row operations. A row operation is represented as 2-
-      or 3-tuple: (k, c) denotes multiplication of k-th row by scalar
-      c; (k, c, j) denotes adding j-th row multiplied by c to k-th
-      row.
+      A list of row operations. A row operation is represented as
+      tuple: 
+
+        ((k,j), ) denotes swapping of the k-th and j-th row;
+        (k, c) denotes multiplication of k-th row by scalar c;
+        (k, c, j) denotes adding j-th row multiplied by c to k-th row.
 
     leading_rows : list
       A list of leading row indices.
@@ -72,11 +80,13 @@ def MATRIX_DICT_get_gauss_jordan_elimination_operations(self, overwrite=False, l
     if leading_cols is None:
         leading_cols = range(n)
     if head.is_transpose:
-        ops, leading_rows, leading_cols, zero_rows = get_gauss_jordan_elimination_operations_MATRIX_T(m, n, new_data, leading_cols, leading_column_selection)
+        ops, leading_rows, leading_cols, zero_rows = \
+            get_gauss_jordan_elimination_operations_MATRIX_T(m, n, new_data, leading_cols, leading_column_selection, swap_rows, verbose)
     elif head.is_diagonal:
         raise NotImplementedError(`head, head.is_diagonal`)
     else:
-        ops, leading_rows, leading_cols, zero_rows = get_gauss_jordan_elimination_operations_MATRIX(m, n, new_data, leading_cols, leading_column_selection)
+        ops, leading_rows, leading_cols, zero_rows = \
+            get_gauss_jordan_elimination_operations_MATRIX(m, n, new_data, leading_cols, leading_column_selection, swap_rows, verbose)
     if new_data is data:
         B = self
     else:
@@ -90,10 +100,11 @@ def MATRIX_DICT_apply_row_operations(self, row_operations, overwrite=False):
     ----------
     row_operations : list
     
-      A list of row operations. A row operation is represented as 2-
-      or 3-tuple: (k, c) denotes multiplication of k-th row by scalar
-      c; (k, c, j) denotes adding j-th row multiplied by c to k-th
-      row.
+      A list of row operations. A row operation is represented as tuple:
+
+      ((k,j), ) denotes swapping of the k-th and j-th row;
+      (k, c) denotes multiplication of k-th row by scalar c;
+      (k, c, j) denotes adding j-th row multiplied by c to k-th row.
 
     overwrite : bool
       When True then discard the content of matrix A.
@@ -248,7 +259,7 @@ def MATRIX_DICT_lu(self, overwrite=False):
     P = Matrix(pivot_table, permutation=True).T
     return P, L, U
 
-def get_gauss_jordan_elimination_operations_MATRIX(m, n, data, leading_cols0, leading_column_selection):
+def get_gauss_jordan_elimination_operations_MATRIX(m, n, data, leading_cols0, leading_column_selection, swap_rows, verbose):
     data_get = data.get
     data_has = data.has_key
     rows, cols = get_rc_maps(data)
@@ -257,7 +268,12 @@ def get_gauss_jordan_elimination_operations_MATRIX(m, n, data, leading_cols0, le
     zero_rows = sorted(set(range(m)).difference(rows))
     ops = []
     free_cols = [i for i in leading_cols0 if i<n]
-    for i0 in range(len(free_cols)):
+    n0 = len(free_cols)
+    for i0 in range(n0):
+        if verbose:
+            sys.stdout.write('\rget_gauss_jordan_elimination_operations: %5.2f%%' % (100.0*i0/n0))
+            sys.stdout.flush()
+
         if leading_column_selection=='sparsest first':
             # TODO: handle the case when c not in cols
             i = min([(len(cols[c]),c) for c in free_cols])[1]
@@ -278,6 +294,9 @@ def get_gauss_jordan_elimination_operations_MATRIX(m, n, data, leading_cols0, le
         if a_ki is None:
             continue
 
+        if swap_rows and k != i:
+            pass
+
         leading_rows.append(k)
         leading_cols.append(i)
 
@@ -288,46 +307,42 @@ def get_gauss_jordan_elimination_operations_MATRIX(m, n, data, leading_cols0, le
             u_ji = data_get((j,i))
             if u_ji is None:
                 continue
-            c = div(u_ji, a_ki)
-            ops.append((j, -c, k)) # add (-c) times k-th row to j-th row
+            c = div(-u_ji, a_ki)
+            ops.append((j, c, k)) # add c times k-th row to j-th row
             jrow = rows[j]
             jrow_add = jrow.add
             jrow_remove = jrow.remove
             for p in krow:
-                if p < i: 
-                    continue
                 pcol = cols[p]
-                u_kp_c = data[k,p] * c
-                jp = j,p
-                b = data_get(jp)
+                b = data_get((j,p))
                 if b is None:
-                    data[jp] = -u_kp_c
+                    data[j,p] = data[k,p] * c
                     jrow_add(p)
                     pcol.add(j)
                 else:
-                    if u_kp_c==b:
-                        del data[jp]
-                        jrow_remove(p)
-                        pcol.remove(j)
+                    b = b + data[k,p] * c
+                    if b:
+                        data[j,p] = b
                     else:
-                        data[jp] = b - u_kp_c
+                        del data[j,p]
+                        jrow_remove (p)
+                        pcol.remove(j)
                 if not pcol:
                     del cols[p]
             if not jrow:
                 zero_rows.append(j)
                 del rows[j]
-        data[k,i] = 1
         if a_ki==1:
             continue
-        ops.append((k, div(1,a_ki))) # multiply k-th row with 1/a_ki
+        ia_ki = div(1,a_ki)
+        ops.append((k, ia_ki)) # multiply k-th row with 1/a_ki
         for p in krow:
-            if p <= i: 
-                continue
-            kp = k,p
-            data[kp] = div(data[kp], a_ki)
+            data[k,p] *= ia_ki
+    if verbose:
+        sys.stdout.write ('\n')
     return ops, leading_rows, leading_cols, zero_rows
 
-def get_gauss_jordan_elimination_operations_MATRIX_T(m, n, data, leading_cols0, leading_column_selection):
+def get_gauss_jordan_elimination_operations_MATRIX_T(m, n, data, leading_cols0, leading_column_selection, swap_rows, verbose):
     data_get = data.get
     data_has = data.has_key
     cols, rows = get_rc_maps(data)
@@ -337,6 +352,7 @@ def get_gauss_jordan_elimination_operations_MATRIX_T(m, n, data, leading_cols0, 
     ops = []
     free_cols = [i for i in leading_cols0 if i<n]
     for i0 in range(len(free_cols)):
+
         if leading_column_selection=='sparsest first':
             i = min([(len(cols[c]),c) for c in free_cols])[1]
             free_cols.remove(i)
@@ -370,8 +386,6 @@ def get_gauss_jordan_elimination_operations_MATRIX_T(m, n, data, leading_cols0, 
             jrow_add = jrow.add
             jrow_remove = jrow.remove
             for p in krow:
-                if p < i: 
-                    continue
                 pcol = cols[p]
                 u_kp_c = data[p,k] * c
                 jp = p,j
@@ -392,7 +406,6 @@ def get_gauss_jordan_elimination_operations_MATRIX_T(m, n, data, leading_cols0, 
             if not jrow:
                 zero_rows.append(j)
                 del rows[j]
-        data[i,k] = 1
         if a_ki==1:
             continue
         ops.append((k, div(1,a_ki))) # multiply k-th row with 1/a_ki
@@ -406,7 +419,10 @@ def get_gauss_jordan_elimination_operations_MATRIX_T(m, n, data, leading_cols0, 
 
 def apply_row_operations_MATRIX(m, n, data, ops):
     for op in ops:
-        if len(op)==2:
+        if len (op)==1:
+            k, j = op[0]
+            swap_rows_MATRIX(data, k, j)            
+        elif len(op)==2:
             # multiply k-th row with c
             k, c = op
             for i, j in data:
@@ -434,7 +450,10 @@ def apply_row_operations_MATRIX(m, n, data, ops):
 
 def apply_row_operations_MATRIX_T(m, n, data, ops):
     for op in ops:
-        if len(op)==2:
+        if len (op)==1:
+            k, j = op[0]
+            swap_rows_MATRIX_T(data, k, j)
+        elif len(op)==2:
             # multiply k-th row with c
             k, c = op
             for j,i in data:

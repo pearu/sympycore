@@ -558,8 +558,11 @@ class MatrixDict(MatrixBase):
             return self[key, :]
         elif tkey is slice:
             return self[key, :]
+        elif tkey is tuple:
+            return self[key, :]
         elif is_integer(key):
             return self[int(key)]
+        
         raise IndexError('index must be int, slice, or tuple, got %s' % (tkey))
 
     def _set_diagonal(self, key, value):
@@ -927,15 +930,23 @@ class MatrixDict(MatrixBase):
         """
         m, n = self.head.shape
         U = Matrix(m,n)
+        k1 = 0
+        l = []
         for k in range(n):
             ak = self[:,k]
             uk = ak
-            for j in range(k):
-                uj = r[:,j]
-                c = div((uj.T*ak)[0,0], (uj.T*uj)[0,0])
+            flag = True
+            for j in range(k1):
+                uj = U[:,j]
+                cdenom = (uj.T*uj)[0,0]
+                c = div((uj.T*ak)[0,0], cdenom)
                 uk = uk - c * uj
-            U[:,k] = uk
-        return U
+            if not uk.is_zero:
+                U[:,k1] = uk
+                k1 += 1
+                l.append(k)
+        U = U.resize(m, k1)
+        return U, l
 
 def switch_dep_indep_variables (xd, dep, indep, dep_label, indep_label):
     m = rank = len (dep)
