@@ -10,7 +10,7 @@ from .algebra import MatrixDict, Matrix
 from ..core import init_module
 init_module.import_lowlevel_operations()
 
-def MATRIX_DICT_get_gauss_jordan_elimination_operations(self, overwrite=False, leading_cols = None,
+def MATRIX_DICT_get_gauss_jordan_elimination_operations(self, overwrite=False, leading_cols = None, trailing_cols = None,
                                                         leading_column_selection = None,
                                                         swap_rows = False, verbose = False):
     """ Compute the row operations of Gauss-Jordan elimination of a m x n matrix A.
@@ -24,6 +24,10 @@ def MATRIX_DICT_get_gauss_jordan_elimination_operations(self, overwrite=False, l
       A list of column indices that defines the order of leading
       columns used for Gauss-Jordan elimination.  By default,
       leading_cols = range(n).
+
+    trailing_cols : {None, list}
+      A list of column indices that are selected as leading columns
+      when the leading_cols list has been consumed.
 
     leading_column_selection : {None, 'sparsest first'}
       A rule to select the leading column index. By default, the order
@@ -79,14 +83,16 @@ def MATRIX_DICT_get_gauss_jordan_elimination_operations(self, overwrite=False, l
         new_data = dict(data)
     if leading_cols is None:
         leading_cols = range(n)
+    if trailing_cols is None:
+        trailing_cols = []
     if head.is_transpose:
         ops, leading_rows, leading_cols, zero_rows = \
-            get_gauss_jordan_elimination_operations_MATRIX_T(m, n, new_data, leading_cols, leading_column_selection, swap_rows, verbose)
+            get_gauss_jordan_elimination_operations_MATRIX_T(m, n, new_data, leading_cols, trailing_cols, leading_column_selection, swap_rows, verbose)
     elif head.is_diagonal:
         raise NotImplementedError(`head, head.is_diagonal`)
     else:
         ops, leading_rows, leading_cols, zero_rows = \
-            get_gauss_jordan_elimination_operations_MATRIX(m, n, new_data, leading_cols, leading_column_selection, swap_rows, verbose)
+            get_gauss_jordan_elimination_operations_MATRIX(m, n, new_data, leading_cols, trailing_cols, leading_column_selection, swap_rows, verbose)
     if new_data is data:
         B = self
     else:
@@ -259,7 +265,7 @@ def MATRIX_DICT_lu(self, overwrite=False):
     P = Matrix(pivot_table, permutation=True).T
     return P, L, U
 
-def get_gauss_jordan_elimination_operations_MATRIX(m, n, data, leading_cols0, leading_column_selection, swap_rows, verbose):
+def get_gauss_jordan_elimination_operations_MATRIX(m, n, data, leading_cols0, trailing_cols, leading_column_selection, swap_rows, verbose):
     data_get = data.get
     data_has = data.has_key
     rows, cols = get_rc_maps(data)
@@ -267,7 +273,7 @@ def get_gauss_jordan_elimination_operations_MATRIX(m, n, data, leading_cols0, le
     leading_cols = []
     zero_rows = sorted(set(range(m)).difference(rows))
     ops = []
-    free_cols = [i for i in leading_cols0 if i<n]
+    free_cols = [i for i in leading_cols0+trailing_cols if i<n]
     n0 = len(free_cols)
     for i0 in range(n0):
         if verbose:
@@ -276,7 +282,10 @@ def get_gauss_jordan_elimination_operations_MATRIX(m, n, data, leading_cols0, le
 
         if leading_column_selection=='sparsest first':
             # TODO: handle the case when c not in cols
-            i = min([(len(cols[c]),c) for c in free_cols])[1]
+            l = [(len(cols[c]),c) for c in free_cols if c not in trailing_cols]
+            if not l:
+                l = [(len(cols[c]),c) for c in free_cols]
+            i = min (l)[1]
             free_cols.remove(i)
         else:
             i = free_cols[i0]
@@ -342,7 +351,7 @@ def get_gauss_jordan_elimination_operations_MATRIX(m, n, data, leading_cols0, le
         sys.stdout.write ('\n')
     return ops, leading_rows, leading_cols, zero_rows
 
-def get_gauss_jordan_elimination_operations_MATRIX_T(m, n, data, leading_cols0, leading_column_selection, swap_rows, verbose):
+def get_gauss_jordan_elimination_operations_MATRIX_T(m, n, data, leading_cols0, trailing_cols, leading_column_selection, swap_rows, verbose):
     data_get = data.get
     data_has = data.has_key
     cols, rows = get_rc_maps(data)
@@ -354,7 +363,10 @@ def get_gauss_jordan_elimination_operations_MATRIX_T(m, n, data, leading_cols0, 
     for i0 in range(len(free_cols)):
 
         if leading_column_selection=='sparsest first':
-            i = min([(len(cols[c]),c) for c in free_cols])[1]
+            l = [(len(cols[c]),c) for c in free_cols if c not in trailing_cols]
+            if not l:
+                l = [(len(cols[c]),c) for c in free_cols]
+            i = min (l)[1]
             free_cols.remove(i)
         else:
             i = free_cols[i0]
