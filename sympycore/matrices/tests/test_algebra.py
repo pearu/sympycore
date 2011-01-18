@@ -585,6 +585,10 @@ def test_get_gauss_jordan_elimination_operations():
     assert r==[0, 1, 2, 4, 5, 6],`r`
     assert z==[7, 3],`z`
     assert c==[0, 1, 2, 3, 8, 9]
+    if not b[:]==ab:
+        print
+        print b
+        print ab
     assert b[:]==ab
     a1 = a.apply_row_operations(ops)
     assert a1[:]==ab
