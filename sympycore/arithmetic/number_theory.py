@@ -216,10 +216,13 @@ def f2q(f, minerr=None):
     [1] "Concrete Mathematics" by Graham, Knuth, and Patashnik. Addison-Wesley. 1989
     '''
     if mpmath.libmp.BACKEND=='gmpy':
+        tmpz = type(mpmath.libmp.MPZ_ZERO)
         if minerr is None:
-            r = mpmath.libmp.f2q(f)
+            r = mpmath.libmp.gmpy.f2q(f)
         else:
-            r = mpmath.libmp.f2q(f, minerr)
+            r = mpmath.libmp.gmpy.f2q(f, minerr)
+        if isinstance (r, tmpz):
+            return int(r)
         n,d = int(r.numer ()), int(r.denom ())
         if d==1:
             return n
