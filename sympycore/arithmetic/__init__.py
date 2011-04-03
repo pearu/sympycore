@@ -11,5 +11,5 @@ __docformat__ = "restructuredtext"
 
 from . import mpmath
 from .numbers import mpq, mpf, mpqc, mpc, setdps, getdps
-from .number_theory import gcd, lcm, multinomial_coefficients
+from .number_theory import gcd, lcm, multinomial_coefficients, f2q
 from .infinity import Infinity

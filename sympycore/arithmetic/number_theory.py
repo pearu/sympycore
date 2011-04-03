@@ -6,10 +6,11 @@ from ..core import init_module
 init_module.import_lowlevel_operations()
 
 from .numbers import mpq, div
+from . import mpmath
 
 __all__ = ['gcd', 'lcm', 'factorial',
            'integer_digits', 'real_digits',
-           'multinomial_coefficients']
+           'multinomial_coefficients', 'f2q']
 
 __docformat__ = "restructuredtext en"
 
@@ -198,5 +199,61 @@ def multinomial_coefficients(m, n, _tuple=tuple, _zip=zip):
         l[k] = r1
         r_update(r1)
     return r
+
+def reldiff(x,y):
+    """abs(x-y)/((abs(x)+abs(y))/2)"""
+    return abs(x-y)/((abs(x)+abs(y))/2)
+
+def f2q(f, minerr=None):
+    '''
+    Find (almost) the best rational representation of a float that has
+    finite precision.
+
+    The algorithm is based on Stern-Brocot representation of
+    irrational/rational numbers and its relation to continuants [1].
+
+    References:
+    [1] "Concrete Mathematics" by Graham, Knuth, and Patashnik. Addison-Wesley. 1989
+    '''
+    if mpmath.libmp.BACKEND=='gmpy':
+        if minerr is None:
+            r = mpmath.libmp.f2q(f)
+        else:
+            r = mpmath.libmp.f2q(f, minerr)
+        n,d = int(r.numer ()), int(r.denom ())
+        if d==1:
+            return n
+        return mpq((n,d))
+    mpf = mpmath.mpf
+    f = mpf(f)
+    if f<0: return -f2q(-f,minerr)
+    al = f                          # Initialize Eq.(6.142) [1]
+    if not minerr:
+        minerr = 1/mpf(2**al.context.prec) # min number for the given precision
+    elif minerr<0:
+        minerr = 1/mpf(2**-minerr)
+    a = mpmath.floor(al)   # a = floor(al) # Initialize Eq.(6.142) [1]
+    r1=[0,0,1]                           # r1[1:] is 1st row of Eq.(6.138) [1] 
+    r2=[0,1,a]                           # r2[1:] is 2nd row of Eq.(6.138) [1]
+    err = reldiff(f,a)
+    while err>minerr:
+        al = 1/(al-a)                    # Eq.(6.142) [1]
+        a = mpmath.floor(al) # a = floor(al) # Eq.(6.142) [1]
+        r1[0] = r1[1]                    # roll
+        r1[1] = r1[2]                    # roll
+        r1[2] = r1[1]*a+r1[0]            # use Eq.(6.127) [1]
+        r2[0] = r2[1]                    # roll
+        r2[1] = r2[2]                    # roll
+        r2[2] = r2[1]*a+r2[0]            # use Eq.(6.127) [1]
+        newerr = reldiff(f,r2[2]/r1[2])
+        if err<=newerr:
+            n, d = (int(r2[1]),int(r1[1]))
+            if d==1: return n
+            return mpq((n, d))
+        err = newerr
+    n, d = (int(r2[2]),int(r1[2]))
+    if d==1: return n
+    return mpq((n, d))
+
 
 #from .combinatorics import multinomial_coefficients

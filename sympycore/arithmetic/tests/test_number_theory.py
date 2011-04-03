@@ -1,4 +1,5 @@
 from sympycore.arithmetic.numbers import normalized_fraction as mpq
+from sympycore.arithmetic.numbers import mpf
 from sympycore.arithmetic.number_theory import *
 from sympycore.arithmetic.number_theory import binomial_coefficients, binomial_coefficients_list
 
@@ -58,3 +59,8 @@ def test_binomial_coefficients():
         c = binomial_coefficients(n)
         l = [c[k] for k in sorted(c)]
         assert l==binomial_coefficients_list(n)
+
+def test_f2q():
+    assert f2q(mpf(20)/521)==mpq(20, 521)
+    assert f2q(mpf(1)/3)==mpq(1, 3), `f2q(mpf(1)/3)`
+    assert f2q(mpf(1232)/5224)==mpq(154, 653), `f2q(mpf(1232)/5224)`
