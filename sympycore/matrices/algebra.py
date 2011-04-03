@@ -175,21 +175,56 @@ class MatrixBase(Algebra):
     def random(cls, n, m, interval=(-10,10)):
         return Matrix(n, m, random=interval)
 
-    def __str__(self):
+    def _str_column_fill(self, columns, j, rowiter1, sep = None, rowiter2 = None):
+        col = []
+        if rowiter1 is not None:
+            for i in rowiter1:
+                s = str(self[i,j])
+                col.append(s)
+        if sep is not None:
+            col.append (sep)
+        if rowiter2 is not None:
+            for i in rowiter2:
+                s = str(self[i,j])
+                col.append(s)
+        width = max(map(len,col)+[0])
+        fmt = ' %'+str(width)+'s '
+        col = [fmt % (s) for s in col]
+        columns.append(col)
+
+    def __str__(self, max_nrows=20, max_ncols=20):
+        """ Return pretty string representation of a matrix.
+        
+        Parameters
+        ----------
+        max_nrows, max_ncols : int
+          Specify the maximum number of rows and columns, respectively, that
+          are included in the result.
+
+        """
         rows, cols = self.rows, self.cols
         if self.head.is_diagonal:
             # XXX: what should be the output of diagonal view?
             self = self.M
         columns = []
-        for j in xrange(cols):
-            col = []
-            for i in xrange(rows):
-                s = str(self[i,j])
-                col.append(s)
-            width = max(map(len,col)+[0])
-            fmt = ' %'+str(width)+'s '
-            col = [fmt % (s) for s in col]
-            columns.append(col)
+        if cols>max_ncols and rows>max_nrows:
+            for j in range((max_ncols+1)//2):
+                self._str_column_fill (columns, j, xrange((max_nrows+1)//2), ':', xrange(rows-max_nrows//2, rows))
+            columns.append([' .. ']*rows)
+            for j in range(cols-(max_ncols)//2,cols):
+                self._str_column_fill (columns, j, xrange((max_nrows+1)//2), ':', xrange(rows-max_nrows//2, rows))
+        elif cols>max_ncols:
+            for j in range((max_ncols+1)//2):
+                self._str_column_fill(columns, j, xrange(rows))
+            columns.append([' .. ']*rows)
+            for j in range(cols-(max_ncols)//2,cols):
+                self._str_column_fill (columns, j, xrange(rows))
+        elif rows>max_nrows:
+            for j in xrange(cols):
+                self._str_column_fill(columns, j, xrange((max_nrows+1)//2), ':', xrange(rows-max_nrows//2, rows))
+        else:
+            for j in xrange(cols):
+                self._str_column_fill (columns, j, xrange(rows), None, None)
         return '\n'.join([''.join(row).rstrip() for row in zip(*columns)])
 
     def __repr__ (self):
@@ -506,11 +541,17 @@ class MatrixDict(MatrixBase):
         if tkey is tuple:
             i, j = key
             ti, tj = type(i), type(j)
+            if ti is int and i<0:
+                i += head.rows
+            if tj is int and j<0:
+                j += head.cols
             if ti is int and tj is int:
                 if head.is_transpose:
                     key = j, i
                 elif head.is_diagonal:
                     raise NotImplementedError(`head, str(head)`)
+                else:
+                    key = i, j
                 if i>=head.rows or j>=head.cols:
                     raise IndexError (`i,j,head.cols,head.rows`)
                 return data.get(key, 0)
@@ -610,11 +651,17 @@ class MatrixDict(MatrixBase):
             return
         i, j = key
         ti, tj = type(i), type(j)
+        if ti is int and i<0:
+            i += head.rows
+        if tj is int and j<0:
+            j += head.cols
         if ti is int and tj is int:
             if head.is_transpose:
-                key = j,i
+                key = j, i
             elif head.is_diagonal:
                 raise NotImplementedError(`head, str(head)`)
+            else:
+                key = i, j
             if value:
                 data[key] = value
             else:
