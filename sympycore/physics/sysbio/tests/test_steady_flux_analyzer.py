@@ -49,7 +49,7 @@ def test_example_yeast():
     row_labels += ['%s[%s]='%(f,i) for i,f in enumerate(variablesGJE)]
     col_labels = ['%02d' %i for i,v in enumerate (variablesGJE)]
 
-    #print network.label_matrix (kernelGJE, row_labels, col_labels)#.__str__ (max_nrows=300, max_ncols=50)
+    print network.label_matrix (kernelGJE, row_labels, col_labels).__str__ (max_nrows=300, max_ncols=50)
     #print network.get_relation_GJE()[-1]
     #print network.get_relation_SVD()[-1]
     #print network.get_relation_SVD_error()

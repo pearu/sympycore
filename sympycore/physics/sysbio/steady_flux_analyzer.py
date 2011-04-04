@@ -204,7 +204,7 @@ class SteadyFluxAnalyzer(object):
                                                                                      leading_column_selection=leading_column_selection)
             end = time.time()
             self.kernel_GJE_data = result
-            self.kernel_GJE_elapsed = end - start
+            self.compute_kernel_GJE_elapsed = end - start
 
             independent_variables = []
             dependent_variables = []
@@ -221,15 +221,23 @@ class SteadyFluxAnalyzer(object):
             assert (self.kernel_GJE_data_parameters == (leading_row_selection, leading_column_selection))
 
     def get_sorted_reactions(self):
+        from sympycore.matrices.linalg import  get_rc_map
         self.compute_kernel_GJE()
+        start = time.time ()
         gj, row_operations, leading_rows, leading_cols, zero_rows = self.kernel_GJE_data
         l = []
+        rows = get_rc_map(gj.data)
         for i0,j0 in zip (leading_rows, leading_cols):
-            row = gj[i0]
-            del row.data[0,j0]
-            l.append ((len(row.data),-min(row.data)[1], self.reactions[j0]))
+            row = rows[i0]
+            row.remove (j0)
+            if row:
+                l.append ((len(row),-min(row), self.reactions[j0]))
+            else:
+                l.append ((len(row),0, self.reactions[j0]))
         reactions = [s for i,i1,s in sorted(l, reverse=True)]
         reactions += [s for s in self.reactions if s not in reactions]
+        end = time.time ()
+        self.get_sorted_reactions_elapsed = end-start
         return reactions
 
     def get_kernel_GJE(self, reactions=None):
@@ -248,25 +256,44 @@ class SteadyFluxAnalyzer(object):
 
         Returns
         -------
-        reactions, kernel, indep_variables : list, Matrix, list
+        reactions, kernel : list, Matrix, list
         """
+        from sympycore.matrices.linalg import  get_rc_map
         self.compute_kernel_GJE()
         gj, row_operations, leading_rows, leading_cols, zero_rows = self.kernel_GJE_data
         if reactions is None:
             reactions = self.get_sorted_reactions()
+        start = time.time ()
         kernel = Matrix(len(reactions), len(reactions)-len(leading_cols))
         indep_vars = [r for r in reactions if r in self.independent_variables]
         dep_vars = [r for r in reactions if r in self.dependent_variables]
-        for i0,j0 in zip (leading_rows, leading_cols):
-            row = gj[i0]
-            i = dep_vars.index(self.reactions[j0])
-            for (i1,j1), v in gj[i0].data.iteritems():
+        m = len (dep_vars)
+        n = len (indep_vars)
+        rows = get_rc_map(gj.data)
+        def indep_index (r):
+            try: return indep_vars.index (r)
+            except ValueError: pass
+        indep_indices = []
+        dep_indices = []
+        for r in self.reactions:
+            i0 = indep_index (r)
+            if i0 is not None:
+                indep_indices.append(i0)
+                dep_indices.append(None)
+            else:
+                indep_indices.append(None)
+                dep_indices.append(dep_vars.index(r))
+        for i0,j0 in zip(leading_rows, leading_cols):
+            i = dep_indices[j0]
+            for j1 in rows[i0]:
                 if j1!=j0:
-                    j = indep_vars.index(self.reactions[j1])
-                    kernel[i,j] = -v
-        for j,r in enumerate(indep_vars):
-            i = j + len (dep_vars)
-            kernel[i,j] = 1
+                    j = indep_indices[j1]
+                    kernel[i,j] = -gj.data[(i0,j1)]
+
+        for j in range (n):
+            kernel[j+m,j] = 1
+        end = time.time()
+        self.get_kernel_GJE_elapsed = end-start
         return dep_vars+indep_vars, kernel
 
     def get_relation_GJE(self, reactions=None):
@@ -290,11 +317,14 @@ class SteadyFluxAnalyzer(object):
         --------
         get_relation_SVD
         """
-        reactions, kernel = self.get_kernel_GJE (reactions=reactions)
+        reactions, kernel = self.get_kernel_GJE(reactions=reactions)
+        start = time.time()
         rank = kernel.shape[0] - kernel.shape[1]
         dep_reactions = reactions[:rank]
         indep_reactions = reactions[rank:]
         r = kernel[:rank]
+        end = time.time()
+        self.get_relation_GJE_elapsed = end-start
         return dep_reactions, indep_reactions, r
 
     def get_dense_stoichiometric(self, species, reactions):
@@ -317,7 +347,7 @@ class SteadyFluxAnalyzer(object):
             U, s, V = numpy.linalg.svd(array)
             end = time.time()
             self.kernel_SVD_data = U, s, V
-            self.kernel_SVD_elapsed = end - start
+            self.compute_kernel_SVD_elapsed = end - start
 
     def get_kernel_SVD(self, reactions=None):
         """Return the kernel K from SVD routine.
@@ -337,14 +367,17 @@ class SteadyFluxAnalyzer(object):
         reactions, kernel : list, Matrix
         """
         import numpy
+        self.compute_kernel_SVD()
         if reactions is None:
             reactions = self.get_sorted_reactions()
-        self.compute_kernel_SVD()
+        start = time.time ()
         U, s, V = self.kernel_SVD_data
         Vker = V[self.rank:].T
         Vker1 = numpy.zeros (Vker.shape, dtype=float)
         for i, r in enumerate(reactions):
             Vker1[i] = Vker[self.reactions.index(r)]
+        end = time.time()
+        self.get_kernel_SVD_elapsed = end-start
         return reactions, Vker1
 
     def get_relation_SVD(self, reactions=None):
@@ -370,15 +403,18 @@ class SteadyFluxAnalyzer(object):
         """
         import numpy
         reactions, kernel = self.get_kernel_SVD(reactions=reactions)
+        start = time.time ()
         rank = kernel.shape[0]-kernel.shape[1]
         dep_kernel = kernel[:rank]
         indep_kernel = kernel[rank:]
         dep_reactions = reactions[:rank]
         indep_reactions = reactions[rank:]
         r = numpy.dot(dep_kernel, numpy.linalg.inv(indep_kernel))
+        end = time.time ()
+        self.get_relation_SVD_elapsed = end-start
         return dep_reactions, indep_reactions, r
 
-    def get_relation_SVD_error (self, reactions=None):
+    def get_relation_SVD_error(self, reactions=None):
         """ Compute maximal relative flux error of the SVD relation routine.
 
         Notes
@@ -514,3 +550,26 @@ class SteadyFluxAnalyzer(object):
         if reenable:
             pylab.ion()
         pylab.savefig(figure_name) 
+
+    def show_timings(self):
+        for a in dir (self):
+            if a.endswith ('_elapsed'):
+                print '%s took %s seconds' % (a[:-8], getattr (self, a))
+
+    def show_statistics(self, *methods):
+        shown = []
+        for method in methods:
+            assert method in ['GJE', 'SVD'],`method`
+            for mthprefix in ['compute_kernel_', 'get_kernel_', 'get_relation_']:
+                mthname = mthprefix + method
+                mth = getattr(self, mthname)
+                mth()
+                elapsed = getattr (self, mthname+'_elapsed')
+                print '  %s took %.3f seconds' % (mthname, elapsed)
+                shown.append(mthname)
+
+        for a in dir (self):
+            if a.endswith ('_elapsed'):
+                mthname = a[:-8]
+                if mthname not in shown:
+                    print '%s took %s seconds' % (mthname, getattr (self, a))

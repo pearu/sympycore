@@ -6,6 +6,7 @@ __all__ = ['load_stoic_from_sbml',
            'load_stoic_from_text',
            ]
 
+import re
 from collections import defaultdict
 
 from .utils import obj2num
