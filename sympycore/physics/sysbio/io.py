@@ -7,6 +7,7 @@ __all__ = ['load_stoic_from_sbml',
            ]
 
 import re
+import os
 from collections import defaultdict
 
 from .utils import obj2num
@@ -32,6 +33,10 @@ def load_stoic_from_sbml(file_name):
     reactions_info : dict
     """
     from lxml import etree
+    for ext in ['', '.xml', '.xml.gz', '.gz']:
+        if os.path.isfile(file_name+ext):
+            file_name = file_name+ext
+            break
     tree = etree.parse(file_name)
     root = tree.getroot()
     assert root.tag.endswith ('sbml'), `root.tag`

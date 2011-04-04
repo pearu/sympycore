@@ -65,7 +65,7 @@ class SteadyFluxAnalyzer(object):
         load_stoic_from_sbml, load_stoic_from_text, discard_boundary_species, add_boundary_fluxes
         """
         if isinstance (source, str):
-            if os.path.isfile (source):
+            if os.path.isfile (source) or (source.count ('\n')==0 and '=' not in source):
                 stoic_dict, species, reactions, species_info, reactions_info = \
                     load_stoic_from_sbml(source)
             else:
