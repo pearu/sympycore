@@ -304,6 +304,8 @@ def get_gauss_jordan_elimination_operations_MATRIX(m, n, data, leading_cols0, tr
                         lmin, i = l, i1
             if i==n:
                 i = i0
+            if i==n:
+                break
             free_cols.remove(i)
         else:
             i = free_cols[i0]
