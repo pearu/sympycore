@@ -4,7 +4,7 @@
 # Created: April 2011
 
 from __future__ import division
-
+import cPickle as pickle
 import os
 import random
 import time
@@ -31,6 +31,8 @@ class SteadyFluxAnalyzer(object):
     def __init__(self, source,
                  discard_boundary_species=False,
                  add_boundary_fluxes=False,
+                 growth_factor = 1,
+                 growth_shuffle = True,
                  ):
         """
         Parameters
@@ -60,6 +62,11 @@ class SteadyFluxAnalyzer(object):
           ``-> A -> B -> C ->``.  New flux names start with prefix
           ``BR_``.
 
+        growth_factor : int
+          Increase the size of network by growth_factor.
+        growth_shiffle : bool
+          When True then shuffle the rows and columns of increased network.
+
         See also
         --------
         load_stoic_from_sbml, load_stoic_from_text, discard_boundary_species, add_boundary_fluxes
@@ -81,15 +88,112 @@ class SteadyFluxAnalyzer(object):
         if add_boundary_fluxes:
             stoic_dict, species, reactions, species_info, reactions_info = \
                 self.add_boundary_fluxes(stoic_dict, species, reactions, species_info, reactions_info)
+        if growth_factor>1:
+            stoic_dict, species, reactions, species_info, reactions_info = \
+                self.apply_growth(stoic_dict, species, reactions, species_info, reactions_info, growth_factor, growth_shuffle)
 
-        self.species = species
-        self.species_info = species_info
-        self.reactions = reactions
-        self.reactions_info = reactions_info
-        self.stoichiometric = Matrix(len (species), len (reactions), stoic_dict)
-        self.kernel_GJE_data = None
-        self.kernel_SVD_data = None
 
+        self.source = source
+        self.options = (discard_boundary_species, add_boundary_fluxes, growth_factor, growth_shuffle)
+        self._data = stoic_dict, species, reactions, dict(species_info), dict(reactions_info)
+
+        self._stoichiometric = None
+        self.compute_kernel_GJE_data = None
+        self.compute_kernel_SVD_data = None
+
+    @property
+    def species(self): return self._data[1]
+    @property
+    def reactions(self): return self._data[2]
+    @property
+    def stoichiometric(self):
+        if self._stoichiometric is None:
+            self._stoichiometric = Matrix(len (self.species), len (self.reactions), self._data[0])
+        return self._stoichiometric
+
+    def _get_pickle_file_name(self, file_name):
+        for ext in ['', '.pkl', '.pickle']:
+            if os.path.isfile(file_name+ext):
+                file_name = file_name + ext
+                break
+        if os.path.splitext(file_name)[1]=='':
+            file_name = file_name + '.pkl'
+        return file_name
+
+    def save(self, file_name):
+        """ Save instance data to file_name.
+        """
+        file_name = self._get_pickle_file_name(file_name)
+
+        if os.path.isfile(file_name):
+
+            f = open(file_name, 'rb')
+            try:
+                data = pickle.load(f)
+            except Exception, msg:
+                print 'Failed to load %r: %s' % (file_name, msg)
+                data = []
+            f.close()
+        else:
+            data = []
+        if not isinstance(data, list):
+            data = []
+
+        key = (self.source, self.options)
+        value = {}
+        for a in dir(self):
+            if a.endswith('_data') or a.endswith('_elapsed'):
+                value[a] = getattr(self, a)
+        
+        data_file_name = None
+        for key0, data_file_name0 in data:
+            if key0==key:
+                data_file_name = data_file_name0
+                break
+        if data_file_name is None:
+            base, ext = os.path.splitext(file_name)
+            data_file_name = '%s_%s%s' % (base, len(data), ext)
+            data.append((key, data_file_name))
+
+            f = open(file_name, 'wb')
+            pickle.dump(data, f)
+            f.close()
+
+        f = open(data_file_name, 'wb')
+        pickle.dump(value, f)
+        f.close()
+        print 'Succesfully wrote data to', data_file_name
+        
+    def load(self, file_name):
+        """ Load instance data from file_name.
+        """
+        file_name = self._get_pickle_file_name(file_name)
+        if os.path.isfile(file_name):
+            f = open(file_name, 'rb')
+            try:
+                data = pickle.load(f)
+            except Exception, msg:
+                print 'Failed to load %r: %s' % (file_name, msg)
+                data = []
+            f.close()
+        else:
+            return
+        data_file_name = None
+        key = (self.source, self.options)
+        for key0, data_file_name0 in data:
+            if key0==key:
+                data_file_name = data_file_name0
+                break
+        if data_file_name is None:
+            return
+        f = open(data_file_name, 'rb')
+        value = pickle.load(f)
+        f.close()
+        print 'Succesfully loaded data from', data_file_name
+        self._stoichiometric = None
+        for a,v in value.iteritems():
+            setattr(self, a, v)
+        
     def __repr__(self):
         return '%s((%r, %r, %r, %r, %r))' % (self.__class__.__name__,
                                              self.stoichiometric, self.species, self.reactions,
@@ -111,6 +215,10 @@ class SteadyFluxAnalyzer(object):
             new_matrix[i+1,0] = r
         new_matrix[0,0] = ' '
         return new_matrix
+
+    @property
+    def shape(self):
+        return self.stoichiometric.shape
 
     @property
     def sparsity(self):
@@ -140,44 +248,36 @@ class SteadyFluxAnalyzer(object):
         trailing_cols_canditates = independent_cols
         return leading_cols_canditates, trailing_cols_canditates
 
-    def grow(self, factor=2, shuffle=True):
-        """ Increase the size of network by a factor.
+    @classmethod
+    def apply_growth(cls, stoic_dict, species, reactions, species_info, reactions_info, growth_factor=1, growth_shuffle=True):
+        """ Increase the size of network by a growth_factor.
 
-        Parameters
-        ----------
-        factor : int
-          Specify the factor for the increase.
-        shuffle : bool
-          When True then shuffle the species and reactions lists of
-          the new network.
-
-        Returns
-        -------
-        network : SteadyFluxAnalyzer
+        Useful for testing.
         """
-        m0, n0 = self.stoichiometric.shape
-        m1, n1 = m0*factor, n0*factor
-        species = []
-        reactions = []
-        for i in range (factor):
-            for s in self.species:
-                species.append('%s_%s' % (s, i))
-            for s in self.reactions:
-                reactions.append('%s_%s' % (s, i))
+        if growth_factor==1:
+            return stoic_dict, species, reactions, species_info, reactions_info
+        m0, n0 = len(species), len(reactions)
+        m1, n1 = m0*growth_factor, n0*growth_factor
+        species1 = []
+        reactions1 = []
+        for i in range (growth_factor):
+            for s in species:
+                species1.append('%s_%s' % (s, i))
+            for s in reactions:
+                reactions1.append('%s_%s' % (s, i))
         rindices = range(m1)
         indices = range(n1)
-        if shuffle:
+        if growth_shuffle:
             random.shuffle (rindices)
             random.shuffle (indices)
-            species = [species[i] for i in rindices]
-            reactions = [reactions[i] for i in indices]
+            species1 = [species1[i] for i in rindices]
+            reactions1 = [reactions1[i] for i in indices]
 
-        data = {}
-        data0 = self.stoichiometric[:].data # copy when transposed
-        for k in range (factor):
-            for (i,j), v in data0.iteritems():
-                data[rindices[i+ k*m0], indices[j+ k*n0]] = v 
-        return SteadyFluxAnalyzer((data, species, reactions, {}, {}))
+        stoic_dict1 = {}
+        for k in range (growth_factor):
+            for (i,j), v in stoic_dict.iteritems():
+                stoic_dict1[rindices[i+ k*m0], indices[j+ k*n0]] = v 
+        return stoic_dict1, species1, reactions1, {}, {}
 
     def compute_kernel_GJE(self,
                            leading_row_selection='sparsest first',
@@ -194,37 +294,43 @@ class SteadyFluxAnalyzer(object):
         MatrixBase.get_gauss_jordan_elimination_operations
         """
         #TODO: recompute data when parameters to get_gauss_jordan_elimination_operations are changed
-        if self.kernel_GJE_data is None:
+        if self.compute_kernel_GJE_data is None:
             leading_cols_canditates, trailing_cols_canditates = self.get_splitted_reactions()
             start = time.time ()
-            gj, row_operations, leading_rows, leading_cols, zero_rows = \
-                result = self.stoichiometric.get_gauss_jordan_elimination_operations(leading_cols=leading_cols_canditates,
+            result = self.stoichiometric.get_gauss_jordan_elimination_operations(leading_cols=leading_cols_canditates,
                                                                                      trailing_cols = trailing_cols_canditates,
                                                                                      leading_row_selection=leading_row_selection,
                                                                                      leading_column_selection=leading_column_selection)
             end = time.time()
-            self.kernel_GJE_data = result
+            self.compute_kernel_GJE_data = result
             self.compute_kernel_GJE_elapsed = end - start
 
             independent_variables = []
             dependent_variables = []
             for k, variable in enumerate(self.reactions):
-                if k in leading_cols:
+                if k in result[3]:
                     dependent_variables.append(variable)
                 else:
                     independent_variables.append(variable)
-            self.dependent_variables = dependent_variables
-            self.independent_variables = independent_variables
-
-            self.kernel_GJE_data_parameters = leading_row_selection, leading_column_selection
+            self.variables_data = dependent_variables, independent_variables
+            self.compute_kernel_GJE_parameters_data = leading_row_selection, leading_column_selection
         else:
-            assert (self.kernel_GJE_data_parameters == (leading_row_selection, leading_column_selection))
+            assert (self.compute_kernel_GJE_parameters_data == (leading_row_selection, leading_column_selection))
+
+    @property
+    def dependent_variables(self):
+        return self.variables_data[0]
+
+    @property
+    def independent_variables(self):
+        return self.variables_data[1]
+
 
     def get_sorted_reactions(self):
         from sympycore.matrices.linalg import  get_rc_map
         self.compute_kernel_GJE()
         start = time.time ()
-        gj, row_operations, leading_rows, leading_cols, zero_rows = self.kernel_GJE_data
+        gj, row_operations, leading_rows, leading_cols, zero_rows = self.compute_kernel_GJE_data
         l = []
         rows = get_rc_map(gj.data)
         for i0,j0 in zip (leading_rows, leading_cols):
@@ -260,7 +366,7 @@ class SteadyFluxAnalyzer(object):
         """
         from sympycore.matrices.linalg import  get_rc_map
         self.compute_kernel_GJE()
-        gj, row_operations, leading_rows, leading_cols, zero_rows = self.kernel_GJE_data
+        gj, row_operations, leading_rows, leading_cols, zero_rows = self.compute_kernel_GJE_data
         if reactions is None:
             reactions = self.get_sorted_reactions()
         start = time.time ()
@@ -341,12 +447,12 @@ class SteadyFluxAnalyzer(object):
         """Compute the kernel of stoichiometric matrix via SVD routine.
         """
         import numpy
-        if self.kernel_SVD_data is None:
+        if self.compute_kernel_SVD_data is None:
             array = self.get_dense_stoichiometric (self.species, self.reactions)
             start = time.time ()
             U, s, V = numpy.linalg.svd(array)
             end = time.time()
-            self.kernel_SVD_data = U, s, V
+            self.compute_kernel_SVD_data = U, s, V
             self.compute_kernel_SVD_elapsed = end - start
 
     def get_kernel_SVD(self, reactions=None):
@@ -371,7 +477,7 @@ class SteadyFluxAnalyzer(object):
         if reactions is None:
             reactions = self.get_sorted_reactions()
         start = time.time ()
-        U, s, V = self.kernel_SVD_data
+        U, s, V = self.compute_kernel_SVD_data
         Vker = V[self.rank:].T
         Vker1 = numpy.zeros (Vker.shape, dtype=float)
         for i, r in enumerate(reactions):
@@ -516,7 +622,7 @@ class SteadyFluxAnalyzer(object):
     @property
     def condition_number (self):
         self.compute_kernel_SVD()
-        U, s, V = self.kernel_SVD_data        
+        U, s, V = self.compute_kernel_SVD_data        
         return s[0]/s[self.rank-1]
 
     def matrix_plot(self, matrix, figure_name='matrix_plot.pdf'):
@@ -558,6 +664,8 @@ class SteadyFluxAnalyzer(object):
 
     def show_statistics(self, *methods):
         shown = []
+        print 'system size: ', self.shape
+        print 'rank:', self.rank
         for method in methods:
             assert method in ['GJE', 'SVD'],`method`
             for mthprefix in ['compute_kernel_', 'get_kernel_', 'get_relation_']:
