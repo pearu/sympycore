@@ -48,6 +48,7 @@ packages = ['sympycore',
             'sympycore.matrices',
             'sympycore.polynomials',
             'sympycore.physics',
+            'sympycore.physics.sysbio',
             'sympycore.ring',
             'sympycore.sets',
             ]
