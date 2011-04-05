@@ -1,5 +1,56 @@
-
+import types
 import sympycore
+
+def objsize(obj):
+    """ Recursively compute memory size of the object in bytes.
+
+    Returns
+    -------
+    size : int
+      Number of bytes that the object consumes in memory.
+    """
+    import numpy
+    if isinstance (obj, numpy.ndarray):
+        return 100+obj.nbytes
+    if isinstance (obj, (int, float, bool)): 
+        return 24
+    if isinstance (obj, (long,complex)): 
+        return 32
+    if isinstance (obj, tuple): 
+        sz = 56
+        sz += len (obj)*8
+        sz += sum (map (objsize, obj))
+        return sz
+    if isinstance (obj, list): 
+        sz = 136 if obj else 72
+        sz += sum (map (objsize, obj))
+        return sz
+    if isinstance (obj, str):
+        sz = 40
+        sz += (len(obj) // 8)*8 if obj else 0
+        return sz
+    if isinstance (obj, dict):
+        sz = 280
+        for k,v in obj.iteritems ():
+            sz += objsize(k) + objsize(v)
+        return sz
+    if isinstance (obj, set):
+        sz = 232
+        sz += sum (map (objsize, obj))
+        return sz
+    if isinstance(obj, types.InstanceType):
+        sz = 72
+        for k,v in obj.__dict__.iteritems ():
+            sz += objsize(k) + objsize(v)
+        return sz
+    if isinstance(obj, object):
+        sz = 64
+        for k,v in obj.__dict__.iteritems ():
+            sz += objsize(k) + objsize(v)
+        return sz
+    if obj is None:
+        return 16
+    raise NotImplementedError ('objsize for %s' % (type (obj)))
 
 def obj2num(s, abs_tol=1e-16):
     if isinstance(s, str):

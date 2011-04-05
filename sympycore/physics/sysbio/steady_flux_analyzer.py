@@ -12,6 +12,7 @@ from collections import defaultdict
 
 from ...matrices import Matrix
 from .io import load_stoic_from_sbml, load_stoic_from_text
+from .utils import objsize
 
 class SteadyFluxAnalyzer(object):
     """ Base class for analyzing the steady state of a metabolic network.
@@ -193,7 +194,8 @@ class SteadyFluxAnalyzer(object):
         self._stoichiometric = None
         for a,v in value.iteritems():
             setattr(self, a, v)
-        
+        return True
+
     def __repr__(self):
         return '%s((%r, %r, %r, %r, %r))' % (self.__class__.__name__,
                                              self.stoichiometric, self.species, self.reactions,
@@ -681,3 +683,5 @@ class SteadyFluxAnalyzer(object):
                 mthname = a[:-8]
                 if mthname not in shown:
                     print '%s took %s seconds' % (mthname, getattr (self, a))
+            elif a.endswith ('_data'):
+                print '%s takes %s bytes of memory' % (a, objsize(getattr (self, a)))
