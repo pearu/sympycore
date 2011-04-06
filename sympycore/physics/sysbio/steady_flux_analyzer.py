@@ -125,7 +125,7 @@ class SteadyFluxAnalyzer(object):
         """ Save instance data to file_name.
         """
         file_name = self._get_pickle_file_name(file_name)
-
+        dirname = os.path.dirname (file_name)
         if os.path.isfile(file_name):
 
             f = open(file_name, 'rb')
@@ -149,11 +149,11 @@ class SteadyFluxAnalyzer(object):
         data_file_name = None
         for key0, data_file_name0 in data:
             if key0==key:
-                data_file_name = data_file_name0
+                data_file_name = os.path.join(dirname, os.path.basename(data_file_name0))
                 break
         if data_file_name is None:
             base, ext = os.path.splitext(file_name)
-            data_file_name = '%s_%s%s' % (base, len(data), ext)
+            data_file_name = '%s_%s%s' % (os.path.basename(base), len(data), ext)
             data.append((key, data_file_name))
 
             f = open(file_name, 'wb')
@@ -169,6 +169,7 @@ class SteadyFluxAnalyzer(object):
         """ Load instance data from file_name.
         """
         file_name = self._get_pickle_file_name(file_name)
+        dirname = os.path.dirname (file_name)
         if os.path.isfile(file_name):
             f = open(file_name, 'rb')
             try:
@@ -183,7 +184,7 @@ class SteadyFluxAnalyzer(object):
         key = (self.source, self.options)
         for key0, data_file_name0 in data:
             if key0==key:
-                data_file_name = data_file_name0
+                data_file_name = os.path.join(dirname, os.path.basename(data_file_name0))
                 break
         if data_file_name is None:
             return
@@ -225,7 +226,7 @@ class SteadyFluxAnalyzer(object):
     @property
     def sparsity(self):
         m,n = self.stoichiometric.shape
-        return len (self.stoichiometric.data)/(m*n)
+        return 1-len (self.stoichiometric.data)/(m*n)
 
     @property
     def rank (self):
@@ -614,12 +615,12 @@ class SteadyFluxAnalyzer(object):
     @property
     def sparsity_kernel_GJE(self):
         reactions, kernel = self.get_kernel_GJE()
-        return len (kernel.data)/(kernel.shape[0]*kernel.shape[1])
+        return 1-len (kernel.data)/(kernel.shape[0]*kernel.shape[1])
 
     @property
     def sparsity_kernel_SVD(self):
         reactions, kernel = self.get_kernel_SVD()
-        return (abs(kernel)>1e-3).sum()/kernel.size
+        return 1-(abs(kernel)>1e-3).sum()/kernel.size
 
     @property
     def condition_number (self):
