@@ -94,7 +94,7 @@ E =>
     print ex.label_matrix (kernel, fluxes, indep_fluxes)
 
     dependent_candidates=[r for r in ex.reactions if r.count ('_')>1]
-    dependent_candidates = ['R_A_B', 'R_B_C', 'R_B_D','R_C_E', 'R_A']
+    #dependent_candidates = ['R_A_B', 'R_B_C', 'R_B_D','R_C_E', 'R_A']
     print 'dependent_candidates:'
     print dependent_candidates
     ex.compute_kernel_GJE(dependent_candidates=dependent_candidates)

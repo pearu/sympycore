@@ -101,20 +101,20 @@ class SteadyFluxAnalyzer(object):
 
         self.source = source
         self.options = (discard_boundary_species, add_boundary_fluxes, split_bidirectional_fluxes, growth_factor, growth_shuffle)
-        self._data = stoic_dict, species, reactions, dict(species_info), dict(reactions_info)
+        self.source_data = stoic_dict, species, reactions, dict(species_info), dict(reactions_info)
 
         self._stoichiometry = None
         self.compute_kernel_GJE_data = None
         self.compute_kernel_SVD_data = None
 
     @property
-    def species(self): return self._data[1]
+    def species(self): return self.source_data[1]
     @property
-    def reactions(self): return self._data[2]
+    def reactions(self): return self.source_data[2]
     @property
     def stoichiometry(self):
         if self._stoichiometry is None:
-            self._stoichiometry = Matrix(len (self.species), len (self.reactions), self._data[0])
+            self._stoichiometry = Matrix(len (self.species), len (self.reactions), self.source_data[0])
         return self._stoichiometry
 
     def _get_pickle_file_name(self, file_name):
