@@ -710,3 +710,6 @@ class SteadyFluxAnalyzer(object):
             elif a.endswith ('_data'):
                 mthname = a[:-5]
                 print '%s consumed %s bytes of memory' % (mthname, objsize(getattr (self, a)))
+
+        if self.compute_kernel_GJE_data is not None:
+            print 'compute_kernel_GJE performed %s row operations' % (len(self.compute_kernel_GJE_data[1]))
