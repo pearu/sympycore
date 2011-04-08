@@ -1,5 +1,5 @@
 import os
-from sympycore import Matrix
+from sympycore import Matrix, Symbol
 from sympycore.physics.sysbio import SteadyFluxAnalyzer
 
 def test_sauro2004_fig3 ():
@@ -9,7 +9,7 @@ ES=>S1+E
 E+S2=>ES
 ''')
     #print network
-    fluxes, kernel = network.get_kernel_GJE ()
+    fluxes, indep_fluxes, kernel = network.get_kernel_GJE ()
     variables = fluxes[network.rank:]
     #print network.label_matrix (kernel, ['%s='%f for f in fluxes], variables)
 
@@ -41,7 +41,7 @@ def test_example_yeast():
             return [j for j in range (len (self.reactions)) if j not in indep_cols], []
 
     network = ExampleYeast(sbml_file, discard_boundary_species = True)
-    fluxes, kernelGJE = network.get_kernel_GJE()
+    fluxes, indep_fluxes, kernelGJE = network.get_kernel_GJE()
     variablesGJE = fluxes[-kernelGJE.shape[1]:]
     fluxesSVD, kernelSVD = network.get_kernel_SVD()
     assert fluxes==fluxesSVD
@@ -49,7 +49,7 @@ def test_example_yeast():
     row_labels += ['%s[%s]='%(f,i) for i,f in enumerate(variablesGJE)]
     col_labels = ['%02d' %i for i,v in enumerate (variablesGJE)]
 
-    print network.label_matrix (kernelGJE, row_labels, col_labels).__str__ (max_nrows=300, max_ncols=50)
+    #print network.label_matrix (kernelGJE, row_labels, col_labels).__str__ (max_nrows=300, max_ncols=50)
     #print network.get_relation_GJE()[-1]
     #print network.get_relation_SVD()[-1]
     #print network.get_relation_SVD_error()
@@ -59,3 +59,69 @@ def test_example_yeast():
     #print network.condition_number
     #network.matrix_plot(kernelGJE, 'kernelGJE.pdf')
     #network.matrix_plot(kernelSVD.round (decimals=3), 'kernelSVD.pdf')
+
+def test_wiki_SteadyFluxAnalyzer():
+    from sympycore.physics.sysbio import SteadyFluxAnalyzer
+    print
+    example_network = '''
+A => B
+B => C
+B <=> D
+C => D
+C => E
+D => E
+A <= 
+C => 
+D => 
+E => 
+'''
+    print example_network
+    ex = SteadyFluxAnalyzer (example_network, split_bidirectional_fluxes = True)
+    print ex
+    print 'reactions:'
+    print ex.reactions
+    print 'fluxes:'
+    print ex.species
+    ex.compute_kernel_GJE ()
+    fluxes, indep_fluxes, kernel = ex.get_kernel_GJE ()
+    print 'fluxes:'
+    print fluxes
+    print 'rank:'
+    print ex.rank
+    print 'kernel:'
+    print kernel
+
+    print ex.label_matrix (kernel, fluxes, indep_fluxes)
+
+    dependent_candidates=[r for r in ex.reactions if r.count ('_')>1]
+    print 'dependent_candidates:'
+    print dependent_candidates
+    ex.compute_kernel_GJE(dependent_candidates=dependent_candidates)
+    fluxes, indep_fluxes, kernel = ex.get_kernel_GJE()
+    print 'fluxes:'
+    print fluxes
+    print 'indep_fluxes:'
+    print ex.label_matrix (kernel, fluxes, indep_fluxes)
+
+    dep_fluxes = fluxes[:ex.rank]
+    indep_symbols = map(Symbol,indep_fluxes)
+    for i in range(ex.rank): print dep_fluxes[i],'=',[indep_symbols] * kernel[i].T
+
+    fluxes, indep_fluxes, kernel = ex.get_kernel_GJE(ex.reactions)
+    print 'ex.stoichiometry * kernel:'
+    print ex.stoichiometry * kernel
+
+    print ex.label_matrix (kernel, fluxes, indep_fluxes)
+
+
+    print 'statistics:'
+    ex.show_statistics ()
+
+    print 'large system:'
+    ex = SteadyFluxAnalyzer ('http://www.biomedcentral.com/content/supplementary/1752-0509-4-160-s2.xml',
+                             add_boundary_fluxes = True)
+    ex.compute_kernel_GJE()
+    ex.compute_kernel_SVD()
+    ex.show_statistics ()
+    print ex.get_relation_SVD_error ()
+

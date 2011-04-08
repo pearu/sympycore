@@ -640,6 +640,7 @@ class MatrixDict(MatrixBase):
         if isinstance(value, list):
             self[key] = Matrix(value)
             return
+
         head, data = self.pair
         if head.is_diagonal:
             return self._set_diagonal(key, value)
@@ -679,9 +680,10 @@ class MatrixDict(MatrixBase):
         elif ti is slice and tj is slice:
             row_indices = [(i0,k) for k,i0 in enumerate(xrange(*i.indices(head.rows)))]
             col_indices = [(j0,k) for k,j0 in enumerate(xrange(*j.indices(head.cols)))]
-        elif is_integer(i):
+        elif is_integer(i) and tj in (int, slice):
+            
             return self.__setitem__((int(i),j), value)
-        elif is_integer(j):
+        elif is_integer(j) and ti in (int, slice):
             return self.__setitem__((i,int(j)), value)
         else:
             raise IndexError('tuple index must contain int or slice but got %r' % ((ti, tj),))

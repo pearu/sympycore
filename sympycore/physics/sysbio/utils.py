@@ -10,6 +10,8 @@ def objsize(obj):
       Number of bytes that the object consumes in memory.
     """
     import numpy
+    if obj is None:
+        return 0 # because None is singleton
     if isinstance (obj, numpy.ndarray):
         return 100+obj.nbytes
     if isinstance (obj, (int, float, bool)): 

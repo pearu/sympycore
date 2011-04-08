@@ -13,13 +13,17 @@ from collections import defaultdict
 from .utils import obj2num
 
 
-def load_stoic_from_sbml(file_name):
+def load_stoic_from_sbml(file_name, split_bidirectional_fluxes=False):
     """ Return stoichiometry information of a network described in a SBML file.
 
     Parameters
     ----------
     file_name : str
       Path to SMBL file.
+
+    split_bidirectional_fluxes : bool
+      When True the bidirectional fluxes are split into two unidirectional fluxes.
+      For example, the system ``A<=>B`` is treated as ``A=>B and B=>A``.
 
     Returns
     -------
@@ -67,15 +71,30 @@ def load_stoic_from_sbml(file_name):
                 for specie in item:
                     species_all.append(specie.attrib['id'])
                     species_info[specie.attrib['id']]['compartment'] = specie.attrib['compartment']
-                    species_info[specie.attrib['id']]['name'] = specie.attrib['name']
+                    species_info[specie.attrib['id']]['name'] = specie.attrib.get('name', specie.attrib['id'])
             elif item.tag.endswith('listOfReactions'):
                 for reaction in item:
+
+                    reversible =eval(reaction.attrib.get('reversible', 'False').title())
                     reaction_id = reaction.attrib['id']
+                    name = reaction.attrib.get('name', reaction_id)
                     assert reaction_id not in reactions,`reaction_id`
                     reactions.append(reaction_id)
                     reaction_index = len(reactions)-1
-                    reactions_info[reaction_id]['name'] = reaction.attrib['name']
-                    reactions_info[reaction_id]['reversible'] = eval(reaction.attrib.get('reversible', 'False').title())
+                    reactions_info[reaction_id]['name'] = name
+
+                    if split_bidirectional_fluxes and reversible:
+                        reaction_id2 = '%s_r' % (reaction_id)
+                        assert reaction_id2 not in reactions,`reaction_id2`
+                        reactions.append(reaction_id2)
+                        reaction_index2 = len(reactions)-1
+                        reactions_info[reaction_id2]['name'] = name+'_r'
+                        reactions_info[reaction_id]['reversible'] = False
+                        reactions_info[reaction_id2]['reversible'] = False
+                    else:
+                        reaction_id2 = reaction_index2 = None
+                        reactions_info[reaction_id]['reversible'] = reversible
+
                     for part in reaction:
                         if part.tag.endswith ('listOfReactants'):
                             for reactant in part:
@@ -93,6 +112,12 @@ def load_stoic_from_sbml(file_name):
                                 species_reactions[specie_index].append(reaction_index)
                                 reactions_species[reaction_index].append(specie_index)                                
                                 reactions_info[reaction_id]['compartments'].add(species_info[specie_id]['compartment'])
+                                if reaction_index2 is not None:
+                                    reactions_info[reaction_id2]['reactants'].append(specie_id)
+                                    matrix[specie_index, reaction_index2] = -stoichiometry
+                                    species_reactions[specie_index].append(reaction_index2)
+                                    reactions_species[reaction_index2].append(specie_index)                                
+                                    reactions_info[reaction_id2]['compartments'].add(species_info[specie_id]['compartment'])
                         elif part.tag.endswith ('listOfProducts'):
                             for product in part:
                                 assert product.tag.endswith('speciesReference'), `product.tag`
@@ -109,6 +134,12 @@ def load_stoic_from_sbml(file_name):
                                 species_reactions[specie_index].append(reaction_index)
                                 reactions_species[reaction_index].append(specie_index)
                                 reactions_info[reaction_id]['compartments'].add(species_info[specie_id]['compartment'])
+                                if reaction_index2 is not None:
+                                    reactions_info[reaction_id2]['products'].append(specie_id)
+                                    matrix[specie_index, reaction_index2] = -stoichiometry
+                                    species_reactions[specie_index].append(reaction_index2)
+                                    reactions_species[reaction_index2].append(specie_index)
+                                    reactions_info[reaction_id2]['compartments'].add(species_info[specie_id]['compartment'])
                         elif part.tag.endswith ('listOfModifiers'):
                             for modifier in part:
                                 assert modifier.tag.endswith('modifierSpeciesReference'), `modifier.tag`
@@ -134,17 +165,20 @@ def load_stoic_from_sbml(file_name):
     return matrix, species, reactions, species_info, reactions_info
     
 
-def load_stoic_from_text(text):
+def load_stoic_from_text(text, split_bidirectional_fluxes=False):
     """ Parse stoichiometry matrix from a string.
 
     Parameters
     ----------
     text : str
-
       A multiline string where each line contains a chemical reaction
       description. The description must be given in the following
       form: ``<sum of reactants> (=> | <=) <sum of producats>``. For example,
       ``A + 2*B => C``. Lines starting with ``#`` are ignored.
+
+    split_bidirectional_fluxes : bool
+      When True the bidirectional fluxes are split into two unidirectional fluxes.
+      For example, the system ``A<=>B`` is treated as ``A=>B and B=>A``.
 
     Returns
     -------
@@ -166,11 +200,13 @@ def load_stoic_from_text(text):
         for part in line.split('+'):
             part = part.strip()
             coeff = ''
-            while part[0].isdigit():
+            while part and part[0].isdigit():
                 coeff += part[0]
                 part = part[1:].lstrip()
             if not coeff:
                 coeff = '1'
+            if not part:
+                continue
             yield part, eval (coeff)
 
     matrix = {}
@@ -201,27 +237,49 @@ def load_stoic_from_text(text):
             right = right[1:].strip()
             direction = '<'
 
-
-
         left_specie_coeff = list(_split_sum(left))
         right_specie_coeff = list(_split_sum(right))
-        left_specie_names = [n for n,c in left_specie_coeff]
-        right_specie_names = [n for n,c in right_specie_coeff]
+        left_specie_names = [n for n,c in left_specie_coeff if n]
+        right_specie_names = [n for n,c in right_specie_coeff if n]
+
+        fname = ['R']
+        rname = ['R']
+        name0 = ''.join(left_specie_names)
+        name1 = ''.join(right_specie_names)
+        if name0:
+            rname.append (name0)
+        if name1:
+            fname.append (name1)
+            rname.append (name1)
+        if name0:
+            fname.append (name0)
 
         if direction=='<':
-            reaction_name = 'R_%s_%s' % (''.join(right_specie_names), ''.join(left_specie_names))
+            reaction_name = '_'.join(fname)
+            reaction_name2 = '_'.join(rname)
         else:
-            reaction_name = 'R_%s_%s' % (''.join(left_specie_names), ''.join(right_specie_names))
+            reaction_name2 = '_'.join(fname)
+            reaction_name = '_'.join(rname)
 
         reactions.append (reaction_name)
         reaction_index = reactions.index (reaction_name)
+        if split_bidirectional_fluxes and reversible:
+            reactions.append (reaction_name2)
+            reaction_index2 = reactions.index (reaction_name2)
+        else:
+            reaction_index2 = None
+
         for specie, coeff in left_specie_coeff:
             if specie not in species:
                 species.append (specie)
             specie_index = species.index (specie)
             if direction=='<':
+                if reaction_index2 is not None:
+                    matrix[specie_index, reaction_index2] = -coeff
                 matrix[specie_index, reaction_index] = coeff
             else:
+                if reaction_index2 is not None:
+                    matrix[specie_index, reaction_index2] = coeff
                 matrix[specie_index, reaction_index] = -coeff
             
         for specie, coeff in right_specie_coeff:
@@ -229,8 +287,12 @@ def load_stoic_from_text(text):
                 species.append (specie)
             specie_index = species.index (specie)
             if direction=='<':
+                if reaction_index2 is not None:
+                    matrix[specie_index, reaction_index2] = coeff
                 matrix[specie_index, reaction_index] = -coeff
             else:
+                if reaction_index2 is not None:
+                    matrix[specie_index, reaction_index2] = -coeff
                 matrix[specie_index, reaction_index] = coeff
 
         reactions_info[reaction_name]['reversible'] = reversible

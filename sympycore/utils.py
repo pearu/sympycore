@@ -81,7 +81,9 @@ class MATRIX(HEAD):
     """
 
     def __str__ (self):
-        return '%s (%r, %r, %r)' % (self.__class__.__name__, self.rows, self.cols, self.storage)
+        return '%s(%r, %r, %r)' % (self.__class__.__name__, self.rows, self.cols, self.storage)
+
+    __repr__ = __str__
 
     def to_lowlevel(self, cls, data, pair):
         return pair

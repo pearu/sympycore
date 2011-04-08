@@ -24,7 +24,7 @@ class SteadyFluxAnalyzer(object):
       A list of species names or row names.
     reaction : list
       A list of reaction names or column names.
-    stoichiometric : Matrix
+    stoichiometry : Matrix
       A stoichiometric matrix.
 
     """
@@ -32,6 +32,7 @@ class SteadyFluxAnalyzer(object):
     def __init__(self, source,
                  discard_boundary_species=False,
                  add_boundary_fluxes=False,
+                 split_bidirectional_fluxes = False,
                  growth_factor = 1,
                  growth_shuffle = True,
                  ):
@@ -63,6 +64,10 @@ class SteadyFluxAnalyzer(object):
           ``-> A -> B -> C ->``.  New flux names start with prefix
           ``BR_``.
 
+        split_bidirectional_fluxes : bool
+          When True the bidirectional fluxes are split into two unidirectional fluxes.
+          For example, the system ``A<=>B`` is treated as ``A=>B and B=>A``.
+
         growth_factor : int
           Increase the size of network by growth_factor.
         growth_shiffle : bool
@@ -75,10 +80,10 @@ class SteadyFluxAnalyzer(object):
         if isinstance (source, str):
             if os.path.isfile (source) or (source.count ('\n')==0 and '=' not in source):
                 stoic_dict, species, reactions, species_info, reactions_info = \
-                    load_stoic_from_sbml(source)
+                    load_stoic_from_sbml(source, split_bidirectional_fluxes=split_bidirectional_fluxes)
             else:
                 stoic_dict, species, reactions, species_info, reactions_info = \
-                    load_stoic_from_text(source)
+                    load_stoic_from_text(source, split_bidirectional_fluxes=split_bidirectional_fluxes)
         elif isinstance (source, tuple):
             stoic_dict, species, reactions, species_info, reactions_info = source
         else:
@@ -95,10 +100,10 @@ class SteadyFluxAnalyzer(object):
 
 
         self.source = source
-        self.options = (discard_boundary_species, add_boundary_fluxes, growth_factor, growth_shuffle)
+        self.options = (discard_boundary_species, add_boundary_fluxes, split_bidirectional_fluxes, growth_factor, growth_shuffle)
         self._data = stoic_dict, species, reactions, dict(species_info), dict(reactions_info)
 
-        self._stoichiometric = None
+        self._stoichiometry = None
         self.compute_kernel_GJE_data = None
         self.compute_kernel_SVD_data = None
 
@@ -107,10 +112,10 @@ class SteadyFluxAnalyzer(object):
     @property
     def reactions(self): return self._data[2]
     @property
-    def stoichiometric(self):
-        if self._stoichiometric is None:
-            self._stoichiometric = Matrix(len (self.species), len (self.reactions), self._data[0])
-        return self._stoichiometric
+    def stoichiometry(self):
+        if self._stoichiometry is None:
+            self._stoichiometry = Matrix(len (self.species), len (self.reactions), self._data[0])
+        return self._stoichiometry
 
     def _get_pickle_file_name(self, file_name):
         for ext in ['', '.pkl', '.pickle']:
@@ -183,6 +188,10 @@ class SteadyFluxAnalyzer(object):
         data_file_name = None
         key = (self.source, self.options)
         for key0, data_file_name0 in data:
+            if len(key)==len(key0)+1:
+                # for backward compatibility
+                key0 = key0[0], key0[1][:2] + (False,) + key0[1][2:]
+                
             if key0==key:
                 data_file_name = os.path.join(dirname, os.path.basename(data_file_name0))
                 break
@@ -192,18 +201,18 @@ class SteadyFluxAnalyzer(object):
         value = pickle.load(f)
         f.close()
         print 'Succesfully loaded data from', data_file_name
-        self._stoichiometric = None
+        self._stoichiometry = None
         for a,v in value.iteritems():
             setattr(self, a, v)
         return True
 
     def __repr__(self):
         return '%s((%r, %r, %r, %r, %r))' % (self.__class__.__name__,
-                                             self.stoichiometric, self.species, self.reactions,
+                                             self.stoichiometry, self.species, self.reactions,
                                              self.species_info, self.reactions_info)
 
-    def __str__(self, max_nrows=20, max_ncols=10):
-        mat = self.label_matrix(self.stoichiometric, self.species, self.reactions)
+    def __str__(self, max_nrows=20, max_ncols=20):
+        mat = self.label_matrix(self.stoichiometry, self.species, self.reactions)
         return mat.__str__(max_nrows=max_nrows, max_ncols=max_ncols)
 
     def label_matrix(self, matrix, row_labels, col_labels):
@@ -221,16 +230,16 @@ class SteadyFluxAnalyzer(object):
 
     @property
     def shape(self):
-        return self.stoichiometric.shape
+        return self.stoichiometry.shape
 
     @property
     def sparsity(self):
-        m,n = self.stoichiometric.shape
-        return 1-len (self.stoichiometric.data)/(m*n)
+        m,n = self.stoichiometry.shape
+        return 1-len (self.stoichiometry.data)/(m*n)
 
     @property
     def rank (self):
-        self.compute_kernel_GJE()        
+        self.compute_kernel_GJE(use_cache=True)        
         return len(self.dependent_variables)
 
     def get_splitted_reactions (self):
@@ -284,7 +293,11 @@ class SteadyFluxAnalyzer(object):
 
     def compute_kernel_GJE(self,
                            leading_row_selection='sparsest first',
-                           leading_column_selection='sparsest first'):
+                           leading_column_selection='sparsest first',
+                           dependent_candidates = None,
+                           force = False,
+                           use_cache = None
+                           ):
         """ Compute the kernel of stoichiometric matrix via GJE routine.
 
         Parameters
@@ -292,18 +305,33 @@ class SteadyFluxAnalyzer(object):
         leading_row_selection, leading_column_selection : str
           Specify parameters to get_gauss_jordan_elimination_operations method.
 
+        dependent_candidates : list
+
+          Specify the list of dependent fluxes. Note that this is
+          considered only as a suggestion. The actual list of
+          dependent fluxes may be different.
+
         See also
         --------
         MatrixBase.get_gauss_jordan_elimination_operations
         """
-        #TODO: recompute data when parameters to get_gauss_jordan_elimination_operations are changed
-        if self.compute_kernel_GJE_data is None:
-            leading_cols_canditates, trailing_cols_canditates = self.get_splitted_reactions()
+        if use_cache and self.compute_kernel_GJE_data is not None:
+            options = self.compute_kernel_GJE_parameters_data
+        else:
+            options = leading_row_selection, leading_column_selection, dependent_candidates
+        if self.compute_kernel_GJE_data is not None and self.compute_kernel_GJE_parameters_data != options:
+            force = True
+        if self.compute_kernel_GJE_data is None or force:
+            if dependent_candidates is None:
+                leading_cols_candidates, trailing_cols_candidates = self.get_splitted_reactions()
+            else:
+                leading_cols_candidates = [self.reactions.index (r) for r in dependent_candidates]
+                trailing_cols_candidates = [self.reactions.index (r) for r in self.reactions if r not in dependent_candidates]
             start = time.time ()
-            result = self.stoichiometric.get_gauss_jordan_elimination_operations(leading_cols=leading_cols_canditates,
-                                                                                     trailing_cols = trailing_cols_canditates,
-                                                                                     leading_row_selection=leading_row_selection,
-                                                                                     leading_column_selection=leading_column_selection)
+            result = self.stoichiometry.get_gauss_jordan_elimination_operations(leading_cols=leading_cols_candidates,
+                                                                                trailing_cols = trailing_cols_candidates,
+                                                                                leading_row_selection=leading_row_selection,
+                                                                                leading_column_selection=leading_column_selection)
             end = time.time()
             self.compute_kernel_GJE_data = result
             self.compute_kernel_GJE_elapsed = end - start
@@ -316,10 +344,9 @@ class SteadyFluxAnalyzer(object):
                 else:
                     independent_variables.append(variable)
             self.variables_data = dependent_variables, independent_variables
-            self.compute_kernel_GJE_parameters_data = leading_row_selection, leading_column_selection
-        else:
-            assert (self.compute_kernel_GJE_parameters_data == (leading_row_selection, leading_column_selection))
+            self.compute_kernel_GJE_parameters_data = options
 
+            
     @property
     def dependent_variables(self):
         return self.variables_data[0]
@@ -331,7 +358,7 @@ class SteadyFluxAnalyzer(object):
 
     def get_sorted_reactions(self):
         from sympycore.matrices.linalg import  get_rc_map
-        self.compute_kernel_GJE()
+        self.compute_kernel_GJE(use_cache=True)
         start = time.time ()
         gj, row_operations, leading_rows, leading_cols, zero_rows = self.compute_kernel_GJE_data
         l = []
@@ -360,50 +387,47 @@ class SteadyFluxAnalyzer(object):
         Parameters
         ----------
         reactions : list
-          When specified then the reaction list defines the order of rows.
+          When specified then the reaction list defines the order of flux rows.
           Otherwise the rows are order by the sparsity.
 
         Returns
         -------
-        reactions, kernel : list, Matrix, list
+        fluxes, indep_fluxes, kernel : list, list, Matrix
         """
         from sympycore.matrices.linalg import  get_rc_map
-        self.compute_kernel_GJE()
+        self.compute_kernel_GJE(use_cache=True)
         gj, row_operations, leading_rows, leading_cols, zero_rows = self.compute_kernel_GJE_data
         if reactions is None:
             reactions = self.get_sorted_reactions()
         start = time.time ()
         kernel = Matrix(len(reactions), len(reactions)-len(leading_cols))
         indep_vars = [r for r in reactions if r in self.independent_variables]
-        dep_vars = [r for r in reactions if r in self.dependent_variables]
-        m = len (dep_vars)
         n = len (indep_vars)
         rows = get_rc_map(gj.data)
         def indep_index (r):
             try: return indep_vars.index (r)
             except ValueError: pass
         indep_indices = []
-        dep_indices = []
+        indices = []
         for r in self.reactions:
-            i0 = indep_index (r)
-            if i0 is not None:
-                indep_indices.append(i0)
-                dep_indices.append(None)
-            else:
-                indep_indices.append(None)
-                dep_indices.append(dep_vars.index(r))
+            indices.append(reactions.index(r))
+            indep_indices.append(indep_index (r))
+
         for i0,j0 in zip(leading_rows, leading_cols):
-            i = dep_indices[j0]
+            i = indices[j0]
             for j1 in rows[i0]:
                 if j1!=j0:
                     j = indep_indices[j1]
                     kernel[i,j] = -gj.data[(i0,j1)]
 
-        for j in range (n):
-            kernel[j+m,j] = 1
+        for j0 in range (len (self.reactions)):
+            if j0 not in leading_cols:
+                i = indices[j0]
+                j = indep_indices[j0]
+                kernel[i,j] = 1
         end = time.time()
         self.get_kernel_GJE_elapsed = end-start
-        return dep_vars+indep_vars, kernel
+        return reactions, indep_vars, kernel
 
     def get_relation_GJE(self, reactions=None):
         """ Return relation matrix R from GJE routine.
@@ -426,20 +450,19 @@ class SteadyFluxAnalyzer(object):
         --------
         get_relation_SVD
         """
-        reactions, kernel = self.get_kernel_GJE(reactions=reactions)
+        reactions, indep_reactions, kernel = self.get_kernel_GJE(reactions=reactions)
         start = time.time()
         rank = kernel.shape[0] - kernel.shape[1]
-        dep_reactions = reactions[:rank]
-        indep_reactions = reactions[rank:]
+        dep_reactions = [r for r in reactions if r not in indep_reactions]
         r = kernel[:rank]
         end = time.time()
         self.get_relation_GJE_elapsed = end-start
         return dep_reactions, indep_reactions, r
 
-    def get_dense_stoichiometric(self, species, reactions):
+    def get_dense_stoichiometry(self, species, reactions):
         import numpy
-        r = numpy.zeros (self.stoichiometric.shape, dtype=float)
-        data = self.stoichiometric[:].data # todo: optimize when not transposed
+        r = numpy.zeros (self.stoichiometry.shape, dtype=float)
+        data = self.stoichiometry[:].data # todo: optimize when not transposed
         for (i,j), v in data.iteritems ():
             i1 = species.index (self.species[i])
             j1 = reactions.index (self.reactions[j])
@@ -451,7 +474,7 @@ class SteadyFluxAnalyzer(object):
         """
         import numpy
         if self.compute_kernel_SVD_data is None:
-            array = self.get_dense_stoichiometric (self.species, self.reactions)
+            array = self.get_dense_stoichiometry (self.species, self.reactions)
             start = time.time ()
             U, s, V = numpy.linalg.svd(array)
             end = time.time()
@@ -614,7 +637,7 @@ class SteadyFluxAnalyzer(object):
 
     @property
     def sparsity_kernel_GJE(self):
-        reactions, kernel = self.get_kernel_GJE()
+        reactions, indep_reactions, kernel = self.get_kernel_GJE()
         return 1-len (kernel.data)/(kernel.shape[0]*kernel.shape[1])
 
     @property
@@ -685,4 +708,5 @@ class SteadyFluxAnalyzer(object):
                 if mthname not in shown:
                     print '%s took %s seconds' % (mthname, getattr (self, a))
             elif a.endswith ('_data'):
-                print '%s takes %s bytes of memory' % (a, objsize(getattr (self, a)))
+                mthname = a[:-5]
+                print '%s consumed %s bytes of memory' % (mthname, objsize(getattr (self, a)))
