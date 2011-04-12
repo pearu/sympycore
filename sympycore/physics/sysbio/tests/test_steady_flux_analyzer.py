@@ -116,8 +116,7 @@ E =>
     print ex.label_matrix (kernel, fluxes, indep_fluxes)
 
 
-    print 'statistics:'
-    ex.show_statistics ()
+
 
     ex.compute_kernel_SVD()
     fluxes, kernel = ex.get_kernel_SVD()
@@ -127,6 +126,9 @@ E =>
     print ex.label_matrix (Matrix(kernel.round(decimals=3)), fluxes, alpha)
     import numpy
     print numpy.dot(kernel.T, kernel).round(decimals=3)
+
+    print 'statistics:'
+    ex.show_statistics ()
 
     return
     print 'large system:'
