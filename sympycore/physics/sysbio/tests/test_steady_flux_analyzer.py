@@ -1,4 +1,5 @@
 import os
+
 from sympycore import Matrix, Symbol
 from sympycore.physics.sysbio import SteadyFluxAnalyzer
 
@@ -118,6 +119,16 @@ E =>
     print 'statistics:'
     ex.show_statistics ()
 
+    ex.compute_kernel_SVD()
+    fluxes, kernel = ex.get_kernel_SVD()
+    alpha = ['a%s'%i for i in range(kernel.shape[1])]
+    print fluxes
+    print kernel.round(decimals=3)
+    print ex.label_matrix (Matrix(kernel.round(decimals=3)), fluxes, alpha)
+    import numpy
+    print numpy.dot(kernel.T, kernel).round(decimals=3)
+
+    return
     print 'large system:'
     ex = SteadyFluxAnalyzer ('http://www.biomedcentral.com/content/supplementary/1752-0509-4-160-s2.xml',
                              add_boundary_fluxes = True)
