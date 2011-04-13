@@ -217,7 +217,15 @@ def load_stoic_from_text(text, split_bidirectional_fluxes=False):
                                             compartments = set()))
     species_info = defaultdict(lambda:dict())
     for line in text.splitlines():
-        if not line.strip () or line.startswith ('#'): continue
+        line = line.strip()
+        if ':' in line:
+            reaction_name, line = line.split (':',1)
+            reaction_name = reaction_name.strip()
+            line = line.strip()
+        else:
+            reaction_name = None
+        if not line or line.startswith ('#'): continue
+
         reversible = False
         left, right = line.split ('=')
         direction = '='
@@ -255,11 +263,17 @@ def load_stoic_from_text(text, split_bidirectional_fluxes=False):
             fname.append (name0)
 
         if direction=='<':
-            reaction_name = '_'.join(fname)
-            reaction_name2 = '_'.join(rname)
+            if not reaction_name:
+                reaction_name = '_'.join(fname)
+                reaction_name2 = '_'.join(rname)
+            else:
+                reaction_name2 = 'r'+reaction_name
         else:
-            reaction_name2 = '_'.join(fname)
-            reaction_name = '_'.join(rname)
+            if not reaction_name:
+                reaction_name2 = '_'.join(fname)
+                reaction_name = '_'.join(rname)
+            else:
+                reaction_name2 = 'r'+reaction_name
 
         reactions.append (reaction_name)
         reaction_index = reactions.index (reaction_name)

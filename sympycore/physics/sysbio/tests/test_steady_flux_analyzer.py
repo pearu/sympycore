@@ -5,14 +5,14 @@ from sympycore.physics.sysbio import SteadyFluxAnalyzer
 
 def test_sauro2004_fig3 ():
     network = SteadyFluxAnalyzer('''\
-S1=>S2
-ES=>S1+E
+v1:S1=>S2
+v2:ES=>S1+E
 E+S2=>ES
 ''')
     #print network
     fluxes, indep_fluxes, kernel = network.get_kernel_GJE ()
     variables = fluxes[network.rank:]
-    #print network.label_matrix (kernel, ['%s='%f for f in fluxes], variables)
+    print network.label_matrix (kernel, ['%s='%f for f in fluxes], variables)
 
 def test_example_yeast():
     sbml_file = os.path.join (os.path.dirname (__file__),'yeast_example.xml')
