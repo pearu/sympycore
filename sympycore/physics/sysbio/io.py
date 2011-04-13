@@ -269,12 +269,16 @@ def load_stoic_from_text(text, split_bidirectional_fluxes=False):
                 reaction_name2 = '_'.join(rname)
             else:
                 reaction_name2 = 'r'+reaction_name
+                if split_bidirectional_fluxes:
+                    reaction_name = 'f'+reaction_name
         else:
             if not reaction_name:
                 reaction_name2 = '_'.join(fname)
                 reaction_name = '_'.join(rname)
             else:
                 reaction_name2 = 'r'+reaction_name
+                if split_bidirectional_fluxes:
+                    reaction_name = 'f'+reaction_name
 
         reactions.append (reaction_name)
         reaction_index = reactions.index (reaction_name)
@@ -311,18 +315,26 @@ def load_stoic_from_text(text, split_bidirectional_fluxes=False):
                 matrix[specie_index, reaction_index] = coeff
 
         if split_bidirectional_fluxes:
-            print 'TODO: fill reactions_info'
-            pass
+            reactions_info[reaction_name]['reversible'] = False
+            reactions_info[reaction_name]['reactants'] = left_specie_names
+            reactions_info[reaction_name]['products'] = right_specie_names
+            reactions_info[reaction_name]['forward'] = reaction_name
+            reactions_info[reaction_name]['reverse'] = None
+            if reversible:
+                reactions_info[reaction_name2]['reversible'] = False
+                reactions_info[reaction_name2]['reactants'] = right_specie_names
+                reactions_info[reaction_name2]['products'] = left_specie_names
+                reactions_info[reaction_name2]['forward'] = reaction_name2
+                reactions_info[reaction_name2]['reverse'] = None
         else:
             reactions_info[reaction_name]['reversible'] = reversible
             reactions_info[reaction_name]['reactants'] = left_specie_names
             reactions_info[reaction_name]['products'] = right_specie_names
-
             if reversible:
                 reactions_info[reaction_name]['forward'] = 'f'+reaction_name
                 reactions_info[reaction_name]['reverse'] = 'r'+reaction_name
             else:
-                reactions_info[reaction_name]['forward'] = reaction_name
+                reactions_info[reaction_name]['forward'] = 'f'+reaction_name
                 reactions_info[reaction_name]['reverse'] = None
 
     return matrix, species, reactions, species_info, reactions_info
