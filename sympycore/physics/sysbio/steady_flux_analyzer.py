@@ -112,6 +112,8 @@ class SteadyFluxAnalyzer(object):
     @property
     def reactions(self): return self.source_data[2]
     @property
+    def reactions_info(self): return self.source_data[4]
+    @property
     def stoichiometry(self):
         if self._stoichiometry is None:
             self._stoichiometry = Matrix(len (self.species), len (self.reactions), self.source_data[0])

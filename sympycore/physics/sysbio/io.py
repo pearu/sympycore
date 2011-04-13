@@ -218,6 +218,7 @@ def load_stoic_from_text(text, split_bidirectional_fluxes=False):
     species_info = defaultdict(lambda:dict())
     for line in text.splitlines():
         line = line.strip()
+        if not line or line.startswith ('#'): continue
         if ':' in line:
             reaction_name, line = line.split (':',1)
             reaction_name = reaction_name.strip()
@@ -309,6 +310,19 @@ def load_stoic_from_text(text, split_bidirectional_fluxes=False):
                     matrix[specie_index, reaction_index2] = -coeff
                 matrix[specie_index, reaction_index] = coeff
 
-        reactions_info[reaction_name]['reversible'] = reversible
+        if split_bidirectional_fluxes:
+            print 'TODO: fill reactions_info'
+            pass
+        else:
+            reactions_info[reaction_name]['reversible'] = reversible
+            reactions_info[reaction_name]['reactants'] = left_specie_names
+            reactions_info[reaction_name]['products'] = right_specie_names
+
+            if reversible:
+                reactions_info[reaction_name]['forward'] = 'f'+reaction_name
+                reactions_info[reaction_name]['reverse'] = 'r'+reaction_name
+            else:
+                reactions_info[reaction_name]['forward'] = reaction_name
+                reactions_info[reaction_name]['reverse'] = None
 
     return matrix, species, reactions, species_info, reactions_info

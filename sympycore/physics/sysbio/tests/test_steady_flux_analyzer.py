@@ -13,6 +13,7 @@ E+S2=>ES
     fluxes, indep_fluxes, kernel = network.get_kernel_GJE ()
     variables = fluxes[network.rank:]
     print network.label_matrix (kernel, ['%s='%f for f in fluxes], variables)
+    print network.source_data
 
 def test_example_yeast():
     sbml_file = os.path.join (os.path.dirname (__file__),'yeast_example.xml')
