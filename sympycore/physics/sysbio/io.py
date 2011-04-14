@@ -288,18 +288,25 @@ def load_stoic_from_text(text, split_bidirectional_fluxes=False):
         else:
             reaction_index2 = None
 
+        def matrix_add (i,j,c):
+            v = matrix.get ((i,j))
+            if v is None:
+                matrix[i, j] = c
+            else:
+                matrix[i, j] = v + c
+
         for specie, coeff in left_specie_coeff:
             if specie not in species:
                 species.append (specie)
             specie_index = species.index (specie)
             if direction=='<':
                 if reaction_index2 is not None:
-                    matrix[specie_index, reaction_index2] = -coeff
-                matrix[specie_index, reaction_index] = coeff
+                    matrix_add(specie_index, reaction_index2, -coeff)
+                matrix_add(specie_index, reaction_index, coeff)
             else:
                 if reaction_index2 is not None:
-                    matrix[specie_index, reaction_index2] = coeff
-                matrix[specie_index, reaction_index] = -coeff
+                    matrix_add(specie_index, reaction_index2, coeff)
+                matrix_add(specie_index, reaction_index, -coeff)
             
         for specie, coeff in right_specie_coeff:
             if specie not in species:
@@ -307,12 +314,12 @@ def load_stoic_from_text(text, split_bidirectional_fluxes=False):
             specie_index = species.index (specie)
             if direction=='<':
                 if reaction_index2 is not None:
-                    matrix[specie_index, reaction_index2] = coeff
-                matrix[specie_index, reaction_index] = -coeff
+                    matrix_add(specie_index, reaction_index2, coeff)
+                matrix_add(specie_index, reaction_index, -coeff)
             else:
                 if reaction_index2 is not None:
-                    matrix[specie_index, reaction_index2] = -coeff
-                matrix[specie_index, reaction_index] = coeff
+                    matrix_add(specie_index, reaction_index2, -coeff)
+                matrix_add(specie_index, reaction_index, coeff)
 
         if split_bidirectional_fluxes:
             reactions_info[reaction_name]['reversible'] = False
@@ -320,6 +327,7 @@ def load_stoic_from_text(text, split_bidirectional_fluxes=False):
             reactions_info[reaction_name]['products'] = right_specie_names
             reactions_info[reaction_name]['forward'] = reaction_name
             reactions_info[reaction_name]['reverse'] = None
+
             if reversible:
                 reactions_info[reaction_name2]['reversible'] = False
                 reactions_info[reaction_name2]['reactants'] = right_specie_names
