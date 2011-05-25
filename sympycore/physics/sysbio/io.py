@@ -227,6 +227,8 @@ def load_stoic_from_text(text, split_bidirectional_fluxes=False):
             reaction_name = None
         if not line or line.startswith ('#'): continue
 
+        reaction_string = line
+
         reversible = False
         left, right = line.split ('=')
         direction = '='
@@ -334,6 +336,7 @@ def load_stoic_from_text(text, split_bidirectional_fluxes=False):
                 reactions_info[reaction_name2]['products'] = left_specie_names
                 reactions_info[reaction_name2]['forward'] = reaction_name2
                 reactions_info[reaction_name2]['reverse'] = None
+            # TODO: set  reactions_info[reaction_name]['name']
         else:
             reactions_info[reaction_name]['reversible'] = reversible
             reactions_info[reaction_name]['reactants'] = left_specie_names
@@ -344,5 +347,7 @@ def load_stoic_from_text(text, split_bidirectional_fluxes=False):
             else:
                 reactions_info[reaction_name]['forward'] = 'f'+reaction_name
                 reactions_info[reaction_name]['reverse'] = None
+
+            reactions_info[reaction_name]['name'] = reaction_string
 
     return matrix, species, reactions, species_info, reactions_info
