@@ -172,7 +172,8 @@ def multinomial_coefficients(m, n, _tuple=tuple, _zip=zip):
 
        where ``a(n,0) = p_0^n``.
     """
-
+    if m==0:
+        return {}
     if m==2:
         return binomial_coefficients(n)
     symbols = [(0,)*i + (1,) + (0,)*(m-i-1) for i in range(m)]

@@ -5,6 +5,7 @@ from .base import Head, heads
 
 from ..core import init_module, Pair
 init_module.import_heads()
+init_module.import_numbers()
 
 class SparsepolyHead(Head):
     """
@@ -50,6 +51,39 @@ class SparsepolyHead(Head):
 
     def term_coeff(self, cls, expr):
         return expr, 1
+
+    def integrate_indefinite_index(self, cls, data, expr, index):
+        """
+        Return indefinite integral of expr with respect to index-th variable.
+        data is expr.data, index is integer.
+        """
+        new_data = {}
+        for exp, coeff in data.iteritems():
+            new_exp = type(exp)(*exp.pair)
+            new_exp[index] += 1
+            new_coeff = number_div(cls.ring, coeff, new_exp[index])
+            new_data[new_exp] = new_coeff
+        return cls(new_data)
+
+    def diff_index(self, cls, data, expr, index, order):
+        """
+        Return the order-th derivative of expr with respect to index-th variable.
+        data is expr.data, index is integer.
+        """
+        if order==0:
+            return expr
+        new_data = {}
+        for exp, coeff in data.iteritems():
+            if order > exp[index]:
+                continue
+            new_exp = type(exp)(*exp.pair)
+            new_exp[index] -= order
+            n = exp[index]-1
+            new_coeff = coeff * (exp[index]-1)
+            for o in range(order-1):
+                n *= exp[index]-1
+            new_data[new_exp] = coeff * n
+        return cls(new_data)
 
 class DensepolyHead(Head):
     """

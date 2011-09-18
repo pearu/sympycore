@@ -454,7 +454,7 @@ class PolynomialRing(CommutativeRing):
             return self.zero
         raise NotImplementedError(`self,nvars`)
 
-    def diff(self, index=0):
+    def diff(self, index=0): # TODO: don't use index as the order of variables is automatically sorted
         if self.nvars==0:
             return self.zero
         head, data = self.pair
@@ -472,6 +472,41 @@ class PolynomialRing(CommutativeRing):
                     d[exps.add(index,-1)] = coeff * e
         return type(self)(head, d)
 
+    def variable_integrate(self, variable, *bounds):
+        try:
+            index = list(self.variables).index(variable)
+        except ValueError:
+            index = None
+        if index is not None:
+            indef_integral = self.head.integrate_indefinite_index(type(self), self.data, self, index)
+            if bounds:
+                low, high = bounds
+                return indef_integral.variable_subs(variable, high) - indef_integral.variable_subs(variable, low)
+            return indef_integral
+        raise NotImplementedError(`self.variables, variable, index`)
+    
+    def variable_subs(self, variable, newexpr):
+        cls = type(self)
+        newexpr = cls(newexpr)
+        try:
+            index = list(self.variables).index(variable)
+        except ValueError:
+            index = None
+        if index is not None:
+            head, data = self.pair
+            result = cls.Number(0)
+            variables = cls.variables
+            for exps, coeff in data.iteritems():
+                term = cls.Number(1)
+                for i,exp in enumerate(exps):
+                    if exp:
+                        if i==index:
+                            term *= newexpr**exp
+                        else:
+                            term *= cls.Symbol(variables[i])**exp
+                result += term * cls.Number(coeff)
+            return result
+        raise NotImplementedError(`self.variables, variable, index`)
 
 def divmod_POLY1_POLY1_SPARSE(lhs, rhs, cls):
     d2 = rhs.degree
