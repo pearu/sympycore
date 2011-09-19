@@ -542,7 +542,7 @@ class Head(object):
         """
         Return the expanded expression of expr, i.e. open parenthesis.
         """
-        return self
+        return expr
 
     def expand_intpow(self, Algebra, base, exp):
         """

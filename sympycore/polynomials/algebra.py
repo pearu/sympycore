@@ -473,6 +473,11 @@ class PolynomialRing(CommutativeRing):
         return type(self)(head, d)
 
     def variable_integrate(self, variable, *bounds):
+        """ Return integral over variable.
+
+        poly.variable_integrate(x) -> indefinite integral
+        poly.variable_integrate(x, a, b) -> definite integral
+        """
         try:
             index = list(self.variables).index(variable)
         except ValueError:
@@ -486,6 +491,8 @@ class PolynomialRing(CommutativeRing):
         raise NotImplementedError(`self.variables, variable, index`)
     
     def variable_subs(self, variable, newexpr):
+        """ Substitute variable with newexpr that must be instance of the same ring.
+        """
         cls = type(self)
         newexpr = cls(newexpr)
         try:

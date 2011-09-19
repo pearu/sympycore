@@ -85,6 +85,12 @@ class SparsepolyHead(Head):
             new_data[new_exp] = coeff * n
         return cls(new_data)
 
+    def expand(self, cls, expr):
+        new_data = {}
+        for exp, coeff in expr.data.iteritems():
+            new_data[exp] = coeff.expand()
+        return cls(new_data)
+
 class DensepolyHead(Head):
     """
     DensepolyHead is a head for dense polynomials represented
