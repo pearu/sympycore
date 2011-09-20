@@ -3,7 +3,7 @@ __all__ = ['SPARSE_POLY', 'DENSE_POLY']
 
 from .base import Head, heads
 
-from ..core import init_module, Pair
+from ..core import init_module, Pair, Expr
 init_module.import_heads()
 init_module.import_numbers()
 
@@ -59,7 +59,7 @@ class SparsepolyHead(Head):
         """
         new_data = {}
         for exp, coeff in data.iteritems():
-            new_exp = type(exp)(*exp.pair)
+            new_exp = exp.copy()
             new_exp[index] += 1
             new_coeff = number_div(cls.ring, coeff, new_exp[index])
             new_data[new_exp] = new_coeff
@@ -88,7 +88,10 @@ class SparsepolyHead(Head):
     def expand(self, cls, expr):
         new_data = {}
         for exp, coeff in expr.data.iteritems():
-            new_data[exp] = coeff.expand()
+            if isinstance(coeff, Expr):
+                new_data[exp] = coeff.expand()
+            else:
+                new_data[exp] = coeff
         return cls(new_data)
 
 class DensepolyHead(Head):

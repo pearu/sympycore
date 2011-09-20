@@ -474,6 +474,9 @@ class IntegerList(Expr):
 
     def __len__(self): return len(self.data)
 
+    def copy(self):
+        return type(self)(self.data[:])
+
     def __getitem__(self, index):
         return self.data[index]
 
