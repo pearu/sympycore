@@ -76,13 +76,12 @@ class SparsepolyHead(Head):
         for exp, coeff in data.iteritems():
             if order > exp[index]:
                 continue
-            new_exp = type(exp)(*exp.pair)
+            new_exp = exp.copy()
             new_exp[index] -= order
-            n = exp[index]-1
-            new_coeff = coeff * (exp[index]-1)
-            for o in range(order-1):
-                n *= exp[index]-1
-            new_data[new_exp] = coeff * n
+            new_coeff = coeff
+            for i in range(order):
+                new_coeff = new_coeff * (exp[index] - i)
+            new_data[new_exp] = new_coeff
         return cls(new_data)
 
     def expand(self, cls, expr):

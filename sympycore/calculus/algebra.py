@@ -8,7 +8,7 @@ __all__ = ['Calculus', 'I']
 
 from ..core import classes, defined_functions
 from ..utils import TERMS, str_PRODUCT, SYMBOL, NUMBER
-from ..heads import APPLY, CALLABLE, TERM_COEFF
+from ..heads import APPLY, CALLABLE, TERM_COEFF, TERM_COEFF_DICT
 from ..heads import BASE_EXP_DICT as FACTORS
 from ..basealgebra import Algebra, Verbatim
 from ..ring import CommutativeRing
@@ -209,6 +209,11 @@ class Calculus(CommutativeRing):
                 term, coeff = data
                 coeff = coeff * float_one
                 return cls(head, (term, coeff))
+            if head is TERM_COEFF_DICT:
+                new_data = {}
+                for term, coeff in data.iteritems():
+                    new_data[term] = coeff * float_one
+                return cls(head, new_data)
             return target
         return head.walk(evalf, type(self), data, self)
         

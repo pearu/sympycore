@@ -472,6 +472,15 @@ class PolynomialRing(CommutativeRing):
                     d[exps.add(index,-1)] = coeff * e
         return type(self)(head, d)
 
+    def variable_diff(self, variable, order=1):
+        try:
+            index = list(self.variables).index(variable)
+        except ValueError:
+            index = None
+        if index is not None:
+            return self.head.diff_index(type(self), self.data, self, index, order=order)
+        raise NotImplementedError(`self.variables, variable, index`)
+
     def variable_integrate(self, variable, *bounds):
         """ Return integral over variable.
 
