@@ -93,6 +93,16 @@ class SparsepolyHead(Head):
                 new_data[exp] = coeff
         return cls(new_data)
 
+    def evalf(self, cls, expr, n):
+        new_data = {}
+        for exp, coeff in expr.data.iteritems():
+            if isinstance(coeff, Expr):
+                new_data[exp] = coeff.evalf(n)
+            else:
+                new_data[exp] = coeff
+        return cls(new_data)
+        
+
 class DensepolyHead(Head):
     """
     DensepolyHead is a head for dense polynomials represented

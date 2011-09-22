@@ -133,6 +133,9 @@ class Ring(Algebra, RingInterface):
     def expand(self):
         return self.head.expand(type(self), self)
 
+    def evalf(self, n=None):
+        return self.head.evalf(type(self), self, n)
+
 class CommutativeRing(Ring):
 
     def __mul__(self, other):
