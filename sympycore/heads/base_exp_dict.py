@@ -50,6 +50,9 @@ class BaseExpDictHead(ArithmeticHead):
             r *= base ** exp
         return r
 
+    def to_ADD(self, Algebra, base_exp_dict, expr):
+        return Algebra(ADD, [expr])
+
     def term_coeff(self, cls, expr):
         data = expr.data
         coeff = base_exp_dict_get_coefficient(cls, data)
