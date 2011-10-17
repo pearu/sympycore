@@ -113,6 +113,9 @@ class PowHead(ArithmeticHead):
         s2 = '('+e+')' if e_p < pow_p else e
         return s1 + '**' + s2, pow_p
 
+    def to_ADD(self, Algebra, (base, exp), expr):
+        return Algebra(ADD, [expr])
+
     def to_EXP_COEFF_DICT(self, cls, (base, exp), expr, variables=None):
         if isinstance(exp, Expr):
             if exp.head is NUMBER:
