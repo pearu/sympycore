@@ -93,7 +93,13 @@ class Verbatim(Algebra):
             return obj
         if hasattr(obj, 'as_verbatim'):
             # handle low-level numbers and constants, as well as Verbatim subclasses
-            return obj.as_verbatim()
+            try:
+                return obj.as_verbatim()
+            except TypeError, msg:
+                if str(msg)=='unbound method as_verbatim() must be called with Verbatim instance as first argument (got nothing instead)':
+                    pass
+                else:
+                    raise
         if isinstance(obj, slice):
             slice_args = obj.start, obj.stop, obj.step
             return cls(SLICE, tuple(map(cls.convert, slice_args)))
