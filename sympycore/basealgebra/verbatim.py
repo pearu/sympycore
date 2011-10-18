@@ -31,6 +31,7 @@ from ..core import classes, Expr, objects
 EllipsisType = type(Ellipsis)
 special_types = (EllipsisType, type(None), type(NotImplemented))
 special_objects = set([Ellipsis, None, NotImplemented])
+number_types = (int, long, float, complex)
 
 containing_lst = set([IN, NOTIN])
 
@@ -109,6 +110,10 @@ class Verbatim(Algebra):
             return cls(LIST, tuple(map(cls.convert, obj)))
         elif isinstance(obj, special_types):
             return cls(SPECIAL, obj)
+        elif isinstance(obj, number_types):
+            return cls(NUMBER, obj)
+        elif isinstance(obj, dict):
+            return cls(DICT,  tuple([(cls.convert(k), cls.convert(v)) for k,v in obj.iteritems()]))
         return Verbatim(SYMBOL, obj)
 
     def as_verbatim(self):

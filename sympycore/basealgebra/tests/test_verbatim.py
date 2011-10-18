@@ -10,11 +10,12 @@ def test_basic():
     assert repr(a) == "Verbatim(SYMBOL, 'a')"
     
     assert Verbatim.convert('1') == Verbatim(heads.NUMBER, 1)
-    assert Verbatim.convert(1) == Verbatim(heads.SYMBOL, 1)
+    assert Verbatim.convert(1) == Verbatim(heads.NUMBER, 1)
     assert Verbatim.convert(None) == Verbatim(heads.SPECIAL, None)
     assert Verbatim.convert(Ellipsis) == Verbatim(heads.SPECIAL, Ellipsis)
     assert Verbatim.convert(['a']) == Verbatim(heads.LIST, (Verbatim(heads.SYMBOL, 'a'), )),`Verbatim.convert(['a'])`
     assert Verbatim.convert(('a','1')) == Verbatim(heads.TUPLE, (Verbatim(heads.SYMBOL, 'a'), Verbatim(heads.NUMBER, 1))),`Verbatim.convert(('a',1))`
+    assert Verbatim.convert({1:'2'}) == Verbatim(heads.DICT, ((Verbatim(heads.NUMBER, 1), Verbatim(heads.NUMBER, 2)),)),`Verbatim.convert({1:2})`
     assert str(Verbatim(heads.SPECIAL, None))=='None'
     assert str(Verbatim(heads.SPECIAL, Ellipsis)) in ['...', 'Ellipsis'],`str(Verbatim(heads.SPECIAL, Ellipsis))`
 
