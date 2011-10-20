@@ -263,7 +263,7 @@ class Head(object):
             term_coeff_dict_add_item(cls, data, lhs, 1)
             return term_coeff_dict_new(cls, data)            
         if rhead is SYMBOL or rhead is APPLY or rhead is CALLABLE\
-               or rhead is BASE_EXP_DICT or rhead is POW:
+               or rhead is BASE_EXP_DICT or rhead is POW or rhead is SUBSCRIPT:
             return cls(TERM_COEFF_DICT, {lhs:1, rhs:1})
         if rhead is MUL:
             return cls(ADD, [lhs, rhs])
@@ -362,7 +362,7 @@ class Head(object):
             base_exp_dict_add_item(cls, data, lhs, 1)
             return base_exp_dict_new(cls, data)
         if rhead is SYMBOL or rhead is CALLABLE or rhead is APPLY \
-           or rhead is TERM_COEFF_DICT or rhead is ADD:
+           or rhead is TERM_COEFF_DICT or rhead is ADD or rhead is SUBSCRIPT:
             return cls(BASE_EXP_DICT, {lhs:1, rhs:1})
         if rhead is EXP_COEFF_DICT:
             return lhs * rhs.to(TERM_COEFF_DICT)

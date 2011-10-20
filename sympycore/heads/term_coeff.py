@@ -121,7 +121,7 @@ class TermCoeff(ArithmeticHead):
                 if term==rhs:
                     return term_coeff_new(cls, (term, coeff + 1))
                 return cls(TERM_COEFF_DICT,{term:coeff, rhs:1})
-        if head is POW or head is APPLY or head is DIFF or head is FDIFF:
+        if head is POW or head is APPLY or head is DIFF or head is FDIFF or head is SUBSCRIPT:
             if term==rhs:
                 return term_coeff_new(cls, (term, coeff + 1))
             return cls(TERM_COEFF_DICT,{term:coeff, rhs:1})
