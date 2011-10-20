@@ -145,7 +145,14 @@ class Verbatim(Algebra):
             if isinstance(rest, Verbatim):
                 rest = rest,
             for t in rest:
-                r.append(t.as_tree(tab=tab + '  ', level=level+1))
+                if type(t) is tuple:
+                    r.append(tab + '  (')
+                    for t1 in t:
+                        r.append(t1.as_tree(tab=tab + '    ', level=level+1))
+                    r.append(tab + '  )')
+                else:
+                    r.append(t.as_tree(tab=tab + '  ', level=level+1))
+
             r.append(tab+']')
         return '\n'.join(r)
 
