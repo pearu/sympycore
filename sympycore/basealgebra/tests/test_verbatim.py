@@ -259,3 +259,12 @@ def test_mixed_operations():
     assert str(-(a+b)) in '-(a + b)',str(-(a+b))
     assert str(-(-a)) in ['a','--a'],str(-(-a))
     assert str(-(+a))=='-a',str(-(+a))
+
+def test_subs():
+    a = Verbatim('a')
+    b = Verbatim('b')
+    c = Verbatim('c')
+    
+    assert str(a[b].subs(b,c))=='a[c]'
+    assert str(a[b].subs(a,c))=='c[b]'
+    assert str(a[b,c].subs(b,c))=='a[c, c]'

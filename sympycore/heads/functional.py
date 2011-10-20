@@ -25,6 +25,7 @@ class FunctionalHead(Head):
         f = f + p1 + ', '.join(l) + p2
         return f,o_p
 
+
 class SubscriptHead(FunctionalHead):
     """
     SubscriptHead is a head for n-ary subscript operation,
@@ -34,7 +35,38 @@ class SubscriptHead(FunctionalHead):
     op_mth = '__getitem__'
     parenthesis = '[]'
 
+    def is_data_ok(self, cls, data):
+        if type(data) is tuple:
+            if len(data)<2:
+                return '%s data part must be a 2-tuple but got %s-tuple' % (self, len(data))
+            base, items = data
+            if not isinstance(base, cls):
+                return '%s data 1st item must be %s instance but got %s' % (self, cls, type(a))
+            if type(items) is not tuple:
+                return '%s data 2nd item must be a tuple but got %s' % (self, type(items))
+            for i,a in enumerate(items):
+                if not isinstance(a, cls):
+                    return '%s data 2nd items %sth item must be %s instance but got %s' % (self, i, cls, type(a))
+        else:
+            return '%s data part must be a tuple but got %s' % (self, type(data))
+
     def __repr__(self): return 'SUBSCRIPT'
+
+    def walk(self, func, cls, (base, items), target):
+        new_base = base.head.walk(func, cls, base.data, base)
+        flag = new_base is not base
+        new_items = []
+        for op in items:
+            o = op.head.walk(func, cls, op.data, op)
+            if op is not o:
+                flag = True
+            new_items.append(o)
+        if flag:
+            r = self.new(cls, (new_base, tuple(new_items)))
+            return func(cls, r.head, r.data, r)
+        return func(cls, self, (base, items), target)
+
+
 
 class SliceHead(Head):
     """
@@ -78,6 +110,7 @@ class SliceHead(Head):
                 if step is None: r ='%s:%s' % (start, stop)
                 else: r = '%s:%s:%s' % (start, stop, step)
         return r, slice_p
+
 
     def __repr__(self): return 'SLICE'
 
