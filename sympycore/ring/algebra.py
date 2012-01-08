@@ -197,6 +197,8 @@ class CommutativeRing(Ring):
             BASE_EXP_DICT instead of TERM_COEFF_DICT.
         """
         head, data = self.pair
+        if target is head:
+            return self
         if target is EXP_COEFF_DICT:
             return head.to_EXP_COEFF_DICT(type(self), data, self, args or None)
         if target is TERM_COEFF_DICT:

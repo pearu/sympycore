@@ -116,6 +116,9 @@ class PowHead(ArithmeticHead):
     def to_ADD(self, Algebra, (base, exp), expr):
         return Algebra(ADD, [expr])
 
+    def to_TERM_COEFF_DICT(self, cls, data, expr):
+        return expr
+
     def to_EXP_COEFF_DICT(self, cls, (base, exp), expr, variables=None):
         if isinstance(exp, Expr):
             if exp.head is NUMBER:
