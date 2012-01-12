@@ -20,7 +20,7 @@ class Unit(CommutativeRing):
     Coefficients of the units algebra are Calculus instances.
     """
 
-    def as_algebra(self, cls):
+    def as_algebra(self, cls, typeerror=True):
         """ Convert algebra to another algebra.
         """
         if cls is classes.Verbatim:
