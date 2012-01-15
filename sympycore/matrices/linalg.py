@@ -693,6 +693,8 @@ def gauss_jordan_elimination_MATRIX_T(m, n, data, swap_columns = False):
     return 0, row_pivot_table, pivot_table
 
 def get_rc_map(data):
+    """ Return mapping between row indices and column indices with existing values.
+    """
     rows = {}
     for i, j in data:
         s = rows.get (i)
@@ -711,6 +713,7 @@ def get_rc_map_T(data):
     return rows
 
 def get_rc_maps(data):
+
     rows = {}
     cols = {}
     for i, j in data:

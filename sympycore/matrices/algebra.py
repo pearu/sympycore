@@ -603,7 +603,7 @@ class MatrixDict(MatrixBase):
             return self[key, :]
         elif is_integer(key):
             return self[int(key)]
-        
+
         raise IndexError('index must be int, slice, or tuple, got %s' % (tkey))
 
     def _set_diagonal(self, key, value):
@@ -1030,6 +1030,7 @@ from .linalg import (MATRIX_DICT_swap_rows, MATRIX_DICT_swap_cols,
                      MATRIX_DICT_get_gauss_jordan_elimination_operations,
                      MATRIX_DICT_apply_row_operations)
 from .linalg_determinant import MATRIX_DICT_determinant
+from .linalg_lp import MATRIX_DICT_LP_solve
 
 MatrixDict.__iadd__ = MATRIX_DICT_iadd
 MatrixDict.__imul__ = MATRIX_DICT_imul
@@ -1042,3 +1043,4 @@ MatrixDict.det = MATRIX_DICT_determinant
 MatrixDict.trace = MATRIX_DICT_trace
 MatrixDict.get_gauss_jordan_elimination_operations = MATRIX_DICT_get_gauss_jordan_elimination_operations
 MatrixDict.apply_row_operations = MATRIX_DICT_apply_row_operations
+MatrixDict.LP_solve = MATRIX_DICT_LP_solve

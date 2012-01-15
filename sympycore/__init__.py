@@ -107,6 +107,7 @@ class _Tester:
         import os
         import sys
         import nose
+        #mpmath = sys.modules['sympycore.arithmetic.mpmath']
         d = os.path.dirname(os.path.abspath(__file__))
         cmd = '%s %s %s %s' % (sys.executable, nose.core.__file__, d, nose_args)
         print >>sys.stderr, 'Running %r' % cmd
@@ -159,7 +160,9 @@ class _Tester:
 
         mpmath = sys.modules['sympycore.arithmetic.mpmath']
         fn = os.path.join(os.path.dirname(mpmath.__file__), 'REVISION')
-        l = ['mode=%s' % (mpmath.settings.MODE)]
+        l = []
+        backend = mpmath.libmp.backend.BACKEND
+        l.append ('backend=%s' % (backend))
         if os.path.isfile(fn):
             f = open(fn, 'r')
             l.append('revision=%s' % (f.read().strip()))
@@ -169,8 +172,9 @@ class _Tester:
         print >>sys.stderr, 'mpmath version: %s (%s)' % (mpmath.__version__, ', '.join(l))
         print >>sys.stderr, 'mpmath is installed in %s' % (os.path.dirname(mpmath.__file__))
 
-        if mpmath.settings.MODE=='gmpy':
-            gmpy = mpmath.settings.gmpy
+        
+        if backend=='gmpy':
+            gmpy = mpmath.libmp.backend.gmpy
             print >>sys.stderr, 'gmpy version: %s' % (gmpy.version())
             print >>sys.stderr, 'gmpy is installed in %s' % (os.path.dirname(gmpy.__file__))
 
