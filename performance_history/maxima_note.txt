@@ -1,0 +1,51 @@
+
+Maxima 5.14.0 http://maxima.sourceforge.net
+-------------------------------------------
+Using Lisp CLISP 2.41 (2006-10-13)
+Distributed under the GNU Public License. See the file COPYING.
+Dedicated to the memory of William Schelter.
+The function bug_report() provides bug reporting information.
+(%i1) a:1/2$ b:2/3$ c:4/5$
+(%i4)  3*(a*x+b*y+c*z);
+                                  4 z   2 y   x
+(%o4)                          3 (--- + --- + -)
+                                   5     3    2
+(%i5) expand(3*(a*x+b*y+c*z));
+                               12 z         3 x
+(%o5)                          ---- + 2 y + ---
+                                5            2
+(%i20) t0:elapsed_real_time()$ for i:0 thru 5000 do expand (3*(a*x+b*y+c*z))$ 5000/(elapsed_real_time ()-t0);
+(%o22)                         2333.044968975162
+(%i23) t0:elapsed_real_time()$ for i:0 thru 5000 do expand (3*(a*x+b*y+c*z))$ 5000/(elapsed_real_time ()-t0);
+(%o25)                         2342.100283113075
+(%i26) t0:elapsed_real_time()$ for i:0 thru 5000 do expand (3*(a*x+b*y+c*z))$ 5000/(elapsed_real_time ()-t0);
+(%o28)                         2328.24534118108
+
+
+Maxima 5.12.0 http://maxima.sourceforge.net
+-------------------------------------------
+Using Lisp GNU Common Lisp (GCL) GCL 2.6.7 (aka GCL)
+Distributed under the GNU Public License. See the file COPYING.
+Dedicated to the memory of William Schelter.
+This is a development version of Maxima. The function bug_report()
+provides bug reporting information.
+(%i1)  a:1/2$ b:2/3$ c:4/5$
+
+(%i4) 3*(a*x+b*y+c*z);
+                                  4 z   2 y   x
+(%o4)                          3 (--- + --- + -)
+                                   5     3    2
+(%i5)  expand(3*(a*x+b*y+c*z));
+                               12 z         3 x
+(%o5)                          ---- + 2 y + ---
+                                5            2
+(%i11) t0:elapsed_real_time()$ for i:0 thru 15000 do expand (3*(a*x+b*y+c*z))$ 15000/(elapsed_real_time ()-t0);
+(%o13)                         18749.9999999999
+(%i14) t0:elapsed_real_time()$ for i:0 thru 15000 do expand (3*(a*x+b*y+c*z))$ 15000/(elapsed_real_time ()-t0);
+(%o16)                         19480.5194805194
+(%i17) t0:elapsed_real_time()$ for i:0 thru 15000 do expand (3*(a*x+b*y+c*z))$ 15000/(elapsed_real_time ()-t0);
+(%o19)                         18987.34177215192
+(%i20) t0:elapsed_real_time()$ for i:0 thru 15000 do expand (3*(a*x+b*y+c*z))$ 15000/(elapsed_real_time ()-t0);
+(%o22)                         19480.51948051958
+(%i23) t0:elapsed_real_time()$ for i:0 thru 15000 do expand (3*(a*x+b*y+c*z))$ 15000/(elapsed_real_time ()-t0);
+(%o25)                         19230.7692307692

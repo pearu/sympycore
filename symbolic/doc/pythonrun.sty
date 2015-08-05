@@ -1,0 +1,227 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% pythonrun.sty v2.0 - "Run Python code from LaTeX"
+% Home site: http://cens.ioc.ee/~pearu/python
+% Complete rewrite of pythonrun.sty v1.1 to use pythonrun.py.
+% 
+% Copyright (C) 1999,2007 Pearu Peterson all rights reserved
+% Pearu Peterson <pearu@cens.ioc.ee>
+%
+% NO WARRANTY IS EXPRESSED OR IMPLIED.  USE AT YOUR OWN RISK.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% The following environments are provided:
+%
+%   python        - execute python code, show input and output 
+%                   in verbatim environment
+%   python*       - execute python code in background
+%   pythonlatex   - execute python code, show the output directly
+%
+% The following commands are provided:
+%
+%   \pythoneval   - evaluate python expression and show output
+%   \pythonreset  - start new python session
+%   \pythonstopdaemon - stop python daemon, put it at the end of latex document
+%
+% Requires:
+%
+%   Python 2.4 or higher
+%   Pyro package
+%   pythonrun.py
+%
+% Run latex with --shell-escape option in order to execute python code through daemon.
+%
+    
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{pythonrun}[2007/03/03 "Run Python from LaTeX v2.0" Pearu Peterson]
+\@ifundefined{verbatim@processline}{\RequirePackage{verbatim}}{}
+\RequirePackage[dvips]{color}
+\RequirePackage{pdfcolmk}
+
+\newif\ifshellescape
+\ProcessOptions
+\immediate\write18{> pythonrun.shellescapetest}
+\IfFileExists{pythonrun.shellescapetest}%
+{\global\shellescapetrue}{\global\shellescapefalse}
+
+\ifshellescape
+ \immediate\write18{rm -f pythonrun.shellescapetest}
+\else
+\typeout{****************************************************}
+\typeout{Use --shell-escape to run Python from LaTeX}
+\typeout{****************************************************}
+\fi
+\newcounter{runpython@id}
+\newwrite\runpython@out
+\newread\runpython@in
+\newlength\emwidth
+
+\def\runpythonfn{\jobname _pycode}
+
+\def\verbatimwrite{\nobreak%
+\begingroup%
+\@bsphack%
+\let\do\@makeother\dospecials%
+\catcode`\^^M\active\catcode`\^^I=12%
+\verbatim@font%
+\verbatim@start}
+
+\def\endverbatimwrite{%
+\@esphack%
+\endgroup}
+
+
+\newcommand{\pythoneval}[1]{%
+\color{blue}%
+\stepcounter{runpython@id}%
+\def\fn{\runpythonfn\therunpython@id.py}%
+\immediate\openout\runpython@out\fn%
+\immediate\write\runpython@out{#1}%
+\immediate\closeout\runpython@out%
+\ifshellescape%
+\immediate\write18{cat \fn | python pythonrun.py eval 2>&1 > \fn.out}%
+\immediate\write18{rm \fn}%
+\openin\runpython@in=\fn.out\relax%
+\else%
+\IfFileExists{\fn.out}{\openin\runpython@in=\fn.out}{\openin\runpython@in=\fn}\relax%
+\fi%
+\ifeof\runpython@in%
+\else%
+\loop\read\runpython@in to \runpython@line%
+\if\ifeof\runpython@in F\else T\fi T%
+\runpython@line%
+\repeat%
+\fi%
+\closein\runpython@in%
+\normalcolor%
+}
+
+\newenvironment{python}{%
+\nolinebreak%
+\color{blue}%
+\stepcounter{runpython@id}%
+\def\fn{\runpythonfn\therunpython@id.py}%
+\ifshellescape%
+\immediate\openout\runpython@out \fn%
+\def\verbatim@processline{\immediate\write\runpython@out{\the\verbatim@line}}%
+\else%
+\IfFileExists{\fn.out}{\def\verbatim@processline{}}{%
+\immediate\openout\runpython@out \fn%
+\def\verbatim@processline{\immediate\write\runpython@out{\the\verbatim@line}}%
+}%
+\fi%
+\smallbreak%
+\par\noindent\rule[-1ex]{1pt}{0.5ex}\hspace{-1pt}\rule[-0.5ex]{\linewidth}{1pt}%
+\nolinebreak\verbatimwrite}%
+{\endverbatimwrite%
+\ifshellescape%
+\immediate\closeout\runpython@out%
+\def\verbatim@processline{\the\verbatim@line\par}%
+\setlength{\emwidth}{1em}%
+\immediate\write18{cat \fn | python pythonrun.py textwidth=\the\linewidth\space em=\the\emwidth\space exec 2>&1 > \fn.out}%
+\verbatiminput{\fn.out}%
+\immediate\write18{rm \fn}%
+\else%
+\IfFileExists{\fn.out}{%
+\def\verbatim@processline{\the\verbatim@line\par}%
+\verbatiminput{\fn.out}%
+}{%
+\immediate\closeout\runpython@out%
+\def\verbatim@processline{\texttt{>>>} \the\verbatim@line\par}%
+\verbatiminput{\fn}%
+}%
+\fi%
+\nopagebreak%
+\rule[1ex]{\linewidth}{1pt}\hspace{-1pt}\rule[1ex]{1pt}{0.5ex}%
+\newline\normalcolor%
+}
+
+\newenvironment{python*}{%
+\stepcounter{runpython@id}%
+\def\fn{\runpythonfn\therunpython@id.py}%
+\ifshellescape%
+\immediate\openout\runpython@out \fn%
+\def\verbatim@processline{\immediate\write\runpython@out{\the\verbatim@line}}%
+\else%
+\def\verbatim@processline{}%
+\fi%
+\verbatimwrite%
+}%
+{\endverbatimwrite
+\ifshellescape%
+\immediate\closeout\runpython@out%
+\fi%
+\def\verbatim@processline{\the\verbatim@line\par}%
+\ifshellescape%
+\immediate\write18{cat \fn | python pythonrun.py exec}%
+\immediate\write18{rm \fn}%
+\fi%
+}
+
+\newenvironment{pythoncall}{%
+  \stepcounter{runpython@id}%
+  \def\fn{\runpythonfn.id.\therunpython@id}%
+  \immediate\openout\runpython@out \fn%
+  \def\verbatim@processline{\immediate\write\runpython@out{\the\verbatim@line}}%
+  \verbatimwrite}{%
+  \immediate\closeout\runpython@out%
+  \endverbatimwrite%
+  \def\verbatim@processline{\the\verbatim@line\par}%
+  \ifshellescape%
+  \runpythonout\fn%
+  \openin\runpython@in=\runpythonfn.py.out\relax%
+  {\ifpythondistil\let\do\@makeother\dospecials\fi%
+  \ifeof\runpython@in\else%
+  \loop\read\runpython@in to \runpython@line%
+  \if\ifeof\runpython@in F\else T\fi T%
+  \ifpythondistil\immediate\write\pythonlatex@out{\runpython@line}\else%
+  \runpython@line\fi\repeat%
+  \fi%
+  \closein\runpython@in}%
+  \fi}
+
+
+\newenvironment{pythonlatex}{%
+\color{blue}%
+\stepcounter{runpython@id}%
+\def\fn{\runpythonfn\therunpython@id}%
+\ifshellescape%
+\immediate\openout\runpython@out \fn%
+\def\verbatim@processline{\immediate\write\runpython@out{\the\verbatim@line}}%
+\else%
+\IfFileExists{\fn.tex}{\def\verbatim@processline{}}{%
+\immediate\openout\runpython@out \fn%
+\def\verbatim@processline{\immediate\write\runpython@out{\the\verbatim@line}}%
+}%
+\fi%
+\verbatimwrite}%
+{\endverbatimwrite%
+\ifshellescape%
+\immediate\closeout\runpython@out%
+\immediate\write18{cat \fn | python pythonrun.py eval 2>&1 > \fn.tex}%
+\immediate\write18{rm \fn}%
+\fi%
+\IfFileExists{\fn.tex}{%
+\input{\fn.tex}%
+}{%
+\immediate\closeout\runpython@out%
+\def\verbatim@processline{\the\verbatim@line\par}%
+\verbatiminput{\fn}%
+}%
+\normalcolor\xspace%
+}
+
+\def\pythonstartdaemon{\immediate\write18{python pythonrun.py start > pythonrun_daemon.log 2>&1 &}}
+
+\def\pythonstopdaemon{\immediate\write18{python pythonrun.py stop}}
+
+\def\pythonreset{%
+  \pythonstopdaemon%
+  \pythonstartdaemon%
+}
+
+\ifshellescape
+\immediate\write18{rm -f \runpythonfn.*}
+\fi
+\pythonstartdaemon
+
+%% EOF pythonrun.sty

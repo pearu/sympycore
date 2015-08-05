@@ -1,9 +1,0 @@
-include LICENSE
-include README.txt
-include CREDITS.txt
-include doc/*.rst
-include doc/html/*.html
-include sympycore/arithmetic/mpmath/LICENSE
-include sympycore/arithmetic/mpmath/README
-include sympycore/arithmetic/mpmath/REVISION
-global-include tests/*.py

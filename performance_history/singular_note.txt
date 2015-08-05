@@ -1,0 +1,12 @@
+pearu@pearu-laptop:~$ /usr/local/x86_64-Linux/Singular --ticks-per-sec 10000
+                     SINGULAR                             /  Development
+ A Computer Algebra System for Polynomial Computations   /   version 3-0-4
+                                                       0<
+     by: G.-M. Greuel, G. Pfister, H. Schoenemann        \   Nov 2007
+FB Mathematik der Universitaet, D-67653 Kaiserslautern    \
+// ** executing /usr/local/LIB/.singularrc
+> ring R=0,(x,y,z),dp;
+> poly f;
+> number a=1/2; number b=2/3; number c=4/5;
+> int start=rtimer;int N=50000;int i=N; while(i) { f=3*(a*x+b*y+c*z);i--; }; N*10000/(rtimer-start);
+58486

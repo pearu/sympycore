@@ -1,0 +1,505 @@
+% Use
+%   latex --shell-escape <filename>.tex
+% or 
+%   python pythonrun.py source=<filename>.tex distil
+%   latex distil_<filename>.tex
+% to compile this document
+
+\documentclass[a4paper,12pt]{article}
+\usepackage{python}
+\usepackage{amsmath}
+\usepackage{pythonrun}  
+\usepackage{xspace}
+
+\title{Symbolic manipulation package for Python}
+\author{Pearu Peterson\\\texttt{\normalsize<pearu@cens.ioc.ee>}}
+
+\newcommand{\Symbolic}[0]{\emph{Symbolic}\xspace}
+\newcommand{\Add}[0]{\emph{Add}\xspace}
+\newcommand{\Mul}[0]{\emph{Mul}\xspace}
+\newcommand{\Power}[0]{\emph{Power}\xspace}
+\newcommand{\Symbol}[0]{\emph{Symbol}\xspace}
+\newcommand{\Number}[0]{\emph{Number}\xspace}
+\newcommand{\Integer}[0]{\emph{Integer}\xspace}
+\newcommand{\Rational}[0]{\emph{Rational}\xspace}
+
+\renewcommand{\keyword}[1]{\texttt{\color{magenta}#1}}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+  Symbolic is a pure Python package that provides tools for performing
+  symbolic manipulations with objects representing numbers, symbols,
+  operations, functions, and operators. Supported operations include
+  logical, relational, arithmetic, and functional operations. The
+  Symbolic package provides a parser tool to create symbolic objects
+  from a string with Python language like syntax.
+\end{abstract}
+
+\begin{python*}
+# set symbolic path
+import sys; sys.path.insert(0,'../..')
+\end{python*}
+
+\section{Getting started}
+
+To get started using Symbolic package, one must import the module
+\texttt{symbolic.api}. In the following examples we assume that the following
+import statement has been executed in the beginning of Python session:
+\begin{python}
+from symbolic.api import *
+\end{python}
+Simplest way to create symbolic objects is to use \Symbolic constructor.
+For an example, to create a polynomial object from a string, execute:
+\begin{python}
+poly = Symbolic('2/3 + a * 3 + a ** 2 /4')
+poly
+\end{python}
+where \Symbolic has parsed Python string, constructed symbolic object,
+and the default string representation of the symbolic object
+\texttt{poly} is displayed.  The object \texttt{poly} is an \Add
+object containing \Number, \Symbol, \Mul, and \Power objects. To view
+the internal structure of a symbolic object, use \method{.torepr()}
+method:
+\begin{python}
+poly.torepr()
+\end{python}
+(here \Integer and \Rational are subclasses of the \Number class).
+The same polynomial can be constructed using arithmetic operations with symbolic objects:
+\begin{python}
+a = Symbol('a')
+poly2 = Rational(2,3) + 3*a + a**2 /4
+poly2
+\end{python}
+Note that the object representing a rational number $2/3$ had to be
+constructed explicitly as Python integer division does not result in a
+rational number.  The \var{poly} and \var{poly2} objects are
+equal indeed:
+\begin{python}
+poly==poly2
+bool(poly==poly2)
+bool(poly==a)
+poly-poly2
+\end{python}
+Here follows more examples on symbolic manipulations with the help of
+Symbolic package:
+\begin{python}
+poly.diff('a')                     # differentation
+poly.integrate('a')                # antiderivative
+poly.integrate(Range('a',0,1))     # definite integration
+poly + 3 * poly                    # arithmetic operations
+(poly ** 2).expand()               # expansion
+poly.substitute('a','(b+1)/3')     # substitution
+# elementary functions exp, ln, log, sin, cos etc.
+exp(poly)
+# elementary propositional calculus
+lhs = Symbolic('(a and b).implies(c)')
+rhs = Symbolic('a.implies(b.implies(c))')
+lhs == rhs
+lhs.equiv(rhs).expand()
+\end{python}
+
+
+
+
+\section{Symbolic parser}
+\label{sec:parser}
+
+Symbolic provides a parser for symbolic expressions to ease creating
+symbolic objects. The syntax of symbolic expressions is borrowed from
+Python syntax rules with some extensions like parsing rational
+numbers. The syntax rules are the following:\\
+\begin{productionlist}
+\production{expr}{\token{lambda-test}}
+\production{lambda-test}{[ \keyword{lambda} \token{identifier-list} \token{colon} ] \token{or-test}}
+\production{or-test}{[ \token{or-test} \token{or-op} ] \token{xor-test}}
+\production{xor-test}{[ \token{xor-test} \token{xor-op} ] \token{and-test}}
+\production{and-test}{[ \token{and-test} \token{and-op} ] \token{not-test}}
+\production{not-test}{[ \token{not-op} ] \token{relational}}
+\production{relational}{[ \token{arith} \token{rel-op} ] \token{arith}}
+\production{arith}{( [ \token{arith} \token{add-op} ] \token{term} ) | \token{factor}}
+\production{factor}{[ \token{add-op} ] \token{term}}
+\production{term}{[ \token{term} \token{mult-op} ] \token{power}}
+\production{power}{\token{primary} [ \token{power-op}  \token{power} ]}
+\production{primary}{\token{atom} | \token{attr-ref} | \token{slicing} | \token{call}}
+\production{atom}{\token{identifier} | \token{literal} | \token{parenth}}
+\production{literal}{\token{int-literal} | \token{float-literal} | \token{logical-literal}}
+\production{parenth}{\keyword{(} \token{expr-list} \keyword{)}}
+\production{attr-ref}{\token{primary} \keyword{.} \token{identifier}}
+\production{slicing}{\token{primary} [ \token{subscript-list} ]}
+\production{subscript}{\token{expr} | \token{slice}}
+\production{slice}{[ \token{expr} ] \token{colon} [ \token{expr} ] [ \token{colon} \token{expr} ]}
+\production{call}{\token{primary} \keyword{(} [ \token{argument-list} ] \keyword{)}}
+\production{argument}{[ \token{identifier} \keyword{=} ] \token{expr}}
+\production{identifier}{( \token{letter} | \keyword{_} ) [ \token{letter} | \token{digit} | \keyword{_} ]\dots }
+\production{letter}{\token{lowercase} | \token{uppercase}}
+\end{productionlist}
+where\\
+\begin{productionlist}
+\production{logical-literal}{\keyword{True} | \keyword{False}}
+\production{or-op}{\keyword{or} | \keyword{|}}
+\production{xor-op}{\keyword{xor} | \keyword{\^}}
+\production{and-op}{\keyword{and} | \keyword{\&}}
+\production{not-op}{\keyword{not} | \keyword{\~}}
+\production{rel-op}{\keyword{==} | \keyword{<>} | \keyword{!=} | \keyword{<} | \keyword{<=} | \keyword{>} | \keyword{>=} | \keyword{in} | \keyword{not in}}
+\production{add-op}{\keyword{+} | \keyword{-}}
+\production{mult-op}{\keyword{*} | \keyword{/}}
+\production{power-op}{\keyword{**}}
+\production{lowercase}{\keyword{a}...\keyword{z}}
+\production{uppercase}{\keyword{A}...\keyword{Z}}
+\production{digit}{\keyword{0}...\keyword{9}}
+\production{colon}{\keyword{:}}
+\end{productionlist} 
+
+For each rule the \module{symbolic.parser} module provides a class to parse a
+string containing an expression satisfying the particular syntax rule. 
+Parsing always results in a minimal syntax rule object.
+For example, the most general parser class is \class{Expr}:
+\begin{python}
+from symbolic.parser import *
+Expr('a+1')
+Expr('a+1').torepr()
+Expr('4/5').torepr()
+\end{python}
+Other parser classes are
+\begin{python*}
+import symbolic.parser as _parser
+\end{python*}
+\begin{pythonlatex}
+', '.join(['\\class{%s}' % (s) for s in _parser.__all__])
+\end{pythonlatex}%
+.
+
+To translate parsed syntax tree to a symbolic object, use \method{.tosymbolic()} method:
+\begin{python}
+Expr('a+1').tosymbolic()
+\end{python}
+
+
+\section{Expressions}
+\label{sec:expressions}
+
+Symbolic objects can represent field values, symbols, function values,
+differential and integral operators, arithmetic expressions,
+relational expressions, and boolean expressions.
+
+The following classes are defined to represent numeric fields:
+\class{Decimal}, \class{Rational}, and \class{Integer}. All these
+classes are subclasses of the \class{Number} class. In addition,
+\class{Boolean} represents boolean field constisting of two values,
+\code{TRUE} and \code{FALSE}.
+
+To represent symbols of some field, the \class{Symbol} class is
+defined. In addition, for symbols representing variables of lambda
+functions or variables of integration, the \class{DummySymbol} is
+defined. Also, the \class{FunctionSymbol} class is defined to
+represent abstract functions. These symbol classes are subclasses of
+the \class{SymbolBase} class.
+
+For function values the \class{Apply} is defined containing the
+information about a function and its arguments. A function can either
+be a lambda function or an elementary function or an abstract
+function. For lambda functions the \class{Lambda} class is defined
+containing information how its arguments are mapped to some expression.
+The following classes are defined to represent elementary functions:
+\class{Exp}, \class{Ln}, \class{Log}, \class{Sqrt}, \class{Sin},
+\class{Cos}, etc.
+
+Arithmetic expressions are addition, multiplication,
+and exponent operations between two or more symbolic objects. For a
+sum, product, and exponent the \class{Add}, \class{Mul}, and
+\class{Power} classes are defined, respectively.
+
+Relational expressions are relational operations between symbolic
+objects. For relational operations the following classes are defined:
+\class{Equal}, \class{NotEqual}, \class{Less}, \class{LessEqual},
+\class{Greater}, and \class{GreaterEqual}. Note that the instances of
+the last two classes are never created as $a>b$, $a>=b$ can be
+expressed as $b<a$, $b<=a$, respectively. Relational expressions can
+have boolean values.
+
+Boolean expressions are boolean operations between symbolic
+objects. For boolean operations the following classes are defined:
+\class{Or}, \class{XOr}, \class{And}, and \class{Not}. Boolean
+operations operate on expressions with boolean values and result in
+boolean values.
+
+Differential and integral operators...
+
+Expressions of symbolic objects are all instances of 
+\class{Symbolic} subclasses.
+
+\section{Symbolic classes}
+\label{sec:classes}
+
+All symbolic objects are instances of subclasses of \class{Symbolic} class.
+The \class{Symbolic} can be used to parse a string for symbolic objects:
+\begin{verbatim}
+symbolic_object = Symbolic('<string>')
+\end{verbatim}
+The set of all symbolic objects is ordered and symbolic object are
+hashable, that is, they can be used as dictionary keys.
+\class{Symbolic} class defines the following default methods:
+\begin{tableiii}{l|p{0.18\linewidth}|p{0.5\linewidth}}{method}{Method call}{Result}{Description}
+\lineiii{.is_equal(other)}{Python boolean or \keyword{None}}{formal equality, the meaning
+of \keyword{False} value depends on the contex; \keyword{None} is
+returned when there is not enough information to deside}
+\lineiii{.compare(other)}{-1, 0, or 1}{determine canonical order of
+  symbolic objects}
+\lineiii{.expand()}{symbolic object}{open parenthesis, expand integer powers, etc}
+\lineiii{.substitute(expr, repl)}{symbolic object}{substitute all occurrences
+  of \code{expr} with \code{repl}}
+\lineiii{.to_decimal()}{symbolic object}{transform all number values to
+\class{Decimal} objects; use \code{Symbolic.set_precision(prec)} to
+set the precision (default is 28)}
+\end{tableiii}
+
+
+\subsubsection{Implementation notes}
+\label{sec:impl.classes}
+
+\begin{python*}
+def precedence_dict(baseclass):
+    d = {}
+    for clsname in dir(baseclass):
+        if clsname in ['Constant', 'DefinedFunction', 'FunctionBase',\
+        'Singleton','SymbolicFunctionGenerator']:
+            continue
+        cls = getattr(baseclass, clsname)
+        if not isinstance(cls, type(baseclass)): continue
+        if not issubclass(cls, baseclass): continue
+        obj = object.__new__(cls)
+        p = obj.get_precedence()
+        if not d.has_key(p): d[p] = []
+        d[p].append(obj.__class__.__name__)
+    keys = d.keys()
+    keys.sort()
+    result = []
+    for precedence in keys:
+        classes = d[precedence]
+        classes.sort()
+        result.append('\\lineii{'+str(precedence)+'}{'+', '.join(['\\class{'+c+'}' for c in classes])+'}')
+    return '\n'.join(result)
+
+\end{python*}
+
+
+
+\begin{description}
+\item[Subclassing] --- \class{Symbolic} subclasses must be the
+  attributes of \class{Symbolic} class.  This ensures that all
+  \class{Symbolic} subclasses are available to all modules as
+  \code{Symbolic.<subclassname>} by single import statement \code{from
+    symbolic.api import Symbolic}.  This resolves the issue of cycling
+  imports of \module{symbolic} modules.
+\item[Initialisation] --- \class{Symbolic} subclasses call
+  \code{Symbolic.__new__(cls. *args, **kws)} to initialize a symbolic
+  object. The \method{Symbolic.__new__()} method carries out two
+  tasks. First, it calls the \method{.init(*args)} method of the
+  corresponding \class{Symbolic} subclass with the same arguments that
+  are used in constructing the symbolic object.  The \method{.init()}
+  method initializes the internal state of a symbolic object.  Second,
+  the \member{.flags} attribute is set to hold the
+  \class{AttributeHolder} instance. The \class{AttributeHolder} object
+  is used to restore the results of \method{.calc_*()} methods for
+  future usage.
+\item[Constructor methods] --- are related to constructing symbolic
+  objects:
+  \begin{description}
+  \item[\code{.__new__(cls, *args, **kws)}] --- construct \var{cls} instance,
+    calls \method{.init()} method and sets \member{.flags} attribute.
+  \item[\code{.init(*args)}] --- save the internal state of a symbolic
+    object.
+  \item[\code{.astuple()}] --- return the class name of a symbolic object and
+    the arguments used to construct the symbolic object, the returned
+    tuple must be hashable. For example, for \code{t = obj.astuple()}
+    the following code \code{getattr(Symbolic,t[0])(*t[1:])} must
+    return the equal symbolic object to \var{obj}.
+  \item[\code{.eval_power(exponent)}] --- evaluate power to exponent if
+    possible, otherwise return \keyword{None}
+  \end{description}
+\item[Informational methods] --- require information about symbolic
+  objects:
+  \begin{description}
+  \item[\code{.get_precedence()}] --- return the precedence order of a
+    symbolic object, must be Python integer. Background: symbolic
+    objects may be childs of a parent object and in order to place
+    parenthesis correctly around child objects, the precedece orders
+    of the parent object and its child object are compared: if
+    \var{child}\method{.get_precedence()} $<=$
+      \var{parent}\method{.get_precedence()} then parenthesis are
+      placed around \var{child} string representation. The following
+      table shows precedence valuets for symbolic objects:
+      \begin{tableii}{c|p{0.8\linewidth}}{texttt}{Precedence}{Classes}
+\begin{pythonlatex}
+precedence_dict(Symbolic)
+\end{pythonlatex}%
+%\input{a}
+        \lineii{0}{\class{Symbol}, \class{Base}, \class{TRUE}, \class{FALSE}}
+        \lineii{10}{\class{Equal}}
+        \lineii{20}{\class{Relational}}
+        \lineii{22}{\class{Or}}
+        \lineii{23}{\class{XOr}}
+        \lineii{25}{\class{And}}
+        \lineii{27}{\class{Not}}
+        \lineii{30}{\class{NegativeImaginaryUnit}, \class{Number}}
+        \lineii{40}{\class{Add}}
+        \lineii{50}{\class{Mul}, \class{NcMul}, \class{Rational}}
+        \lineii{60}{\class{Power}}
+        \lineii{70}{\class{Apply}}
+        \lineii{71}{\class{SymbolicOperator}}
+        \lineii{72}{\class{UndefinedFunction}}
+      \end{tableii}
+  \item[\code{}] 
+  \end{description}
+\end{description}
+
+\section{Fields}
+\label{sec:fields}
+
+The \module{symbolic.number} module defines three number classes,
+\class{Decimal}, \class{Rational}, and \class{Integer}, to represent
+arbitrary precision floating point numbers, rational numbers, and
+integers, respectively. All number classes are subclasses of
+\class{Number} class which can be used to construct number instances
+of the three number classes. For example:
+\begin{python}
+Number(2).torepr()
+Number(2,3).torepr()
+Number("1.2").torepr()
+\end{python}
+Complex numbers are defined through arithmetic operations with
+a predefined imaginary unit object, \code{I}. The object \code{I} is
+an instance of a singleton class \class{ImaginaryUnit}. For example,
+\begin{python}
+(2*I+3).torepr()
+\end{python}
+
+\subsection{Decimal numbers}
+\label{sec:decimal}
+
+The \class{Decimal} is used to represent arbitrary precision floating
+point numbers. The constructor for \class{Decimal} class is
+\begin{verbatim}
+decimal_object = Decimal(<str> | <int> | <long> | <float> | <decimal.Decimal>)
+\end{verbatim}
+Arithmetic operations with a \class{Decimal} object and any other
+number object results in a \class{Decimal} object. For example,
+\begin{python}
+Decimal("2")/3
+\end{python}
+
+The precision of decimal operations can be controlled via
+\method{Symbolic.set_precision(prec=\keyword{None})} static
+method:
+\begin{python}
+Symbolic.set_precision()                   # get the current precision
+1/Decimal(3)
+prev_precision = Symbolic.set_precision(8) # decrease the precision
+1/Decimal(3)
+Symbolic.set_precision(prev_precision)     # restore the original precision
+\end{python}
+
+Note that decimal numbers \code{"-1"}, \code{"0"}, \code{"1"},
+\code{"Infinity"}, \code{"-Infinity"}, and \code{"NaN"} are mapped to
+singletons \code{NegativeOne()}, \code{Zero()}, \code{One()},
+\code{Infinity()}, \code{NegativeInfinity()}, and \code{NaN()},
+respectively. So, \code{Decimal("1")/3} results in
+\code{Rational(1, 3)}, for instance.
+
+
+\subsubsection{Implementation notes}
+
+Other number classes must define \method{._todecimal()} method
+returning the corresponding \class{decimal.Decimal} object.
+
+Internally the \class{Decimal} class uses Python
+\class{decimal.Decimal} object for holding a floating point number,
+this number is stored in the \member{.num} attribute.
+
+\subsection{Rational numbers}
+\label{sec:rational}
+
+The \class{Rational} class is used to represent rational numbers:
+\begin{verbatim}
+rational_object = Rational(<int> | <long>, <int> | <long>)
+\end{verbatim}
+
+\subsubsection{Implementation notes}
+
+The \class{Rational} class uses Python \class{int} type to store the
+nominator and denominator of a rational number in \member{.numer} and
+\member{.denom} attributes. Nominators and denominators are
+normalized.
+
+Certain rational numbers are mapped to singletons:
+\begin{python}
+Rational(1,2).torepr()
+Rational(3,0).torepr()
+Rational(-2,0).torepr()
+Rational(0,0).torepr()
+\end{python}
+
+\subsection{Integers}
+\label{sec:integers}
+
+The \class{Integer} class is used to represent integers:
+\begin{verbatim}
+integer_object = Integer(<int> | <long>)
+\end{verbatim}
+Certain integer are mapped to singletons:
+\begin{python}
+Integer(-1).torepr()
+Integer(0).torepr()
+Integer(1).torepr()
+\end{python}
+
+\subsubsection{Implementation notes}
+
+\class{Integer} is a subclass of \class{Rational} and integer objects
+are rational objects with \member{.denom} equal to \keyword{1}.
+
+\subsection{Singletons}
+\label{sec:singletons}
+
+\class{Singleton} subclasses are classes that can have exactly one
+instance. The main advantage of defining certain symbolic objects as
+singletons is efficiency. 
+
+For example, the imaginary unit is defined as \code{Power(-1,
+  Rational(1,2))} then checking if some object \var{obj} is an
+imaginary unit would require two symbolic object comparisons. Much
+more efficient would be executing \code{isinstance(obj,
+  ImaginaryUnit)} or \code{obj is I}, where
+\class{ImaginaryUnit} is subclass of \class{Singleton} and \code{I} is
+its only instance.
+
+The following singletons are defined:
+\begin{tableiii}{l|p{0.18\linewidth}|p{0.5\linewidth}}{method}{Singleton
+  class}{Predefined instance name}{Description}
+\lineiii{ImaginaryUnit}{\code{I}}{imaginary unit $\sqrt{-1}$}
+\lineiii{NegativeImaginary}{-}{negative imaginary unit $-\sqrt{-1}$}
+\lineiii{One}{-}{integer $1$}
+\lineiii{NegativeOne}{-}{integer $-1$}
+\lineiii{Zero}{-}{integer $0$}
+\lineiii{Half}{-}{rational $1/2$}
+\lineiii{Exp1}{\code{E}}{exponent $\exp(0)$}
+\lineiii{Pi}{\code{Pi}}{real number $\pi$}
+\lineiii{Infinity}{\code{infinity}}{infinity $\infty$}
+\lineiii{NegativeInfinity}{-}{negative infinity $-\infty$}
+\lineiii{NaN}{\code{NaN}}{Not-A-Number or Undefined}
+\lineiii{TRUE}{\code{TRUE}}{boolean truth value}
+\lineiii{FALSE}{\code{FALSE}}{boolean false value}
+\lineiii{Exp}{\code{exp}}{exponent function}
+\lineiii{Ln}{\code{ln}}{logarithmic function with base $e$}
+\lineiii{Log}{\code{log}}{logarithmic function with given base}
+\lineiii{Sqrt}{\code{sqrt}}{square root function}
+\lineiii{Sin}{\code{sin}}{sine function}
+\lineiii{Cos}{\code{cos}}{cosine function}
+\end{tableiii}
+
+\pythonstopdaemon
+\end{document}
+
